@@ -77,8 +77,8 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
 }
 
 const updateMap = (countryData, scoreAttribute) => {
-    const colorScale = d3.scaleSequential(d3.interpolate("lightgrey", "green"))
-        .domain([1, 5]);
+    const colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+    .domain([1, 5]);
 
     d3.select("#map")
         .selectAll(".country")
