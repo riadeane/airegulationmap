@@ -17,14 +17,26 @@
     <div id="map"></div>
     <div id="country-data">
         <h2>Country: <span id="country-name"></span></h2>
-        <h3>Regulation status: <span id="regulation"></span></h3>
-        <p id="regulation-details"></p>
-        <h3>Policy Lever: <span id="policy"></span></h3>
-        <p id="policy-details"></p>
-        <h3>Governance Type: <span id="governance"></span></h3>
-        <p id="governance-details"></p>
-        <h3>Actor Involvement: <span id="actors"></span></h3>
-        <p id="actors-details"></p>
+        <div class="data-detail">
+          <h3>Regulation status score: <span id="regulation"></span></h3>
+          <p>Is the approach is based on Innovation or Regulation?</p>
+          <p id="regulation-details"></p>
+        </div>
+        <div class="data-detail">
+          <h3>Policy Lever score: <span id="policy"></span></h3>
+          <p>Type of policy lever used (Federal R&D spending, Export controls etc..) and which 'AI triad' is put forward - algorithm, data, computing power</p>
+          <p id="policy-details"></p>
+        </div>
+        <div class="data-detail">
+          <h3>Governance Type score: <span id="governance"></span></h3>
+          <p>Type of governance: Organizational governance (data privacy, ethics, accountability), Case governance (healthcare, finance, transportation), Model governance (design, training, deployment AI models).</p>
+          <p id="governance-details"></p>
+        </div>
+        <div class="data-detail">
+          <h3>Actor Involvement: <span id="actors"></span></h3>
+          <p>What actors and scale (regional, national, international)</p>
+          <p id="actors-details"></p>
+        </div>
     </div>
     <script src='map.js'></script>
 </body>

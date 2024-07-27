@@ -10,7 +10,7 @@ const margin = {
 const width = WIDTH - margin.left - margin.right,
 height = HEIGHT - margin.top - margin.bottom;  
  
-const generateMap = async (countryData, scoreAttribute) => {
+const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     
     const svg = d3.select("#map")
     .append("svg")
@@ -27,7 +27,7 @@ const generateMap = async (countryData, scoreAttribute) => {
 
     const path = d3.geoPath().projection(projection);
 
-    const colorScale = d3.scaleSequential(d3.interpolate("lightgrey", "green"))
+    const colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
         .domain([1, 5]);
 
     // Create a tooltip
@@ -52,11 +52,11 @@ const generateMap = async (countryData, scoreAttribute) => {
         .attr("d", path)
         .attr("fill", d => {
             const countryName = d.properties.name;
-            return countryData[countryName] ? colorScale(countryData[countryName][scoreAttribute]) : "#ccc";
+            return scoreData[countryName] ? colorScale(scoreData[countryName][scoreAttribute]) : "#ccc";
         })
         .on("mouseover", function(event, d) {
           const countryName = d.properties.name;
-          const score = countryData[countryName] ? countryData[countryName][scoreAttribute] : "N/A";
+          const score = scoreData[countryName] ? scoreData[countryName][scoreAttribute] : "N/A";
           tooltip.transition()
               .duration(200)
               .style("opacity", .9);
@@ -71,7 +71,7 @@ const generateMap = async (countryData, scoreAttribute) => {
         })
         .on("click", function(event, d) {
             const countryName = d.properties.name;
-            updateCountryData(countryName, countryData);
+            updateCountryData(countryName, scoreData, regulationData);
             highlightCountry(this);
         });
 }
@@ -90,20 +90,36 @@ const updateMap = (countryData, scoreAttribute) => {
         });
 }
 
-function updateCountryData(countryName, countryData) {
-    const data = countryData[countryName];
-    if (data) {
-        document.getElementById("country-name").textContent = countryName;
-        document.getElementById("regulation").textContent = data.regulationStatus;
-        document.getElementById("policy").textContent = data.policyLever;
-        document.getElementById("governance").textContent = data.governanceType;
-        document.getElementById("actors").textContent = data.actorInvolvement;
+function updateCountryData(countryName, countryData, regulationData) {
+    const scoreData = countryData[countryName];
+    const regData = regulationData[countryName];
+
+    console.log('Updating country data:', countryName, scoreData, regData);
+    
+    document.getElementById("country-name").textContent = countryName;
+    
+    if (scoreData) {
+        document.getElementById("regulation").textContent = scoreData.regulationStatus;
+        document.getElementById("policy").textContent = scoreData.policyLever;
+        document.getElementById("governance").textContent = scoreData.governanceType;
+        document.getElementById("actors").textContent = scoreData.actorInvolvement;
     } else {
-        document.getElementById("country-name").textContent = countryName;
         document.getElementById("regulation").textContent = "N/A";
         document.getElementById("policy").textContent = "N/A";
         document.getElementById("governance").textContent = "N/A";
         document.getElementById("actors").textContent = "N/A";
+    }
+    
+    if (regData) {
+        document.getElementById("regulation-details").textContent = regData.regulationStatus || "N/A";
+        document.getElementById("policy-details").textContent = regData.policyLever || "N/A";
+        document.getElementById("governance-details").textContent = regData.governanceType || "N/A";
+        document.getElementById("actors-details").textContent = regData.actorInvolvement || "N/A";
+    } else {
+        document.getElementById("regulation-details").textContent = "N/A";
+        document.getElementById("policy-details").textContent = "N/A";
+        document.getElementById("governance-details").textContent = "N/A";
+        document.getElementById("actors-details").textContent = "N/A";
     }
 }
 
@@ -116,7 +132,7 @@ function highlightCountry(element) {
 }
 
 async function initialLoad() {
-  const data = await d3.csv("scores.csv", function (d) {
+  const scoreData = await d3.csv("scores.csv", function (d) {
     return {
       country: d.Country,
       regulationStatus: +d['Regulation Status'],
@@ -127,7 +143,20 @@ async function initialLoad() {
     }
   });
 
-  const countries = Object.fromEntries(data.map(d => [d.country, d]));
+  const regulationData = await d3.csv("regulation_data.csv", function (d) {
+    return {
+      country: d.Country,
+      regulationStatus: d['Regulation Status'],
+      policyLever: d['Policy Lever'],
+      governanceType: d['Governance Type'],
+      actorInvolvement: d['Actor Involvement'],
+    }
+  });
+
+  const countries = Object.fromEntries(scoreData.map(d => [d.country, d]));
+  const regulationInfo = Object.fromEntries(regulationData.map(d => [d.country, d]));
+
+
 
   // Create the select element
   const inputContainer = d3.select("#input-container");
@@ -158,7 +187,7 @@ async function initialLoad() {
   });
 
   // Initial map generation
-  generateMap(countries, 'averageScore');
+  generateMap(countries, 'averageScore', regulationInfo);
 }
 
 initialLoad();
