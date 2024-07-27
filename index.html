@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Regulation Map</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-    <link rel='stylesheet' type='text/css' media='screen' href='style.css'>
-  </head>
-  <body>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Regulation Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+  <link rel='stylesheet' type='text/css' media='screen' href='style.css'>
+</head>
+
+<body>
+  <div class="content">
     <h1>AI Regulation by Country</h1>
     <div id="input-container"></div>
     <div id="zoom">
@@ -20,28 +24,47 @@
     </div>
     <div id="map"></div>
     <div id="country-data">
-        <h2>Country: <span id="country-name"></span></h2>
-        <div class="data-detail">
-          <h3>Regulation status score: <span id="regulation"></span></h3>
-          <p>Is the approach is based on Innovation or Regulation?</p>
-          <p id="regulation-details"></p>
-        </div>
-        <div class="data-detail">
-          <h3>Policy Lever score: <span id="policy"></span></h3>
-          <p>Type of policy lever used (Federal R&D spending, Export controls etc..) and which 'AI triad' is put forward - algorithm, data, computing power</p>
-          <p id="policy-details"></p>
-        </div>
-        <div class="data-detail">
-          <h3>Governance Type score: <span id="governance"></span></h3>
-          <p>Type of governance: Organizational governance (data privacy, ethics, accountability), Case governance (healthcare, finance, transportation), Model governance (design, training, deployment AI models).</p>
-          <p id="governance-details"></p>
-        </div>
-        <div class="data-detail">
-          <h3>Actor Involvement: <span id="actors"></span></h3>
-          <p>What actors and scale (regional, national, international)</p>
-          <p id="actors-details"></p>
-        </div>
+      <h2>Country: <span id="country-name"></span></h2>
+      <div class="data-detail">
+        <h3>Regulation status score: <span id="regulation"></span></h3>
+        <p>Is the approach is based on Innovation or Regulation?</p>
+        <p id="regulation-details"></p>
+      </div>
+      <div class="data-detail">
+        <h3>Policy Lever score: <span id="policy"></span></h3>
+        <p>Type of policy lever used (Federal R&D spending, Export controls etc..) and which 'AI triad' is put forward -
+          algorithm, data, computing power</p>
+        <p id="policy-details"></p>
+      </div>
+      <div class="data-detail">
+        <h3>Governance Type score: <span id="governance"></span></h3>
+        <p>Type of governance: Organizational governance (data privacy, ethics, accountability), Case governance
+          (healthcare, finance, transportation), Model governance (design, training, deployment AI models).</p>
+        <p id="governance-details"></p>
+      </div>
+      <div class="data-detail">
+        <h3>Actor Involvement: <span id="actors"></span></h3>
+        <p>What actors and scale (regional, national, international)</p>
+        <p id="actors-details"></p>
+      </div>
     </div>
-    <script src='map.js'></script>
+  </div>
+  <footer>
+    <p>This information was taken from <a
+        href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region">AI
+        governance tracker of each country per region</a> and each country was assigned a score between 1 and 5 on each
+      attribute using <a href="https://claude.ai/">Claude 3.5</a></p>
+    <p>Made with ❤️ by Ria Deane</p>
+    <div class="icons">
+      <a href="https://www.linkedin.com/in/riadeane">
+        <img src="linkedin.svg" alt="LinkedIn" width="24" height="24" class="icon">
+      </a>
+      <a href="https://github.com/riadeane">
+        <img src="github.svg" alt="GitHub" width="24" height="24" class="icon">
+      </a>
+    </div>
+  </footer>
+  <script src='map.js'></script>
 </body>
+
 </html>

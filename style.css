@@ -1,9 +1,20 @@
+html {
+  margin: 0;
+}
+
 body {
   font-family: Nunito, sans-serif;
-  margin: 0 0 50px 0;
+  margin: 0;
   padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background-color: #fff;
 }
+
+.content {
+  margin-bottom: 50px;
+} 
 
 h1 {
   text-align: center;
@@ -96,4 +107,32 @@ select {
   background-color: #F0DDF0;
   border-radius: 5px;
   font-family: 'Nunito', sans-serif;
+}
+
+footer {
+  margin-top: auto;
+  text-align: center;
+  width: 100%;
+  background-color: #F0DDF0;
+  padding: 10px;
+}
+
+footer p {
+  margin: 10px 40px 10px 40px;
+}
+
+footer a {
+  color: darkmagenta;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+.icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
