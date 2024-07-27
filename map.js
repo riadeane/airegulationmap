@@ -1,14 +1,5 @@
 const WIDTH = 1000;
 const HEIGHT = 500;
-const margin = {
-    top: 15,
-    bottom: 15,
-    left: 5,
-    right: 5
-};
-
-const width = WIDTH,// - margin.left - margin.right,
-height = HEIGHT// - margin.top - margin.bottom;  
  
 const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     
@@ -24,16 +15,15 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     .append("rect")
       .attr("width", WIDTH)
       .attr("height", HEIGHT)
-      .attr("rx", 20) // This sets the horizontal corner radius
-      .attr("ry", 20); // This sets the vertical corner radius
+      .attr("rx", 20)
+      .attr("ry", 20);
 
-      const g = svg.append("g")
-      //.attr('transform', `translate(${margin.left}, ${margin.top})`)
-      .attr("clip-path", "url(#clip)"); // Apply the clip path to this group
+    const g = svg.append("g")
+    .attr("clip-path", "url(#clip)"); 
 
     // Modified projection to fit wider rectangular shape
     const projection = d3.geoEquirectangular()
-      .fitSize([width, height], {type: "Sphere"});
+      .fitSize([WIDTH, HEIGHT], {type: "Sphere"});
 
     const path = d3.geoPath().projection(projection);
 
@@ -49,40 +39,70 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     const world = await d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
     const countries = topojson.feature(world, world.objects.countries).features;
 
-    g.append("path")
-        .datum({type: "Sphere"})
-        .attr("fill", "#dcf4f7")
-        .attr("d", path)
-        .attr('class', 'map-group');
+    const mapGroup = g.append("g")
+    .attr('class', 'map-group');
 
-    g.selectAll(".country")
-        .data(countries)
-        .enter().append("path")
-        .attr("class", "country")
-        .attr("d", path)
-        .attr("fill", d => {
-            const countryName = d.properties.name;
-            return scoreData[countryName] ? colorScale(scoreData[countryName][scoreAttribute]) : "#ccc";
-        })
-        .on("mouseover", function(event, d) {
-          const countryName = d.properties.name;
-          const score = scoreData[countryName] ? scoreData[countryName][scoreAttribute] : "N/A";
-          tooltip.transition()
-              .duration(200)
-              .style("opacity", .9);
-          tooltip.html(`${countryName}: ${score}`)
-              .style("left", (event.pageX) + "px")
-              .style("top", (event.pageY - 28) + "px");
-        })
-        .on("mouseout", function(d) {
-            tooltip.transition()
-                .duration(500)
-                .style("opacity", 0);
-        })
-        .on("click", function(event, d) {
-            const countryName = d.properties.name;
-            updateCountryData(countryName, scoreData, regulationData);
-            highlightCountry(this);
+mapGroup.append("path")
+    .datum({type: "Sphere"})
+    .attr("fill", "#dcf4f7")
+    .attr("d", path);
+
+mapGroup.selectAll(".country")
+    .data(countries)
+    .enter().append("path")
+    .attr("class", "country")
+    .attr("d", path)
+    .attr("fill", d => {
+        const countryName = d.properties.name;
+        return scoreData[countryName] ? colorScale(scoreData[countryName][scoreAttribute]) : "#ccc";
+    })
+    .on("mouseover", function(event, d) {
+      const countryName = d.properties.name;
+      const score = scoreData[countryName] ? scoreData[countryName][scoreAttribute] : "N/A";
+      tooltip.transition()
+          .duration(200)
+          .style("opacity", .9);
+      tooltip.html(`${countryName}: ${score}`)
+          .style("left", (event.pageX) + "px")
+          .style("top", (event.pageY - 28) + "px");
+    })
+    .on("mouseout", function(d) {
+        tooltip.transition()
+            .duration(500)
+            .style("opacity", 0);
+    })
+    .on("click", function(event, d) {
+        const countryName = d.properties.name;
+        updateCountryData(countryName, scoreData, regulationData);
+        highlightCountry(this);
+    });
+
+    // Add zoom and pan functionality
+    const zoom = d3.zoom()
+      .scaleExtent([1, 8])
+      .extent([[0, 0], [WIDTH, HEIGHT]])
+      .translateExtent([[0, 0], [WIDTH, HEIGHT]])
+      .on("zoom", zoomed);
+
+    svg.call(zoom);
+
+    function zoomed(event) {
+        mapGroup.attr("transform", event.transform);
+    }
+
+    // Add zoom controls
+    const zoomIn = d3.select("#zoom-controls").append("button")
+        .text("+")
+        .on("click", () => zoom.scaleBy(svg.transition().duration(750), 1.5));
+
+    const zoomOut = d3.select("#zoom-controls").append("button")
+        .text("-")
+        .on("click", () => zoom.scaleBy(svg.transition().duration(750), 0.67));
+
+    const resetZoom = d3.select("#zoom-controls").append("button")
+        .text("Reset")
+        .on("click", () => {
+            svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
         });
 }
 

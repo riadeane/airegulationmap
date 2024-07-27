@@ -34,10 +34,11 @@ select {
   margin: 20px auto;
   display: block;
   font-family: 'Nunito', sans-serif;
+  background-color: #F0DDF0;
 }
 
 .country {
-  stroke: #fff;
+  stroke: #000000;
   stroke-width: 0.5px;
 }
 
@@ -53,7 +54,7 @@ select {
   display: flex;
   align-items: flex-start;
   flex-direction: column;
-  background-color: pink;
+  background-color: #F0DDF0;
   margin: auto;
   padding: 20px;
   width: 80%;
@@ -68,4 +69,24 @@ select {
 
 .data-detail * {
   margin: 0;
+}
+
+#zoom-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+#zoom-controls button {
+  display: block;
+  margin-bottom: 5px;
+  padding: 5px 10px;
+  font-size: 16px;
+  cursor: pointer;
+  border: 2px solid darkmagenta;
+  background-color: #F0DDF0;
+  border-radius: 5px;
+  font-family: 'Nunito', sans-serif;
 }
