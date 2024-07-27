@@ -68,6 +68,11 @@ const generateMap = async (countryData, scoreAttribute) => {
             tooltip.transition()
                 .duration(500)
                 .style("opacity", 0);
+        })
+        .on("click", function(event, d) {
+            const countryName = d.properties.name;
+            updateCountryData(countryName, countryData);
+            highlightCountry(this);
         });
 }
 
@@ -83,6 +88,31 @@ const updateMap = (countryData, scoreAttribute) => {
             const countryName = d.properties.name;
             return countryData[countryName] ? colorScale(countryData[countryName][scoreAttribute]) : "#ccc";
         });
+}
+
+function updateCountryData(countryName, countryData) {
+    const data = countryData[countryName];
+    if (data) {
+        document.getElementById("country-name").textContent = countryName;
+        document.getElementById("regulation").textContent = data.regulationStatus;
+        document.getElementById("policy").textContent = data.policyLever;
+        document.getElementById("governance").textContent = data.governanceType;
+        document.getElementById("actors").textContent = data.actorInvolvement;
+    } else {
+        document.getElementById("country-name").textContent = countryName;
+        document.getElementById("regulation").textContent = "N/A";
+        document.getElementById("policy").textContent = "N/A";
+        document.getElementById("governance").textContent = "N/A";
+        document.getElementById("actors").textContent = "N/A";
+    }
+}
+
+function highlightCountry(element) {
+    // Remove highlight from previously selected country
+    d3.selectAll(".country").classed("selected", false).attr("stroke", "#fff").attr("stroke-width", 0.5);
+    
+    // Highlight the clicked country
+    d3.select(element).classed("selected", true).attr("stroke", "red").attr("stroke-width", 2);
 }
 
 async function initialLoad() {

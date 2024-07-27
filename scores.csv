@@ -20,7 +20,7 @@ Belize,2,1,2,3,2.00
 Benin,3,3,3,4,3.25
 Bhutan,1,1,1,1,1.00
 Bolivia,2,2,2,3,2.25
-Bosnia and Herzegovina,4,4,4,5,4.25
+Bosnia and Herz.,4,4,4,5,4.25
 Botswana,3,3,3,4,3.25
 Brazil,3,4,4,4,3.75
 Brunei,3,3,2,3,2.75
@@ -31,7 +31,7 @@ Cambodia,3,1,3,3,2.50
 Cameroon,3,3,3,4,3.25
 Canada,3,1,3,2,2.25
 Cape Verde,3,3,3,4,3.25
-Central African Republic,3,3,3,4,3.25
+Central African Rep.,3,3,3,4,3.25
 Chad,3,3,3,4,3.25
 Chile,4,4,4,4,4.00
 China,4,4,4,4,4.00
@@ -39,12 +39,12 @@ Colombia,2,2,2,3,2.25
 Comoros,3,3,3,4,3.25
 Congo,3,3,3,4,3.25
 Costa Rica,3,2,3,3,2.75
-Cote d'Ivoire,3,3,3,4,3.25
+Côte d'Ivoire,3,3,3,4,3.25
 Croatia,4,4,4,5,4.25
 Cuba,2,2,2,3,2.25
 Cyprus,4,4,4,5,4.25
-Czech Republic,4,4,4,5,4.25
-Democratic Republic of the Congo,3,3,3,4,3.25
+Czechia,4,4,4,5,4.25
+Dem. Rep. Congo,3,3,3,4,3.25
 Denmark,4,4,4,5,4.25
 Djibouti,3,3,3,4,3.25
 Dominica,2,2,2,3,2.25
@@ -69,7 +69,7 @@ Greece,4,4,4,5,4.25
 Grenada,2,2,2,3,2.25
 Guatemala,2,2,2,3,2.25
 Guinea,3,3,3,4,3.25
-Guinea Bissau,3,3,3,4,3.25
+Guinea-Bissau,3,3,3,4,3.25
 Guyana,2,2,2,3,2.25
 Haiti,2,2,2,3,2.25
 Honduras,2,2,2,3,2.25
@@ -161,7 +161,7 @@ Solomon Islands,1,1,1,1,1.00
 Somalia,3,3,3,4,3.25
 South Africa,2,3,3,4,3.00
 South Korea,4,3,3,4,3.50
-South Sudan,3,3,3,4,3.25
+S. Sudan,3,3,3,4,3.25
 Spain,4,4,4,5,4.25
 Sri Lanka,2,2,3,2,2.25
 Sudan,3,3,3,4,3.25

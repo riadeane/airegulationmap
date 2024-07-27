@@ -40,3 +40,16 @@ select {
   padding: 10px;
   pointer-events: none;
 }
+
+#country-data {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  background-color: pink;
+  margin: auto;
+  padding: 20px;
+  width: 80%;
+  height: fit-content;
+  border-radius: 20px;
+  border: 4px solid darkmagenta;
+}
