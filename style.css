@@ -71,6 +71,13 @@ select {
   margin: 0;
 }
 
+#zoom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 #zoom-controls {
   display: flex;
   flex-direction: row;
