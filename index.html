@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Regulation Map</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    <link rel='stylesheet' type='text/css' media='screen' href='style.css'>
+  </head>
+  <body>
+    <h1>AI Regulation by Country</h1>
+    <div id="input-container"></div>
+    <div id="map"></div>
+    <div id="country">
+        <h2>Country: <span id="country-name"></span></h2>
+        <h3>Regulation status: <span id="regulation"></span></h3>
+        <p id="regulation-details"></p>
+        <h3>Policy Lever: <span id="policy"></span></h3>
+        <p id="policy-details"></p>
+        <h3>Governance Type: <span id="governance"></span></h3>
+        <p id="governance-details"></p>
+        <h3>Actor Involvement: <span id="actors"></span></h3>
+        <p id="actors-details"></p>
+    </div>
+    <script src='map.js'></script>
+</body>
+</html>
