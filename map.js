@@ -7,8 +7,8 @@ const margin = {
     right: 5
 };
 
-const width = WIDTH - margin.left - margin.right,
-height = HEIGHT - margin.top - margin.bottom;  
+const width = WIDTH,// - margin.left - margin.right,
+height = HEIGHT// - margin.top - margin.bottom;  
  
 const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     
@@ -18,8 +18,18 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     .attr("height", HEIGHT)
     .attr("viewBox", [0, 0, WIDTH, HEIGHT]);
 
-    const g = svg.append("g")
-      .attr('transform', `translate(${margin.left}, ${margin.top})`)
+    const clipPath = svg.append("defs")
+    .append("clipPath")
+      .attr("id", "clip")
+    .append("rect")
+      .attr("width", WIDTH)
+      .attr("height", HEIGHT)
+      .attr("rx", 20) // This sets the horizontal corner radius
+      .attr("ry", 20); // This sets the vertical corner radius
+
+      const g = svg.append("g")
+      //.attr('transform', `translate(${margin.left}, ${margin.top})`)
+      .attr("clip-path", "url(#clip)"); // Apply the clip path to this group
 
     // Modified projection to fit wider rectangular shape
     const projection = d3.geoEquirectangular()
