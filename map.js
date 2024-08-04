@@ -184,6 +184,7 @@ function updateCountryData(countryName, countryData, regulationData) {
     document.getElementById("country-name").textContent = countryName;
     
     if (scoreData) {
+        document.getElementById("average-score").textContent = `${scoreData.averageScore} / 5` || "N/A";
         document.getElementById("regulation").textContent = `${scoreData.regulationStatus} / 5` || "N/A";
         document.getElementById("policy").textContent = `${scoreData.policyLever} / 5` || "N/A";
         document.getElementById("governance").textContent = `${scoreData.governanceType} / 5` || "N/A";

@@ -77,6 +77,17 @@ select {
   border: 4px solid darkmagenta;
 }
 
+#country-data h2 {
+  color: darkmagenta;
+}
+
+.data-general {
+  margin: 10px;
+  * {
+    margin: 0;
+  }
+}
+
 .data-detail {
   margin: 10px;
 }
