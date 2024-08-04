@@ -14,11 +14,19 @@ body {
 
 .content {
   margin-bottom: 50px;
-} 
+}
+
+.title {
+  text-align: center;
+  margin: 30px auto;
+  p {
+    margin: 0;
+  }
+}
 
 h1 {
   text-align: center;
-  margin: 50px auto 10px;
+  margin: 50px auto 0px auto;
   font-size: 2.5rem;
   color: darkmagenta;
   font-weight: 700;
@@ -48,11 +56,6 @@ select {
   background-color: #F0DDF0;
 }
 
-.country {
-  stroke: #000000;
-  stroke-width: 0.5px;
-}
-
 .tooltip {
   position: absolute;
   background-color: rgba(255, 255, 255, 0.9);
@@ -72,6 +75,17 @@ select {
   height: fit-content;
   border-radius: 20px;
   border: 4px solid darkmagenta;
+}
+
+#country-data h2 {
+  color: darkmagenta;
+}
+
+.data-general {
+  margin: 10px;
+  * {
+    margin: 0;
+  }
 }
 
 .data-detail {
@@ -135,4 +149,18 @@ footer a:hover {
   justify-content: center;
   align-items: center;
   gap: 10px;
+}
+
+.legend-title {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.legend text {
+  font-size: 12px;
+}
+
+.legend rect {
+  stroke: #000;
+  stroke-width: 0.5px;
 }

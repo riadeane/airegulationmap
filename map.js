@@ -1,5 +1,58 @@
 const WIDTH = 1000;
 const HEIGHT = 500;
+
+function addLegend(svg, colorScale) {
+  const legendWidth = 300;
+  const legendHeight = 30;
+  const legendMargin = { top: 10, right: 20, bottom: 10, left: 20 };
+
+  const legend = svg.append("g")
+    .attr("class", "legend")
+    .attr("transform", `translate(${WIDTH - legendWidth - legendMargin.right}, ${HEIGHT - legendHeight - legendMargin.bottom})`);
+
+  const legendScale = d3.scaleLinear()
+    .domain([1, 5])
+    .range([0, legendWidth]);
+
+  const legendAxis = d3.axisBottom(legendScale)
+    .tickValues([1, 2, 3, 4, 5])
+    .tickFormat(d3.format("d"));
+
+  legend.append("g")
+    .attr("transform", `translate(0, ${legendHeight - legendMargin.bottom - 10})`)
+    .call(legendAxis);
+
+  const gradientData = d3.range(0, 1, 0.01).map(d => ({
+    offset: d,
+    color: colorScale(1 + d * 4)
+  }));
+
+  const gradient = legend.append("defs")
+    .append("linearGradient")
+    .attr("id", "legend-gradient")
+    .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "100%")
+    .attr("y2", "0%");
+
+  gradient.selectAll("stop")
+    .data(gradientData)
+    .enter().append("stop")
+    .attr("offset", d => `${d.offset * 100}%`)
+    .attr("stop-color", d => d.color);
+
+  legend.append("rect")
+    .attr("width", legendWidth)
+    .attr("height", legendHeight - legendMargin.bottom - legendMargin.top)
+    .style("fill", "url(#legend-gradient)");
+
+  legend.append("text")
+    .attr("class", "legend-title")
+    .attr("x", legendWidth / 2)
+    .attr("y", -5)
+    .attr("text-anchor", "middle")
+    .text("Score Legend");
+}
  
 const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     
@@ -56,6 +109,8 @@ mapGroup.selectAll(".country")
         const countryName = d.properties.name;
         return scoreData[countryName] ? colorScale(scoreData[countryName][scoreAttribute]) : "#ccc";
     })
+    .attr("stroke", "black")
+    .attr("stroke-width", 0.5)
     .on("mouseover", function(event, d) {
       const countryName = d.properties.name;
       const score = scoreData[countryName] ? scoreData[countryName][scoreAttribute] : "N/A";
@@ -104,6 +159,8 @@ mapGroup.selectAll(".country")
         .on("click", () => {
             svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
         });
+
+    addLegend(svg, colorScale);
 }
 
 const updateMap = (countryData, scoreAttribute) => {
@@ -123,16 +180,15 @@ const updateMap = (countryData, scoreAttribute) => {
 function updateCountryData(countryName, countryData, regulationData) {
     const scoreData = countryData[countryName];
     const regData = regulationData[countryName];
-
-    console.log('Updating country data:', countryName, scoreData, regData);
     
     document.getElementById("country-name").textContent = countryName;
     
     if (scoreData) {
-        document.getElementById("regulation").textContent = scoreData.regulationStatus;
-        document.getElementById("policy").textContent = scoreData.policyLever;
-        document.getElementById("governance").textContent = scoreData.governanceType;
-        document.getElementById("actors").textContent = scoreData.actorInvolvement;
+        document.getElementById("average-score").textContent = `${scoreData.averageScore} / 5` || "N/A";
+        document.getElementById("regulation").textContent = `${scoreData.regulationStatus} / 5` || "N/A";
+        document.getElementById("policy").textContent = `${scoreData.policyLever} / 5` || "N/A";
+        document.getElementById("governance").textContent = `${scoreData.governanceType} / 5` || "N/A";
+        document.getElementById("actors").textContent = `${scoreData.actorInvolvement} / 5` || "N/A";
     } else {
         document.getElementById("regulation").textContent = "N/A";
         document.getElementById("policy").textContent = "N/A";
@@ -155,10 +211,10 @@ function updateCountryData(countryName, countryData, regulationData) {
 
 function highlightCountry(element) {
     // Remove highlight from previously selected country
-    d3.selectAll(".country").classed("selected", false).attr("stroke", "#fff").attr("stroke-width", 0.5);
+    d3.selectAll(".country").classed("selected", false).attr("stroke-width", 0.5);
     
     // Highlight the clicked country
-    d3.select(element).classed("selected", true).attr("stroke", "red").attr("stroke-width", 2);
+    d3.select(element).classed("selected", true).attr("stroke-width", 2);
 }
 
 async function initialLoad() {
