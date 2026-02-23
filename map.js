@@ -405,30 +405,14 @@ function selectCountryByName(countryName, scoreData, regulationData) {
 
 function initFilter(scoreData) {
   const minSlider = document.getElementById('filter-min');
-  const maxSlider = document.getElementById('filter-max');
   const minLabel = document.getElementById('filter-min-label');
-  const maxLabel = document.getElementById('filter-max-label');
 
-  function applyFilter() {
-    filterMin = parseFloat(minSlider.value);
-    filterMax = parseFloat(maxSlider.value);
-    // Ensure min <= max
-    if (filterMin > filterMax) {
-      if (this === minSlider) {
-        filterMax = filterMin;
-        maxSlider.value = filterMax;
-      } else {
-        filterMin = filterMax;
-        minSlider.value = filterMin;
-      }
-    }
-    minLabel.textContent = filterMin;
-    maxLabel.textContent = filterMax;
+  minSlider.addEventListener('input', function () {
+    filterMin = parseFloat(this.value);
+    filterMax = 5;
+    minLabel.textContent = filterMin <= 1 ? 'Any' : filterMin;
     updateMap(currentScoreData, currentAttribute);
-  }
-
-  minSlider.addEventListener('input', applyFilter);
-  maxSlider.addEventListener('input', applyFilter);
+  });
 }
 
 // ── Score selector ────────────────────────────────────────────

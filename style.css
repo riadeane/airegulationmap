@@ -121,6 +121,10 @@ select {
   box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
+#search-suggestions:empty {
+  display: none;
+}
+
 #search-suggestions li {
   padding: 8px 16px;
   cursor: pointer;
@@ -155,9 +159,6 @@ select {
   color: darkmagenta;
 }
 
-.filter-sep {
-  color: #aaa;
-}
 
 input[type="range"] {
   accent-color: darkmagenta;
