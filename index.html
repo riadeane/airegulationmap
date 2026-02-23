@@ -21,12 +21,12 @@
       <p class="subtitle">Last updated: <span id="site-last-updated">—</span></p>
     </div>
 
-    <!-- Controls bar: score selector, search, filter -->
+    <!-- Controls bar: score selector, search, zoom -->
     <div id="controls">
       <div id="controls-left">
         <select id="score-select" aria-label="Select score type"></select>
       </div>
-      <div id="controls-right">
+      <div id="controls-center">
         <div id="search-container">
           <input
             type="text"
@@ -39,21 +39,22 @@
           />
           <ul id="search-suggestions" role="listbox" aria-label="Country suggestions"></ul>
         </div>
-        <div id="filter-container">
-          <span class="filter-label">Score:</span>
-          <input type="range" id="filter-min" min="1" max="5" step="0.25" value="1" aria-label="Minimum score">
-          <span id="filter-min-label">1</span>
-          <span class="filter-sep">–</span>
-          <input type="range" id="filter-max" min="1" max="5" step="0.25" value="5" aria-label="Maximum score">
-          <span id="filter-max-label">5</span>
-        </div>
+      </div>
+      <div id="controls-right">
+        <div id="zoom-controls"></div>
       </div>
     </div>
 
-    <!-- Zoom controls -->
-    <div id="zoom">
-      <p>Zoom controls</p>
-      <div id="zoom-controls"></div>
+    <!-- Filter bar -->
+    <div id="filter-bar">
+      <div id="filter-container">
+        <span class="filter-label">Score filter:</span>
+        <input type="range" id="filter-min" min="1" max="5" step="0.25" value="1" aria-label="Minimum score">
+        <span id="filter-min-label">1</span>
+        <span class="filter-sep">–</span>
+        <input type="range" id="filter-max" min="1" max="5" step="0.25" value="5" aria-label="Maximum score">
+        <span id="filter-max-label">5</span>
+      </div>
     </div>
 
     <!-- Map -->
