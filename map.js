@@ -307,7 +307,7 @@ function updateCountryData(countryName, countryData, regulationData) {
 }
 
 function highlightCountry(element) {
-  d3.selectAll(".country").classed("selected", false).attr("stroke-width", 0.5);
+  d3.selectAll(".country").classed("selected", false).attr("stroke-width", 0.3);
   d3.select(element).classed("selected", true).attr("stroke-width", 2);
 }
 
