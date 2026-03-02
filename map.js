@@ -311,6 +311,23 @@ function highlightCountry(element) {
   d3.select(element).classed("selected", true).attr("stroke-width", 2);
 }
 
+function updateSearchHighlight(query) {
+  if (query.length < 2) {
+    d3.selectAll('.country')
+      .classed('search-dimmed', false)
+      .classed('search-highlighted', false);
+    return;
+  }
+  const lq = query.toLowerCase();
+  d3.selectAll('.country').each(function(d) {
+    const name = (d.properties.name || '').toLowerCase();
+    const matches = name.includes(lq);
+    d3.select(this)
+      .classed('search-dimmed', !matches)
+      .classed('search-highlighted', matches);
+  });
+}
+
 // ── Search ───────────────────────────────────────────────────
 
 function initSearch(countriesList, scoreData, regulationData) {
@@ -319,7 +336,8 @@ function initSearch(countriesList, scoreData, regulationData) {
 
   searchInput.addEventListener('input', function () {
     const query = this.value.trim().toLowerCase();
-    suggestions.innerHTML = '';
+    suggestions.replaceChildren();
+    updateSearchHighlight(query);
     if (query.length < 2) return;
 
     const matches = countriesList
@@ -340,7 +358,8 @@ function initSearch(countriesList, scoreData, regulationData) {
       li.setAttribute('role', 'option');
       li.addEventListener('click', () => {
         searchInput.value = name;
-        suggestions.innerHTML = '';
+        suggestions.replaceChildren();
+        updateSearchHighlight('');
         selectCountryByName(name, scoreData, regulationData);
       });
       suggestions.appendChild(li);
@@ -350,7 +369,9 @@ function initSearch(countriesList, scoreData, regulationData) {
   // Close suggestions on outside click
   document.addEventListener('click', e => {
     if (!e.target.closest('#search-container')) {
-      suggestions.innerHTML = '';
+      suggestions.replaceChildren();
+      updateSearchHighlight('');
+      searchInput.value = '';
     }
   });
 
@@ -371,7 +392,8 @@ function initSearch(countriesList, scoreData, regulationData) {
       highlighted.click();
       return;
     } else if (e.key === 'Escape') {
-      suggestions.innerHTML = '';
+      suggestions.replaceChildren();
+      updateSearchHighlight('');
       return;
     } else {
       return;
@@ -503,7 +525,7 @@ function initTimeline(history) {
 
   if (sortedDates.length <= 1) return;
 
-  const container = document.getElementById('timeline-container');
+  const container = document.getElementById('timeline-strip');
   container.style.display = 'block';
 
   const slider = document.getElementById('timeline-slider');
