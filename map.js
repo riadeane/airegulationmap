@@ -17,6 +17,12 @@ const ATTRIBUTE_LABELS = {
   enforcementLevel: 'Enforcement Level'
 };
 
+function makeColorScale() {
+  return d3.scaleSequential()
+    .domain([1, 5])
+    .interpolator(d3.interpolateRgb('#8a9ab5', '#f0c040'));
+}
+
 // ── Legend ──────────────────────────────────────────────────
 
 function addLegend(svg, colorScale) {
@@ -99,8 +105,7 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
 
   const path = d3.geoPath().projection(projection);
 
-  const colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
-    .domain([1, 5]);
+  const colorScale = makeColorScale();
 
   const tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
@@ -114,7 +119,7 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
 
   mapGroup.append("path")
     .datum({ type: "Sphere" })
-    .attr("fill", "#dcf4f7")
+    .attr("fill", "#162032")
     .attr("d", path);
 
   mapGroup.selectAll(".country")
@@ -125,10 +130,10 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     .attr("fill", d => {
       const countryName = d.properties.name;
       const entry = scoreData[countryName];
-      return entry ? colorScale(entry[scoreAttribute]) : "#ccc";
+      return entry ? colorScale(entry[scoreAttribute]) : "#2a2f3d";
     })
-    .attr("stroke", "black")
-    .attr("stroke-width", 0.5)
+    .attr("stroke", "#0f1117")
+    .attr("stroke-width", 0.3)
     .on("mouseover", function (event, d) {
       const countryName = d.properties.name;
       const entry = scoreData[countryName];
@@ -184,8 +189,7 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
 // ── Map color + opacity update ────────────────────────────────
 
 const updateMap = (countryData, scoreAttribute) => {
-  const colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
-    .domain([1, 5]);
+  const colorScale = makeColorScale();
 
   d3.select("#map")
     .selectAll(".country")
@@ -194,7 +198,7 @@ const updateMap = (countryData, scoreAttribute) => {
     .attr("fill", d => {
       const countryName = d.properties.name;
       const entry = countryData[countryName];
-      return entry ? colorScale(entry[scoreAttribute]) : "#ccc";
+      return entry ? colorScale(entry[scoreAttribute]) : "#2a2f3d";
     })
     .style("opacity", d => {
       const countryName = d.properties.name;
