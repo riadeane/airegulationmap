@@ -23,6 +23,17 @@ function makeColorScale() {
     .interpolator(d3.interpolateRgb('#8a9ab5', '#f0c040'));
 }
 
+function renderDots(elId, score) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.replaceChildren();
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.createElement('span');
+    dot.className = i <= Math.round(score) ? 'dim-dot filled' : 'dim-dot';
+    el.appendChild(dot);
+  }
+}
+
 // ── Legend ──────────────────────────────────────────────────
 
 function addLegend(svg, colorScale) {
@@ -221,18 +232,12 @@ function updateCountryData(countryName, countryData, regulationData) {
   const scoreData = countryData[countryName];
   const regData = regulationData[countryName];
 
-  // Hide default message, show sections
-  document.getElementById("no-selection-message").style.display = 'none';
-  showSection('data-general-section', true);
-  showSection('regulation-section', true);
-  showSection('policy-section', true);
-  showSection('governance-section', true);
-  showSection('actors-section', true);
+  document.getElementById('no-selection-message').style.display = 'none';
+  document.getElementById('panel-content').style.display = '';
 
-  document.getElementById("country-name").textContent = countryName;
+  document.getElementById('country-name').textContent = countryName;
 
-  // Confidence badge
-  const badge = document.getElementById("confidence-badge");
+  const badge = document.getElementById('confidence-badge');
   if (regData && regData.confidence === 'low') {
     badge.textContent = 'Low confidence';
     badge.style.display = 'inline-block';
@@ -240,76 +245,54 @@ function updateCountryData(countryName, countryData, regulationData) {
     badge.style.display = 'none';
   }
 
-  // Last updated
-  const lastUpdatedEl = document.getElementById("last-updated");
   const dateStr = (scoreData && scoreData.lastUpdated) || (regData && regData.lastUpdated);
-  lastUpdatedEl.textContent = dateStr ? `Data as of: ${dateStr}` : '';
+  document.getElementById('last-updated').textContent = dateStr ? `Data as of ${dateStr}` : '';
 
-  // Scores
-  if (scoreData) {
-    document.getElementById("average-score").textContent = `${scoreData.averageScore} / 5`;
-    document.getElementById("regulation").textContent = `${scoreData.regulationStatus} / 5`;
-    document.getElementById("policy").textContent = `${scoreData.policyLever} / 5`;
-    document.getElementById("governance").textContent = `${scoreData.governanceType} / 5`;
-    document.getElementById("actors").textContent = `${scoreData.actorInvolvement} / 5`;
+  const avg = scoreData ? scoreData.averageScore : null;
+  document.getElementById('average-score').textContent = avg != null ? `${avg} / 5` : 'N/A';
+  document.getElementById('overall-bar-fill').style.width =
+    avg != null ? `${((avg - 1) / 4) * 100}%` : '0%';
 
-    if (scoreData.enforcementLevel) {
-      document.getElementById("enforcement").textContent = `${scoreData.enforcementLevel} / 5`;
-      showSection('enforcement-section', true);
-    } else {
-      showSection('enforcement-section', false);
-    }
-  } else {
-    ['average-score', 'regulation', 'policy', 'governance', 'actors'].forEach(id => {
-      document.getElementById(id).textContent = 'N/A';
-    });
-    showSection('enforcement-section', false);
-  }
+  renderDots('dots-regulation', scoreData ? scoreData.regulationStatus : null);
+  renderDots('dots-policy',     scoreData ? scoreData.policyLever : null);
+  renderDots('dots-governance', scoreData ? scoreData.governanceType : null);
+  renderDots('dots-actors',     scoreData ? scoreData.actorInvolvement : null);
+  renderDots('dots-enforcement',scoreData ? scoreData.enforcementLevel : null);
 
-  // Qualitative details
   if (regData) {
-    document.getElementById("regulation-details").textContent = regData.regulationStatus || 'N/A';
-    document.getElementById("policy-details").textContent = regData.policyLever || 'N/A';
-    document.getElementById("governance-details").textContent = regData.governanceType || 'N/A';
-    document.getElementById("actors-details").textContent = regData.actorInvolvement || 'N/A';
+    document.getElementById('regulation-details').textContent = regData.regulationStatus || 'N/A';
+    document.getElementById('policy-details').textContent     = regData.policyLever || 'N/A';
+    document.getElementById('governance-details').textContent = regData.governanceType || 'N/A';
+    document.getElementById('actors-details').textContent     = regData.actorInvolvement || 'N/A';
 
+    showSection('enforcement-section', !!regData.enforcementLevel);
     if (regData.enforcementLevel) {
-      document.getElementById("enforcement-details").textContent = regData.enforcementLevel;
-      showSection('enforcement-section', true);
+      document.getElementById('enforcement-details').textContent = regData.enforcementLevel;
     }
 
-    // Specific laws
+    showSection('laws-section', !!regData.specificLaws);
     if (regData.specificLaws) {
-      document.getElementById("specific-laws").textContent = regData.specificLaws;
-      showSection('laws-section', true);
-    } else {
-      showSection('laws-section', false);
+      document.getElementById('specific-laws').textContent = regData.specificLaws;
     }
 
-    // Sources
-    const sourcesContainer = document.getElementById("sources-list");
-    sourcesContainer.innerHTML = '';
-    if (regData.sources && regData.sources !== 'NA') {
-      const urls = regData.sources.split('|').map(u => u.trim()).filter(Boolean);
-      if (urls.length > 0) {
-        urls.forEach((url, i) => {
-          const li = document.createElement('li');
-          const a = document.createElement('a');
-          a.href = url;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          try {
-            a.textContent = new URL(url).hostname.replace('www.', '');
-          } catch {
-            a.textContent = `Source ${i + 1}`;
-          }
-          li.appendChild(a);
-          sourcesContainer.appendChild(li);
-        });
-        showSection('sources-section', true);
-      } else {
-        showSection('sources-section', false);
-      }
+    const sourcesContainer = document.getElementById('sources-list');
+    sourcesContainer.replaceChildren();
+    const urls = regData.sources && regData.sources !== 'NA'
+      ? regData.sources.split('|').map(u => u.trim()).filter(Boolean)
+      : [];
+    if (urls.length > 0) {
+      urls.forEach((url, i) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        try { a.textContent = new URL(url).hostname.replace('www.', ''); }
+        catch { a.textContent = `Source ${i + 1}`; }
+        li.appendChild(a);
+        sourcesContainer.appendChild(li);
+      });
+      showSection('sources-section', true);
     } else {
       showSection('sources-section', false);
     }
@@ -407,41 +390,81 @@ function selectCountryByName(countryName, scoreData, regulationData) {
 
 // ── Filter ───────────────────────────────────────────────────
 
-function initFilter(scoreData) {
+function initFilter() {
+  const btn = document.getElementById('filter-btn');
+  const popover = document.getElementById('filter-popover');
   const minSlider = document.getElementById('filter-min');
+  const maxSlider = document.getElementById('filter-max');
   const minLabel = document.getElementById('filter-min-label');
+  const maxLabel = document.getElementById('filter-max-label');
 
-  minSlider.addEventListener('input', function () {
-    filterMin = parseFloat(this.value);
-    filterMax = 5;
-    minLabel.textContent = filterMin <= 1 ? 'Any' : filterMin;
-    updateMap(currentScoreData, currentAttribute);
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = popover.classList.toggle('open');
+    btn.classList.toggle('active', isOpen);
+    btn.setAttribute('aria-expanded', String(isOpen));
+    document.getElementById('score-dropdown').classList.remove('open');
+    document.getElementById('score-btn').classList.remove('active');
+    document.getElementById('score-btn').setAttribute('aria-expanded', 'false');
   });
+
+  function applyFilter() {
+    filterMin = parseFloat(minSlider.value);
+    filterMax = parseFloat(maxSlider.value);
+    if (filterMin > filterMax) {
+      filterMax = filterMin;
+      maxSlider.value = filterMax;
+    }
+    minLabel.textContent = filterMin;
+    maxLabel.textContent = filterMax;
+    updateMap(currentScoreData, currentAttribute);
+  }
+
+  minSlider.addEventListener('input', applyFilter);
+  maxSlider.addEventListener('input', applyFilter);
 }
 
 // ── Score selector ────────────────────────────────────────────
 
 function buildScoreSelector() {
-  const selectEl = document.getElementById('score-select');
+  const btn = document.getElementById('score-btn');
+  const btnLabel = document.getElementById('score-btn-label');
+  const dropdown = document.getElementById('score-dropdown');
   const options = [
-    { value: "averageScore", text: "Average Score" },
-    { value: "regulationStatus", text: "Regulation Status" },
-    { value: "policyLever", text: "Policy Lever" },
-    { value: "governanceType", text: "Governance Type" },
-    { value: "actorInvolvement", text: "Actor Involvement" },
-    { value: "enforcementLevel", text: "Enforcement Level" }
+    { value: 'averageScore',     text: 'Average Score' },
+    { value: 'regulationStatus', text: 'Regulation Status' },
+    { value: 'policyLever',      text: 'Policy Lever' },
+    { value: 'governanceType',   text: 'Governance Type' },
+    { value: 'actorInvolvement', text: 'Actor Involvement' },
+    { value: 'enforcementLevel', text: 'Enforcement Level' }
   ];
 
   options.forEach(opt => {
-    const option = document.createElement('option');
-    option.value = opt.value;
-    option.textContent = opt.text;
-    selectEl.appendChild(option);
+    const li = document.createElement('li');
+    li.textContent = opt.text;
+    li.dataset.value = opt.value;
+    if (opt.value === currentAttribute) li.classList.add('selected');
+    li.addEventListener('click', () => {
+      currentAttribute = opt.value;
+      btnLabel.textContent = opt.text;
+      dropdown.querySelectorAll('li').forEach(el => el.classList.remove('selected'));
+      li.classList.add('selected');
+      dropdown.classList.remove('open');
+      btn.classList.remove('active');
+      btn.setAttribute('aria-expanded', 'false');
+      updateMap(currentScoreData, currentAttribute);
+    });
+    dropdown.appendChild(li);
   });
 
-  selectEl.addEventListener('change', function () {
-    currentAttribute = this.value;
-    updateMap(currentScoreData, currentAttribute);
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = dropdown.classList.toggle('open');
+    btn.classList.toggle('active', isOpen);
+    btn.setAttribute('aria-expanded', String(isOpen));
+    document.getElementById('filter-popover').classList.remove('open');
+    document.getElementById('filter-btn').classList.remove('active');
+    document.getElementById('filter-btn').setAttribute('aria-expanded', 'false');
   });
 }
 
@@ -554,7 +577,7 @@ async function initialLoad() {
 
   buildScoreSelector();
   initSearch(countriesList, currentScoreData, currentRegulationInfo);
-  initFilter(currentScoreData);
+  initFilter();
 
   await generateMap(currentScoreData, 'averageScore', currentRegulationInfo);
 
@@ -562,6 +585,15 @@ async function initialLoad() {
 
   // Load history non-blocking — shows timeline slider if >1 date exists
   loadHistory().then(history => initTimeline(history));
+
+  document.addEventListener('click', () => {
+    document.getElementById('score-dropdown').classList.remove('open');
+    document.getElementById('score-btn').classList.remove('active');
+    document.getElementById('score-btn').setAttribute('aria-expanded', 'false');
+    document.getElementById('filter-popover').classList.remove('open');
+    document.getElementById('filter-btn').classList.remove('active');
+    document.getElementById('filter-btn').setAttribute('aria-expanded', 'false');
+  });
 }
 
 initialLoad();
