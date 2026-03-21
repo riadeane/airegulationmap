@@ -1,0 +1,50 @@
+#timeline-strip {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 24px;
+  flex-shrink: 0;
+}
+
+#timeline-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: calc(100% - var(--panel-w) - 48px);
+}
+
+#timeline-reset {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-size: 1rem;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--ease-out);
+  flex-shrink: 0;
+  font-family: 'Geist', sans-serif;
+}
+
+#timeline-reset:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
+#timeline-slider {
+  flex: 1;
+}
+
+#timeline-date-label {
+  font-size: 0.72rem;
+  font-family: 'Geist Mono', monospace;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  min-width: 80px;
+  text-align: right;
+  white-space: nowrap;
+}
