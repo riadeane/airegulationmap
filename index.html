@@ -6,7 +6,9 @@
   <title>AI Regulation Map</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
   <link rel='stylesheet' type='text/css' media='screen' href='style.css'>
@@ -16,6 +18,7 @@
     <div class="header-left">
       <h1>AI Regulation Map</h1>
       <span class="header-subtitle">Last updated: <span id="site-last-updated">—</span></span>
+      <span class="country-count-badge" id="country-count"></span>
     </div>
     <div class="header-right">
       <div id="search-container">
@@ -84,23 +87,23 @@
         <div class="panel-section">
           <div class="panel-section-label">DIMENSIONS</div>
           <div class="dimensions-list">
-            <div class="dimension-row">
+            <div class="dimension-row" data-dimension="regulationStatus" role="button" tabindex="0">
               <span class="dim-label">Regulation Status</span>
               <span class="dim-dots" id="dots-regulation"></span>
             </div>
-            <div class="dimension-row">
+            <div class="dimension-row" data-dimension="policyLever" role="button" tabindex="0">
               <span class="dim-label">Policy Lever</span>
               <span class="dim-dots" id="dots-policy"></span>
             </div>
-            <div class="dimension-row">
+            <div class="dimension-row" data-dimension="governanceType" role="button" tabindex="0">
               <span class="dim-label">Governance Type</span>
               <span class="dim-dots" id="dots-governance"></span>
             </div>
-            <div class="dimension-row">
+            <div class="dimension-row" data-dimension="actorInvolvement" role="button" tabindex="0">
               <span class="dim-label">Actor Involvement</span>
               <span class="dim-dots" id="dots-actors"></span>
             </div>
-            <div class="dimension-row">
+            <div class="dimension-row" data-dimension="enforcementLevel" role="button" tabindex="0">
               <span class="dim-label">Enforcement Level</span>
               <span class="dim-dots" id="dots-enforcement"></span>
             </div>
