@@ -1,0 +1,62 @@
+name: Update AI Regulation Data
+
+on:
+  schedule:
+    # Run at 6am UTC on the 1st of every month
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+    inputs:
+      countries:
+        description: 'Comma-separated countries to update (leave empty for auto-select based on staleness)'
+        required: false
+        default: ''
+      force_update:
+        description: 'Force update all selected countries regardless of staleness'
+        required: false
+        default: 'false'
+        type: boolean
+      model:
+        description: 'Claude model to use'
+        required: false
+        default: 'claude-opus-4-5'
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to commit updated CSV/JSON files back to repo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install anthropic
+
+      - name: Run data update script
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python scripts/update_data.py \
+            --countries "${{ github.event.inputs.countries || '' }}" \
+            --model "${{ github.event.inputs.model || 'claude-opus-4-5' }}" \
+            ${{ (github.event.inputs.force_update == 'true') && '--force' || '' }}
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet scores.csv regulation_data.csv history.json || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push updated data
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "AI Regulation Bot"
+          git config user.email "bot@github-actions"
+          git add scores.csv regulation_data.csv history.json
+          git commit -m "chore: automated data update $(date -u +%Y-%m-%d)"
+          git push

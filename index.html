@@ -1,76 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Regulation Map</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
   <link rel='stylesheet' type='text/css' media='screen' href='style.css'>
 </head>
-
 <body>
-  <div class="content">
-    <div class="title">
-      <h1>AI Regulation by Country</h1>
-      <p>(<b>very</b> in beta)</p>
+  <header id="app-header">
+    <div class="header-left">
+      <h1>AI Regulation Map</h1>
+      <span class="header-subtitle">Last updated: <span id="site-last-updated">—</span></span>
     </div>
-    <div id="input-container"></div>
-    <div id="zoom">
-      <p>Zoom controls</p>
+    <div class="header-right">
+      <div id="search-container">
+        <input
+          type="text"
+          id="country-search"
+          placeholder="Search countries..."
+          autocomplete="off"
+          aria-label="Search for a country"
+          aria-autocomplete="list"
+          aria-controls="search-suggestions"
+        />
+        <ul id="search-suggestions" role="listbox" aria-label="Country suggestions"></ul>
+      </div>
+      <div id="score-btn-container">
+        <button id="score-btn" aria-haspopup="listbox" aria-expanded="false">
+          <span id="score-btn-label">Average Score</span>
+          <span class="caret">▾</span>
+        </button>
+        <ul id="score-dropdown" role="listbox" aria-label="Score type"></ul>
+      </div>
+      <div id="filter-btn-container">
+        <button id="filter-btn" aria-haspopup="true" aria-expanded="false">
+          Filter <span class="caret">▾</span>
+        </button>
+        <div id="filter-popover">
+          <div class="filter-row">
+            <span class="filter-label">Min</span>
+            <input type="range" id="filter-min" min="1" max="5" step="0.25" value="1" aria-label="Minimum score">
+            <span id="filter-min-label">1</span>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">Max</span>
+            <input type="range" id="filter-max" min="1" max="5" step="0.25" value="5" aria-label="Maximum score">
+            <span id="filter-max-label">5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="app-main">
+    <div id="map-wrapper">
+      <div id="map"></div>
       <div id="zoom-controls"></div>
     </div>
-    <div id="map"></div>
-    <div id="country-data">
-      <div class="data-general">
-        <h2>Country: <span id="country-name"></span></h2>
-        <h3>Average score: <span id="average-score"></span></h2>
+    <aside id="country-panel">
+      <p id="no-selection-message">Select a country to see details</p>
+      <div id="panel-content" style="display:none">
+        <div class="panel-country-header">
+          <div class="panel-name-row">
+            <span id="country-name"></span>
+            <span id="confidence-badge" class="confidence-badge"></span>
+          </div>
+          <small id="last-updated" class="data-freshness"></small>
+        </div>
+        <div class="panel-section">
+          <div class="panel-section-label">OVERALL SCORE</div>
+          <div class="score-bar-row">
+            <div class="score-bar-track">
+              <div class="score-bar-fill" id="overall-bar-fill"></div>
+            </div>
+            <span class="score-value" id="average-score"></span>
+          </div>
+        </div>
+        <div class="panel-section">
+          <div class="panel-section-label">DIMENSIONS</div>
+          <div class="dimensions-list">
+            <div class="dimension-row">
+              <span class="dim-label">Regulation Status</span>
+              <span class="dim-dots" id="dots-regulation"></span>
+            </div>
+            <div class="dimension-row">
+              <span class="dim-label">Policy Lever</span>
+              <span class="dim-dots" id="dots-policy"></span>
+            </div>
+            <div class="dimension-row">
+              <span class="dim-label">Governance Type</span>
+              <span class="dim-dots" id="dots-governance"></span>
+            </div>
+            <div class="dimension-row">
+              <span class="dim-label">Actor Involvement</span>
+              <span class="dim-dots" id="dots-actors"></span>
+            </div>
+            <div class="dimension-row">
+              <span class="dim-label">Enforcement Level</span>
+              <span class="dim-dots" id="dots-enforcement"></span>
+            </div>
+          </div>
+        </div>
+        <div class="panel-section" id="regulation-section">
+          <div class="panel-section-label">REGULATION STATUS</div>
+          <p id="regulation-details"></p>
+        </div>
+        <div class="panel-section" id="policy-section">
+          <div class="panel-section-label">POLICY LEVER</div>
+          <p id="policy-details"></p>
+        </div>
+        <div class="panel-section" id="governance-section">
+          <div class="panel-section-label">GOVERNANCE TYPE</div>
+          <p id="governance-details"></p>
+        </div>
+        <div class="panel-section" id="actors-section">
+          <div class="panel-section-label">ACTOR INVOLVEMENT</div>
+          <p id="actors-details"></p>
+        </div>
+        <div class="panel-section" id="enforcement-section">
+          <div class="panel-section-label">ENFORCEMENT LEVEL</div>
+          <p id="enforcement-details"></p>
+        </div>
+        <div class="panel-section" id="laws-section">
+          <div class="panel-section-label">KEY LEGISLATION</div>
+          <p id="specific-laws"></p>
+        </div>
+        <div class="panel-section" id="sources-section">
+          <div class="panel-section-label">SOURCES</div>
+          <ul id="sources-list"></ul>
+        </div>
       </div>
-      <div class="data-detail">
-        <h3>Regulation status score: <span id="regulation"></span></h3>
-        <p><i>Is the approach is based on Innovation or Regulation?</i></p>
-        <p id="regulation-details"></p>
-      </div>
-      <div class="data-detail">
-        <h3>Policy Lever score: <span id="policy"></span></h3>
-        <p><i>Type of policy lever used (Federal R&D spending, Export controls etc..) and which 'AI triad' is put forward -
-          algorithm, data, computing power</i></p>
-        <p id="policy-details"></p>
-      </div>
-      <div class="data-detail">
-        <h3>Governance Type score: <span id="governance"></span></h3>
-        <p><i>Type of governance: Organizational governance (data privacy, ethics, accountability), Case governance
-          (healthcare, finance, transportation), Model governance (design, training, deployment AI models).</i></p>
-        <p id="governance-details"></p>
-      </div>
-      <div class="data-detail">
-        <h3>Actor Involvement: <span id="actors"></span></h3>
-        <p><i>What actors and scale (regional, national, international)</i></p>
-        <p id="actors-details"></p>
-      </div>
+    </aside>
+  </main>
+
+  <div id="timeline-strip" style="display:none">
+    <div id="timeline-inner">
+      <button id="timeline-reset" title="Jump to latest">&#x21BA;</button>
+      <input type="range" id="timeline-slider" min="0" max="0" step="1" value="0" aria-label="Timeline date slider">
+      <span id="timeline-date-label">Latest</span>
     </div>
   </div>
+
   <footer>
-    <p>This information was taken from <a
-        href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region">AI
-        governance tracker of each country per region</a> and each country was assigned a score between 1 and 5 on each
-      attribute using <a href="https://claude.ai/">Claude 3.5</a></p>
-    <p>Made with ❤️ by Ria Deane</p>
-    <div class="icons">
-      <a href="https://www.linkedin.com/in/riadeane">
-        <img src="linkedin.svg" alt="LinkedIn" width="24" height="24" class="icon">
-      </a>
-      <a href="https://github.com/riadeane">
-        <img src="github.svg" alt="GitHub" width="24" height="24" class="icon">
-      </a>
-    </div>
+    <p>Data sourced from the <a href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region" target="_blank" rel="noopener noreferrer">EA AI Governance Tracker</a>. Scores assigned by <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>. Updated monthly.</p>
+    <p>Made by Ria Deane &nbsp;&middot;&nbsp;
+      <a href="https://www.linkedin.com/in/riadeane" target="_blank" rel="noopener noreferrer">LinkedIn</a> &nbsp;&middot;&nbsp;
+      <a href="https://github.com/riadeane" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </p>
   </footer>
+
   <script src='map.js'></script>
 </body>
-
 </html>
