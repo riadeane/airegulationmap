@@ -376,6 +376,11 @@ input[type="range"] {
   margin: 0;
 }
 
+.panel-section.low-quality p {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
 /* ── Score bar ─────────────────────────────────────────────── */
 .score-bar-row {
   display: flex;
