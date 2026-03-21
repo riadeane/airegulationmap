@@ -208,10 +208,15 @@ def research_country(client, country, existing_reg, model):
     try:
         response = client.messages.create(
             model=model,
-            max_tokens=1024,
+            max_tokens=2048,
+            tools=[{"type": "web_search_20250305", "name": "web_search"}],
             messages=[{"role": "user", "content": prompt}]
         )
-        text = response.content[0].text.strip()
+        text = next((block.text for block in response.content if block.type == "text"), None)
+        if not text:
+            print(f"  WARNING: no text block in response for {country}")
+            return None
+        text = text.strip()
         # Strip markdown code fences if present
         if text.startswith("```"):
             text = text.split("```")[1]
@@ -325,7 +330,7 @@ def main():
     parser.add_argument("--countries", default="", help="Comma-separated list of countries to update")
     parser.add_argument("--force", action="store_true", help="Force update regardless of staleness")
     parser.add_argument("--dry-run", action="store_true", help="Show what would change without writing")
-    parser.add_argument("--model", default="claude-opus-4-5", help="Claude model to use")
+    parser.add_argument("--model", default="claude-sonnet-4-6", help="Claude model to use")
     args = parser.parse_args()
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")

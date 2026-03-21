@@ -18,7 +18,7 @@ on:
       model:
         description: 'Claude model to use'
         required: false
-        default: 'claude-opus-4-5'
+        default: 'claude-sonnet-4-6'
 
 jobs:
   update-data:
@@ -44,7 +44,7 @@ jobs:
         run: |
           python scripts/update_data.py \
             --countries "${{ github.event.inputs.countries || '' }}" \
-            --model "${{ github.event.inputs.model || 'claude-opus-4-5' }}" \
+            --model "${{ github.event.inputs.model || 'claude-sonnet-4-6' }}" \
             ${{ (github.event.inputs.force_update == 'true') && '--force' || '' }}
 
       - name: Check for changes
