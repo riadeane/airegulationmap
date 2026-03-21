@@ -228,6 +228,18 @@ function showSection(id, show) {
   if (el) el.style.display = show ? '' : 'none';
 }
 
+const PLACEHOLDER_RE = /^(na|n\/a|idem|unknown|none|\s*[-–—]\s*|\.\s*)$/i;
+
+function cleanRegulationText(text) {
+  if (!text || typeof text !== 'string') return null;
+  const trimmed = text.trim();
+  if (trimmed.length === 0) return null;
+  if (PLACEHOLDER_RE.test(trimmed)) return null;
+  if (/^(cf\.|Cf\.)\s/i.test(trimmed) && trimmed.length < 40) return null;
+  if (/^idem\b/i.test(trimmed) && trimmed.length < 10) return null;
+  return trimmed;
+}
+
 function updateCountryData(countryName, countryData, regulationData) {
   const scoreData = countryData[countryName];
   const regData = regulationData[countryName];
@@ -260,25 +272,35 @@ function updateCountryData(countryName, countryData, regulationData) {
   renderDots('dots-enforcement',scoreData ? scoreData.enforcementLevel : null);
 
   if (regData) {
-    document.getElementById('regulation-details').textContent = regData.regulationStatus || 'N/A';
-    document.getElementById('policy-details').textContent     = regData.policyLever || 'N/A';
-    document.getElementById('governance-details').textContent = regData.governanceType || 'N/A';
-    document.getElementById('actors-details').textContent     = regData.actorInvolvement || 'N/A';
+    const regText = cleanRegulationText(regData.regulationStatus);
+    const polText = cleanRegulationText(regData.policyLever);
+    const govText = cleanRegulationText(regData.governanceType);
+    const actText = cleanRegulationText(regData.actorInvolvement);
 
-    showSection('enforcement-section', !!regData.enforcementLevel);
-    if (regData.enforcementLevel) {
-      document.getElementById('enforcement-details').textContent = regData.enforcementLevel;
-    }
+    showSection('regulation-section', !!regText);
+    if (regText) document.getElementById('regulation-details').textContent = regText;
 
-    showSection('laws-section', !!regData.specificLaws);
-    if (regData.specificLaws) {
-      document.getElementById('specific-laws').textContent = regData.specificLaws;
-    }
+    showSection('policy-section', !!polText);
+    if (polText) document.getElementById('policy-details').textContent = polText;
+
+    showSection('governance-section', !!govText);
+    if (govText) document.getElementById('governance-details').textContent = govText;
+
+    showSection('actors-section', !!actText);
+    if (actText) document.getElementById('actors-details').textContent = actText;
+
+    const enfText = cleanRegulationText(regData.enforcementLevel);
+    showSection('enforcement-section', !!enfText);
+    if (enfText) document.getElementById('enforcement-details').textContent = enfText;
+
+    const lawsText = cleanRegulationText(regData.specificLaws);
+    showSection('laws-section', !!lawsText);
+    if (lawsText) document.getElementById('specific-laws').textContent = lawsText;
 
     const sourcesContainer = document.getElementById('sources-list');
     sourcesContainer.replaceChildren();
-    const urls = regData.sources && regData.sources !== 'NA'
-      ? regData.sources.split('|').map(u => u.trim()).filter(Boolean)
+    const urls = regData.sources
+      ? regData.sources.split('|').map(u => u.trim()).filter(u => u && !PLACEHOLDER_RE.test(u))
       : [];
     if (urls.length > 0) {
       urls.forEach((url, i) => {
@@ -296,13 +318,24 @@ function updateCountryData(countryName, countryData, regulationData) {
     } else {
       showSection('sources-section', false);
     }
+
+    const hasAnyDetail = regText || polText || govText || actText || enfText || lawsText || urls.length > 0;
+    document.getElementById('no-details-message').style.display = hasAnyDetail ? 'none' : '';
+
+    if (regData.confidence === 'low') {
+      document.querySelectorAll('#panel-content .panel-section').forEach(s => s.classList.add('low-quality'));
+    } else {
+      document.querySelectorAll('#panel-content .panel-section').forEach(s => s.classList.remove('low-quality'));
+    }
   } else {
-    ['regulation-details', 'policy-details', 'governance-details', 'actors-details'].forEach(id => {
-      document.getElementById(id).textContent = 'N/A';
-    });
+    showSection('regulation-section', false);
+    showSection('policy-section', false);
+    showSection('governance-section', false);
+    showSection('actors-section', false);
     showSection('enforcement-section', false);
     showSection('laws-section', false);
     showSection('sources-section', false);
+    document.getElementById('no-details-message').style.display = '';
   }
 }
 

@@ -30,6 +30,11 @@ except ImportError:
     sys.exit(1)
 
 
+class FatalAPIError(Exception):
+    """Raised when the API returns an unrecoverable error."""
+    pass
+
+
 # ── Configuration ─────────────────────────────────────────────
 
 SCORES_CSV = "scores.csv"
@@ -216,6 +221,24 @@ def research_country(client, country, existing_reg, model):
     except json.JSONDecodeError as e:
         print(f"  WARNING: JSON parse error for {country}: {e}")
         return None
+    except anthropic.AuthenticationError as e:
+        raise FatalAPIError(f"Authentication failed (invalid API key): {e}")
+    except anthropic.PermissionDeniedError as e:
+        raise FatalAPIError(f"Permission denied (check credits/permissions): {e}")
+    except anthropic.RateLimitError as e:
+        print(f"  WARNING: Rate limited for {country}: {e}")
+        return None
+    except anthropic.APITimeoutError as e:
+        print(f"  WARNING: Timeout for {country}: {e}")
+        return None
+    except anthropic.APIConnectionError as e:
+        print(f"  WARNING: Connection error for {country}: {e}")
+        return None
+    except anthropic.APIStatusError as e:
+        if e.status_code >= 500:
+            print(f"  WARNING: Server error ({e.status_code}) for {country}: {e}")
+            return None
+        raise FatalAPIError(f"API error {e.status_code}: {e}")
     except Exception as e:
         print(f"  ERROR researching {country}: {e}")
         return None
@@ -341,75 +364,93 @@ def main():
 
     updated_count = 0
     failed_countries = []
+    consecutive_failures = 0
 
-    for i, country in enumerate(to_update, 1):
-        print(f"[{i}/{len(to_update)}] Researching {country}...")
-        result = research_country(client, country, reg_data.get(country), args.model)
+    try:
+        for i, country in enumerate(to_update, 1):
+            print(f"[{i}/{len(to_update)}] Researching {country}...")
+            result = research_country(client, country, reg_data.get(country), args.model)
 
-        if result is None:
-            failed_countries.append(country)
-            # Small backoff before continuing
-            time.sleep(2)
-            continue
+            if result is None:
+                failed_countries.append(country)
+                consecutive_failures += 1
+                if consecutive_failures >= 5:
+                    raise FatalAPIError(
+                        f"{consecutive_failures} consecutive failures — likely a systemic issue"
+                    )
+                time.sleep(2)
+                continue
 
-        # Calculate average score
-        score_fields = [
-            result.get("regulation_status_score"),
-            result.get("policy_lever_score"),
-            result.get("governance_type_score"),
-            result.get("actor_involvement_score"),
-        ]
-        valid_scores = [s for s in score_fields if s is not None]
-        avg_score = round(sum(valid_scores) / len(valid_scores), 2) if valid_scores else None
+            consecutive_failures = 0
 
-        result["average_score"] = avg_score
+            # Calculate average score
+            score_fields = [
+                result.get("regulation_status_score"),
+                result.get("policy_lever_score"),
+                result.get("governance_type_score"),
+                result.get("actor_involvement_score"),
+            ]
+            valid_scores = [s for s in score_fields if s is not None]
+            avg_score = round(sum(valid_scores) / len(valid_scores), 2) if valid_scores else None
 
-        # Get current data version
-        current_version = int(scores_data.get(country, {}).get("Data Version", 1) or 1)
+            result["average_score"] = avg_score
 
-        # Update scores dict
-        if country not in scores_data:
-            scores_data[country] = {"Country": country}
-        scores_data[country].update({
-            "Country": country,
-            "Regulation Status": result.get("regulation_status_score", ""),
-            "Policy Lever": result.get("policy_lever_score", ""),
-            "Governance Type": result.get("governance_type_score", ""),
-            "Actor Involvement": result.get("actor_involvement_score", ""),
-            "Average Score": avg_score or "",
-            "Enforcement Level": result.get("enforcement_level_score", ""),
-            "Last Updated": today_str,
-            "Data Version": current_version + 1,
-        })
+            # Get current data version
+            current_version = int(scores_data.get(country, {}).get("Data Version", 1) or 1)
 
-        # Update regulation dict
-        if country not in reg_data:
-            reg_data[country] = {"Country": country}
-        reg_data[country].update({
-            "Country": country,
-            "Regulation Status": result.get("regulation_status_text", ""),
-            "Policy Lever": result.get("policy_lever_text", ""),
-            "Governance Type": result.get("governance_type_text", ""),
-            "Actor Involvement": result.get("actor_involvement_text", ""),
-            "Enforcement Level": result.get("enforcement_level_text", ""),
-            "Specific Laws": result.get("specific_laws", ""),
-            "Sources": result.get("sources", ""),
-            "Last Updated": today_str,
-            "Confidence": result.get("confidence", "medium"),
-        })
+            # Update scores dict
+            if country not in scores_data:
+                scores_data[country] = {"Country": country}
+            scores_data[country].update({
+                "Country": country,
+                "Regulation Status": result.get("regulation_status_score", ""),
+                "Policy Lever": result.get("policy_lever_score", ""),
+                "Governance Type": result.get("governance_type_score", ""),
+                "Actor Involvement": result.get("actor_involvement_score", ""),
+                "Average Score": avg_score or "",
+                "Enforcement Level": result.get("enforcement_level_score", ""),
+                "Last Updated": today_str,
+                "Data Version": current_version + 1,
+            })
 
-        # Append to history
-        added = append_history_snapshot(history, country, result, today_str)
+            # Update regulation dict
+            if country not in reg_data:
+                reg_data[country] = {"Country": country}
+            reg_data[country].update({
+                "Country": country,
+                "Regulation Status": result.get("regulation_status_text", ""),
+                "Policy Lever": result.get("policy_lever_text", ""),
+                "Governance Type": result.get("governance_type_text", ""),
+                "Actor Involvement": result.get("actor_involvement_text", ""),
+                "Enforcement Level": result.get("enforcement_level_text", ""),
+                "Specific Laws": result.get("specific_laws", ""),
+                "Sources": result.get("sources", ""),
+                "Last Updated": today_str,
+                "Confidence": result.get("confidence", "medium"),
+            })
 
-        confidence = result.get("confidence", "?")
-        snapshot_note = "(new snapshot)" if added else "(no score change)"
-        print(f"  Done. Avg score: {avg_score}, Confidence: {confidence} {snapshot_note}")
+            # Append to history
+            added = append_history_snapshot(history, country, result, today_str)
 
-        updated_count += 1
+            confidence = result.get("confidence", "?")
+            snapshot_note = "(new snapshot)" if added else "(no score change)"
+            print(f"  Done. Avg score: {avg_score}, Confidence: {confidence} {snapshot_note}")
 
-        # Small delay to be polite to the API
-        if i < len(to_update):
-            time.sleep(0.5)
+            updated_count += 1
+
+            # Small delay to be polite to the API
+            if i < len(to_update):
+                time.sleep(0.5)
+
+    except FatalAPIError as e:
+        print(f"\nFATAL: {e}")
+        print(f"Aborting. {updated_count} countries updated before failure.")
+        if updated_count > 0:
+            print("Saving partial progress...")
+            write_scores(scores_data)
+            write_regulation(reg_data)
+            write_history(history)
+        sys.exit(2)
 
     # Validate before writing
     errors = validate_outputs(scores_data, reg_data)
