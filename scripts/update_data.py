@@ -6,7 +6,7 @@ Uses the Claude API to research and update AI regulation data for each country.
 Updates scores.csv, regulation_data.csv, and history.json.
 
 Usage:
-  python scripts/update_data.py [--countries "Germany,France"] [--force] [--dry-run] [--model MODEL]
+  python scripts/update_data.py [--countries "Germany,France"] [--force] [--dry-run] [--model MODEL] [--search]
 
 Requirements:
   pip install anthropic
@@ -55,6 +55,13 @@ REGULATION_FIELDS = [
 ]
 
 STALENESS_DAYS = 90  # Re-research if data is older than this
+
+PRIORITY_COUNTRIES = {
+    "United States of America", "United Kingdom", "China", "European Union",
+    "Germany", "France", "Brazil", "India", "Japan", "Canada", "Australia",
+    "Singapore", "South Korea", "UAE", "Saudi Arabia", "South Africa",
+    "Kenya", "Nigeria", "Indonesia", "Mexico", "Chile", "Argentina"
+}
 
 
 # ── Name normalization ────────────────────────────────────────
@@ -193,7 +200,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.
 """
 
 
-def research_country(client, country, existing_reg, model):
+def research_country(client, country, existing_reg, model, use_search=False):
     """Call Claude API to research one country. Returns parsed dict or None on error."""
     existing_reg = existing_reg or {}
     prompt = RESEARCH_PROMPT.format(
@@ -206,12 +213,15 @@ def research_country(client, country, existing_reg, model):
     )
 
     try:
-        response = client.messages.create(
-            model=model,
-            max_tokens=2048,
-            tools=[{"type": "web_search_20250305", "name": "web_search"}],
-            messages=[{"role": "user", "content": prompt}]
-        )
+        request_kwargs = {
+            "model": model,
+            "max_tokens": 2048 if use_search else 1024,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        if use_search:
+            request_kwargs["tools"] = [{"type": "web_search_20250305", "name": "web_search"}]
+
+        response = client.messages.create(**request_kwargs)
         text = next((block.text for block in response.content if block.type == "text"), None)
         if not text:
             print(f"  WARNING: no text block in response for {country}")
@@ -330,7 +340,8 @@ def main():
     parser.add_argument("--countries", default="", help="Comma-separated list of countries to update")
     parser.add_argument("--force", action="store_true", help="Force update regardless of staleness")
     parser.add_argument("--dry-run", action="store_true", help="Show what would change without writing")
-    parser.add_argument("--model", default="claude-sonnet-4-6", help="Claude model to use")
+    parser.add_argument("--model", default="claude-haiku-4-5-20251001", help="Claude model to use")
+    parser.add_argument("--search", action="store_true", help="Enable web search for priority countries")
     args = parser.parse_args()
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -374,7 +385,9 @@ def main():
     try:
         for i, country in enumerate(to_update, 1):
             print(f"[{i}/{len(to_update)}] Researching {country}...")
-            result = research_country(client, country, reg_data.get(country), args.model)
+            use_search = args.search and country in PRIORITY_COUNTRIES
+            model = "claude-sonnet-4-6" if use_search else args.model
+            result = research_country(client, country, reg_data.get(country), model, use_search)
 
             if result is None:
                 failed_countries.append(country)
