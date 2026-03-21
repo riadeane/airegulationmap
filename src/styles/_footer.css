@@ -1,0 +1,27 @@
+footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 16px 40px;
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+}
+
+footer p {
+  margin-bottom: 4px;
+}
+
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+footer a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

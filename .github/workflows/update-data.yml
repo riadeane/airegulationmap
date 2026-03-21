@@ -41,29 +41,33 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install anthropic
+        run: pip install -r requirements.txt
 
       - name: Run data update script
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           IS_SCHEDULED: ${{ github.event_name == 'schedule' }}
+          INPUT_COUNTRIES: ${{ github.event.inputs.countries || '' }}
+          INPUT_MODEL: ${{ github.event.inputs.model || 'claude-haiku-4-5-20251001' }}
+          INPUT_FORCE: ${{ (github.event.inputs.force_update == 'true') && '--force' || '' }}
+          INPUT_SEARCH: ${{ (github.event_name == 'schedule' || github.event.inputs.search == 'true') && '--search' || '' }}
         run: |
           python scripts/update_data.py \
-            --countries "${{ github.event.inputs.countries || '' }}" \
-            --model "${{ github.event.inputs.model || 'claude-haiku-4-5-20251001' }}" \
-            ${{ (github.event.inputs.force_update == 'true') && '--force' || '' }} \
-            ${{ (github.event_name == 'schedule' || github.event.inputs.search == 'true') && '--search' || '' }}
+            --countries "$INPUT_COUNTRIES" \
+            --model "$INPUT_MODEL" \
+            $INPUT_FORCE \
+            $INPUT_SEARCH
 
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet scores.csv regulation_data.csv history.json || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --quiet public/scores.csv public/regulation_data.csv public/history.json || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push updated data
         if: steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "AI Regulation Bot"
           git config user.email "bot@github-actions"
-          git add scores.csv regulation_data.csv history.json
+          git add public/scores.csv public/regulation_data.csv public/history.json
           git commit -m "chore: automated data update $(date -u +%Y-%m-%d)"
           git push
