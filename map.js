@@ -7,6 +7,8 @@ let currentScoreData = {};
 let currentRegulationInfo = {};
 let filterMin = 1;
 let filterMax = 5;
+let selectedCountryName = null;
+let sortedCountryNames = [];
 
 const ATTRIBUTE_LABELS = {
   averageScore: 'Average Score',
@@ -17,10 +19,20 @@ const ATTRIBUTE_LABELS = {
   enforcementLevel: 'Enforcement Level'
 };
 
+// ── Contextual legend labels per dimension ──────────────────
+const LEGEND_ENDPOINTS = {
+  averageScore:     ['Minimal', 'Comprehensive'],
+  regulationStatus: ['Minimal', 'Comprehensive'],
+  policyLever:      ['Narrow', 'Broad'],
+  governanceType:   ['Centralized', 'Distributed'],
+  actorInvolvement: ['Limited', 'Broad'],
+  enforcementLevel: ['Weak', 'Strong']
+};
+
 function makeColorScale() {
   return d3.scaleSequential()
     .domain([1, 5])
-    .interpolator(d3.interpolateRgb('#8a9ab5', '#f0c040'));
+    .interpolator(d3.interpolateRgb('#3a3f52', '#d4a04a'));
 }
 
 function renderDots(elId, score) {
@@ -45,18 +57,6 @@ function addLegend(svg, colorScale) {
     .attr("class", "legend")
     .attr("transform", `translate(${WIDTH - legendWidth - legendMargin.right}, ${HEIGHT - legendHeight - legendMargin.bottom})`);
 
-  const legendScale = d3.scaleLinear()
-    .domain([1, 5])
-    .range([0, legendWidth]);
-
-  const legendAxis = d3.axisBottom(legendScale)
-    .tickValues([1, 2, 3, 4, 5])
-    .tickFormat(d3.format("d"));
-
-  legend.append("g")
-    .attr("transform", `translate(0, ${legendHeight - legendMargin.bottom - 10})`)
-    .call(legendAxis);
-
   const gradientData = d3.range(0, 1, 0.01).map(d => ({
     offset: d,
     color: colorScale(1 + d * 4)
@@ -79,14 +79,31 @@ function addLegend(svg, colorScale) {
   legend.append("rect")
     .attr("width", legendWidth)
     .attr("height", legendHeight - legendMargin.bottom - legendMargin.top)
+    .attr("rx", 2)
     .style("fill", "url(#legend-gradient)");
 
+  // Contextual endpoint labels
+  const endpoints = LEGEND_ENDPOINTS[currentAttribute] || ['Low', 'High'];
+
   legend.append("text")
-    .attr("class", "legend-title")
-    .attr("x", legendWidth / 2)
-    .attr("y", -5)
-    .attr("text-anchor", "middle")
-    .text("Score Legend");
+    .attr("class", "legend-label legend-label-low")
+    .attr("x", 0)
+    .attr("y", legendHeight - legendMargin.bottom + 4)
+    .attr("text-anchor", "start")
+    .text(endpoints[0]);
+
+  legend.append("text")
+    .attr("class", "legend-label legend-label-high")
+    .attr("x", legendWidth)
+    .attr("y", legendHeight - legendMargin.bottom + 4)
+    .attr("text-anchor", "end")
+    .text(endpoints[1]);
+}
+
+function updateLegendLabels() {
+  const endpoints = LEGEND_ENDPOINTS[currentAttribute] || ['Low', 'High'];
+  d3.select('.legend-label-low').text(endpoints[0]);
+  d3.select('.legend-label-high').text(endpoints[1]);
 }
 
 // ── Map generation ───────────────────────────────────────────
@@ -130,8 +147,19 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
 
   mapGroup.append("path")
     .datum({ type: "Sphere" })
-    .attr("fill", "#162032")
+    .attr("fill", "#0d1018")
     .attr("d", path);
+
+  // ── Graticule ──
+  const graticule = d3.geoGraticule().step([20, 20]);
+  mapGroup.append("path")
+    .datum(graticule())
+    .attr("class", "graticule")
+    .attr("d", path)
+    .attr("fill", "none")
+    .attr("stroke", "rgba(255,255,255,0.04)")
+    .attr("stroke-width", 0.4)
+    .attr("stroke-dasharray", "2,3");
 
   mapGroup.selectAll(".country")
     .data(countries)
@@ -141,9 +169,9 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     .attr("fill", d => {
       const countryName = d.properties.name;
       const entry = scoreData[countryName];
-      return entry ? colorScale(entry[scoreAttribute]) : "#2a2f3d";
+      return entry ? colorScale(entry[scoreAttribute]) : "#1a1b24";
     })
-    .attr("stroke", "#0f1117")
+    .attr("stroke", "#0a0b0f")
     .attr("stroke-width", 0.3)
     .on("mouseover", function (event, d) {
       const countryName = d.properties.name;
@@ -163,6 +191,7 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     })
     .on("click", function (event, d) {
       const countryName = d.properties.name;
+      selectedCountryName = countryName;
       updateCountryData(countryName, scoreData, regulationData);
       highlightCountry(this);
     });
@@ -189,7 +218,7 @@ const generateMap = async (scoreData, scoreAttribute, regulationData) => {
     .on("click", () => zoom.scaleBy(svg.transition().duration(750), 0.67));
 
   const resetZoom = d3.select("#zoom-controls").append("button")
-    .text("Reset")
+    .html("&#x21BA;")
     .on("click", () => {
       svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
     });
@@ -209,7 +238,7 @@ const updateMap = (countryData, scoreAttribute) => {
     .attr("fill", d => {
       const countryName = d.properties.name;
       const entry = countryData[countryName];
-      return entry ? colorScale(entry[scoreAttribute]) : "#2a2f3d";
+      return entry ? colorScale(entry[scoreAttribute]) : "#1a1b24";
     })
     .style("opacity", d => {
       const countryName = d.properties.name;
@@ -219,6 +248,8 @@ const updateMap = (countryData, scoreAttribute) => {
       if (score == null) return 0.4;
       return (score >= filterMin && score <= filterMax) ? 1 : 0.15;
     });
+
+  updateLegendLabels();
 };
 
 // ── Country detail panel ──────────────────────────────────────
@@ -238,6 +269,12 @@ function cleanRegulationText(text) {
   if (/^(cf\.|Cf\.)\s/i.test(trimmed) && trimmed.length < 40) return null;
   if (/^idem\b/i.test(trimmed) && trimmed.length < 10) return null;
   return trimmed;
+}
+
+function updateDimensionHighlight() {
+  document.querySelectorAll('.dimension-row[data-dimension]').forEach(row => {
+    row.classList.toggle('active-dimension', row.dataset.dimension === currentAttribute);
+  });
 }
 
 function updateCountryData(countryName, countryData, regulationData) {
@@ -270,6 +307,8 @@ function updateCountryData(countryName, countryData, regulationData) {
   renderDots('dots-governance', scoreData ? scoreData.governanceType : null);
   renderDots('dots-actors',     scoreData ? scoreData.actorInvolvement : null);
   renderDots('dots-enforcement',scoreData ? scoreData.enforcementLevel : null);
+
+  updateDimensionHighlight();
 
   if (regData) {
     const regText = cleanRegulationText(regData.regulationStatus);
@@ -408,7 +447,7 @@ function initSearch(countriesList, scoreData, regulationData) {
     }
   });
 
-  // Keyboard navigation
+  // Keyboard navigation for search
   searchInput.addEventListener('keydown', function (e) {
     const items = suggestions.querySelectorAll('li');
     if (!items.length) return;
@@ -437,10 +476,43 @@ function initSearch(countriesList, scoreData, regulationData) {
 }
 
 function selectCountryByName(countryName, scoreData, regulationData) {
+  selectedCountryName = countryName;
   updateCountryData(countryName, scoreData, regulationData);
   d3.selectAll(".country")
     .filter(d => d.properties.name === countryName)
     .each(function () { highlightCountry(this); });
+}
+
+// ── Click dimension to switch map ────────────────────────────
+
+function initDimensionClicks() {
+  document.querySelectorAll('.dimension-row[data-dimension]').forEach(row => {
+    row.addEventListener('click', () => {
+      const dim = row.dataset.dimension;
+      switchAttribute(dim);
+    });
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const dim = row.dataset.dimension;
+        switchAttribute(dim);
+      }
+    });
+  });
+}
+
+function switchAttribute(attr) {
+  currentAttribute = attr;
+  const label = ATTRIBUTE_LABELS[attr];
+  document.getElementById('score-btn-label').textContent = label;
+
+  // Update dropdown selection
+  document.querySelectorAll('#score-dropdown li').forEach(li => {
+    li.classList.toggle('selected', li.dataset.value === attr);
+  });
+
+  updateDimensionHighlight();
+  updateMap(currentScoreData, currentAttribute);
 }
 
 // ── Filter ───────────────────────────────────────────────────
@@ -500,14 +572,10 @@ function buildScoreSelector() {
     li.dataset.value = opt.value;
     if (opt.value === currentAttribute) li.classList.add('selected');
     li.addEventListener('click', () => {
-      currentAttribute = opt.value;
-      btnLabel.textContent = opt.text;
-      dropdown.querySelectorAll('li').forEach(el => el.classList.remove('selected'));
-      li.classList.add('selected');
+      switchAttribute(opt.value);
       dropdown.classList.remove('open');
       btn.classList.remove('active');
       btn.setAttribute('aria-expanded', 'false');
-      updateMap(currentScoreData, currentAttribute);
     });
     dropdown.appendChild(li);
   });
@@ -520,6 +588,54 @@ function buildScoreSelector() {
     document.getElementById('filter-popover').classList.remove('open');
     document.getElementById('filter-btn').classList.remove('active');
     document.getElementById('filter-btn').setAttribute('aria-expanded', 'false');
+  });
+}
+
+// ── Keyboard navigation ─────────────────────────────────────
+
+function initKeyboardNav(scoreData, regulationData) {
+  document.addEventListener('keydown', e => {
+    // Don't intercept when typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      // Escape blurs the input
+      if (e.key === 'Escape') {
+        e.target.blur();
+        document.getElementById('search-suggestions').replaceChildren();
+        updateSearchHighlight('');
+      }
+      return;
+    }
+
+    if (e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) {
+      e.preventDefault();
+      document.getElementById('country-search').focus();
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      // Deselect country
+      selectedCountryName = null;
+      d3.selectAll(".country").classed("selected", false).attr("stroke-width", 0.3);
+      document.getElementById('no-selection-message').style.display = '';
+      document.getElementById('panel-content').style.display = 'none';
+      // Close any open dropdowns
+      document.getElementById('score-dropdown').classList.remove('open');
+      document.getElementById('score-btn').classList.remove('active');
+      document.getElementById('filter-popover').classList.remove('open');
+      document.getElementById('filter-btn').classList.remove('active');
+      return;
+    }
+
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && sortedCountryNames.length > 0) {
+      e.preventDefault();
+      let idx = selectedCountryName ? sortedCountryNames.indexOf(selectedCountryName) : -1;
+      if (e.key === 'ArrowRight') {
+        idx = idx < sortedCountryNames.length - 1 ? idx + 1 : 0;
+      } else {
+        idx = idx > 0 ? idx - 1 : sortedCountryNames.length - 1;
+      }
+      selectCountryByName(sortedCountryNames[idx], scoreData, regulationData);
+    }
   });
 }
 
@@ -593,6 +709,14 @@ function updateSiteLastUpdated(scoreData) {
   if (el) el.textContent = latest || '2024';
 }
 
+// ── Country count badge ──────────────────────────────────────
+
+function updateCountryCount(scoreData) {
+  const count = Object.keys(scoreData).length;
+  const el = document.getElementById('country-count');
+  if (el) el.textContent = `${count} countries`;
+}
+
 // ── Initial load ──────────────────────────────────────────────
 
 async function initialLoad() {
@@ -628,15 +752,18 @@ async function initialLoad() {
   currentScoreData = Object.fromEntries(scoreRows.map(d => [d.country, d]));
   currentRegulationInfo = Object.fromEntries(regulationRows.map(d => [d.country, d]));
 
-  const countriesList = scoreRows.map(d => d.country).sort();
+  sortedCountryNames = scoreRows.map(d => d.country).sort();
 
   buildScoreSelector();
-  initSearch(countriesList, currentScoreData, currentRegulationInfo);
+  initSearch(sortedCountryNames, currentScoreData, currentRegulationInfo);
   initFilter();
+  initDimensionClicks();
+  initKeyboardNav(currentScoreData, currentRegulationInfo);
 
   await generateMap(currentScoreData, 'averageScore', currentRegulationInfo);
 
   updateSiteLastUpdated(currentScoreData);
+  updateCountryCount(currentScoreData);
 
   // Load history non-blocking — shows timeline slider if >1 date exists
   loadHistory().then(history => initTimeline(history));
