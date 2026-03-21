@@ -18,7 +18,12 @@ on:
       model:
         description: 'Claude model to use'
         required: false
-        default: 'claude-sonnet-4-6'
+        default: 'claude-haiku-4-5-20251001'
+      search:
+        description: 'Enable web search for priority countries'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   update-data:
@@ -41,11 +46,13 @@ jobs:
       - name: Run data update script
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          IS_SCHEDULED: ${{ github.event_name == 'schedule' }}
         run: |
           python scripts/update_data.py \
             --countries "${{ github.event.inputs.countries || '' }}" \
-            --model "${{ github.event.inputs.model || 'claude-sonnet-4-6' }}" \
-            ${{ (github.event.inputs.force_update == 'true') && '--force' || '' }}
+            --model "${{ github.event.inputs.model || 'claude-haiku-4-5-20251001' }}" \
+            ${{ (github.event.inputs.force_update == 'true') && '--force' || '' }} \
+            ${{ (github.event_name == 'schedule' || github.event.inputs.search == 'true') && '--search' || '' }}
 
       - name: Check for changes
         id: changes
