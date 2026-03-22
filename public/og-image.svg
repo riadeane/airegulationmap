@@ -24,5 +24,5 @@
   <text x="600" y="510" text-anchor="middle" fill="#a09888" font-size="24" font-weight="400">Global AI governance status by country</text>
   <!-- Bottom line -->
   <line x1="400" y1="555" x2="800" y2="555" stroke="#e8e0d4" stroke-width="0.5" opacity="0.2"/>
-  <text x="600" y="585" text-anchor="middle" fill="#706858" font-size="16">airegulationmap.pages.dev</text>
+  <text x="600" y="585" text-anchor="middle" fill="#706858" font-size="16">airegulationmap.org</text>
 </svg>
