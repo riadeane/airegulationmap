@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f0f1a"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Globe icon -->
+  <circle cx="600" cy="260" r="120" fill="none" stroke="#e8e0d4" stroke-width="2" opacity="0.3"/>
+  <ellipse cx="600" cy="260" rx="50" ry="118" fill="none" stroke="#e8e0d4" stroke-width="1.5" opacity="0.3"/>
+  <line x1="480" y1="260" x2="720" y2="260" stroke="#e8e0d4" stroke-width="1.5" opacity="0.3"/>
+  <ellipse cx="600" cy="260" rx="118" ry="45" fill="none" stroke="#e8e0d4" stroke-width="1" opacity="0.2" transform="rotate(-20 600 260)"/>
+  <!-- Colored dots representing countries -->
+  <circle cx="540" cy="210" r="12" fill="#4a90d9" opacity="0.7"/>
+  <circle cx="630" cy="230" r="15" fill="#d4a44a" opacity="0.7"/>
+  <circle cx="570" cy="300" r="10" fill="#5ab77a" opacity="0.7"/>
+  <circle cx="660" cy="280" r="8" fill="#c75454" opacity="0.7"/>
+  <circle cx="520" cy="270" r="9" fill="#7b68ee" opacity="0.6"/>
+  <circle cx="680" cy="240" r="11" fill="#e8915a" opacity="0.6"/>
+  <!-- Title -->
+  <text x="600" y="460" text-anchor="middle" fill="#e8e0d4" font-size="56" font-weight="700" letter-spacing="-1">AI Regulation Map</text>
+  <!-- Subtitle -->
+  <text x="600" y="510" text-anchor="middle" fill="#a09888" font-size="24" font-weight="400">Global AI governance status by country</text>
+  <!-- Bottom line -->
+  <line x1="400" y1="555" x2="800" y2="555" stroke="#e8e0d4" stroke-width="0.5" opacity="0.2"/>
+  <text x="600" y="585" text-anchor="middle" fill="#706858" font-size="16">airegulationmap.pages.dev</text>
+</svg>
