@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="#0a0b0f"/>
+      <stop offset="100%" stop-color="#141520"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.5">
+      <stop offset="0%" stop-color="#d4a04a" stop-opacity="0.08"/>
+      <stop offset="70%" stop-color="#d4a04a" stop-opacity="0.02"/>
+      <stop offset="100%" stop-color="#d4a04a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bar-grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5a6478"/>
+      <stop offset="100%" stop-color="#d4a04a"/>
+    </linearGradient>
+    <radialGradient id="pin-glow" cx="0.5" cy="0.4" r="0.5">
+      <stop offset="0%" stop-color="#ffe0a0" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#d4a04a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- Subtle grid pattern suggesting cartography -->
+  <g stroke="#252637" stroke-width="0.5" opacity="0.4">
+    <line x1="0" y1="126" x2="1200" y2="126"/>
+    <line x1="0" y1="252" x2="1200" y2="252"/>
+    <line x1="0" y1="378" x2="1200" y2="378"/>
+    <line x1="0" y1="504" x2="1200" y2="504"/>
+    <line x1="240" y1="0" x2="240" y2="630"/>
+    <line x1="480" y1="0" x2="480" y2="630"/>
+    <line x1="720" y1="0" x2="720" y2="630"/>
+    <line x1="960" y1="0" x2="960" y2="630"/>
+  </g>
+
+  <!-- Decorative map pin (large, left side) -->
+  <g transform="translate(200, 180) scale(2.8)" opacity="0.12">
+    <path d="M16 27 C16 27 6.5 16.5 6.5 12 C6.5 6.75 10.75 3 16 3 C21.25 3 25.5 6.75 25.5 12 C25.5 16.5 16 27 16 27Z"
+          fill="none" stroke="#d4a04a" stroke-width="1.5"/>
+    <circle cx="16" cy="11.5" r="4" fill="none" stroke="#d4a04a" stroke-width="1"/>
+    <circle cx="16" cy="11.5" r="1.5" fill="#d4a04a"/>
+  </g>
+
+  <!-- Scattered country dots — abstract map feel -->
+  <g opacity="0.5">
+    <!-- Cluster left (Americas) -->
+    <circle cx="180" cy="200" r="4" fill="#5a6478"/>
+    <circle cx="210" cy="240" r="6" fill="#7a8a5e"/>
+    <circle cx="170" cy="310" r="5" fill="#8a7a5e"/>
+    <circle cx="220" cy="350" r="3.5" fill="#5a6478"/>
+    <circle cx="195" cy="280" r="7" fill="#d4a04a"/>
+
+    <!-- Cluster center (Europe/Africa) -->
+    <circle cx="520" cy="170" r="5" fill="#d4a04a"/>
+    <circle cx="555" cy="185" r="4" fill="#b8944a"/>
+    <circle cx="540" cy="210" r="6" fill="#8a9478"/>
+    <circle cx="510" cy="240" r="3" fill="#d4a04a"/>
+    <circle cx="530" cy="300" r="4.5" fill="#5a6478"/>
+    <circle cx="560" cy="260" r="5" fill="#7a8a5e"/>
+    <circle cx="490" cy="195" r="3.5" fill="#b89060"/>
+
+    <!-- Cluster right (Asia/Pacific) -->
+    <circle cx="880" cy="190" r="5.5" fill="#8a7a5e"/>
+    <circle cx="920" cy="220" r="7" fill="#d4a04a"/>
+    <circle cx="950" cy="250" r="4" fill="#7a8a5e"/>
+    <circle cx="870" cy="260" r="3.5" fill="#5a6478"/>
+    <circle cx="1000" cy="200" r="5" fill="#b8944a"/>
+    <circle cx="980" cy="310" r="6" fill="#5a6478"/>
+    <circle cx="910" cy="290" r="4" fill="#8a9478"/>
+  </g>
+
+  <!-- Faint connection lines between some dots -->
+  <g stroke="#d4a04a" stroke-width="0.5" opacity="0.08">
+    <line x1="520" y1="170" x2="880" y2="190"/>
+    <line x1="210" y1="240" x2="520" y2="170"/>
+    <line x1="555" y1="185" x2="920" y2="220"/>
+    <line x1="195" y1="280" x2="530" y2="300"/>
+  </g>
+
+  <!-- Gold accent line -->
+  <rect x="480" y="340" width="60" height="2" rx="1" fill="#d4a04a" opacity="0.6"/>
+
+  <!-- Title -->
+  <text x="600" y="410" text-anchor="middle" fill="#e4e2de" font-family="Georgia, 'Times New Roman', serif" font-size="64" font-weight="700" letter-spacing="-1.5">AI Regulation Map</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="458" text-anchor="middle" fill="#7d7a72" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="400" letter-spacing="0.5">Global AI governance status by country</text>
+
+  <!-- Score bar preview -->
+  <rect x="440" y="490" width="320" height="4" rx="2" fill="url(#bar-grad)" opacity="0.5"/>
+  <text x="440" y="516" fill="#4e4c46" font-family="ui-monospace, 'SF Mono', monospace" font-size="11" letter-spacing="1.5">MINIMAL</text>
+  <text x="760" y="516" text-anchor="end" fill="#4e4c46" font-family="ui-monospace, 'SF Mono', monospace" font-size="11" letter-spacing="1.5">COMPREHENSIVE</text>
+
+  <!-- Domain -->
+  <text x="600" y="590" text-anchor="middle" fill="#4e4c46" font-family="ui-monospace, 'SF Mono', monospace" font-size="14" letter-spacing="2">airegulationmap.org</text>
+</svg>
