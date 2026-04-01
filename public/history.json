@@ -32,6 +32,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 2.0
       }
     ],
     "Andorra": [
@@ -43,11 +52,20 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.75
       }
     ],
     "Angola": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -58,7 +76,7 @@
     ],
     "Antigua and Barbuda": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -87,6 +105,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 2,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.5
       }
     ],
     "Australia": [
@@ -124,7 +151,7 @@
     ],
     "Bahamas": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -153,11 +180,20 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 2.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 3,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 2.25
       }
     ],
     "Barbados": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -175,6 +211,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 2,
+        "governanceType": 1,
+        "actorInvolvement": 1,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Belgium": [
@@ -190,7 +235,7 @@
     ],
     "Belize": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -208,6 +253,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 3,
+        "enforcementLevel": 1,
+        "averageScore": 2.25
       }
     ],
     "Bhutan": [
@@ -219,6 +273,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 2.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 3,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 2.25
       }
     ],
     "Bolivia": [
@@ -230,11 +293,20 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Bosnia and Herz.": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -252,6 +324,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Brazil": [
@@ -274,6 +355,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 2.0
       }
     ],
     "Bulgaria": [
@@ -296,11 +386,20 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 1,
+        "enforcementLevel": 1,
+        "averageScore": 1.0
       }
     ],
     "Burundi": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -311,7 +410,7 @@
     ],
     "Cambodia": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -322,7 +421,7 @@
     ],
     "Cameroon": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -344,7 +443,7 @@
     ],
     "Cape Verde": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -355,7 +454,7 @@
     ],
     "Central African Rep.": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -373,6 +472,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Chile": [
@@ -417,11 +525,20 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Congo": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -454,7 +571,7 @@
     ],
     "Cuba": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -494,11 +611,20 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 3,
+        "enforcementLevel": 1,
+        "averageScore": 2.25
       }
     ],
     "Dem. Rep. Congo": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -520,7 +646,7 @@
     ],
     "Djibouti": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -531,7 +657,7 @@
     ],
     "Dominica": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -542,7 +668,7 @@
     ],
     "Dominican Republic": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -571,6 +697,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.75
       }
     ],
     "Egypt": [
@@ -586,7 +721,7 @@
     ],
     "El Salvador": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -597,7 +732,7 @@
     ],
     "Equatorial Guinea": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -608,7 +743,7 @@
     ],
     "Eritrea": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -648,6 +783,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 3,
+        "policyLever": 3,
+        "governanceType": 2,
+        "actorInvolvement": 4,
+        "enforcementLevel": 1,
+        "averageScore": 3.0
       }
     ],
     "Finland": [
@@ -681,6 +825,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Gambia": [
@@ -692,6 +845,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Georgia": [
@@ -725,6 +887,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 3,
+        "enforcementLevel": 2,
+        "averageScore": 2.25
       }
     ],
     "Greece": [
@@ -740,7 +911,7 @@
     ],
     "Grenada": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -751,7 +922,7 @@
     ],
     "Guatemala": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -769,6 +940,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Guinea-Bissau": [
@@ -780,11 +960,20 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Guyana": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -795,7 +984,7 @@
     ],
     "Haiti": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -806,7 +995,7 @@
     ],
     "Honduras": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -868,6 +1057,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 2,
         "averageScore": 2.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 3,
+        "policyLever": 4,
+        "governanceType": 4,
+        "actorInvolvement": 3,
+        "enforcementLevel": 2,
+        "averageScore": 3.5
       }
     ],
     "Iraq": [
@@ -876,6 +1074,15 @@
         "regulationStatus": 2,
         "policyLever": 1,
         "governanceType": 2,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
@@ -916,7 +1123,7 @@
     ],
     "Jamaica": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -989,6 +1196,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 2,
+        "actorInvolvement": 3,
+        "enforcementLevel": 1,
+        "averageScore": 1.75
       }
     ],
     "Kuwait": [
@@ -1000,6 +1216,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 2.0
       }
     ],
     "Kyrgyzstan": [
@@ -1015,7 +1240,7 @@
     ],
     "Laos": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1044,6 +1269,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 1,
+        "enforcementLevel": 1,
+        "averageScore": 1.0
       }
     ],
     "Lesotho": [
@@ -1055,6 +1289,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Liberia": [
@@ -1066,6 +1309,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Libya": [
@@ -1077,6 +1329,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Liechtenstein": [
@@ -1121,6 +1382,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 3,
+        "enforcementLevel": 1,
+        "averageScore": 1.75
       }
     ],
     "Madagascar": [
@@ -1132,6 +1402,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Malawi": [
@@ -1143,6 +1422,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Malaysia": [
@@ -1169,7 +1457,7 @@
     ],
     "Mali": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1209,6 +1497,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Mauritius": [
@@ -1264,6 +1561,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 3,
+        "enforcementLevel": 2,
+        "averageScore": 2.25
       }
     ],
     "Mongolia": [
@@ -1272,6 +1578,15 @@
         "regulationStatus": 2,
         "policyLever": 1,
         "governanceType": 2,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
@@ -1308,11 +1623,20 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Myanmar": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1330,6 +1654,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
+        "actorInvolvement": 3,
+        "enforcementLevel": 1,
+        "averageScore": 2.0
       }
     ],
     "Nauru": [
@@ -1378,7 +1711,7 @@
     ],
     "Nicaragua": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1396,6 +1729,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Nigeria": [
@@ -1440,6 +1782,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 3,
+        "policyLever": 3,
+        "governanceType": 2,
+        "actorInvolvement": 3,
+        "enforcementLevel": 1,
+        "averageScore": 2.75
       }
     ],
     "Pakistan": [
@@ -1473,6 +1824,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.75
       }
     ],
     "Papua New Guinea": [
@@ -1484,11 +1844,20 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.75
       }
     ],
     "Paraguay": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1572,6 +1941,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 2,
         "averageScore": 3.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 3,
+        "policyLever": 3,
+        "governanceType": 3,
+        "actorInvolvement": 2,
+        "enforcementLevel": 2,
+        "averageScore": 2.75
       }
     ],
     "Rwanda": [
@@ -1587,7 +1965,7 @@
     ],
     "S. Sudan": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1598,7 +1976,7 @@
     ],
     "Saint Kitts and Nevis": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1609,7 +1987,7 @@
     ],
     "Saint Lucia": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1627,6 +2005,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 2,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.5
       }
     ],
     "Samoa": [
@@ -1638,6 +2025,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "San Marino": [
@@ -1648,6 +2044,15 @@
         "governanceType": 2,
         "actorInvolvement": 3,
         "enforcementLevel": 1,
+        "averageScore": 2.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
+        "actorInvolvement": 3,
+        "enforcementLevel": 2,
         "averageScore": 2.0
       }
     ],
@@ -1660,6 +2065,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Saudi Arabia": [
@@ -1675,7 +2089,7 @@
     ],
     "Senegal": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -1697,7 +2111,7 @@
     ],
     "Seychelles": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1715,6 +2129,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Singapore": [
@@ -1759,11 +2182,20 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Somalia": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1814,11 +2246,20 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 2.0
       }
     ],
     "Sudan": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1829,7 +2270,7 @@
     ],
     "Suriname": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1847,6 +2288,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Sweden": [
@@ -1880,6 +2330,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Taiwan": [
@@ -1902,6 +2361,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 3,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 4,
+        "enforcementLevel": 1,
+        "averageScore": 2.75
       }
     ],
     "Tanzania": [
@@ -1913,6 +2381,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
+        "actorInvolvement": 3,
+        "enforcementLevel": 1,
+        "averageScore": 2.0
       }
     ],
     "Thailand": [
@@ -1928,7 +2405,7 @@
     ],
     "Togo": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1950,7 +2427,7 @@
     ],
     "Trinidad and Tobago": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1983,7 +2460,7 @@
     ],
     "Turkmenistan": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -2012,6 +2489,15 @@
         "actorInvolvement": 3,
         "enforcementLevel": 1,
         "averageScore": 2.25
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 1,
+        "actorInvolvement": 3,
+        "enforcementLevel": 1,
+        "averageScore": 2.0
       }
     ],
     "Ukraine": [
@@ -2089,6 +2575,15 @@
         "actorInvolvement": 1,
         "enforcementLevel": 1,
         "averageScore": 1.0
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 1,
+        "policyLever": 1,
+        "governanceType": 1,
+        "actorInvolvement": 2,
+        "enforcementLevel": 1,
+        "averageScore": 1.25
       }
     ],
     "Vatican City": [
@@ -2104,7 +2599,7 @@
     ],
     "Venezuela": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -2137,7 +2632,7 @@
     ],
     "Zambia": [
       {
-        "date": "2026-03-21",
+        "date": "2026-04-01",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -2155,6 +2650,15 @@
         "actorInvolvement": 2,
         "enforcementLevel": 1,
         "averageScore": 1.75
+      },
+      {
+        "date": "2026-04-01",
+        "regulationStatus": 2,
+        "policyLever": 2,
+        "governanceType": 2,
+        "actorInvolvement": 3,
+        "enforcementLevel": 1,
+        "averageScore": 2.25
       }
     ]
   }
