@@ -9,6 +9,7 @@ import { getState, setState } from '../state/store.js';
 import { makeColorScale, addLegend } from './legend.js';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip.js';
 import { setupZoom } from './zoom.js';
+import { toggleComparison } from '../comparison/index.js';
 
 export async function generateMap() {
   const { scoreData, currentAttribute } = getState();
@@ -84,7 +85,13 @@ export async function generateMap() {
     })
     .on('mouseout', hideTooltip)
     .on('click', function (event, d) {
-      setState({ selectedCountry: d.properties.name });
+      const name = d.properties.name;
+      if (event.shiftKey) {
+        toggleComparison(name);
+        event.preventDefault();
+      } else {
+        setState({ selectedCountry: name });
+      }
     });
 
   setupZoom(svg, mapGroup);
@@ -123,6 +130,18 @@ export function highlightCountry(countryName) {
 
 export function clearHighlight() {
   selectAll('.country').classed('selected', false).attr('stroke-width', 0.3);
+}
+
+export function markComparisonCountries(names) {
+  selectAll('.country')
+    .classed('in-comparison', false)
+    .attr('data-comparison-index', null);
+  if (!names || names.length === 0) return;
+  const indexByName = new Map(names.map((n, i) => [n, i]));
+  selectAll('.country')
+    .filter(d => indexByName.has(d.properties.name))
+    .classed('in-comparison', true)
+    .attr('data-comparison-index', d => indexByName.get(d.properties.name));
 }
 
 export function updateSearchHighlight(query) {

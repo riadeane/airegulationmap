@@ -1,0 +1,296 @@
+/* Comparison panel — sibling to #country-panel inside <main> */
+#comparison-panel {
+  width: min(480px, 42vw);
+  min-width: 360px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  animation: fadeIn 0.3s var(--ease-out);
+}
+
+#comparison-panel[hidden] {
+  display: none !important;
+}
+
+#comparison-panel::-webkit-scrollbar {
+  width: 5px;
+}
+
+#comparison-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#comparison-panel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.comparison-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--accent-glow) 0%, transparent 100%);
+}
+
+.comparison-title h2 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+.comparison-title small {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.clear-comparison-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s var(--ease-out);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.clear-comparison-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Chips */
+.comparison-chips {
+  padding: 14px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.comp-chip {
+  --chip-color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 5px 12px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--chip-color);
+  border-radius: 999px;
+  font-size: 0.76rem;
+  color: var(--text-primary);
+  font-family: 'Geist', -apple-system, sans-serif;
+}
+
+.comp-chip-label {
+  line-height: 1;
+}
+
+.comp-chip-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.15s var(--ease-out);
+}
+
+.comp-chip-remove:hover {
+  background: var(--chip-color);
+  color: var(--bg);
+}
+
+/* Radar */
+.radar-chart {
+  padding: 18px 24px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.radar-chart svg {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.radar-axis-label {
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 10px;
+  fill: var(--text-secondary);
+  font-weight: 500;
+}
+
+.radar-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  font-size: 0.7rem;
+  font-family: 'Geist Mono', monospace;
+  color: var(--text-secondary);
+}
+
+.radar-data-table th,
+.radar-data-table td {
+  padding: 4px 8px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.radar-data-table thead th {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-size: 0.66rem;
+}
+
+.radar-data-table tbody th {
+  text-align: left;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+}
+
+/* Details grid */
+.comparison-details {
+  padding: 8px 24px 24px;
+}
+
+.comp-details-row {
+  display: grid;
+  grid-template-columns: 130px repeat(var(--col-count, 1), minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  align-items: start;
+}
+
+.comp-details-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.comp-details-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  font-family: 'Geist', -apple-system, sans-serif;
+  padding-top: 2px;
+}
+
+.comp-details-cell {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  min-width: 0;
+  word-wrap: break-word;
+}
+
+.comp-details-cell.empty {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.comp-details-country {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 0.95rem;
+  font-style: normal;
+}
+
+/* Compare button in single-country panel */
+.compare-btn {
+  margin-top: 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s var(--ease-out);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.compare-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.compare-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.compare-btn.in-comparison {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
+/* Map highlighting for compared countries */
+.country.in-comparison {
+  stroke-width: 2 !important;
+}
+
+.country.in-comparison[data-comparison-index="0"] { stroke: #d4a04a; }
+.country.in-comparison[data-comparison-index="1"] { stroke: #6ab6d8; }
+.country.in-comparison[data-comparison-index="2"] { stroke: #c47ac0; }
+.country.in-comparison[data-comparison-index="3"] { stroke: #7dbf7d; }
+
+/* Responsive: below 768px, stack comparison panel full-width */
+@media (max-width: 768px) {
+  #comparison-panel {
+    width: 100%;
+    min-width: 0;
+    max-height: 70vh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .comp-details-row {
+    grid-template-columns: 1fr;
+  }
+
+  .comp-details-header {
+    display: none;
+  }
+
+  .comp-details-cell::before {
+    content: attr(data-country);
+  }
+}

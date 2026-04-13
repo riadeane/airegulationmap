@@ -6,6 +6,7 @@ const state = {
   filterMax: 5,
   selectedCountry: null,
   sortedCountryNames: [],
+  comparisonCountries: [],
 };
 
 const listeners = new Map();
