@@ -3,7 +3,7 @@ import { ATTRIBUTE_LABELS } from '../constants.js';
 import { cleanRegulationText } from '../panel/sections.js';
 import { renderRadar } from './radar.js';
 import { COMPARISON_COLORS } from './colors.js';
-import { removeFromComparison } from './index.js';
+import { addToComparison, removeFromComparison, MAX_COMPARISON } from './index.js';
 
 const DETAIL_DIMENSIONS = [
   'regulationStatus',
@@ -12,6 +12,50 @@ const DETAIL_DIMENSIONS = [
   'actorInvolvement',
   'enforcementLevel',
 ];
+
+export function renderAddBar() {
+  const bar = document.getElementById('comparison-add-bar');
+  if (!bar) return;
+  bar.replaceChildren();
+
+  const { selectedCountry, comparisonCountries } = getState();
+
+  if (!selectedCountry) {
+    const hint = document.createElement('span');
+    hint.className = 'comp-add-hint';
+    hint.textContent = 'Click any country on the map to add it (tip: Shift+click for one-step add)';
+    bar.appendChild(hint);
+    return;
+  }
+
+  const label = document.createElement('span');
+  label.className = 'comp-add-label';
+  const strong = document.createElement('strong');
+  strong.textContent = selectedCountry;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'comp-add-btn';
+
+  if (comparisonCountries.includes(selectedCountry)) {
+    label.append('Viewing ', strong);
+    btn.textContent = '− Remove';
+    btn.classList.add('remove');
+    btn.addEventListener('click', () => removeFromComparison(selectedCountry));
+  } else if (comparisonCountries.length >= MAX_COMPARISON) {
+    label.append('Viewing ', strong);
+    btn.textContent = `Max ${MAX_COMPARISON} reached`;
+    btn.disabled = true;
+    btn.title = `Remove a country before adding another (maximum ${MAX_COMPARISON}).`;
+  } else {
+    label.append('Selected: ', strong);
+    btn.textContent = '+ Add to comparison';
+    btn.addEventListener('click', () => addToComparison(selectedCountry));
+  }
+
+  bar.appendChild(label);
+  bar.appendChild(btn);
+}
 
 function renderChips(names) {
   const container = document.getElementById('comparison-chips');
@@ -89,15 +133,18 @@ function renderDetails(names) {
 }
 
 export function renderComparisonPanel(names) {
+  renderAddBar();
   renderChips(names);
   renderRadar(document.getElementById('radar-chart'), names, getState().scoreData);
   renderDetails(names);
 }
 
 export function clearComparisonPanel() {
+  const addBar = document.getElementById('comparison-add-bar');
   const chips = document.getElementById('comparison-chips');
   const radar = document.getElementById('radar-chart');
   const details = document.getElementById('comparison-details');
+  if (addBar) addBar.replaceChildren();
   if (chips) chips.replaceChildren();
   if (radar) radar.replaceChildren();
   if (details) details.replaceChildren();

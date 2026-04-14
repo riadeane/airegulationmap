@@ -1,5 +1,5 @@
 import { getState, setState, on } from '../state/store.js';
-import { renderComparisonPanel, clearComparisonPanel } from './panel.js';
+import { renderComparisonPanel, clearComparisonPanel, renderAddBar } from './panel.js';
 import { markComparisonCountries } from '../map/renderer.js';
 
 export const MAX_COMPARISON = 4;
@@ -56,6 +56,15 @@ export function initComparison() {
       if (selectedCountry) {
         setState({ selectedCountry });
       }
+    }
+  });
+
+  // When comparison is active, update the add-bar whenever the user
+  // clicks a new country on the map (normal click still fires this).
+  // This is the mouse-only path for adding a 3rd/4th country.
+  on('selectedCountry', () => {
+    if (getState().comparisonCountries.length >= 2) {
+      renderAddBar();
     }
   });
 }

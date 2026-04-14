@@ -79,6 +79,80 @@
   color: var(--accent);
 }
 
+/* Add bar — mouse-only path to add a 3rd/4th country without
+   knowing the Shift+click shortcut. Appears below the header and
+   reflects whatever country the user most recently clicked. */
+.comparison-add-bar {
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  flex-wrap: wrap;
+}
+
+.comp-add-hint {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.comp-add-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 0;
+}
+
+.comp-add-label strong {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-weight: 400;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  margin-left: 2px;
+}
+
+.comp-add-btn {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--bg);
+  font-size: 0.7rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s var(--ease-out);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.comp-add-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.comp-add-btn:disabled {
+  background: transparent;
+  color: var(--text-tertiary);
+  border-color: var(--border);
+  cursor: not-allowed;
+}
+
+.comp-add-btn.remove {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.comp-add-btn.remove:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Chips */
 .comparison-chips {
   padding: 14px 24px;
