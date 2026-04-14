@@ -15,8 +15,8 @@ export const RADAR_AXES = [
   'enforcementLevel',
 ];
 
-const SIZE = 380;
-const MARGIN = 64;
+const SIZE = 480;
+const MARGIN = 110;
 const R = (SIZE - MARGIN * 2) / 2;
 const CENTER = SIZE / 2;
 const MAX_SCORE = 5;

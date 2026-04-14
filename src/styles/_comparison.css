@@ -1,7 +1,7 @@
 /* Comparison panel — sibling to #country-panel inside <main> */
 #comparison-panel {
-  width: min(480px, 42vw);
-  min-width: 360px;
+  width: min(520px, 46vw);
+  min-width: 380px;
   flex-shrink: 0;
   background: var(--surface);
   border-left: 1px solid var(--border);
@@ -181,18 +181,22 @@
   letter-spacing: 0.06em;
 }
 
-/* Details grid */
+/* Details grid — fixed column widths so rows stay aligned when the
+   content is wider than the panel. Horizontal scroll kicks in with
+   3+ countries; otherwise it fits the panel naturally. */
 .comparison-details {
   padding: 8px 24px 24px;
+  overflow-x: auto;
 }
 
 .comp-details-row {
   display: grid;
-  grid-template-columns: 130px repeat(var(--col-count, 1), minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 120px repeat(var(--col-count, 1), 180px);
+  gap: 14px;
   padding: 12px 0;
   border-bottom: 1px solid var(--border-subtle);
   align-items: start;
+  width: max-content;
 }
 
 .comp-details-header {
