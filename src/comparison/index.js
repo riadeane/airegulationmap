@@ -1,8 +1,42 @@
 import { getState, setState, on } from '../state/store.js';
 import { renderComparisonPanel, clearComparisonPanel, renderAddBar } from './panel.js';
 import { markComparisonCountries } from '../map/renderer.js';
+import { COMPARISON_COLORS } from './colors.js';
 
 export const MAX_COMPARISON = 4;
+
+// Stable color-slot assignment so a country keeps its color for the
+// lifetime of its presence in the comparison. Without this, removing
+// a middle country reshuffles every other country's color (because
+// callers were using the array index).
+const colorSlots = new Map(); // countryName -> 0..MAX_COMPARISON-1
+
+function syncColorSlots(names) {
+  // Release slots for countries that left the list.
+  for (const name of [...colorSlots.keys()]) {
+    if (!names.includes(name)) colorSlots.delete(name);
+  }
+  // Assign slots to new countries, reusing the lowest free index.
+  const used = new Set(colorSlots.values());
+  for (const name of names) {
+    if (colorSlots.has(name)) continue;
+    for (let i = 0; i < MAX_COMPARISON; i++) {
+      if (!used.has(i)) {
+        colorSlots.set(name, i);
+        used.add(i);
+        break;
+      }
+    }
+  }
+}
+
+export function getColorIndex(name) {
+  return colorSlots.get(name) ?? 0;
+}
+
+export function getColorFor(name) {
+  return COMPARISON_COLORS[getColorIndex(name)];
+}
 
 export function addToComparison(name) {
   const { comparisonCountries } = getState();
@@ -40,6 +74,7 @@ export function initComparison() {
   if (clearBtn) clearBtn.addEventListener('click', clearComparison);
 
   on('comparisonCountries', (names) => {
+    syncColorSlots(names);
     markComparisonCountries(names);
     if (countEl) countEl.textContent = String(names.length);
 

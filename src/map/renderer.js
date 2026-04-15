@@ -9,7 +9,7 @@ import { getState, setState } from '../state/store.js';
 import { makeColorScale, addLegend } from './legend.js';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip.js';
 import { setupZoom } from './zoom.js';
-import { toggleComparison } from '../comparison/index.js';
+import { toggleComparison, getColorIndex } from '../comparison/index.js';
 
 export async function generateMap() {
   const { scoreData, currentAttribute } = getState();
@@ -137,11 +137,11 @@ export function markComparisonCountries(names) {
     .classed('in-comparison', false)
     .attr('data-comparison-index', null);
   if (!names || names.length === 0) return;
-  const indexByName = new Map(names.map((n, i) => [n, i]));
+  const namesSet = new Set(names);
   selectAll('.country')
-    .filter(d => indexByName.has(d.properties.name))
+    .filter(d => namesSet.has(d.properties.name))
     .classed('in-comparison', true)
-    .attr('data-comparison-index', d => indexByName.get(d.properties.name));
+    .attr('data-comparison-index', d => getColorIndex(d.properties.name));
 }
 
 export function updateSearchHighlight(query) {

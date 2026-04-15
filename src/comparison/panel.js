@@ -2,8 +2,7 @@ import { getState } from '../state/store.js';
 import { ATTRIBUTE_LABELS } from '../constants.js';
 import { cleanRegulationText } from '../panel/sections.js';
 import { renderRadar } from './radar.js';
-import { COMPARISON_COLORS } from './colors.js';
-import { addToComparison, removeFromComparison, MAX_COMPARISON } from './index.js';
+import { addToComparison, removeFromComparison, getColorFor, MAX_COMPARISON } from './index.js';
 
 const DETAIL_DIMENSIONS = [
   'regulationStatus',
@@ -60,8 +59,8 @@ export function renderAddBar() {
 function renderChips(names) {
   const container = document.getElementById('comparison-chips');
   container.replaceChildren();
-  names.forEach((name, idx) => {
-    const color = COMPARISON_COLORS[idx % COMPARISON_COLORS.length];
+  names.forEach((name) => {
+    const color = getColorFor(name);
     const chip = document.createElement('span');
     chip.className = 'comp-chip';
     chip.style.setProperty('--chip-color', color);
@@ -96,10 +95,11 @@ function renderDetails(names) {
   const corner = document.createElement('div');
   corner.className = 'comp-details-label';
   header.appendChild(corner);
-  names.forEach((name, idx) => {
+  names.forEach((name) => {
     const cell = document.createElement('div');
     cell.className = 'comp-details-cell comp-details-country';
-    cell.style.color = COMPARISON_COLORS[idx % COMPARISON_COLORS.length];
+    cell.style.color = getColorFor(name);
+    cell.dataset.country = name;
     cell.textContent = name;
     header.appendChild(cell);
   });
@@ -118,6 +118,8 @@ function renderDetails(names) {
     names.forEach(name => {
       const cell = document.createElement('div');
       cell.className = 'comp-details-cell';
+      cell.dataset.country = name;
+      cell.style.setProperty('--chip-color', getColorFor(name));
       const reg = regulationData[name];
       const text = reg ? cleanRegulationText(reg[dim]) : null;
       if (text) {

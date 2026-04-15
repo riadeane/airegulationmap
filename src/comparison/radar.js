@@ -2,7 +2,7 @@ import { create } from 'd3-selection';
 import { scaleLinear } from 'd3-scale';
 import { lineRadial, curveLinearClosed } from 'd3-shape';
 import { ATTRIBUTE_LABELS } from '../constants.js';
-import { COMPARISON_COLORS } from './colors.js';
+import { getColorFor } from './index.js';
 
 // Axis order for the radar (6 axes). Keep averageScore first so the most
 // prominent axis is the composite score.
@@ -84,10 +84,10 @@ export function renderRadar(containerEl, countries, scoreData) {
     .curve(curveLinearClosed);
 
   const polyGroup = svg.append('g').attr('class', 'radar-polygons');
-  countries.forEach((name, idx) => {
+  countries.forEach((name) => {
     const scores = scoreData[name] || {};
     const values = RADAR_AXES.map(k => (scores[k] == null ? 0 : scores[k]));
-    const color = COMPARISON_COLORS[idx % COMPARISON_COLORS.length];
+    const color = getColorFor(name);
     const pathD = polyGen(values);
     polyGroup.append('path')
       .attr('d', pathD)
@@ -119,10 +119,10 @@ export function renderRadar(containerEl, countries, scoreData) {
   const thead = document.createElement('thead');
   const headRow = document.createElement('tr');
   headRow.appendChild(document.createElement('th'));
-  countries.forEach((name, idx) => {
+  countries.forEach((name) => {
     const th = document.createElement('th');
     th.textContent = name;
-    th.style.color = COMPARISON_COLORS[idx % COMPARISON_COLORS.length];
+    th.style.color = getColorFor(name);
     headRow.appendChild(th);
   });
   thead.appendChild(headRow);

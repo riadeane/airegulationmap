@@ -350,7 +350,9 @@
 .country.in-comparison[data-comparison-index="2"] { stroke: #c47ac0; }
 .country.in-comparison[data-comparison-index="3"] { stroke: #7dbf7d; }
 
-/* Responsive: below 768px, stack comparison panel full-width */
+/* Responsive: below 768px, stack comparison panel full-width.
+   Details continue to use horizontal scroll (the desktop layout)
+   so the column-aligned grid stays intact and readable. */
 @media (max-width: 768px) {
   #comparison-panel {
     width: 100%;
@@ -360,15 +362,13 @@
     border-top: 1px solid var(--border);
   }
 
-  .comp-details-row {
-    grid-template-columns: 1fr;
+  /* Bump the chip × tap target to a more thumb-friendly size */
+  .comp-chip {
+    padding: 6px 6px 6px 12px;
   }
-
-  .comp-details-header {
-    display: none;
-  }
-
-  .comp-details-cell::before {
-    content: attr(data-country);
+  .comp-chip-remove {
+    width: 28px;
+    height: 28px;
+    font-size: 1.1rem;
   }
 }
