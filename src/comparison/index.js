@@ -86,10 +86,13 @@ export function initComparison() {
       if (panelEl) panelEl.hidden = true;
       if (countryPanelEl) countryPanelEl.style.display = '';
       clearComparisonPanel();
-      // Re-trigger the single panel render so it picks up current selection.
+      // Re-render the single panel with the most relevant country:
+      // prefer the one country still left in the comparison (if any),
+      // otherwise fall back to whatever was selected before.
       const { selectedCountry } = getState();
-      if (selectedCountry) {
-        setState({ selectedCountry });
+      const target = names[0] || selectedCountry;
+      if (target) {
+        setState({ selectedCountry: target });
       }
     }
   });

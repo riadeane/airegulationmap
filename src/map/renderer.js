@@ -74,13 +74,18 @@ export async function generateMap() {
     .attr('stroke-width', 0.3)
     .on('mouseover', function (event, d) {
       const countryName = d.properties.name;
-      const { currentAttribute: attr } = getState();
+      const { currentAttribute: attr, comparisonCountries } = getState();
       const entry = getState().scoreData[countryName];
       const score = entry ? entry[attr] : null;
       const label = ATTRIBUTE_LABELS[attr] || attr;
+      const inComparison = comparisonCountries.includes(countryName);
+      const hint = inComparison
+        ? '<br><em>Shift+click to remove from comparison</em>'
+        : '<br><em>Shift+click to add to comparison</em>';
       showTooltip(event,
         `<strong>${countryName}</strong>` +
-        (score != null ? `<br>${label}: ${score} / 5` : '<br>No data')
+        (score != null ? `<br>${label}: ${score} / 5` : '<br>No data') +
+        hint
       );
     })
     .on('mouseout', hideTooltip)

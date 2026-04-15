@@ -309,14 +309,14 @@
 
 /* Compare button in single-country panel */
 .compare-btn {
-  margin-top: 10px;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  font-size: 0.7rem;
+  margin-top: 12px;
+  background: var(--accent-muted);
+  border: 1px solid rgba(212, 160, 74, 0.35);
+  color: var(--accent);
+  font-size: 0.72rem;
   font-family: 'Geist', -apple-system, sans-serif;
-  font-weight: 500;
-  padding: 6px 12px;
+  font-weight: 600;
+  padding: 7px 14px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.15s var(--ease-out);
@@ -325,8 +325,9 @@
 }
 
 .compare-btn:hover:not(:disabled) {
+  background: var(--accent);
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--bg);
 }
 
 .compare-btn:disabled {

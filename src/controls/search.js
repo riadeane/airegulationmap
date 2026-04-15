@@ -92,7 +92,11 @@ export function initKeyboardNav() {
     }
 
     if (e.key === 'Escape') {
-      setState({ selectedCountry: null });
+      // While the comparison panel is active, leave selectedCountry
+      // alone so the add-bar keeps reflecting the last clicked country.
+      if (getState().comparisonCountries.length < 2) {
+        setState({ selectedCountry: null });
+      }
       document.getElementById('score-dropdown').classList.remove('open');
       document.getElementById('score-btn').classList.remove('active');
       document.getElementById('filter-popover').classList.remove('open');
