@@ -85,7 +85,7 @@
       <div id="zoom-controls"></div>
     </div>
     <aside id="country-panel">
-      <p id="no-selection-message">Select a country to see details</p>
+      <p id="no-selection-message">Select a country to see details.<br><span class="hint">Tip: Shift+click two or more countries to compare them.</span></p>
       <div id="panel-content" style="display:none">
         <div class="panel-country-header">
           <div class="panel-name-row">
@@ -93,6 +93,7 @@
             <span id="confidence-badge" class="confidence-badge"></span>
           </div>
           <small id="last-updated" class="data-freshness"></small>
+          <button id="compare-btn" class="compare-btn" type="button">+ Compare</button>
         </div>
         <div class="panel-section">
           <div class="panel-section-label">OVERALL SCORE</div>
@@ -160,6 +161,19 @@
           <ul id="sources-list"></ul>
         </div>
       </div>
+    </aside>
+    <aside id="comparison-panel" hidden>
+      <div class="comparison-header">
+        <div class="comparison-title">
+          <h2>Country Comparison</h2>
+          <small><span id="comparison-count">0</span> / 4 selected</small>
+        </div>
+        <button id="clear-comparison-btn" class="clear-comparison-btn" type="button">Clear All</button>
+      </div>
+      <div id="comparison-add-bar" class="comparison-add-bar"></div>
+      <div id="comparison-chips" class="comparison-chips"></div>
+      <div id="radar-chart" class="radar-chart"></div>
+      <div id="comparison-details" class="comparison-details"></div>
     </aside>
   </main>
 

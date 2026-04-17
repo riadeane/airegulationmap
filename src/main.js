@@ -5,6 +5,7 @@ import { loadScores, loadRegulation } from './data/loader.js';
 import { loadHistory } from './data/history.js';
 import { generateMap, initMapSubscriptions } from './map/index.js';
 import { initPanel } from './panel/index.js';
+import { initComparison } from './comparison/index.js';
 import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelector.js';
 import { initFilter } from './controls/filter.js';
 import { initSearch, initKeyboardNav } from './controls/search.js';
@@ -50,6 +51,7 @@ async function main() {
   initFilter();
   initDimensionClicks();
   initPanel();
+  initComparison();
   initSearch();
   initKeyboardNav();
   initMapSubscriptions();
