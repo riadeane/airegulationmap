@@ -9,7 +9,6 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  max-width: calc(100% - var(--panel-w) - 48px);
 }
 
 #timeline-reset {

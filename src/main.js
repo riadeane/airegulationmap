@@ -10,6 +10,7 @@ import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelecto
 import { initFilter } from './controls/filter.js';
 import { initSearch, initKeyboardNav } from './controls/search.js';
 import { initTimeline } from './controls/timeline.js';
+import { initTheme } from './controls/theme.js';
 
 function updateSiteLastUpdated(scoreData) {
   const dates = Object.values(scoreData)
@@ -47,6 +48,7 @@ async function main() {
   setState({ scoreData, regulationData, sortedCountryNames });
 
   // Wire up UI controls
+  initTheme();
   buildScoreSelector();
   initFilter();
   initDimensionClicks();

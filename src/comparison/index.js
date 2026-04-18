@@ -1,7 +1,7 @@
 import { getState, setState, on } from '../state/store.js';
 import { renderComparisonPanel, clearComparisonPanel, renderAddBar } from './panel.js';
 import { markComparisonCountries } from '../map/renderer.js';
-import { COMPARISON_COLORS } from './colors.js';
+import { comparisonColor } from './colors.js';
 
 export const MAX_COMPARISON = 4;
 
@@ -35,7 +35,7 @@ export function getColorIndex(name) {
 }
 
 export function getColorFor(name) {
-  return COMPARISON_COLORS[getColorIndex(name)];
+  return comparisonColor(getColorIndex(name));
 }
 
 export function addToComparison(name) {
@@ -73,15 +73,36 @@ export function initComparison() {
 
   if (clearBtn) clearBtn.addEventListener('click', clearComparison);
 
+  // Tracks whether the comparison panel is already visible, so we only
+  // auto-scroll on the first transition from hidden → shown (avoids
+  // scroll-on-every-chip-change once the user is in compare mode).
+  let wasVisible = false;
+
   on('comparisonCountries', (names) => {
     syncColorSlots(names);
     markComparisonCountries(names);
     if (countEl) countEl.textContent = String(names.length);
 
-    if (names.length >= 2) {
+    // Open the comparison panel as soon as the user adds the first
+     // country. Without this the "+ Compare" button feels like a
+    // no-op (panel only appears after a second add). At 1 country
+    // the panel shows the chip + search so the user understands
+    // they are in compare mode; radar + details stay hidden until
+    // there's something to actually compare.
+    if (names.length >= 1) {
       if (panelEl) panelEl.hidden = false;
       if (countryPanelEl) countryPanelEl.style.display = 'none';
       renderComparisonPanel(names);
+
+      // On mobile, the comparison panel sits below the map — scroll
+      // it into view the first time it opens so the user doesn't
+      // have to hunt for it.
+      if (!wasVisible && panelEl && window.matchMedia('(max-width: 768px)').matches) {
+        requestAnimationFrame(() => {
+          panelEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+      wasVisible = true;
     } else {
       if (panelEl) panelEl.hidden = true;
       if (countryPanelEl) countryPanelEl.style.display = '';
@@ -94,14 +115,15 @@ export function initComparison() {
       if (target) {
         setState({ selectedCountry: target });
       }
+      wasVisible = false;
     }
   });
 
-  // When comparison is active, update the add-bar whenever the user
-  // clicks a new country on the map (normal click still fires this).
-  // This is the mouse-only path for adding a 3rd/4th country.
+  // When comparison is active (even with just 1 country), refresh the
+  // add-bar whenever the user clicks a new country on the map so the
+  // "+ Add [country]" quick-add button follows the click.
   on('selectedCountry', () => {
-    if (getState().comparisonCountries.length >= 2) {
+    if (getState().comparisonCountries.length >= 1) {
       renderAddBar();
     }
   });

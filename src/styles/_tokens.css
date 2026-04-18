@@ -1,25 +1,139 @@
+/* ------------------------------------------------------------------
+   Design tokens.
+
+   All colors are authored in OKLCH so that lightness steps are
+   perceptually even and chroma can be reduced near the extremes
+   without a muddy middle. Neutrals are tinted toward the brand
+   hue (~75deg, warm amber) at very low chroma for subconscious
+   cohesion.
+
+   Two themes ship: dark (default) and light. The theme is chosen
+   in this order:
+     1. An explicit `data-theme="light"` or `data-theme="dark"` on <html>
+        (set by the toggle and persisted to localStorage).
+     2. `prefers-color-scheme` if no explicit choice exists.
+     3. Dark as the ultimate fallback.
+   ------------------------------------------------------------------ */
+
 :root {
-  --bg: #0a0b0f;
-  --bg-warm: #0e0f14;
-  --surface: #141520;
-  --surface-raised: #1a1b28;
-  --border: #252637;
-  --border-subtle: #1e1f30;
-  --accent: #d4a04a;
-  --accent-hover: #e6b45c;
-  --accent-muted: rgba(212, 160, 74, 0.15);
-  --accent-glow: rgba(212, 160, 74, 0.08);
-  --text-primary: #e4e2de;
-  --text-secondary: #7d7a72;
-  --text-tertiary: #4e4c46;
-  --no-data: #1a1b24;
-  --score-low: #5a6478;
-  --score-high: #d4a04a;
-  --ocean: #0d1018;
+  /* ---- Shape, spacing, motion ---- */
   --header-h: 56px;
   --panel-w: 340px;
   --radius: 8px;
   --radius-sm: 5px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ---- Brand hue (used to tint neutrals) ---- */
+  --brand-hue: 75;
+
+  /* ---- Default (dark) palette ---- */
+  --bg:              oklch(15% 0.008 var(--brand-hue));
+  --surface:         oklch(19% 0.009 var(--brand-hue));
+  --surface-raised:  oklch(23% 0.010 var(--brand-hue));
+  --border:          oklch(30% 0.013 var(--brand-hue));
+  --border-subtle:   oklch(24% 0.010 var(--brand-hue));
+
+  --text-primary:    oklch(92% 0.012 var(--brand-hue));
+  --text-secondary:  oklch(72% 0.014 var(--brand-hue));
+  --text-tertiary:   oklch(58% 0.014 var(--brand-hue)); /* WCAG AA on --bg */
+
+  --accent:          oklch(76% 0.13 var(--brand-hue));
+  --accent-hover:    oklch(82% 0.13 var(--brand-hue));
+  --accent-muted:    oklch(76% 0.13 var(--brand-hue) / 0.14);
+
+  --ocean:           oklch(16% 0.015 240);
+  --no-data:         oklch(26% 0.007 var(--brand-hue));
+
+  /* Choropleth ramp endpoints (interpolated in Lab space by d3).
+     Red → blue divergent: low scores read "warning / less coverage"
+     at a glance, high scores read "mature / well-developed". Also
+     the most colorblind-safe divergent ramp — protan, deutan, and
+     tritan observers all see clear separation. */
+  --score-low:       oklch(58% 0.16 28);
+  --score-high:      oklch(62% 0.13 245);
+
+  /* Comparison palette — four distinct hues at matched lightness so
+     they read well against both themes and against each other on
+     the radar overlay. */
+  --comparison-1:    oklch(76% 0.13 75);   /* amber */
+  --comparison-2:    oklch(72% 0.10 235);  /* blue */
+  --comparison-3:    oklch(70% 0.13 340);  /* magenta */
+  --comparison-4:    oklch(72% 0.11 150);  /* green */
+
+  /* Map stroke between countries */
+  --map-stroke:      oklch(15% 0.008 var(--brand-hue));
+
+  color-scheme: dark;
+}
+
+/* Light theme — rethought as a two-hue divergent palette so the
+   choropleth gradient reads clearly across the cream background
+   instead of collapsing into a muddy warm monochrome.
+   - Low scores: saturated cool teal-blue.
+   - High scores: deep honey amber.
+   - Midpoint in Lab interpolation lands near neutral gray,
+     which reads unambiguously against either end of the range. */
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg:              oklch(98% 0.003 80);
+    --surface:         oklch(99.5% 0.002 80);
+    --surface-raised:  oklch(100% 0 0);
+    --border:          oklch(88% 0.008 80);
+    --border-subtle:   oklch(94% 0.004 80);
+
+    --text-primary:    oklch(20% 0.013 80);
+    --text-secondary:  oklch(42% 0.014 80);
+    --text-tertiary:   oklch(58% 0.014 80);
+
+    --accent:          oklch(48% 0.16 60);
+    --accent-hover:    oklch(42% 0.17 60);
+    --accent-muted:    oklch(48% 0.16 60 / 0.10);
+
+    --ocean:           oklch(95% 0.011 235);
+    --no-data:         oklch(93% 0.004 80);
+
+    --score-low:       oklch(52% 0.18 28);
+    --score-high:      oklch(45% 0.15 245);
+
+    --comparison-1:    oklch(48% 0.16 60);
+    --comparison-2:    oklch(45% 0.16 245);
+    --comparison-3:    oklch(48% 0.17 340);
+    --comparison-4:    oklch(48% 0.13 150);
+
+    --map-stroke:      oklch(100% 0 0);
+
+    color-scheme: light;
+  }
+}
+
+:root[data-theme='light'] {
+  --bg:              oklch(98% 0.003 80);
+  --surface:         oklch(99.5% 0.002 80);
+  --surface-raised:  oklch(100% 0 0);
+  --border:          oklch(88% 0.008 80);
+  --border-subtle:   oklch(94% 0.004 80);
+
+  --text-primary:    oklch(20% 0.013 80);
+  --text-secondary:  oklch(42% 0.014 80);
+  --text-tertiary:   oklch(58% 0.014 80);
+
+  --accent:          oklch(48% 0.16 60);
+  --accent-hover:    oklch(42% 0.17 60);
+  --accent-muted:    oklch(48% 0.16 60 / 0.10);
+
+  --ocean:           oklch(95% 0.011 235);
+  --no-data:         oklch(93% 0.004 80);
+
+  --score-low:       oklch(52% 0.18 28);
+  --score-high:      oklch(45% 0.15 245);
+
+  --comparison-1:    oklch(48% 0.16 60);
+  --comparison-2:    oklch(45% 0.16 245);
+  --comparison-3:    oklch(48% 0.17 340);
+  --comparison-4:    oklch(48% 0.13 150);
+
+  --map-stroke:      oklch(100% 0 0);
+
+  color-scheme: light;
 }

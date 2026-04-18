@@ -12,7 +12,6 @@
   top: 0;
   z-index: 100;
   animation: fadeIn 0.6s var(--ease-out);
-  box-shadow: 0 1px 0 rgba(212, 160, 74, 0.03);
 }
 
 .header-left {
@@ -23,12 +22,12 @@
 }
 
 h1 {
-  font-family: 'DM Serif Display', Georgia, serif;
+  font-family: 'Literata', Georgia, serif;
   font-size: 1.15rem;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.005em;
 }
 
 .header-subtitle {
@@ -41,16 +40,16 @@ h1 {
 }
 
 .country-count-badge {
-  font-size: 0.62rem;
+  font-size: 0.65rem;
   color: var(--accent);
   background: var(--accent-muted);
   padding: 3px 9px;
   border-radius: 3px;
   font-weight: 500;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   white-space: nowrap;
-  font-family: 'Geist Mono', monospace;
-  border: 1px solid rgba(212, 160, 74, 0.12);
+  font-variant-numeric: tabular-nums;
+  border: 1px solid color-mix(in oklch, var(--accent) 20%, transparent);
 }
 
 .header-right {
@@ -74,7 +73,6 @@ h1 {
   font-family: 'Geist', -apple-system, sans-serif;
   color: var(--text-primary);
   width: 170px;
-  outline: none;
   transition: border-color 0.2s var(--ease-out), width 0.3s var(--ease-out), box-shadow 0.2s var(--ease-out);
 }
 
@@ -101,7 +99,7 @@ h1 {
   z-index: 300;
   max-height: 260px;
   overflow-y: auto;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,160,74,0.04);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
   animation: fadeUp 0.2s var(--ease-out);
 }
 
@@ -182,7 +180,7 @@ h1 {
   list-style: none;
   z-index: 300;
   min-width: 200px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
 
@@ -211,7 +209,7 @@ h1 {
 
 #score-dropdown li.selected {
   color: var(--accent);
-  background: var(--accent-glow);
+  background: var(--accent-muted);
   font-weight: 500;
 }
 
@@ -227,7 +225,7 @@ h1 {
   padding: 16px 18px;
   z-index: 300;
   min-width: 240px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
 #filter-popover.open {
@@ -248,7 +246,7 @@ h1 {
 
 .filter-label {
   font-size: 0.68rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   font-weight: 500;
   width: 26px;
   flex-shrink: 0;
@@ -272,3 +270,36 @@ input[type="range"] {
   text-align: right;
   font-weight: 500;
 }
+
+/* Theme toggle — sun on dark, moon on light */
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.18s var(--ease-out), border-color 0.18s var(--ease-out), background 0.18s var(--ease-out);
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.theme-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.theme-toggle .theme-icon-moon { display: none; }
+.theme-toggle[data-theme='light'] .theme-icon-sun { display: none; }
+.theme-toggle[data-theme='light'] .theme-icon-moon { display: block; }

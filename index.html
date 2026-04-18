@@ -26,13 +26,25 @@
   <!-- General meta -->
   <meta name="description" content="Interactive map tracking AI governance and regulation status across every country. Scores, legislation, and policy details updated monthly.">
 
+  <!-- Resolve theme before paint to avoid a flash of wrong theme -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      } catch (e) { /* storage blocked — fall back to prefers-color-scheme */ }
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
 </head>
 <body>
+  <a class="skip-link" href="#app-main">Skip to content</a>
   <header id="app-header">
     <div class="header-left">
       <h1>AI Regulation Map</h1>
@@ -76,10 +88,25 @@
           </div>
         </div>
       </div>
+      <button
+        id="theme-toggle"
+        class="theme-toggle"
+        type="button"
+        aria-label="Switch to light theme"
+        title="Switch theme"
+      >
+        <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+        </svg>
+        <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+        </svg>
+      </button>
     </div>
   </header>
 
-  <main id="app-main">
+  <main id="app-main" aria-label="World map and country detail">
     <div id="map-wrapper">
       <div id="map"></div>
       <div id="zoom-controls"></div>
@@ -107,26 +134,26 @@
         <div class="panel-section">
           <div class="panel-section-label">DIMENSIONS</div>
           <div class="dimensions-list">
-            <div class="dimension-row" data-dimension="regulationStatus" role="button" tabindex="0">
+            <button type="button" class="dimension-row" data-dimension="regulationStatus">
               <span class="dim-label">Regulation Status</span>
               <span class="dim-dots" id="dots-regulation"></span>
-            </div>
-            <div class="dimension-row" data-dimension="policyLever" role="button" tabindex="0">
+            </button>
+            <button type="button" class="dimension-row" data-dimension="policyLever">
               <span class="dim-label">Policy Lever</span>
               <span class="dim-dots" id="dots-policy"></span>
-            </div>
-            <div class="dimension-row" data-dimension="governanceType" role="button" tabindex="0">
+            </button>
+            <button type="button" class="dimension-row" data-dimension="governanceType">
               <span class="dim-label">Governance Type</span>
               <span class="dim-dots" id="dots-governance"></span>
-            </div>
-            <div class="dimension-row" data-dimension="actorInvolvement" role="button" tabindex="0">
+            </button>
+            <button type="button" class="dimension-row" data-dimension="actorInvolvement">
               <span class="dim-label">Actor Involvement</span>
               <span class="dim-dots" id="dots-actors"></span>
-            </div>
-            <div class="dimension-row" data-dimension="enforcementLevel" role="button" tabindex="0">
+            </button>
+            <button type="button" class="dimension-row" data-dimension="enforcementLevel">
               <span class="dim-label">Enforcement Level</span>
               <span class="dim-dots" id="dots-enforcement"></span>
-            </div>
+            </button>
           </div>
         </div>
         <p id="no-details-message" class="panel-section" style="display:none; color: var(--text-secondary); font-size: 0.8rem; font-style: italic;">
@@ -179,7 +206,7 @@
 
   <div id="timeline-strip" style="display:none">
     <div id="timeline-inner">
-      <button id="timeline-reset" title="Jump to latest">&#x21BA;</button>
+      <button id="timeline-reset" type="button" aria-label="Jump to latest date" title="Jump to latest">&#x21BA;</button>
       <input type="range" id="timeline-slider" min="0" max="0" step="1" value="0" aria-label="Timeline date slider">
       <span id="timeline-date-label">Latest</span>
     </div>

@@ -1,8 +1,8 @@
 .legend text,
 .legend-title {
   font-size: 10px;
-  fill: var(--text-tertiary);
-  font-family: 'Geist Mono', monospace;
+  fill: var(--text-secondary);
+  font-family: 'Geist', -apple-system, sans-serif;
 }
 
 .legend-label {

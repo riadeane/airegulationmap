@@ -1,27 +1,33 @@
 import { select } from 'd3-selection';
-import { scaleSequential, scaleLinear } from 'd3-scale';
-import { interpolateRgb } from 'd3-interpolate';
+import { scaleLinear } from 'd3-scale';
+import { interpolateLab } from 'd3-interpolate';
 import { range } from 'd3-array';
 
-import { WIDTH, HEIGHT, LEGEND_ENDPOINTS } from '../constants.js';
+import { LEGEND_ENDPOINTS } from '../constants.js';
 import { getState } from '../state/store.js';
+import { cssVar } from './cssColors.js';
 
 export function makeColorScale() {
-  return scaleSequential()
+  return scaleLinear()
     .domain([1, 5])
-    .interpolator(interpolateRgb('#3a3f52', '#d4a04a'));
+    .range([cssVar('--score-low'), cssVar('--score-high')])
+    .interpolate(interpolateLab)
+    .clamp(true);
 }
 
-export function addLegend(svg, colorScale) {
-  const legendWidth = 300;
+export function addLegend(svg, colorScale, size) {
+  const { w, h } = size || { w: 1000, h: 500 };
+  // Legend width scales with viewport. Min 190 so endpoint labels like
+  // "Comprehensive" / "Centralized" don't crowd the midpoint.
+  const legendWidth = Math.round(Math.min(300, Math.max(190, w * 0.28)));
   const legendHeight = 30;
-  const legendMargin = { top: 10, right: 20, bottom: 10, left: 20 };
+  const legendMargin = { top: 10, right: 16, bottom: 10, left: 16 };
 
   const legend = svg.append('g')
     .attr('class', 'legend')
-    .attr('transform', `translate(${WIDTH - legendWidth - legendMargin.right}, ${HEIGHT - legendHeight - legendMargin.bottom})`);
+    .attr('transform', `translate(${w - legendWidth - legendMargin.right}, ${h - legendHeight - legendMargin.bottom})`);
 
-  const gradientData = range(0, 1, 0.01).map(d => ({
+  const gradientData = range(0, 1, 0.02).map(d => ({
     offset: d,
     color: colorScale(1 + d * 4),
   }));

@@ -37,15 +37,14 @@
   gap: 12px;
   padding: 20px 24px 18px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--accent-glow) 0%, transparent 100%);
 }
 
 .comparison-title h2 {
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-size: 1.2rem;
-  font-weight: 400;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: 0.01em;
+  letter-spacing: -0.005em;
   margin: 0;
 }
 
@@ -67,7 +66,7 @@
   padding: 6px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s var(--ease-out);
+  transition: border-color 0.15s var(--ease-out), color 0.15s var(--ease-out);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 500;
@@ -79,39 +78,109 @@
   color: var(--accent);
 }
 
-/* Add bar — mouse-only path to add a 3rd/4th country without
-   knowing the Shift+click shortcut. Appears below the header and
-   reflects whatever country the user most recently clicked. */
 .comparison-add-bar {
   padding: 12px 24px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-height: 44px;
   flex-wrap: wrap;
+  position: relative;
 }
 
-.comp-add-hint {
-  font-size: 0.72rem;
-  color: var(--text-tertiary);
-  font-style: italic;
-  line-height: 1.5;
+/* Type-to-search input — the primary way to add countries. */
+.comp-search {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 200px;
 }
 
-.comp-add-label {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  flex: 1;
-  min-width: 0;
-}
-
-.comp-add-label strong {
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-weight: 400;
+.comp-search-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-family: 'Geist', -apple-system, sans-serif;
   color: var(--text-primary);
-  font-size: 0.92rem;
-  margin-left: 2px;
+  transition: border-color 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
+}
+
+.comp-search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.comp-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+.comp-search-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.comp-search-suggestions {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  list-style: none;
+  z-index: 310;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeUp 0.18s var(--ease-out);
+}
+
+.comp-search-suggestions.open {
+  display: block;
+}
+
+.comp-search-suggestions li {
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.12s, color 0.12s;
+}
+
+.comp-search-suggestions li:last-child {
+  border-bottom: none;
+}
+
+.comp-search-suggestions li:hover,
+.comp-search-suggestions li.active {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+/* Quick-add ghost button — appears when you've also clicked a
+   country on the map. Flat styling so it reads as secondary. */
+.comp-add-quick {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border) !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 0.78rem !important;
+  padding: 7px 12px !important;
+  flex-shrink: 0;
+}
+
+.comp-add-quick:hover:not(:disabled) {
+  background: var(--accent-muted) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
 }
 
 .comp-add-btn {
@@ -124,7 +193,7 @@
   padding: 7px 14px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s var(--ease-out);
+  transition: background 0.15s var(--ease-out), border-color 0.15s var(--ease-out), color 0.15s var(--ease-out);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   white-space: nowrap;
@@ -153,7 +222,9 @@
   color: var(--accent);
 }
 
-/* Chips */
+/* Chips — identity is encoded with a leading color dot, NOT a
+   left-stripe. Stripe-as-accent is a recognizable AI-design tell
+   and is explicitly avoided here. */
 .comparison-chips {
   padding: 14px 24px;
   display: flex;
@@ -166,15 +237,23 @@
   --chip-color: var(--accent);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 6px 5px 12px;
+  gap: 8px;
+  padding: 5px 6px 5px 10px;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--chip-color);
   border-radius: 999px;
   font-size: 0.76rem;
   color: var(--text-primary);
   font-family: 'Geist', -apple-system, sans-serif;
+}
+
+.comp-chip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip-color);
+  flex-shrink: 0;
 }
 
 .comp-chip-label {
@@ -195,7 +274,7 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: all 0.15s var(--ease-out);
+  transition: background 0.15s var(--ease-out), color 0.15s var(--ease-out);
 }
 
 .comp-chip-remove:hover {
@@ -207,6 +286,19 @@
 .radar-chart {
   padding: 18px 24px 8px;
   border-bottom: 1px solid var(--border-subtle);
+}
+
+.radar-chart.is-empty {
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.comp-empty-prompt {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-style: italic;
+  margin: 0;
 }
 
 .radar-chart svg {
@@ -228,9 +320,14 @@
   width: 100%;
   border-collapse: collapse;
   margin-top: 14px;
-  font-size: 0.7rem;
-  font-family: 'Geist Mono', monospace;
+  font-size: 0.72rem;
   color: var(--text-secondary);
+}
+
+/* Numeric cells only get the mono */
+.radar-data-table tbody td {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .radar-data-table th,
@@ -241,26 +338,32 @@
 }
 
 .radar-data-table thead th {
+  font-family: 'Geist', -apple-system, sans-serif;
   font-weight: 500;
   letter-spacing: 0.02em;
   font-size: 0.66rem;
+  color: var(--text-primary);
 }
 
 .radar-data-table tbody th {
+  font-family: 'Geist', -apple-system, sans-serif;
   text-align: left;
   font-weight: 400;
   color: var(--text-tertiary);
   text-transform: uppercase;
-  font-size: 0.58rem;
+  font-size: 0.6rem;
   letter-spacing: 0.06em;
 }
 
-/* Details grid — fixed column widths so rows stay aligned when the
-   content is wider than the panel. Horizontal scroll kicks in with
-   3+ countries; otherwise it fits the panel naturally. */
+/* Details grid — container-aware. On narrow panels (e.g. tablet tier
+   or stacked mobile) the value columns tighten so the header label
+   column stays aligned without forcing horizontal scroll unless the
+   countries genuinely won't fit. */
 .comparison-details {
   padding: 8px 24px 24px;
   overflow-x: auto;
+  container-type: inline-size;
+  container-name: comp-details;
 }
 
 .comp-details-row {
@@ -271,6 +374,13 @@
   border-bottom: 1px solid var(--border-subtle);
   align-items: start;
   width: max-content;
+}
+
+@container comp-details (max-width: 560px) {
+  .comp-details-row {
+    grid-template-columns: 96px repeat(var(--col-count, 1), 150px);
+    gap: 10px;
+  }
 }
 
 .comp-details-header {
@@ -289,7 +399,7 @@
 }
 
 .comp-details-cell {
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   color: var(--text-secondary);
   line-height: 1.55;
   min-width: 0;
@@ -302,8 +412,9 @@
 }
 
 .comp-details-country {
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-size: 0.95rem;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 500;
   font-style: normal;
 }
 
@@ -311,7 +422,7 @@
 .compare-btn {
   margin-top: 12px;
   background: var(--accent-muted);
-  border: 1px solid rgba(212, 160, 74, 0.35);
+  border: 1px solid color-mix(in oklch, var(--accent) 35%, transparent);
   color: var(--accent);
   font-size: 0.72rem;
   font-family: 'Geist', -apple-system, sans-serif;
@@ -319,7 +430,7 @@
   padding: 7px 14px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s var(--ease-out);
+  transition: background 0.15s var(--ease-out), border-color 0.15s var(--ease-out), color 0.15s var(--ease-out);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -346,14 +457,11 @@
   stroke-width: 2 !important;
 }
 
-.country.in-comparison[data-comparison-index="0"] { stroke: #d4a04a; }
-.country.in-comparison[data-comparison-index="1"] { stroke: #6ab6d8; }
-.country.in-comparison[data-comparison-index="2"] { stroke: #c47ac0; }
-.country.in-comparison[data-comparison-index="3"] { stroke: #7dbf7d; }
+.country.in-comparison[data-comparison-index="0"] { stroke: var(--comparison-1); }
+.country.in-comparison[data-comparison-index="1"] { stroke: var(--comparison-2); }
+.country.in-comparison[data-comparison-index="2"] { stroke: var(--comparison-3); }
+.country.in-comparison[data-comparison-index="3"] { stroke: var(--comparison-4); }
 
-/* Responsive: below 768px, stack comparison panel full-width.
-   Details continue to use horizontal scroll (the desktop layout)
-   so the column-aligned grid stays intact and readable. */
 @media (max-width: 768px) {
   #comparison-panel {
     width: 100%;
@@ -363,13 +471,23 @@
     border-top: 1px solid var(--border);
   }
 
-  /* Bump the chip × tap target to a more thumb-friendly size */
   .comp-chip {
-    padding: 6px 6px 6px 12px;
+    padding: 6px 10px 6px 12px;
   }
   .comp-chip-remove {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     font-size: 1.1rem;
+  }
+}
+
+@media (pointer: coarse) {
+  .comp-chip-remove { width: 36px; height: 36px; }
+  .clear-comparison-btn,
+  .compare-btn,
+  .comp-add-btn {
+    min-height: 40px;
+    padding-top: 9px;
+    padding-bottom: 9px;
   }
 }

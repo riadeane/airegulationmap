@@ -39,13 +39,9 @@ export function buildScoreSelector() {
 }
 
 export function initDimensionClicks() {
+  // Rows are real <button> elements now — Enter/Space activation comes
+  // free from the browser, so we only wire click.
   document.querySelectorAll('.dimension-row[data-dimension]').forEach(row => {
     row.addEventListener('click', () => switchAttribute(row.dataset.dimension));
-    row.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        switchAttribute(row.dataset.dimension);
-      }
-    });
   });
 }

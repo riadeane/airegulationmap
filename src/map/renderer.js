@@ -4,60 +4,150 @@ import { geoEquirectangular, geoPath, geoGraticule } from 'd3-geo';
 import { feature } from 'topojson-client';
 import 'd3-transition';
 
-import { WIDTH, HEIGHT, ATTRIBUTE_LABELS } from '../constants.js';
+import { ATTRIBUTE_LABELS } from '../constants.js';
 import { getState, setState } from '../state/store.js';
 import { makeColorScale, addLegend } from './legend.js';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip.js';
 import { setupZoom } from './zoom.js';
 import { toggleComparison, getColorIndex } from '../comparison/index.js';
+import { cssVar, onThemeChange } from './cssColors.js';
+
+// Module-level refs so resize and theme-change handlers can redraw
+// without re-running the whole generateMap async flow.
+let svgRef = null;
+let mapGroupRef = null;
+let projectionRef = null;
+let pathRef = null;
+let graticuleRef = null;
+let currentSize = { w: 1000, h: 500 };
+let zoomHandle = null;
+
+function readContainerSize() {
+  const wrapper = document.getElementById('map-wrapper');
+  if (!wrapper) return { w: 1000, h: 500 };
+  // Use clientWidth/Height so an in-flight CSS transform on the wrapper
+  // (e.g. the mount scaleIn animation) doesn't feed us a transformed
+  // rect. clientWidth/Height are laid-out box dims, untouched by
+  // transforms.
+  const w = Math.max(320, wrapper.clientWidth);
+  const h = Math.max(240, wrapper.clientHeight);
+  return { w, h };
+}
+
+// Fit the projection so the map fills as much of the container as it
+// reasonably can without lopping off whole regions.
+//
+// Strategy: start with a "contain" fit, then scale up partway toward a
+// "cover" fit. The blend factor controls how much dead space we accept
+// vs. how much of the world we're willing to crop. 0 = pure contain
+// (letterbox, no crop), 1 = pure cover (fills, crops aggressively).
+// 0.75 feels right for a policy map: most of the world stays visible
+// and the vertical black bars shrink dramatically on tall viewports.
+//
+// We also rotate the projection so the center sits over Europe rather
+// than the 0° meridian. That way whatever horizontal crop does happen
+// eats into the Pacific Ocean first, not into populated continents.
+const FILL_BLEND = 0.75;
+const MAP_ROTATION = [-15, 0];
+
+function fitProjectionToFill(projection, w, h) {
+  projection.rotate(MAP_ROTATION).fitSize([w, h], { type: 'Sphere' });
+  const tmpPath = geoPath().projection(projection);
+  const [[x0, y0], [x1, y1]] = tmpPath.bounds({ type: 'Sphere' });
+  const mapW = x1 - x0 || 1;
+  const mapH = y1 - y0 || 1;
+  const coverScale = Math.max(w / mapW, h / mapH);
+  const containScale = Math.min(w / mapW, h / mapH);
+  const blendScale = containScale + (coverScale - containScale) * FILL_BLEND;
+  projection.scale(projection.scale() * blendScale).translate([w / 2, h / 2]);
+}
+
+function fitToSize({ w, h }) {
+  if (!svgRef || !projectionRef) return;
+
+  currentSize = { w, h };
+
+  svgRef
+    .attr('width', w)
+    .attr('height', h)
+    .attr('viewBox', [0, 0, w, h]);
+
+  select('#clip rect')
+    .attr('width', w)
+    .attr('height', h);
+
+  fitProjectionToFill(projectionRef, w, h);
+
+  select('#map .sphere').attr('d', pathRef);
+  select('#map .graticule').attr('d', pathRef(graticuleRef));
+  mapGroupRef.selectAll('.country').attr('d', pathRef);
+
+  if (zoomHandle) zoomHandle.updateBounds({ w, h });
+
+  select('#map .legend').remove();
+  addLegend(svgRef, makeColorScale(), { w, h });
+}
 
 export async function generateMap() {
   const { scoreData, currentAttribute } = getState();
 
+  const size = readContainerSize();
+  currentSize = size;
+
   const svg = select('#map')
     .append('svg')
-    .attr('width', WIDTH)
-    .attr('height', HEIGHT)
-    .attr('viewBox', [0, 0, WIDTH, HEIGHT]);
+    .attr('width', size.w)
+    .attr('height', size.h)
+    .attr('viewBox', [0, 0, size.w, size.h])
+    .attr('preserveAspectRatio', 'xMidYMid meet');
 
   svg.append('defs')
     .append('clipPath')
     .attr('id', 'clip')
     .append('rect')
-    .attr('width', WIDTH)
-    .attr('height', HEIGHT)
+    .attr('width', size.w)
+    .attr('height', size.h)
     .attr('rx', 20)
     .attr('ry', 20);
 
   const g = svg.append('g')
     .attr('clip-path', 'url(#clip)');
 
-  const projection = geoEquirectangular()
-    .fitSize([WIDTH, HEIGHT], { type: 'Sphere' });
+  const projection = geoEquirectangular();
+  fitProjectionToFill(projection, size.w, size.h);
 
   const path = geoPath().projection(projection);
   const colorScale = makeColorScale();
 
+  svgRef = svg;
+  projectionRef = projection;
+  pathRef = path;
+
   createTooltip();
 
-  const world = await json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  // Self-hosted from /public/data so there's no third-party request on
+  // page load and offline dev works. Source: world-atlas@2 (Natural Earth).
+  const world = await json('/data/countries-110m.json');
   const countries = feature(world, world.objects.countries).features;
 
   const mapGroup = g.append('g').attr('class', 'map-group');
+  mapGroupRef = mapGroup;
 
   mapGroup.append('path')
     .datum({ type: 'Sphere' })
-    .attr('fill', '#0d1018')
+    .attr('class', 'sphere')
+    .attr('fill', cssVar('--ocean'))
     .attr('d', path);
 
-  // Graticule
   const graticule = geoGraticule().step([20, 20]);
+  graticuleRef = graticule();
   mapGroup.append('path')
-    .datum(graticule())
+    .datum(graticuleRef)
     .attr('class', 'graticule')
     .attr('d', path)
     .attr('fill', 'none')
-    .attr('stroke', 'rgba(255,255,255,0.04)')
+    .attr('stroke', cssVar('--text-tertiary'))
+    .attr('stroke-opacity', 0.08)
     .attr('stroke-width', 0.4)
     .attr('stroke-dasharray', '2,3');
 
@@ -68,9 +158,9 @@ export async function generateMap() {
     .attr('d', path)
     .attr('fill', d => {
       const entry = scoreData[d.properties.name];
-      return entry ? colorScale(entry[currentAttribute]) : '#1a1b24';
+      return entry ? colorScale(entry[currentAttribute]) : cssVar('--no-data');
     })
-    .attr('stroke', '#0a0b0f')
+    .attr('stroke', cssVar('--map-stroke'))
     .attr('stroke-width', 0.3)
     .on('mouseover', function (event, d) {
       const countryName = d.properties.name;
@@ -99,8 +189,40 @@ export async function generateMap() {
       }
     });
 
-  setupZoom(svg, mapGroup);
-  addLegend(svg, colorScale);
+  zoomHandle = setupZoom(svg, mapGroup, () => currentSize);
+  addLegend(svg, colorScale, size);
+
+  onThemeChange(() => {
+    const refreshed = makeColorScale();
+    const { scoreData: sd, currentAttribute: attr } = getState();
+    selectAll('#map .country')
+      .transition().duration(220)
+      .attr('fill', d => {
+        const entry = sd[d.properties.name];
+        return entry ? refreshed(entry[attr]) : cssVar('--no-data');
+      })
+      .attr('stroke', cssVar('--map-stroke'));
+    select('#map .sphere').attr('fill', cssVar('--ocean'));
+    select('#map .graticule').attr('stroke', cssVar('--text-tertiary'));
+    select('#map .legend').remove();
+    addLegend(svgRef, refreshed, currentSize);
+  });
+
+  // Observe the wrapper so the map grows/shrinks with the viewport.
+  // rAF-debounce because ResizeObserver can fire many times per frame.
+  const wrapper = document.getElementById('map-wrapper');
+  if (wrapper && typeof ResizeObserver !== 'undefined') {
+    let pending = false;
+    const ro = new ResizeObserver(() => {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => {
+        pending = false;
+        fitToSize(readContainerSize());
+      });
+    });
+    ro.observe(wrapper);
+  }
 }
 
 export function updateMap(overrideScoreData) {
@@ -114,7 +236,7 @@ export function updateMap(overrideScoreData) {
     .duration(500)
     .attr('fill', d => {
       const entry = data[d.properties.name];
-      return entry ? colorScale(entry[currentAttribute]) : '#1a1b24';
+      return entry ? colorScale(entry[currentAttribute]) : cssVar('--no-data');
     })
     .style('opacity', d => {
       const entry = data[d.properties.name];

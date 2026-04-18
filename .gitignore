@@ -1,2 +1,12 @@
 node_modules/
 dist/
+
+# macOS
+.DS_Store
+
+# Local session / tooling state
+.claude/
+
+# Python cache
+__pycache__/
+*.pyc
