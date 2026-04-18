@@ -96,10 +96,16 @@ export async function generateMap() {
 
   const svg = select('#map')
     .append('svg')
+    .attr('role', 'img')
+    .attr('aria-label', 'World map showing AI regulation scores by country. Click a country for details; Shift+click to compare.')
     .attr('width', size.w)
     .attr('height', size.h)
     .attr('viewBox', [0, 0, size.w, size.h])
     .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  // Some screen readers prefer <title> to aria-label on SVG, so set
+  // both. The title must be the first child to be announced correctly.
+  svg.append('title').text('World map showing AI regulation scores by country');
 
   svg.append('defs')
     .append('clipPath')

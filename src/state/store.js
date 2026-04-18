@@ -7,6 +7,10 @@ const state = {
   selectedCountry: null,
   sortedCountryNames: [],
   comparisonCountries: [],
+  // null = "latest" (use current scoreData as-is); otherwise an ISO date
+  // string (YYYY-MM-DD) present in history.json. The timeline slider
+  // writes this; the map subscribes and re-renders historic scores.
+  timelineDate: null,
 };
 
 const listeners = new Map();

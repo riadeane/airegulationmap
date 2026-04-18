@@ -4,6 +4,19 @@ import { renderTextSections } from './sections.js';
 import { highlightCountry, clearHighlight } from '../map/index.js';
 import { toggleComparison, MAX_COMPARISON } from '../comparison/index.js';
 
+const CONFIDENCE_LABELS = {
+  high: 'High confidence',
+  medium: 'Medium confidence',
+  low: 'Low confidence',
+};
+
+function normalizeConfidence(raw) {
+  if (!raw) return null;
+  const v = String(raw).trim().toLowerCase();
+  if (v === 'high' || v === 'medium' || v === 'low') return v;
+  return null;
+}
+
 function updateDimensionHighlight() {
   const { currentAttribute } = getState();
   document.querySelectorAll('.dimension-row[data-dimension]').forEach(row => {
@@ -36,6 +49,15 @@ function updateCompareButton() {
   }
 }
 
+function updateCiteButton() {
+  const btn = document.getElementById('cite-btn');
+  if (!btn) return;
+  const { selectedCountry, comparisonCountries } = getState();
+  const disabled = !selectedCountry && comparisonCountries.length === 0;
+  btn.disabled = disabled;
+  btn.title = disabled ? 'Select a country first' : '';
+}
+
 function renderPanel(countryName) {
   const { scoreData, regulationData, comparisonCountries } = getState();
   const score = scoreData[countryName];
@@ -53,11 +75,20 @@ function renderPanel(countryName) {
   document.getElementById('country-name').textContent = countryName;
 
   const badge = document.getElementById('confidence-badge');
-  if (reg && reg.confidence === 'low') {
-    badge.textContent = 'Low confidence';
-    badge.style.display = 'inline-block';
+  const level = normalizeConfidence(reg && reg.confidence);
+  if (level) {
+    badge.textContent = CONFIDENCE_LABELS[level];
+    badge.setAttribute('data-level', level);
+    badge.style.display = 'inline-flex';
+    badge.title = level === 'low'
+      ? 'Sparse public information; treat as indicative.'
+      : level === 'medium'
+      ? 'Based on a mix of primary and secondary sources.'
+      : 'Supported by enacted legislation and recent primary sources.';
   } else {
     badge.style.display = 'none';
+    badge.removeAttribute('data-level');
+    badge.removeAttribute('title');
   }
 
   const dateStr = (score && score.lastUpdated) || (reg && reg.lastUpdated);
@@ -69,6 +100,7 @@ function renderPanel(countryName) {
   renderTextSections(reg);
   highlightCountry(countryName);
   updateCompareButton();
+  updateCiteButton();
 }
 
 function clearPanel() {
@@ -76,6 +108,7 @@ function clearPanel() {
   document.getElementById('panel-content').style.display = 'none';
   clearHighlight();
   updateCompareButton();
+  updateCiteButton();
 }
 
 export function initPanel() {
@@ -96,5 +129,6 @@ export function initPanel() {
   });
 
   on('currentAttribute', updateDimensionHighlight);
-  on('comparisonCountries', updateCompareButton);
+  on('comparisonCountries', () => { updateCompareButton(); updateCiteButton(); });
+  updateCiteButton();
 }

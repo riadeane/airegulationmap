@@ -128,3 +128,119 @@
 .graticule {
   pointer-events: none;
 }
+
+/* Map skeleton — shown before TopoJSON + CSV resolve. Muted rectangle
+   with a slow shimmer pass to signal activity without pretending to
+   be a map. Sized to fill the same area the SVG will occupy. */
+#map-skeleton {
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.2s var(--ease-out);
+}
+
+.map-skeleton-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent-muted) 50%,
+    transparent 100%
+  );
+  opacity: 0.5;
+  animation: skeletonShimmer 2s linear infinite;
+  will-change: transform;
+}
+
+.map-skeleton-label {
+  position: relative;
+  color: var(--text-tertiary);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+}
+
+/* Data-load error state — replaces the map area with an actionable
+   message when CSV / TopoJSON fetches fail. */
+.map-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 48px 32px;
+  text-align: center;
+  background: var(--surface);
+  border-radius: 20px;
+}
+
+.map-error-heading {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin: 0;
+  max-width: 40ch;
+}
+
+.map-error-detail {
+  color: var(--text-tertiary);
+  font-size: 0.78rem;
+  max-width: 44ch;
+  line-height: 1.55;
+}
+
+.map-error-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.map-error-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--accent);
+  color: var(--bg);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.18s var(--ease-out);
+}
+
+.map-error-btn:hover {
+  background: var(--accent-hover, var(--accent));
+  filter: brightness(1.05);
+}
+
+.map-error-btn.secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+/* sr-only — screen reader only. Reuses the standard recipe. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
