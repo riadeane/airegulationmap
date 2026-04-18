@@ -119,11 +119,11 @@ export function initComparison() {
     }
   });
 
-  // When comparison is active, update the add-bar whenever the user
-  // clicks a new country on the map (normal click still fires this).
-  // This is the mouse-only path for adding a 3rd/4th country.
+  // When comparison is active (even with just 1 country), refresh the
+  // add-bar whenever the user clicks a new country on the map so the
+  // "+ Add [country]" quick-add button follows the click.
   on('selectedCountry', () => {
-    if (getState().comparisonCountries.length >= 2) {
+    if (getState().comparisonCountries.length >= 1) {
       renderAddBar();
     }
   });
