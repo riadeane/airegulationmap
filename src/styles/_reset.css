@@ -16,15 +16,71 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Grain texture overlay */
+/* Subtle grain texture — dark theme only. On light theme the grain
+   reads as dirt, so we suppress it to keep the page clean. */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.025;
+  opacity: 0.018;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 256px 256px;
+}
+
+:root[data-theme='light'] body::after {
+  opacity: 0;
+}
+
+/* Skip link — visually hidden until focused, then docks to top-left.
+   Gives keyboard users a one-tap bypass around the header. */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 8px 14px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 var(--radius-sm) 0;
+  transform: translateY(-110%);
+  transition: transform 0.18s var(--ease-out);
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* Global keyboard focus ring — relies on :focus-visible so mouse
+   clicks don't show a ring but Tab/arrow navigation does. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+a:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible,
+[role='option']:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Respect the user's motion preference. This is a hard override
+   that neutralizes every animation/transition in the app. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

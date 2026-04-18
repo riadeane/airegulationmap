@@ -1,3 +1,18 @@
+/* Tablet tier — compact the panel and search without collapsing
+   the layout. Covers the gap between mobile (768px) and full
+   desktop (1041px+). */
+@media (max-width: 1040px) and (min-width: 769px) {
+  #country-panel {
+    width: 300px;
+  }
+  #comparison-panel {
+    width: min(440px, 46vw);
+    min-width: 320px;
+  }
+  #country-search { width: 140px; }
+  #country-search:focus { width: 180px; }
+}
+
 @media (max-width: 768px) {
   #app-main {
     flex-direction: column;
@@ -19,23 +34,77 @@
     max-width: 100%;
   }
 
+  /* Header reflows on mobile. The brand line (title + last-updated +
+     badge) gets row 1. The search input gets row 2 (full-width so
+     users can type comfortably). Score + filter + theme toggle share
+     row 3, left-aligned. This keeps the freshness signal visible and
+     avoids the old right-edge overflow. */
+  #app-header {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 12px;
+    gap: 8px 10px;
+  }
+
+  .header-left {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    width: 100%;
+  }
+
   .header-right {
-    gap: 4px;
+    gap: 6px;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  #search-container {
+    width: 100%;
+    flex: 1 1 100%;
   }
 
   #country-search {
-    width: 110px;
+    width: 100%;
   }
 
   #country-search:focus {
-    width: 140px;
+    width: 100%;
   }
 
   h1 {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
 
-  .header-subtitle {
-    display: none;
+  /* On mobile the score and filter buttons sit on the LEFT side of
+     the row, so the popovers need to open to the right of their
+     trigger, not the left. Otherwise they clip off-screen. */
+  #score-dropdown,
+  #filter-popover {
+    left: 0;
+    right: auto;
+  }
+}
+
+/* Coarse pointers (touch devices): guarantee 44px hit targets even
+   when the visual element stays compact. */
+@media (pointer: coarse) {
+  #score-btn,
+  #filter-btn,
+  .theme-toggle,
+  #timeline-reset,
+  #zoom-controls button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .dimension-row {
+    min-height: 44px;
+  }
+
+  #search-suggestions li {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 }

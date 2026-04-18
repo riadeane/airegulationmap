@@ -1,6 +1,3 @@
-export const WIDTH = 1000;
-export const HEIGHT = 500;
-
 export const ATTRIBUTE_LABELS = {
   averageScore: 'Average Score',
   regulationStatus: 'Regulation Status',

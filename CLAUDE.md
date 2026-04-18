@@ -113,3 +113,38 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 ### Deployment
 
 Hosted on Cloudflare Pages. Build command: `npm run build`, output directory: `dist`.
+
+## Design Context
+
+### Users
+
+Policy researchers, academics, policymakers, and civil society actors working on AI governance. Typical context: desk research during working hours, cross-referencing country postures, pulling citations for briefs and papers, benchmarking one jurisdiction against peers. Reads carefully, distrusts marketing gloss, wants to verify claims against sources.
+
+**Job to be done:** quickly form an accurate, comparable mental model of how different countries regulate AI across six dimensions — and get from that model to primary sources without friction.
+
+### Brand Personality
+
+**Three words:** rigorous, calm, global. Tone is measured authority — closer to a reference work than to a product. Treats the reader as a peer. Emotional goal is trust: the researcher should feel they can cite this in a footnote without apologizing.
+
+### Aesthetic Direction
+
+Contemporary data-viz — Observable, MIT Media Lab, The Pudding's restrained pieces, Our World in Data with more current typography. Technical confidence without being cold.
+
+- Ship both light and dark themes with a persistent user toggle. Light is the default for citation-friendly daylight reading.
+- Map is the protagonist; all UI chrome must justify its visual weight against it.
+- Typography pairs a distinctive display/serif or grot with a precise neutral sans. Do not reach for Inter, IBM Plex, Fraunces, Space Grotesk, etc. — look further.
+- Neutrals tinted toward a single considered hue. No pure #000 or #fff.
+- Choropleth color uses perceptually uniform OKLCH and is colorblind-safe. Accent used sparingly.
+- Asymmetric, left-aligned layouts. Country panel should read like a structured reference entry, not a card.
+
+**Must NOT look like:** generic SaaS / AI startup, corporate consultancy, government portal cliché, or crypto / web3 dashboard.
+
+### Design Principles
+
+1. **The map is the protagonist.** Chrome recedes so the choropleth reads first.
+2. **Rigor over ornament.** Every visual element earns its place. No border-left stripes, no gradient text, no decorative sparklines.
+3. **Designed for comparison.** Side-by-side country reading is the natural path, not a special mode.
+4. **Citeable by default.** Every score, claim, and description points to a primary source within one click. Confidence and last-updated are visible.
+5. **Calm density.** Information-rich is the target; cluttered is the failure. Density through typographic hierarchy and restraint, not by removing substance.
+
+Full context lives in [.impeccable.md](.impeccable.md).
