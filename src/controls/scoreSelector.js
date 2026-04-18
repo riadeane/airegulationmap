@@ -13,6 +13,12 @@ export function buildScoreSelector() {
   const btn = document.getElementById('score-btn');
   const dropdown = document.getElementById('score-dropdown');
 
+  // Set initial button label from state so a URL-provided `?mode=` or
+  // a future persisted preference shows up correctly without a click.
+  const { currentAttribute } = getState();
+  document.getElementById('score-btn-label').textContent =
+    ATTRIBUTE_LABELS[currentAttribute] || ATTRIBUTE_LABELS.averageScore;
+
   for (const opt of SCORE_OPTIONS) {
     const li = document.createElement('li');
     li.textContent = opt.text;

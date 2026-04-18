@@ -84,3 +84,39 @@ input:focus-visible,
     scroll-behavior: auto !important;
   }
 }
+
+/* No-JS fallback. Keeps the copy quiet and points to the methodology
+   page (which is static HTML) and the public data files on GitHub. */
+.noscript-fallback {
+  max-width: 60ch;
+  margin: 48px auto;
+  padding: 24px 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 8px);
+  font-family: 'Geist', -apple-system, sans-serif;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.noscript-fallback h1 {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  letter-spacing: -0.005em;
+}
+
+.noscript-fallback ul {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.noscript-fallback li { margin-bottom: 6px; }
+
+.noscript-fallback a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

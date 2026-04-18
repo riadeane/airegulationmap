@@ -26,10 +26,17 @@
   <!-- General meta -->
   <meta name="description" content="Interactive map tracking AI governance and regulation status across every country. Scores, legislation, and policy details updated monthly.">
 
-  <!-- Resolve theme before paint to avoid a flash of wrong theme -->
+  <!-- Resolve theme before paint to avoid a flash of wrong theme.
+       URL wins over localStorage wins over prefers-color-scheme. -->
   <script>
     (function () {
       try {
+        var urlTheme = new URLSearchParams(location.search).get('theme');
+        if (urlTheme === 'light' || urlTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', urlTheme);
+          try { localStorage.setItem('theme', urlTheme); } catch (e) {}
+          return;
+        }
         var t = localStorage.getItem('theme');
         if (t === 'light' || t === 'dark') {
           document.documentElement.setAttribute('data-theme', t);
@@ -44,10 +51,31 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 </head>
 <body>
+  <noscript>
+    <div class="noscript-fallback">
+      <h1>AI Regulation Map</h1>
+      <p>
+        This site renders an interactive world map and requires JavaScript.
+        Without it, you can still:
+      </p>
+      <ul>
+        <li>read the <a href="/methodology.html">methodology page</a> (plain HTML, works offline)</li>
+        <li>browse the raw data on
+          <a href="https://github.com/riadeane/airegulationmap/tree/main/public" rel="noopener noreferrer">GitHub</a>
+          — `scores.csv`, `regulation_data.csv`, and monthly `history.json` snapshots.</li>
+      </ul>
+    </div>
+  </noscript>
   <a class="skip-link" href="#app-main">Skip to content</a>
   <header id="app-header">
     <div class="header-left">
       <h1>AI Regulation Map</h1>
+      <a
+        class="header-methodology-link"
+        href="/methodology.html"
+        aria-label="How countries are scored — methodology"
+        title="Methodology"
+      >?</a>
       <span class="header-subtitle">Last updated: <span id="site-last-updated">—</span></span>
       <span class="country-count-badge" id="country-count"></span>
     </div>
@@ -108,8 +136,20 @@
 
   <main id="app-main" aria-label="World map and country detail">
     <div id="map-wrapper">
-      <div id="map"></div>
+      <div id="map">
+        <div id="map-skeleton" aria-hidden="true">
+          <div class="map-skeleton-shimmer"></div>
+          <div class="map-skeleton-label">Loading regulation data…</div>
+        </div>
+      </div>
       <div id="zoom-controls"></div>
+      <div
+        id="map-live-region"
+        class="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
     </div>
     <aside id="country-panel">
       <p id="no-selection-message">Select a country to see details.<br><span class="hint">Tip: Shift+click two or more countries to compare them.</span></p>
@@ -120,7 +160,24 @@
             <span id="confidence-badge" class="confidence-badge"></span>
           </div>
           <small id="last-updated" class="data-freshness"></small>
-          <button id="compare-btn" class="compare-btn" type="button">+ Compare</button>
+          <div class="panel-header-actions">
+            <button id="compare-btn" class="compare-btn" type="button">+ Compare</button>
+            <button
+              id="cite-btn"
+              class="cite-btn"
+              type="button"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="cite-popover"
+            >Cite</button>
+          </div>
+          <div
+            id="cite-popover"
+            class="cite-popover"
+            role="dialog"
+            aria-label="Copy citation"
+            hidden
+          ></div>
         </div>
         <div class="panel-section">
           <div class="panel-section-label">OVERALL SCORE</div>
@@ -214,6 +271,7 @@
 
   <footer>
     <p>Data sourced from the <a href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region" target="_blank" rel="noopener noreferrer">EA AI Governance Tracker</a>. Scores assigned by <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>. Updated monthly.</p>
+    <p>Methodology: <a href="/methodology.html">How countries are scored</a></p>
     <p>Made by Ria Deane &nbsp;&middot;&nbsp;
       <a href="https://www.linkedin.com/in/riadeane" target="_blank" rel="noopener noreferrer">LinkedIn</a> &nbsp;&middot;&nbsp;
       <a href="https://github.com/riadeane" target="_blank" rel="noopener noreferrer">GitHub</a>

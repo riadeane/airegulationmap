@@ -39,6 +39,35 @@ h1 {
   text-transform: uppercase;
 }
 
+/* "?" info icon next to the site title — links to methodology.html.
+   Sized to match the surrounding header rhythm without reading as a
+   button. */
+.header-methodology-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--text-tertiary);
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.header-methodology-link:hover,
+.header-methodology-link:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-muted);
+}
+
 .country-count-badge {
   font-size: 0.65rem;
   color: var(--accent);

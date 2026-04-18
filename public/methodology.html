@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Methodology — AI Regulation Map</title>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="canonical" href="https://airegulationmap.org/methodology.html">
+
+  <meta name="description" content="How country scores on the AI Regulation Map are constructed, the 1–5 rubric for each dimension, confidence levels, update cadence, and known limitations.">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Methodology — AI Regulation Map">
+  <meta property="og:description" content="The 1–5 rubric for scoring AI regulation across six dimensions, plus the pipeline that assigns and updates scores.">
+  <meta property="og:image" content="https://airegulationmap.org/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://airegulationmap.org/methodology.html">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Methodology — AI Regulation Map">
+  <meta name="twitter:description" content="How scores are constructed, the 1–5 rubric, and the automated pipeline.">
+  <meta name="twitter:image" content="https://airegulationmap.org/og-image.png">
+
+  <!-- Resolve theme before paint. URL > localStorage > prefers-color-scheme. -->
+  <script>
+    (function () {
+      try {
+        var urlTheme = new URLSearchParams(location.search).get('theme');
+        if (urlTheme === 'light' || urlTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', urlTheme);
+          return;
+        }
+        var t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      } catch (e) { /* storage blocked */ }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+
+  <style>
+    /* Tokens — mirror of the main app's _tokens.css, trimmed to what
+       this page actually uses. Kept inline so methodology.html renders
+       correctly even if the main bundle is unavailable. */
+    :root {
+      --brand-hue: 75;
+      --radius: 8px;
+      --radius-sm: 5px;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+      --bg:              oklch(15% 0.008 var(--brand-hue));
+      --surface:         oklch(19% 0.009 var(--brand-hue));
+      --surface-raised:  oklch(23% 0.010 var(--brand-hue));
+      --border:          oklch(30% 0.013 var(--brand-hue));
+      --border-subtle:   oklch(24% 0.010 var(--brand-hue));
+
+      --text-primary:    oklch(92% 0.012 var(--brand-hue));
+      --text-secondary:  oklch(72% 0.014 var(--brand-hue));
+      --text-tertiary:   oklch(58% 0.014 var(--brand-hue));
+
+      --accent:          oklch(76% 0.13 var(--brand-hue));
+      --accent-muted:    oklch(76% 0.13 var(--brand-hue) / 0.14);
+
+      color-scheme: dark;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme]) {
+        --bg:              oklch(98% 0.003 80);
+        --surface:         oklch(99.5% 0.002 80);
+        --surface-raised:  oklch(100% 0 0);
+        --border:          oklch(88% 0.008 80);
+        --border-subtle:   oklch(94% 0.004 80);
+        --text-primary:    oklch(20% 0.013 80);
+        --text-secondary:  oklch(42% 0.014 80);
+        --text-tertiary:   oklch(58% 0.014 80);
+        --accent:          oklch(48% 0.16 60);
+        --accent-muted:    oklch(48% 0.16 60 / 0.10);
+        color-scheme: light;
+      }
+    }
+
+    :root[data-theme='light'] {
+      --bg:              oklch(98% 0.003 80);
+      --surface:         oklch(99.5% 0.002 80);
+      --surface-raised:  oklch(100% 0 0);
+      --border:          oklch(88% 0.008 80);
+      --border-subtle:   oklch(94% 0.004 80);
+      --text-primary:    oklch(20% 0.013 80);
+      --text-secondary:  oklch(42% 0.014 80);
+      --text-tertiary:   oklch(58% 0.014 80);
+      --accent:          oklch(48% 0.16 60);
+      --accent-muted:    oklch(48% 0.16 60 / 0.10);
+      color-scheme: light;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Geist', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.65;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { filter: brightness(1.1); }
+
+    header.site-header {
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    header.site-header a.site-title {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      text-decoration: none;
+      letter-spacing: -0.005em;
+    }
+
+    header.site-header a.site-title:hover { color: var(--accent); }
+
+    header.site-header nav {
+      color: var(--text-tertiary);
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    header.site-header nav span { color: var(--text-primary); }
+
+    main.doc {
+      max-width: 68ch;
+      margin: 48px auto 96px;
+      padding: 0 28px;
+    }
+
+    h1.doc-title {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 2.1rem;
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.012em;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    p.doc-subtitle {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+      max-width: 54ch;
+    }
+
+    h2 {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      color: var(--text-primary);
+      margin: 52px 0 10px;
+      scroll-margin-top: 24px;
+    }
+
+    h3 {
+      font-family: 'Geist', -apple-system, sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin: 28px 0 8px;
+    }
+
+    p { color: var(--text-secondary); margin-bottom: 14px; }
+    p strong { color: var(--text-primary); font-weight: 500; }
+
+    ul, ol {
+      color: var(--text-secondary);
+      padding-left: 22px;
+      margin-bottom: 14px;
+    }
+
+    li { margin-bottom: 6px; }
+
+    .rubric {
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 14px 0 20px;
+      font-size: 0.9rem;
+    }
+
+    .rubric-row {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 16px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .rubric-row:first-child { border-top: 0; }
+
+    .rubric-score {
+      font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    .rubric-body { color: var(--text-secondary); line-height: 1.55; }
+    .rubric-body em {
+      color: var(--text-tertiary);
+      font-style: italic;
+      display: block;
+      margin-top: 3px;
+      font-size: 0.82rem;
+    }
+
+    .callout {
+      background: var(--accent-muted);
+      border-radius: var(--radius-sm);
+      padding: 14px 20px;
+      margin: 20px 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+      font-family: 'Literata', Georgia, serif;
+      font-weight: 500;
+    }
+
+    code, pre {
+      font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+      font-size: 0.85em;
+      color: var(--text-primary);
+      background: var(--surface);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    pre {
+      padding: 14px 18px;
+      overflow-x: auto;
+      line-height: 1.5;
+      font-size: 0.82rem;
+    }
+
+    footer.site-footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 32px;
+      color: var(--text-tertiary);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    /* Print — strip chrome, inline everything, use black-on-white. */
+    @media print {
+      body { background: white; color: black; font-size: 11pt; }
+      header.site-header, footer.site-footer { display: none; }
+      main.doc { max-width: none; margin: 0; padding: 0; }
+      h1.doc-title, h2, h3 { color: black; }
+      p, li { color: #222; }
+      a { color: black; text-decoration: none; }
+      a[href]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #555; }
+      .rubric { border-color: #bbb; }
+      .rubric-row { border-color: #ddd; }
+      .rubric-score { color: black; }
+      .callout { background: #f2f2f2; }
+    }
+
+    /* Respect user motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-title" href="/">AI Regulation Map</a>
+    <nav aria-label="breadcrumb"><span>Methodology</span></nav>
+  </header>
+
+  <main class="doc">
+    <h1 class="doc-title">Methodology</h1>
+    <p class="doc-subtitle">
+      How country scores are constructed, what the numbers mean, and
+      what this tool can and cannot tell you.
+    </p>
+
+    <h2 id="what-this-is">What this is</h2>
+    <p>
+      The AI Regulation Map visualizes the current state of AI governance in
+      196 countries across six dimensions, each scored 1&ndash;5. It is
+      intended as a <em>reference view</em> for policy researchers, academics,
+      and civil society: a place to form a comparable mental model of how
+      different jurisdictions approach AI, and a jumping-off point to the
+      primary sources behind each score.
+    </p>
+
+    <div class="callout">
+      <strong>Epistemic caveat.</strong> Scores are inferred by
+      <a href="https://claude.ai/" rel="noopener noreferrer">Claude</a>
+      from public sources and refreshed monthly. They are not produced by
+      human coders and have not been independently audited. Treat them
+      the way you would treat a well-read colleague's summary: useful
+      for orientation, worth verifying before citation.
+    </div>
+
+    <h2 id="the-six-dimensions">The six dimensions</h2>
+    <p>
+      Each country is scored on six dimensions. Five of them describe
+      <em>how</em> regulation operates; the sixth (<strong>average
+      score</strong>) is their mean, shown by default.
+    </p>
+
+    <h3>Regulation Status</h3>
+    <p>The existence and maturity of AI-specific regulation — whether binding law, a draft bill, a national strategy, or nothing at all.</p>
+    <div class="rubric">
+      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">No regulation or minimal engagement; AI is not named in policy documents. <em>Example: many least-developed countries with no ICT ministry position on AI.</em></div></div>
+      <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Early-stage engagement: voluntary guidelines, a sectoral code of practice, or an advisory committee. <em>Example: a national ethics advisory board with non-binding recommendations.</em></div></div>
+      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">National strategy or draft legislation in progress; public consultation underway. <em>Example: a published national AI strategy without enabling legislation.</em></div></div>
+      <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body">Active, enacted AI regulation covering a substantial slice of deployment contexts. <em>Example: a jurisdiction with binding sector-specific AI rules (finance, health).</em></div></div>
+      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Comprehensive, binding, cross-sector AI regulation with explicit enforcement mechanisms. <em>Example: the EU under the AI Act.</em></div></div>
+    </div>
+
+    <h3>Policy Lever</h3>
+    <p>The breadth of policy instruments in use — from narrow, sector-specific tools to broad, cross-cutting frameworks.</p>
+    <div class="rubric">
+      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Narrow: one tool, one sector, or indirect leverage only (e.g. data protection law being bent to cover AI).</div></div>
+      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Mixed: several instruments — standards, procurement guidance, R&amp;D funding, some sectoral rules.</div></div>
+      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Broad: a horizontal regulatory framework plus sectoral adaptations, public investment, and compliance infrastructure.</div></div>
+    </div>
+
+    <h3>Governance Type</h3>
+    <p>Where authority for AI regulation sits — concentrated in a single body vs. distributed across agencies, sectors, and levels of government.</p>
+    <div class="rubric">
+      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Centralized: a single national authority sets and enforces policy.</div></div>
+      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Hybrid: a lead body coordinates with sectoral regulators or sub-national jurisdictions.</div></div>
+      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Distributed: authority is spread across independent regulators, courts, and sub-national governments; coordination is emergent rather than imposed.</div></div>
+    </div>
+
+    <h3>Actor Involvement</h3>
+    <p>Which actors shape AI policy — narrow expert circles vs. broad engagement with industry, civil society, academia, and the public.</p>
+    <div class="rubric">
+      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Limited: policy is set inside government with minimal external input.</div></div>
+      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Consultative: published consultations, industry working groups, some academic input.</div></div>
+      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Broad: structured multi-stakeholder processes including civil society, trade unions, and international partners.</div></div>
+    </div>
+
+    <h3>Enforcement Level</h3>
+    <p>How strictly existing rules are enforced — from rules on paper only, to active supervision with penalties.</p>
+    <div class="rubric">
+      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">No enforcement mechanism; obligations are not tied to any authority.</div></div>
+      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Soft enforcement: oversight bodies exist but audits and penalties are rare.</div></div>
+      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Active enforcement: penalties have been issued, audits are routine, and a dedicated authority publishes enforcement actions.</div></div>
+    </div>
+
+    <h3>Average Score</h3>
+    <p>The arithmetic mean of the five substantive dimensions above. Shown by default on the map because it gives the fastest cross-country read, but the individual dimensions are where the interesting signal lives.</p>
+
+    <h2 id="confidence">Confidence levels</h2>
+    <p>Each country record carries a confidence label that reflects how much public, primary evidence was available to the research pass.</p>
+    <ul>
+      <li><strong>High</strong> — scores are supported by enacted legislation, official regulator publications, and at least two independent English-language sources published within the last 12 months.</li>
+      <li><strong>Medium</strong> — scores rely on strategy documents, draft bills, or reputable secondary reporting; some dimensions may be inferred from adjacent policy areas.</li>
+      <li><strong>Low</strong> — public information is sparse, in a non-English primary language with uncertain translation, or predates the last major policy cycle. Treat these rows as indicative rather than definitive.</li>
+    </ul>
+    <p>Confidence is currently assigned at the record level (per country), not per individual dimension. We consider per-field confidence a future enhancement.</p>
+
+    <h2 id="update-cadence">Data update cadence</h2>
+    <p>A <a href="https://github.com/riadeane/airegulationmap/blob/main/.github/workflows/update-data.yml" rel="noopener noreferrer">GitHub Action</a> runs on the 1st of each month and researches any country whose record is older than a staleness threshold or flagged as low confidence. Manual overrides (single-country re-research, forced refresh of the whole dataset) are possible via <code>scripts/update_data.py</code>.</p>
+    <p>Every month's run is preserved as a snapshot in <code>public/history.json</code>, which drives the timeline slider on the main page — so the "score at date X" view is always reproducible from the raw data.</p>
+
+    <h2 id="limitations">Known limitations</h2>
+    <ul>
+      <li><strong>Point-in-time view.</strong> Scores reflect the state of regulation at the last research pass. Fast-moving jurisdictions can change materially between updates.</li>
+      <li><strong>English-source bias.</strong> Non-English primary sources are under-represented, which systematically disadvantages countries whose regulatory debates happen in other languages. Claude mitigates this but does not eliminate it.</li>
+      <li><strong>Aggregate hides regional variance.</strong> Federations (US, India, Brazil) are scored at the national level; substantial sub-national variation is flattened.</li>
+      <li><strong>Draft vs. enacted.</strong> The rubric tries to distinguish these, but a bill that passes the week after a research pass will not update until the next monthly run.</li>
+      <li><strong>No independent audit.</strong> Scores are LLM-inferred, not human-coded, and have not been audited by domain experts.</li>
+    </ul>
+
+    <h2 id="citing">Citing this site</h2>
+    <p>
+      Every view on the site &mdash; a single country, a comparison set, a
+      historic date, a specific score dimension &mdash; has a stable
+      permalink encoded in the URL query string. Include that permalink in
+      your citation so readers can reproduce the exact view.
+    </p>
+    <p>Suggested formats:</p>
+    <ul>
+      <li><strong>APA (7th).</strong> Deane, R. (2026). <em>AI Regulation Map</em> [Data visualization]. Retrieved YYYY-MM-DD, from https://airegulationmap.org/…</li>
+      <li><strong>Chicago (author-date).</strong> Deane, Ria. 2026. "AI Regulation Map." Accessed YYYY-MM-DD. https://airegulationmap.org/…</li>
+      <li><strong>MLA (9th).</strong> Deane, Ria. "AI Regulation Map." <em>AI Regulation Map</em>, 2026, https://airegulationmap.org/…. Accessed DD Mon. YYYY.</li>
+    </ul>
+    <p>The in-app "Cite" button on any country panel generates these strings for the current view and copies them to your clipboard.</p>
+
+    <h2 id="source">Source code and contact</h2>
+    <p>
+      The site is open source at
+      <a href="https://github.com/riadeane/airegulationmap" rel="noopener noreferrer">github.com/riadeane/airegulationmap</a>.
+      Issues and pull requests welcome. Made by
+      <a href="https://www.linkedin.com/in/riadeane" rel="noopener noreferrer">Ria Deane</a>.
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <p><a href="/">&larr; Back to the map</a></p>
+  </footer>
+</body>
+</html>
