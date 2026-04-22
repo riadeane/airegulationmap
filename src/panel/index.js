@@ -68,7 +68,8 @@ function renderPanel(countryName) {
   const comparisonActive = comparisonCountries.length >= 2;
 
   if (!comparisonActive) {
-    document.getElementById('no-selection-message').style.display = 'none';
+    const fallback = document.getElementById('no-selection-message');
+    if (fallback) fallback.hidden = true;
     document.getElementById('panel-content').style.display = '';
   }
 
@@ -112,7 +113,8 @@ function renderPanel(countryName) {
 }
 
 function clearPanel() {
-  document.getElementById('no-selection-message').style.display = '';
+  const fallback = document.getElementById('no-selection-message');
+  if (fallback) fallback.hidden = false;
   document.getElementById('panel-content').style.display = 'none';
   clearHighlight();
   updateCompareButton();
@@ -139,4 +141,17 @@ export function initPanel() {
   on('currentAttribute', updateDimensionHighlight);
   on('comparisonCountries', () => { updateCompareButton(); updateCiteButton(); });
   updateCiteButton();
+
+  let introConsumed = false;
+  const consumeIntro = () => {
+    if (introConsumed) return;
+    const { selectedCountry, comparisonCountries } = getState();
+    if (selectedCountry || (comparisonCountries && comparisonCountries.length > 0)) {
+      introConsumed = true;
+      const intro = document.getElementById('panel-intro');
+      if (intro) intro.remove();
+    }
+  };
+  on('selectedCountry', consumeIntro);
+  on('comparisonCountries', consumeIntro);
 }
