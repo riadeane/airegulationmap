@@ -13,6 +13,7 @@ import { initTimeline } from './controls/timeline.js';
 import { initTheme } from './controls/theme.js';
 import { parseUrl, initUrlSync } from './controls/url.js';
 import { initCitePopover } from './controls/citePopover.js';
+import { initHelpOverlay } from './controls/helpOverlay.js';
 import { removeMapSkeleton, showLoadError } from './panel/resilience.js';
 
 function updateSiteLastUpdated(scoreData) {
@@ -79,6 +80,7 @@ async function main() {
   initSearch();
   initKeyboardNav();
   initMapSubscriptions();
+  initHelpOverlay();
 
   // Render map
   try {

@@ -85,6 +85,15 @@ export function initKeyboardNav() {
       return;
     }
 
+    if (e.key === '?') {
+      e.preventDefault();
+      const dialog = document.getElementById('help-overlay');
+      if (dialog && !dialog.open && typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      }
+      return;
+    }
+
     if (e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) {
       e.preventDefault();
       document.getElementById('country-search').focus();

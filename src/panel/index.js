@@ -68,7 +68,8 @@ function renderPanel(countryName) {
   const comparisonActive = comparisonCountries.length >= 2;
 
   if (!comparisonActive) {
-    document.getElementById('no-selection-message').style.display = 'none';
+    const fallback = document.getElementById('no-selection-message');
+    if (fallback) fallback.hidden = true;
     document.getElementById('panel-content').style.display = '';
   }
 
@@ -92,7 +93,15 @@ function renderPanel(countryName) {
   }
 
   const dateStr = (score && score.lastUpdated) || (reg && reg.lastUpdated);
-  document.getElementById('last-updated').textContent = dateStr ? `Data as of ${dateStr}` : '';
+  const sourceUrls = reg && reg.sources
+    ? reg.sources.split('|').map(u => u.trim()).filter(Boolean)
+    : [];
+  const countText = sourceUrls.length > 0
+    ? `${sourceUrls.length} source${sourceUrls.length === 1 ? '' : 's'}`
+    : 'no primary sources';
+  document.getElementById('last-updated').textContent = dateStr
+    ? `Data as of ${dateStr} · ${countText}`
+    : countText;
 
   renderScoreBar(score ? score.averageScore : null);
   renderAllDots(score);
@@ -104,7 +113,8 @@ function renderPanel(countryName) {
 }
 
 function clearPanel() {
-  document.getElementById('no-selection-message').style.display = '';
+  const fallback = document.getElementById('no-selection-message');
+  if (fallback) fallback.hidden = false;
   document.getElementById('panel-content').style.display = 'none';
   clearHighlight();
   updateCompareButton();
@@ -131,4 +141,17 @@ export function initPanel() {
   on('currentAttribute', updateDimensionHighlight);
   on('comparisonCountries', () => { updateCompareButton(); updateCiteButton(); });
   updateCiteButton();
+
+  let introConsumed = false;
+  const consumeIntro = () => {
+    if (introConsumed) return;
+    const { selectedCountry, comparisonCountries } = getState();
+    if (selectedCountry || (comparisonCountries && comparisonCountries.length > 0)) {
+      introConsumed = true;
+      const intro = document.getElementById('panel-intro');
+      if (intro) intro.remove();
+    }
+  };
+  on('selectedCountry', consumeIntro);
+  on('comparisonCountries', consumeIntro);
 }

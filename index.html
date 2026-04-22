@@ -70,12 +70,13 @@
   <header id="app-header">
     <div class="header-left">
       <h1>AI Regulation Map</h1>
-      <a
-        class="header-methodology-link"
-        href="/methodology.html"
-        aria-label="How countries are scored — methodology"
-        title="Methodology"
-      >?</a>
+      <button
+        id="header-help-btn"
+        class="header-help-btn"
+        type="button"
+        aria-label="Keyboard shortcuts and help"
+        title="Keyboard shortcuts"
+      >?</button>
       <span class="header-subtitle">Last updated: <span id="site-last-updated">—</span></span>
       <span class="country-count-badge" id="country-count"></span>
     </div>
@@ -152,7 +153,16 @@
       ></div>
     </div>
     <aside id="country-panel">
-      <p id="no-selection-message">Select a country to see details.<br><span class="hint">Tip: Shift+click two or more countries to compare them.</span></p>
+      <div id="panel-intro" class="panel-intro">
+        <p class="panel-intro-lede">Global AI governance across 196 countries, scored on six dimensions.</p>
+        <ol class="panel-intro-steps">
+          <li><span class="panel-intro-num">01</span> Select a country to read its regulatory posture.</li>
+          <li><span class="panel-intro-num">02</span> Use <strong>+&nbsp;Compare</strong> to stack up to four side-by-side.</li>
+          <li><span class="panel-intro-num">03</span> Press <kbd>?</kbd> for keyboard shortcuts.</li>
+        </ol>
+        <a class="panel-intro-methodology" href="/methodology.html">Read the methodology &rarr;</a>
+      </div>
+      <p id="no-selection-message" class="no-selection-message" hidden>Select a country to see details.</p>
       <div id="panel-content" style="display:none">
         <div class="panel-country-header">
           <div class="panel-name-row">
@@ -277,6 +287,32 @@
       <a href="https://github.com/riadeane" target="_blank" rel="noopener noreferrer">GitHub</a>
     </p>
   </footer>
+
+  <dialog id="help-overlay" class="help-overlay" aria-label="Keyboard shortcuts and help">
+    <div class="help-overlay-inner">
+      <button id="help-overlay-close" class="help-overlay-close" type="button" aria-label="Close">&times;</button>
+      <h2 class="help-overlay-title">Keyboard shortcuts</h2>
+      <div class="help-overlay-grid">
+        <dl>
+          <dt><kbd>/</kbd> or <kbd>&#8984;</kbd><kbd>K</kbd></dt>
+          <dd>Focus search</dd>
+          <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd></dt>
+          <dd>Step through countries</dd>
+          <dt><kbd>?</kbd></dt>
+          <dd>This menu</dd>
+        </dl>
+        <dl>
+          <dt>Click</dt>
+          <dd>Select country</dd>
+          <dt>Shift&#8239;+&#8239;click</dt>
+          <dd>Add to comparison</dd>
+          <dt><kbd>Esc</kbd></dt>
+          <dd>Close / deselect</dd>
+        </dl>
+      </div>
+      <p class="help-overlay-footer">More detail in the <a href="/methodology.html">methodology</a>.</p>
+    </div>
+  </dialog>
 
   <script type="module" src="/src/main.js"></script>
 </body>

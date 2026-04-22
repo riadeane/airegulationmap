@@ -23,20 +23,74 @@
   border-radius: 3px;
 }
 
-#no-selection-message {
-  color: var(--text-tertiary);
-  font-style: italic;
-  font-size: 0.82rem;
-  padding: 32px 24px;
-  line-height: 1.6;
+/* ── Empty-panel on-ramp ──────────────────────────────────────
+   Shown once, on first load, before any country is selected.
+   Removed from the DOM on first engagement (see src/panel/index.js).
+   After that, #no-selection-message takes over as a quiet one-liner.
+   ----------------------------------------------------------- */
+.panel-intro {
+  padding: 28px 22px 24px;
+  max-width: 320px;
 }
 
-#no-selection-message .hint {
-  display: inline-block;
-  margin-top: 10px;
+.panel-intro-lede {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+  margin-bottom: 22px;
+}
+
+.panel-intro-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel-intro-steps li {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.panel-intro-num {
+  font-family: 'Geist Mono', ui-monospace, monospace;
   font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
   color: var(--text-tertiary);
-  font-style: normal;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  min-width: 1.8em;
+}
+
+.panel-intro-methodology {
+  display: inline-block;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1px;
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+.panel-intro-methodology:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.no-selection-message {
+  padding: 24px 22px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 .panel-country-header {

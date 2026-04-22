@@ -107,4 +107,16 @@
     display: flex;
     align-items: center;
   }
+
+  /* Keyboard-shortcut UI is meaningless on a touchscreen. Hide the
+     header trigger and the intro step that explains it. The ? key
+     handler stays intact so paired Bluetooth keyboards on tablets
+     still work. */
+  .header-help-btn {
+    display: none;
+  }
+
+  .panel-intro-steps li:has(kbd) {
+    display: none;
+  }
 }
