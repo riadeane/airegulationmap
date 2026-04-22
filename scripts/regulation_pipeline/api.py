@@ -45,17 +45,42 @@ Return ONLY a valid JSON object with these exact keys:
   "confidence": "<high|medium|low>"
 }}
 
-Scoring guidance:
-- 1 = No regulation / minimal engagement
-- 2 = Early-stage / voluntary guidelines only
-- 3 = Draft legislation / national strategy in progress
-- 4 = Active regulation / laws enacted
-- 5 = Comprehensive binding regulation with enforcement
+Scoring rubrics — every dimension uses the full 1-5 scale:
 
-Enforcement level:
-- 1 = No enforcement mechanism
-- 3 = Some oversight bodies / soft enforcement
-- 5 = Active enforcement, penalties, audits
+Regulation Status (Minimal → Comprehensive):
+- 1 = No regulation or minimal engagement; AI is not named in policy documents
+- 2 = Early-stage engagement: voluntary guidelines, sectoral code of practice, or advisory committee
+- 3 = National strategy or draft legislation in progress; public consultation underway
+- 4 = Active, enacted AI regulation covering a substantial slice of deployment contexts
+- 5 = Comprehensive, binding, cross-sector AI regulation with explicit enforcement mechanisms
+
+Policy Lever (Narrow → Broad):
+- 1 = Narrow: one tool, one sector, or indirect leverage only (e.g. data protection law bent to cover AI)
+- 2 = Two or three instruments in related areas (e.g. strategy + sectoral guidance, or sandbox + code of practice)
+- 3 = Mixed: several instruments — standards, procurement guidance, R&D funding, some sectoral rules
+- 4 = Multiple instruments across several domains with at least one binding regulation and active funding/standards work
+- 5 = Broad: horizontal regulatory framework plus sectoral adaptations, public investment, and compliance infrastructure
+
+Governance Type (Centralized → Distributed):
+- 1 = Centralized: single national authority sets and enforces policy
+- 2 = Lead authority with informal delegation to one or two sectoral bodies; coordination is ad hoc
+- 3 = Hybrid: lead body coordinates with sectoral regulators or sub-national jurisdictions
+- 4 = Multi-actor network with formal coordination mechanisms; regulators hold clearly delineated remits
+- 5 = Distributed: authority spread across independent regulators, courts, sub-national governments; emergent coordination
+
+Actor Involvement (Limited → Broad):
+- 1 = Limited: policy is set inside government with minimal external input
+- 2 = Industry consulted informally; civil society and academia have no structured access
+- 3 = Consultative: published consultations, industry working groups, some academic input
+- 4 = Standing multi-stakeholder bodies include industry, academia, and at least one civil-society voice
+- 5 = Broad: structured multi-stakeholder processes including civil society, trade unions, and international partners
+
+Enforcement Level (Weak → Strong):
+- 1 = No enforcement mechanism; obligations not tied to any authority
+- 2 = Obligations reference an authority but no sanctioning framework; compliance effectively voluntary
+- 3 = Soft enforcement: oversight bodies exist but audits and penalties are rare
+- 4 = Sanctioning framework exists and has been used selectively; enforcement inconsistent across sectors
+- 5 = Active enforcement: penalties issued, audits routine, dedicated authority publishes enforcement actions
 
 Return ONLY the JSON object. No preamble, no explanation, no markdown.
 """
