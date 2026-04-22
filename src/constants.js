@@ -26,3 +26,7 @@ export const SCORE_OPTIONS = [
 ];
 
 export const PLACEHOLDER_RE = /^(na|n\/a|idem|unknown|none|\s*[-–—]\s*|\.\s*)$/i;
+
+// Display-time cleanup of LLM-generated regulation descriptions.
+// Set to false for A/B eyeballing against the raw CSV text.
+export const NORMALIZE_COPY = true;

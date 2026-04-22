@@ -1,4 +1,5 @@
 import { PLACEHOLDER_RE } from '../constants.js';
+import { normalizeRegulationText } from './normalize.js';
 
 export function showSection(id, show) {
   const el = document.getElementById(id);
@@ -12,7 +13,7 @@ export function cleanRegulationText(text) {
   if (PLACEHOLDER_RE.test(trimmed)) return null;
   if (/^(cf\.|Cf\.)\s/i.test(trimmed) && trimmed.length < 40) return null;
   if (/^idem\b/i.test(trimmed) && trimmed.length < 10) return null;
-  return trimmed;
+  return normalizeRegulationText(trimmed);
 }
 
 const SECTION_MAP = [
