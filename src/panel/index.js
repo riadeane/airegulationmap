@@ -92,7 +92,15 @@ function renderPanel(countryName) {
   }
 
   const dateStr = (score && score.lastUpdated) || (reg && reg.lastUpdated);
-  document.getElementById('last-updated').textContent = dateStr ? `Data as of ${dateStr}` : '';
+  const sourceUrls = reg && reg.sources
+    ? reg.sources.split('|').map(u => u.trim()).filter(Boolean)
+    : [];
+  const countText = sourceUrls.length > 0
+    ? `${sourceUrls.length} source${sourceUrls.length === 1 ? '' : 's'}`
+    : 'no primary sources';
+  document.getElementById('last-updated').textContent = dateStr
+    ? `Data as of ${dateStr} · ${countText}`
+    : countText;
 
   renderScoreBar(score ? score.averageScore : null);
   renderAllDots(score);
