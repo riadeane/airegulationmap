@@ -1,0 +1,111 @@
+/* ── Help overlay ─────────────────────────────────────────────
+   Native <dialog> — gives us focus trap, Esc-to-close, and
+   ::backdrop for free. Sits over the full viewport.
+   ----------------------------------------------------------- */
+.help-overlay {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-primary);
+  max-width: 480px;
+  width: calc(100% - 32px);
+  /* Restore UA centering that the global `* { margin: 0 }` reset strips. */
+  margin: auto;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.4);
+}
+
+.help-overlay::backdrop {
+  background: rgb(0 0 0 / 0.4);
+  backdrop-filter: blur(2px);
+}
+
+:root[data-theme='light'] .help-overlay::backdrop {
+  background: rgb(20 20 28 / 0.18);
+}
+
+.help-overlay-inner {
+  position: relative;
+  padding: 28px 32px 24px;
+}
+
+.help-overlay-title {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  margin-bottom: 18px;
+  color: var(--text-primary);
+}
+
+.help-overlay-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+}
+
+.help-overlay-close:hover {
+  color: var(--text-primary);
+  background: var(--surface-raised);
+}
+
+.help-overlay-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
+  margin-bottom: 20px;
+}
+
+.help-overlay-grid dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 14px;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.help-overlay-grid dt {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.help-overlay-grid dd {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.help-overlay-footer {
+  font-size: 0.76rem;
+  color: var(--text-tertiary);
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.help-overlay-footer a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.help-overlay-footer a:hover {
+  color: var(--accent);
+}
+
+@media (max-width: 520px) {
+  .help-overlay-grid {
+    grid-template-columns: 1fr;
+  }
+}
