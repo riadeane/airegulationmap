@@ -97,10 +97,21 @@ Return ONLY a valid JSON object with these exact keys:
   "actor_involvement_text": "<actors and geographic scope, 1-2 sentences>",
   "enforcement_level_score": <integer 1-5>,
   "enforcement_level_text": "<how strictly rules are enforced, 1 sentence>",
-  "specific_laws": "<comma-separated named laws/acts with years, or empty string>",
-  "sources": "<pipe-separated URLs to primary sources (government sites preferred), or empty string>",
+  "specific_laws": "<REQUIRED if any exist: comma-separated official names of laws, acts, executive orders, or national strategies WITH years, e.g. 'AI Act (2024), Data Protection Act (2018)'. Empty string ONLY if no AI-relevant instrument of any kind exists>",
+  "sources": "<REQUIRED: 1-5 pipe-separated URLs supporting your claims. Strongly prefer primary sources: government ministry sites, official gazettes, legislature pages, regulator websites. Secondary sources (OECD.ai, IAPP, law-firm trackers) are acceptable if no primary source is available>",
   "confidence": "<high|medium|low>"
 }}
+
+Source requirements:
+- Every response MUST include at least one source URL unless genuinely none exists.
+- Only include URLs you are confident are real. NEVER fabricate or guess URLs. If you
+  cannot recall an exact deep link, give the official top-level page you are certain
+  exists (e.g. the ministry or regulator homepage) rather than a guessed path.
+- If you cannot support your assessment with any source, set "sources" to "" AND set
+  "confidence" to "low".
+- "confidence" must be "high" only when claims are backed by enacted legislation with
+  primary sources; "medium" for mixed or secondary sourcing; "low" for sparse
+  information or no sources.
 
 Scoring rubrics — every dimension uses the full 1-5 scale:
 
