@@ -1,12 +1,21 @@
 import { getState, setState } from '../state/store.js';
 import { updateSearchHighlight } from '../map/index.js';
 
+// Trailing debounce — typing filters the country list AND walks every
+// map path for highlight classes, so don't do it per keystroke.
+function debounce(fn, ms) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), ms);
+  };
+}
+
 export function initSearch() {
   const searchInput = document.getElementById('country-search');
   const suggestions = document.getElementById('search-suggestions');
 
-  searchInput.addEventListener('input', function () {
-    const query = this.value.trim().toLowerCase();
+  const updateSuggestions = (query) => {
     suggestions.replaceChildren();
     updateSearchHighlight(query);
     if (query.length < 2) return;
@@ -35,6 +44,11 @@ export function initSearch() {
       });
       suggestions.appendChild(li);
     }
+  };
+
+  const debouncedUpdate = debounce(updateSuggestions, 120);
+  searchInput.addEventListener('input', function () {
+    debouncedUpdate(this.value.trim().toLowerCase());
   });
 
   // Close suggestions on outside click

@@ -50,9 +50,18 @@ async function copyToClipboard(text, confirmBtn) {
 
   confirmBtn.textContent = success ? 'Copied \u2713' : 'Copy failed';
   confirmBtn.classList.toggle('copied', success);
+
+  // Announce the outcome to screen readers \u2014 the visual button-label
+  // swap alone is silent.
+  const liveRegion = document.getElementById('cite-live-region');
+  if (liveRegion) {
+    liveRegion.textContent = success ? 'Citation copied to clipboard' : 'Copy failed';
+  }
+
   setTimeout(() => {
     confirmBtn.textContent = original;
     confirmBtn.classList.remove('copied');
+    if (liveRegion) liveRegion.textContent = '';
   }, 1500);
 }
 
@@ -73,6 +82,13 @@ function renderRows() {
   heading.className = 'cite-popover-heading';
   heading.textContent = 'Copy a formatted citation for this view';
   popoverEl.appendChild(heading);
+
+  const liveRegion = document.createElement('div');
+  liveRegion.id = 'cite-live-region';
+  liveRegion.className = 'sr-only';
+  liveRegion.setAttribute('role', 'status');
+  liveRegion.setAttribute('aria-live', 'polite');
+  popoverEl.appendChild(liveRegion);
 
   for (const { key, label } of FORMATS) {
     const row = document.createElement('div');

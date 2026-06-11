@@ -23,7 +23,7 @@ function updateSiteLastUpdated(scoreData) {
     .sort();
   const latest = dates[dates.length - 1];
   const el = document.getElementById('site-last-updated');
-  if (el) el.textContent = latest || '2024';
+  if (el) el.textContent = latest || '—';
 }
 
 function updateCountryCount(scoreData) {

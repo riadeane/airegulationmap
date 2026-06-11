@@ -115,8 +115,10 @@
   stroke-width: 1.8px !important;
 }
 
+/* !important so search dimming wins over the inline opacity that
+   updateMap() sets for the score-range filter. */
 .country.search-dimmed {
-  opacity: 0.08;
+  opacity: 0.08 !important;
 }
 
 .country.search-highlighted {
