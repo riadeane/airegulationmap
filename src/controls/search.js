@@ -1,8 +1,14 @@
 import { getState, setState } from '../state/store.js';
 import { updateSearchHighlight } from '../map/index.js';
+import { matchCountryNames } from '../data/countryMatch.js';
+import { buildSearchIndex, searchRegulationText, FIELD_LABELS } from '../data/searchIndex.js';
 
-// Trailing debounce — typing filters the country list AND walks every
-// map path for highlight classes, so don't do it per keystroke.
+const COUNTRY_LIMIT = 4;
+const TEXT_LIMIT = 6;
+
+// Trailing debounce — typing filters the country list, scans the text
+// index, AND walks every map path for highlight classes, so don't do
+// it per keystroke.
 function debounce(fn, ms) {
   let t;
   return (...args) => {
@@ -11,37 +17,97 @@ function debounce(fn, ms) {
   };
 }
 
+let textIndex = null;
+
+function sectionLabel(text) {
+  const li = document.createElement('li');
+  li.className = 'search-section-label';
+  li.setAttribute('role', 'presentation');
+  li.setAttribute('aria-hidden', 'true');
+  li.textContent = text;
+  return li;
+}
+
+// Snippet with the matched term wrapped in <mark>, built from index
+// offsets via textContent — no innerHTML with data-derived strings.
+function snippetNode(match) {
+  const span = document.createElement('span');
+  span.className = 'match-snippet';
+  span.appendChild(document.createTextNode(match.snippet.slice(0, match.matchStart)));
+  const mark = document.createElement('mark');
+  mark.textContent = match.snippet.slice(match.matchStart, match.matchStart + match.matchLength);
+  span.appendChild(mark);
+  span.appendChild(document.createTextNode(match.snippet.slice(match.matchStart + match.matchLength)));
+  return span;
+}
+
 export function initSearch() {
   const searchInput = document.getElementById('country-search');
   const suggestions = document.getElementById('search-suggestions');
 
+  const selectCountry = (name) => {
+    searchInput.value = name;
+    suggestions.replaceChildren();
+    updateSearchHighlight(null);
+    setState({ selectedCountry: name });
+  };
+
   const updateSuggestions = (query) => {
     suggestions.replaceChildren();
-    updateSearchHighlight(query);
-    if (query.length < 2) return;
+    if (query.length < 2) {
+      updateSearchHighlight(null);
+      return;
+    }
 
     const { sortedCountryNames } = getState();
-    const matches = sortedCountryNames
-      .filter(name => name.toLowerCase().includes(query))
-      .sort((a, b) => {
-        const aStarts = a.toLowerCase().startsWith(query);
-        const bStarts = b.toLowerCase().startsWith(query);
-        if (aStarts && !bStarts) return -1;
-        if (!aStarts && bStarts) return 1;
-        return a.localeCompare(b);
-      })
-      .slice(0, 8);
+    if (!textIndex) textIndex = buildSearchIndex(getState().regulationData);
 
-    for (const name of matches) {
+    const countryMatches = matchCountryNames(sortedCountryNames, query, { limit: COUNTRY_LIMIT });
+    const textMatches = query.length >= 3
+      ? searchRegulationText(textIndex, query, TEXT_LIMIT + COUNTRY_LIMIT)
+        // A country already listed by name doesn't need a second row.
+        .filter(m => !countryMatches.includes(m.country))
+        .slice(0, TEXT_LIMIT)
+      : [];
+
+    updateSearchHighlight(new Set([
+      ...countryMatches,
+      ...textMatches.map(m => m.country),
+    ]));
+
+    if (countryMatches.length > 0 && textMatches.length > 0) {
+      suggestions.appendChild(sectionLabel('Countries'));
+    }
+    for (const name of countryMatches) {
       const li = document.createElement('li');
       li.textContent = name;
       li.setAttribute('role', 'option');
-      li.addEventListener('click', () => {
-        searchInput.value = name;
-        suggestions.replaceChildren();
-        updateSearchHighlight('');
-        setState({ selectedCountry: name });
-      });
+      li.addEventListener('click', () => selectCountry(name));
+      suggestions.appendChild(li);
+    }
+
+    if (textMatches.length > 0) {
+      suggestions.appendChild(sectionLabel('Mentions'));
+    }
+    for (const match of textMatches) {
+      const li = document.createElement('li');
+      li.className = 'text-match';
+      li.setAttribute('role', 'option');
+
+      const country = document.createElement('span');
+      country.className = 'match-country';
+      country.textContent = match.country;
+
+      const field = document.createElement('span');
+      field.className = 'match-field';
+      field.textContent = FIELD_LABELS[match.field] || match.field;
+
+      const head = document.createElement('span');
+      head.className = 'match-head';
+      head.append(country, field);
+
+      li.append(head, snippetNode(match));
+      li.addEventListener('click', () => selectCountry(match.country));
       suggestions.appendChild(li);
     }
   };
@@ -55,14 +121,15 @@ export function initSearch() {
   document.addEventListener('click', e => {
     if (!e.target.closest('#search-container')) {
       suggestions.replaceChildren();
-      updateSearchHighlight('');
+      updateSearchHighlight(null);
       searchInput.value = '';
     }
   });
 
-  // Keyboard navigation for search
+  // Keyboard navigation for search. Only real options participate —
+  // section labels are presentational.
   searchInput.addEventListener('keydown', function (e) {
-    const items = suggestions.querySelectorAll('li');
+    const items = suggestions.querySelectorAll('li[role="option"]');
     if (!items.length) return;
     const highlighted = suggestions.querySelector('li.highlighted');
     let idx = highlighted ? Array.from(items).indexOf(highlighted) : -1;
@@ -78,13 +145,14 @@ export function initSearch() {
       return;
     } else if (e.key === 'Escape') {
       suggestions.replaceChildren();
-      updateSearchHighlight('');
+      updateSearchHighlight(null);
       return;
     } else {
       return;
     }
     items.forEach(li => li.classList.remove('highlighted'));
     items[idx].classList.add('highlighted');
+    items[idx].scrollIntoView({ block: 'nearest' });
   });
 }
 
@@ -94,7 +162,7 @@ export function initKeyboardNav() {
       if (e.key === 'Escape') {
         e.target.blur();
         document.getElementById('search-suggestions').replaceChildren();
-        updateSearchHighlight('');
+        updateSearchHighlight(null);
       }
       return;
     }

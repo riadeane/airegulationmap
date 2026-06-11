@@ -277,17 +277,18 @@ export function markComparisonCountries(names) {
     .attr('data-comparison-index', d => getColorIndex(d.properties.name));
 }
 
-export function updateSearchHighlight(query) {
-  if (query.length < 2) {
+// Dim countries outside the current search result set. `matchedNames`
+// is a Set of country names (name matches plus full-text matches), or
+// null to clear the highlight entirely.
+export function updateSearchHighlight(matchedNames) {
+  if (!matchedNames) {
     selectAll('.country')
       .classed('search-dimmed', false)
       .classed('search-highlighted', false);
     return;
   }
-  const lq = query.toLowerCase();
   selectAll('.country').each(function (d) {
-    const name = (d.properties.name || '').toLowerCase();
-    const matches = name.includes(lq);
+    const matches = matchedNames.has(d.properties.name);
     select(this)
       .classed('search-dimmed', !matches)
       .classed('search-highlighted', matches);

@@ -1,5 +1,6 @@
 import { getState } from '../state/store.js';
 import { ATTRIBUTE_LABELS } from '../constants.js';
+import { matchCountryNames } from '../data/countryMatch.js';
 import { cleanRegulationText } from '../panel/sections.js';
 import { renderRadar } from './radar.js';
 import { addToComparison, removeFromComparison, getColorFor, MAX_COMPARISON } from './index.js';
@@ -55,17 +56,10 @@ function buildSearchInput(atCap) {
     if (q.length < 1) { close(); return; }
 
     const { sortedCountryNames, comparisonCountries } = getState();
-    const inSet = new Set(comparisonCountries);
-    const matches = sortedCountryNames
-      .filter(n => !inSet.has(n) && n.toLowerCase().includes(q))
-      .sort((a, b) => {
-        const aStarts = a.toLowerCase().startsWith(q);
-        const bStarts = b.toLowerCase().startsWith(q);
-        if (aStarts && !bStarts) return -1;
-        if (!aStarts && bStarts) return 1;
-        return a.localeCompare(b);
-      })
-      .slice(0, 6);
+    const matches = matchCountryNames(sortedCountryNames, q, {
+      limit: 6,
+      exclude: new Set(comparisonCountries),
+    });
 
     if (matches.length === 0) { close(); return; }
 

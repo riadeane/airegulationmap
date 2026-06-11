@@ -152,6 +152,60 @@ h1 {
   color: var(--accent);
 }
 
+/* Full-text search results */
+#search-suggestions {
+  width: max-content;
+  max-width: min(380px, 90vw);
+}
+
+#search-suggestions li.search-section-label {
+  padding: 6px 14px 4px;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  cursor: default;
+  pointer-events: none;
+  background: none;
+}
+
+#search-suggestions li.text-match {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.match-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.match-country {
+  font-weight: 500;
+}
+
+.match-field {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.match-snippet {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.match-snippet mark {
+  background: var(--accent-muted);
+  color: var(--accent);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
 /* Score dropdown + filter + export buttons */
 #score-btn-container,
 #filter-btn-container,
