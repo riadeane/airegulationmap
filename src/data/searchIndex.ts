@@ -9,9 +9,11 @@ export const SEARCHABLE_FIELDS = [
   'actorInvolvement',
   'enforcementLevel',
   'specificLaws',
-];
+] as const;
 
-export const FIELD_LABELS = {
+export type SearchableField = (typeof SEARCHABLE_FIELDS)[number];
+
+export const FIELD_LABELS: Record<SearchableField, string> = {
   regulationStatus: 'Regulation Status',
   policyLever: 'Policy Lever',
   governanceType: 'Governance Type',
@@ -20,8 +22,26 @@ export const FIELD_LABELS = {
   specificLaws: 'Key Legislation',
 };
 
-export function buildSearchIndex(regulationData) {
-  const index = [];
+/** Anything with the searchable text fields — RegulationEntry qualifies. */
+type SearchableText = { [K in SearchableField]?: string | null };
+
+export interface IndexEntry {
+  country: string;
+  field: SearchableField;
+  text: string;
+  original: string;
+}
+
+export interface SearchMatch {
+  country: string;
+  field: SearchableField;
+  snippet: string;
+  matchStart: number;
+  matchLength: number;
+}
+
+export function buildSearchIndex(regulationData: Record<string, SearchableText>): IndexEntry[] {
+  const index: IndexEntry[] = [];
   for (const [country, data] of Object.entries(regulationData)) {
     for (const field of SEARCHABLE_FIELDS) {
       const text = data[field];
@@ -41,16 +61,19 @@ const SNIPPET_CONTEXT = 60;
 
 /**
  * Substring search over the index. One result per country (the first
- * matching field wins). Returns:
- *   { country, field, snippet, matchStart, matchLength }
- * where matchStart/matchLength locate the matched term inside snippet
- * so the renderer can wrap it in <mark> without re-searching.
+ * matching field wins). matchStart/matchLength locate the matched term
+ * inside snippet so the renderer can wrap it in <mark> without
+ * re-searching.
  */
-export function searchRegulationText(index, query, maxResults = 20) {
+export function searchRegulationText(
+  index: IndexEntry[],
+  query: string,
+  maxResults = 20
+): SearchMatch[] {
   if (!query || query.length < 3) return [];
   const q = query.toLowerCase();
-  const results = [];
-  const seen = new Set();
+  const results: SearchMatch[] = [];
+  const seen = new Set<string>();
 
   for (const entry of index) {
     if (seen.has(entry.country)) continue;

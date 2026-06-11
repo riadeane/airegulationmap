@@ -30,12 +30,12 @@ const STOPWORDS = new Set([
   'under','about','through','between','among','per','via','nor','exist','exists'
 ]);
 
-function tokens(s) {
+function tokens(s: string): string[] {
   return (s.toLowerCase().match(/[a-z][a-z-]+/g) || [])
     .filter(t => !STOPWORDS.has(t) && t.length > 2);
 }
 
-function stripLeadingTemporal(text) {
+function stripLeadingTemporal(text: string): string {
   const sentenceCount = (text.match(/[.!?](\s|$)/g) || []).length;
   if (sentenceCount < 2) return text;
   return text.replace(LEADING_TEMPORAL_RE, '$1').replace(/^\s*,\s*/, '').trim();
@@ -44,7 +44,7 @@ function stripLeadingTemporal(text) {
 // Heuristic: a run of sentences all starting with "No " is redundant if
 // every sentence after the first shares ≥2 non-stopword tokens with the
 // first. Conservative — genuinely distinct claims fall through.
-function sharesVocab(sentences) {
+function sharesVocab(sentences: string[]): boolean {
   const firstTokens = new Set(tokens(sentences[0]));
   if (firstTokens.size < 2) return false;
   for (let i = 1; i < sentences.length; i++) {
@@ -54,12 +54,12 @@ function sharesVocab(sentences) {
   return true;
 }
 
-function collapseCascadingNegations(text) {
+function collapseCascadingNegations(text: string): string {
   const sentences = text.match(/[^.!?]+[.!?]+\s*/g);
   if (!sentences || sentences.length < 3) return text;
 
-  const out = [];
-  let run = [];
+  const out: string[] = [];
+  let run: string[] = [];
 
   const flushRun = () => {
     if (run.length >= 3 && sharesVocab(run)) {
@@ -82,18 +82,18 @@ function collapseCascadingNegations(text) {
   return out.join('').trim();
 }
 
-function trimLeadingHedges(text) {
+function trimLeadingHedges(text: string): string {
   return text
     .replace(/^(Generally|Broadly|Notably|Essentially|Largely),\s*/i, '')
     .replace(/([.!?]\s+)(Generally|Broadly|Notably|Essentially|Largely),\s+/g, '$1');
 }
 
-export function normalizeRegulationText(text) {
+export function normalizeRegulationText<T>(text: T): T | string {
   if (!NORMALIZE_COPY) return text;
   if (!text || typeof text !== 'string') return text;
 
   const original = text;
-  let out = text;
+  let out: string = text;
 
   out = stripLeadingTemporal(out);
   out = collapseCascadingNegations(out);

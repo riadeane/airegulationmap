@@ -2,7 +2,16 @@
 // prefix matches sorted first. Used by the header search and the
 // comparison add-bar.
 
-export function matchCountryNames(names, query, { limit = 8, exclude = null } = {}) {
+export interface MatchOptions {
+  limit?: number;
+  exclude?: Set<string> | null;
+}
+
+export function matchCountryNames(
+  names: string[],
+  query: string,
+  { limit = 8, exclude = null }: MatchOptions = {}
+): string[] {
   const q = query.toLowerCase();
   if (!q) return [];
   return names

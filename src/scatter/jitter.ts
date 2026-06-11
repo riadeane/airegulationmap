@@ -5,14 +5,19 @@
 
 const SPREAD = 0.36; // total band width in score units (±0.18)
 
-export function jitterFor(name) {
+export interface Jitter {
+  dx: number;
+  dy: number;
+}
+
+export function jitterFor(name: string): Jitter {
   let h = 0x811c9dc5;
   for (let i = 0; i < name.length; i++) {
     h ^= name.charCodeAt(i);
     h = Math.imul(h, 0x01000193);
   }
   const a = ((h >>> 0) % 1000) / 1000;
-  const b = (((Math.imul(h, 0x9e3779b1)) >>> 0) % 1000) / 1000;
+  const b = ((Math.imul(h, 0x9e3779b1) >>> 0) % 1000) / 1000;
   return {
     dx: (a - 0.5) * SPREAD,
     dy: (b - 0.5) * SPREAD,

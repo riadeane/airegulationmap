@@ -5,9 +5,15 @@ export const ATTRIBUTE_LABELS = {
   governanceType: 'Governance Type',
   actorInvolvement: 'Actor Involvement',
   enforcementLevel: 'Enforcement Level',
-};
+} as const;
 
-export const LEGEND_ENDPOINTS = {
+/** One of the six score attributes ('averageScore' | 'regulationStatus' | …). */
+export type AttributeKey = keyof typeof ATTRIBUTE_LABELS;
+
+/** The five independently scored dimensions (averageScore is derived). */
+export type DimensionKey = Exclude<AttributeKey, 'averageScore'>;
+
+export const LEGEND_ENDPOINTS: Record<AttributeKey, [string, string]> = {
   averageScore:     ['Minimal', 'Comprehensive'],
   regulationStatus: ['Minimal', 'Comprehensive'],
   policyLever:      ['Narrow', 'Broad'],
@@ -16,7 +22,7 @@ export const LEGEND_ENDPOINTS = {
   enforcementLevel: ['Weak', 'Strong'],
 };
 
-export const SCORE_OPTIONS = [
+export const SCORE_OPTIONS: { value: AttributeKey; text: string }[] = [
   { value: 'averageScore',     text: 'Average Score' },
   { value: 'regulationStatus', text: 'Regulation Status' },
   { value: 'policyLever',      text: 'Policy Lever' },

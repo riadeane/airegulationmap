@@ -2,12 +2,39 @@
 // computeBlocStats is pure and unit-tested; loadBlocs mirrors
 // loadHistory's contract (null on any failure, callers degrade).
 
-export async function loadBlocs(knownCountries = null) {
+import type { AttributeKey } from '../constants';
+import type { ScoreData } from './loader';
+
+export interface Bloc {
+  name: string;
+  members: string[];
+}
+
+export type BlocsData = Record<string, Bloc>;
+
+export interface BlocMemberScore {
+  name: string;
+  score: number;
+}
+
+export interface BlocStats {
+  average: number;
+  min: number;
+  max: number;
+  stdDev: number;
+  memberCount: number;
+  scoredCount: number;
+  highest: BlocMemberScore;
+  lowest: BlocMemberScore;
+}
+
+export async function loadBlocs(knownCountries: string[] | null = null): Promise<BlocsData | null> {
   try {
     const response = await fetch('/data/blocs.json');
     if (!response.ok) return null;
-    const data = await response.json();
-    delete data._comment;
+    const parsed = (await response.json()) as Record<string, unknown>;
+    delete parsed._comment; // metadata key in blocs.json, not a bloc
+    const data = parsed as unknown as BlocsData;
 
     // Dev-time guard: bloc member names must exactly match scores.csv —
     // catches silent drift if the dataset ever renames a country.
@@ -32,10 +59,16 @@ export async function loadBlocs(knownCountries = null) {
  * for that attribute are excluded from the math but counted in
  * memberCount. Returns null when no member has a score.
  */
-export function computeBlocStats(members, scoreData, attribute) {
-  const scored = members
-    .map(name => ({ name, score: scoreData[name]?.[attribute] }))
-    .filter(d => d.score != null);
+export function computeBlocStats(
+  members: string[],
+  scoreData: ScoreData,
+  attribute: AttributeKey
+): BlocStats | null {
+  const scored: BlocMemberScore[] = [];
+  for (const name of members) {
+    const score = scoreData[name]?.[attribute];
+    if (score != null) scored.push({ name, score });
+  }
 
   if (scored.length === 0) return null;
 
