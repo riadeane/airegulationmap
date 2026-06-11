@@ -4,6 +4,7 @@ SCORES_CSV = "public/scores.csv"
 REGULATION_CSV = "public/regulation_data.csv"
 HISTORY_JSON = "public/history.json"
 COUNTRY_NAMES_JSON = "public/data/country_names.json"
+SUBSCORES_JSON = "public/data/subscores.json"
 
 SCORES_FIELDS = [
     "Country", "Regulation Status", "Policy Lever", "Governance Type",

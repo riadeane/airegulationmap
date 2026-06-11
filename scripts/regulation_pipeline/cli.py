@@ -15,12 +15,15 @@ except ImportError:
 from .api import FatalAPIError, research_country
 from .config import PRIORITY_COUNTRIES
 from .data_io import (
-    load_history, load_regulation, load_scores,
-    validate_outputs, write_history, write_regulation, write_scores,
+    load_history, load_regulation, load_scores, load_subscores,
+    validate_outputs, write_history, write_regulation, write_scores, write_subscores,
 )
 from .history import append_history_snapshot
 from .names import canonicalize, load_alias_map
-from .processor import build_regulation_row, build_scores_row, validate_result
+from .processor import (
+    build_regulation_row, build_scores_row, build_subscores_entry,
+    flatten_result, validate_result,
+)
 from .staleness import should_update
 
 
@@ -47,6 +50,7 @@ def main():
     scores_data = load_scores(aliases)
     reg_data = load_regulation(aliases)
     history = load_history()
+    subscores = load_subscores()
 
     today_str = date.today().isoformat()
 
@@ -101,13 +105,17 @@ def main():
 
             current_version = int(scores_data.get(country, {}).get("Data Version", 1) or 1)
 
-            scores_data[country] = build_scores_row(country, result, current_version, today_str)
-            reg_data[country] = build_regulation_row(country, result, today_str)
+            # Sub-indicator blocks -> flat dimension scores (means).
+            flat = flatten_result(result)
 
-            added = append_history_snapshot(history, country, result, today_str)
+            scores_data[country] = build_scores_row(country, flat, current_version, today_str)
+            reg_data[country] = build_regulation_row(country, flat, today_str)
+            subscores["countries"][country] = build_subscores_entry(result, today_str)
 
-            confidence = result.get("confidence", "?")
-            avg_score = result.get("average_score")
+            added = append_history_snapshot(history, country, flat, today_str)
+
+            confidence = flat.get("confidence", "?")
+            avg_score = flat.get("average_score")
             snapshot_note = "(new snapshot)" if added else "(no score change)"
             print(f"  Done. Avg score: {avg_score}, Confidence: {confidence} {snapshot_note}")
 
@@ -124,6 +132,7 @@ def main():
             write_scores(scores_data)
             write_regulation(reg_data)
             write_history(history)
+            write_subscores(subscores)
         sys.exit(2)
 
     # Validate before writing
@@ -137,6 +146,7 @@ def main():
     write_scores(scores_data)
     write_regulation(reg_data)
     write_history(history)
+    write_subscores(subscores)
 
     print(f"\nDone. Updated {updated_count} countries.")
     if failed_countries:

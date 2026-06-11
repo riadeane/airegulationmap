@@ -255,7 +255,18 @@
 
 .dim-dots {
   display: flex;
+  align-items: center;
   gap: 4px;
+}
+
+.dim-score-value {
+  margin-left: 6px;
+  font-size: 0.68rem;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+  text-align: right;
 }
 
 .dim-dot {

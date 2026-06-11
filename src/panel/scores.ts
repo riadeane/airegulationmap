@@ -9,6 +9,14 @@ export function renderDots(elId: string, score: number | null): void {
     dot.className = i <= Math.round(score as number) ? 'dim-dot filled' : 'dim-dot';
     el.appendChild(dot);
   }
+  // Scores carry quarter-point decimals since methodology v2 — the
+  // dots round, the number carries the precision.
+  if (score != null) {
+    const value = document.createElement('span');
+    value.className = 'dim-score-value';
+    value.textContent = Number.isInteger(score) ? String(score) : score.toFixed(2);
+    el.appendChild(value);
+  }
 }
 
 export function renderScoreBar(avg: number | null): void {

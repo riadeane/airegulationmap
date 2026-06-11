@@ -61,13 +61,16 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet public/scores.csv public/regulation_data.csv public/history.json || echo "changed=true" >> $GITHUB_OUTPUT
+          # Stage first so the brand-new subscores.json (untracked on its
+          # first run) is detected too.
+          git add public/scores.csv public/regulation_data.csv public/history.json
+          if [ -f public/data/subscores.json ]; then git add public/data/subscores.json; fi
+          git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push updated data
         if: steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "AI Regulation Bot"
           git config user.email "bot@github-actions"
-          git add public/scores.csv public/regulation_data.csv public/history.json
           git commit -m "chore: automated data update $(date -u +%Y-%m-%d)"
           git push

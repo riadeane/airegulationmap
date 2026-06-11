@@ -107,18 +107,21 @@ Python package that calls the Claude API to research regulation status per count
 | `public/history.json` | Timestamped snapshots of score data for timeline playback |
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
+| `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2) |
 
 These files are served as static assets by Vite (via `publicDir`) and copied unchanged to `dist/` on build.
 
 ### Scoring Dimensions
 
 Six attributes scored 1–5 (used in the score selector dropdown):
-- **avg_score** — composite average
-- **regulation_status** — existence and maturity of regulation
-- **policy_lever** — type of policy instrument used
-- **governance_type** — governance model
-- **actor_involvement** — which actors are involved
-- **enforcement_level** — enforcement rigor
+- **avg_score** — maturity index: mean of the three normative dimensions (regulation_status, policy_lever, enforcement_level)
+- **regulation_status** — existence and maturity of regulation (normative)
+- **policy_lever** — breadth of policy instruments (normative)
+- **governance_type** — centralized↔distributed (descriptive — excluded from the composite)
+- **actor_involvement** — narrow↔broad participation (descriptive — excluded from the composite)
+- **enforcement_level** — enforcement rigor (normative)
+
+**Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/api.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. Calibration: 5 = the global frontier at scoring time, not perfection; governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
 
 ### Automated Updates
 
