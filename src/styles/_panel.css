@@ -466,3 +466,62 @@
   background: var(--accent);
   color: var(--bg);
 }
+
+/* Score history (changelog) */
+#changelog-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.changelog-entry {
+  border-left: 2px solid var(--border);
+  padding-left: 12px;
+}
+
+.changelog-date {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog-changes {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+}
+
+.changelog-changes li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  padding: 2px 0;
+}
+
+.changelog-dim {
+  min-width: 130px;
+  color: var(--text-secondary);
+}
+
+.changelog-arrow {
+  font-variant-numeric: tabular-nums;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.changelog-direction.up {
+  color: var(--score-high);
+}
+
+.changelog-direction.down {
+  color: var(--score-low);
+}
+
+.changelog-empty {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+}

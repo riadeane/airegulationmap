@@ -1,6 +1,7 @@
 import { getState, on } from '../state/store.js';
 import { renderScoreBar, renderAllDots } from './scores.js';
 import { renderTextSections } from './sections.js';
+import { renderChangelog } from './changelog.js';
 import { highlightCountry, clearHighlight } from '../map/index.js';
 import { toggleComparison, MAX_COMPARISON } from '../comparison/index.js';
 
@@ -107,6 +108,7 @@ function renderPanel(countryName) {
   renderAllDots(score);
   updateDimensionHighlight();
   renderTextSections(reg);
+  renderChangelog(countryName);
   highlightCountry(countryName);
   updateCompareButton();
   updateCiteButton();
@@ -140,6 +142,13 @@ export function initPanel() {
 
   on('currentAttribute', updateDimensionHighlight);
   on('comparisonCountries', () => { updateCompareButton(); updateCiteButton(); });
+
+  // history.json arrives async — a URL-deep-linked country may already
+  // be rendered by then, so backfill its changelog section.
+  on('history', () => {
+    const { selectedCountry } = getState();
+    if (selectedCountry) renderChangelog(selectedCountry);
+  });
   updateCiteButton();
 
   let introConsumed = false;

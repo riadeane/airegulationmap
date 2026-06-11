@@ -11,6 +11,9 @@ const state = {
   // string (YYYY-MM-DD) present in history.json. The timeline slider
   // writes this; the map subscribes and re-renders historic scores.
   timelineDate: null,
+  // Parsed history.json — loaded async after first paint; null until
+  // then (and stays null if the fetch fails).
+  history: null,
 };
 
 const listeners = new Map();

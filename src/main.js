@@ -112,8 +112,12 @@ async function main() {
   updateSiteLastUpdated(scoreData);
   updateCountryCount(scoreData);
 
-  // Load history non-blocking
-  loadHistory().then(history => initTimeline(history));
+  // Load history non-blocking. Stored in state for the panel changelog;
+  // the timeline keeps its own module reference.
+  loadHistory().then(history => {
+    setState({ history });
+    initTimeline(history);
+  });
 
   // Start writing URL changes. Done after initial state is applied so
   // we don't clobber the user's URL on boot.
