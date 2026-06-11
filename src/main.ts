@@ -20,8 +20,9 @@ import { parseUrl, initUrlSync } from './controls/url';
 import { initCitePopover } from './controls/citePopover';
 import { initHelpOverlay } from './controls/helpOverlay';
 import { removeMapSkeleton, showLoadError } from './panel/resilience';
+import type { ScoreData, RegulationData } from './data/loader';
 
-function updateSiteLastUpdated(scoreData) {
+function updateSiteLastUpdated(scoreData: ScoreData): void {
   const dates = Object.values(scoreData)
     .map(d => d.lastUpdated)
     .filter(Boolean)
@@ -31,28 +32,28 @@ function updateSiteLastUpdated(scoreData) {
   if (el) el.textContent = latest || '—';
 }
 
-function updateCountryCount(scoreData) {
+function updateCountryCount(scoreData: ScoreData): void {
   const count = Object.keys(scoreData).length;
   const el = document.getElementById('country-count');
   if (el) el.textContent = `${count} countries`;
 }
 
-function closeAllDropdowns(e) {
-  if (e.target.closest('#score-dropdown, #score-btn, #filter-popover, #filter-btn, #export-popover, #export-btn')) return;
+function closeAllDropdowns(e: MouseEvent): void {
+  if ((e.target as Element).closest('#score-dropdown, #score-btn, #filter-popover, #filter-btn, #export-popover, #export-btn')) return;
   for (const [popoverId, btnId] of [
     ['score-dropdown', 'score-btn'],
     ['filter-popover', 'filter-btn'],
     ['export-popover', 'export-btn'],
   ]) {
-    document.getElementById(popoverId).classList.remove('open');
-    const btn = document.getElementById(btnId);
+    document.getElementById(popoverId)!.classList.remove('open');
+    const btn = document.getElementById(btnId)!;
     btn.classList.remove('active');
     btn.setAttribute('aria-expanded', 'false');
   }
 }
 
-async function main() {
-  let scoreData, regulationData;
+async function main(): Promise<void> {
+  let scoreData: ScoreData, regulationData: RegulationData;
   try {
     [scoreData, regulationData] = await Promise.all([
       loadScores(),

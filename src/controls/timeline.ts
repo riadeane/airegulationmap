@@ -1,21 +1,22 @@
 import { getState, setState, on } from '../state/store';
 import { updateMap } from '../map/index';
 import { buildScoresAtDate, extractSortedDates } from '../data/history';
+import type { HistoryData, HistorySnapshot } from '../data/history';
 
 // Module-scope so the map subscription (added in initTimeline) can
 // resolve `timelineDate` → historic scores without re-reading history.
-let historyRef = null;
-let sortedDatesRef = [];
+let historyRef: HistoryData | null = null;
+let sortedDatesRef: string[] = [];
 
 // Resolve the state's `timelineDate` to the actual scores to render.
 // Null / absent / "latest" dates map to the current scoreData.
-function scoresForDate(date) {
+function scoresForDate(date: string | null): Record<string, HistorySnapshot> | undefined {
   if (!date || !historyRef) return undefined;
   if (!sortedDatesRef.includes(date)) return undefined;
   return buildScoresAtDate(historyRef, date);
 }
 
-export function initTimeline(history) {
+export function initTimeline(history: HistoryData | null): void {
   if (!history) return;
 
   const sortedDates = extractSortedDates(history);
@@ -24,13 +25,13 @@ export function initTimeline(history) {
   historyRef = history;
   sortedDatesRef = sortedDates;
 
-  const container = document.getElementById('timeline-strip');
+  const container = document.getElementById('timeline-strip')!;
   container.style.display = 'block';
 
-  const slider = document.getElementById('timeline-slider');
-  slider.max = sortedDates.length - 1;
+  const slider = document.getElementById('timeline-slider') as HTMLInputElement;
+  slider.max = String(sortedDates.length - 1);
 
-  const dateLabel = document.getElementById('timeline-date-label');
+  const dateLabel = document.getElementById('timeline-date-label')!;
 
   // Position the slider based on initial state — URL may have supplied
   // a `date` param before we got here. If the URL's date isn't in the
@@ -42,7 +43,7 @@ export function initTimeline(history) {
     if (i >= 0) initialIdx = i;
     else setState({ timelineDate: null }); // sanitize unknown date
   }
-  slider.value = initialIdx;
+  slider.value = String(initialIdx);
   dateLabel.textContent = initialIdx === sortedDates.length - 1 ? 'Latest' : sortedDates[initialIdx];
 
   // If we loaded in on a historic date, kick a re-render now. The map
@@ -60,8 +61,8 @@ export function initTimeline(history) {
     setState({ timelineDate: isLatest ? null : selectedDate });
   });
 
-  document.getElementById('timeline-reset').addEventListener('click', () => {
-    slider.value = sortedDates.length - 1;
+  document.getElementById('timeline-reset')!.addEventListener('click', () => {
+    slider.value = String(sortedDates.length - 1);
     dateLabel.textContent = 'Latest';
     setState({ timelineDate: null });
   });
@@ -77,7 +78,7 @@ export function initTimeline(history) {
     // otherwise read its own value as stale on external writes.
     const idx = date ? sortedDates.indexOf(date) : sortedDates.length - 1;
     if (idx >= 0 && parseInt(slider.value) !== idx) {
-      slider.value = idx;
+      slider.value = String(idx);
       dateLabel.textContent = idx === sortedDates.length - 1 ? 'Latest' : sortedDates[idx];
     }
   });

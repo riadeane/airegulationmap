@@ -11,22 +11,24 @@ const CONFIDENCE_LABELS = {
   low: 'Low confidence',
 };
 
-function normalizeConfidence(raw) {
+type ConfidenceLevel = keyof typeof CONFIDENCE_LABELS;
+
+function normalizeConfidence(raw: string | null | undefined): ConfidenceLevel | null {
   if (!raw) return null;
   const v = String(raw).trim().toLowerCase();
   if (v === 'high' || v === 'medium' || v === 'low') return v;
   return null;
 }
 
-function updateDimensionHighlight() {
+function updateDimensionHighlight(): void {
   const { currentAttribute } = getState();
-  document.querySelectorAll('.dimension-row[data-dimension]').forEach(row => {
+  document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
     row.classList.toggle('active-dimension', row.dataset.dimension === currentAttribute);
   });
 }
 
-function updateCompareButton() {
-  const btn = document.getElementById('compare-btn');
+function updateCompareButton(): void {
+  const btn = document.getElementById('compare-btn') as HTMLButtonElement | null;
   if (!btn) return;
   const { selectedCountry, comparisonCountries } = getState();
   if (!selectedCountry) {
@@ -50,8 +52,8 @@ function updateCompareButton() {
   }
 }
 
-function updateCiteButton() {
-  const btn = document.getElementById('cite-btn');
+function updateCiteButton(): void {
+  const btn = document.getElementById('cite-btn') as HTMLButtonElement | null;
   if (!btn) return;
   const { selectedCountry, comparisonCountries } = getState();
   const disabled = !selectedCountry && comparisonCountries.length === 0;
@@ -59,7 +61,7 @@ function updateCiteButton() {
   btn.title = disabled ? 'Select a country first' : '';
 }
 
-function renderPanel(countryName) {
+function renderPanel(countryName: string): void {
   const { scoreData, regulationData, comparisonCountries } = getState();
   const score = scoreData[countryName];
   const reg = regulationData[countryName];
@@ -71,12 +73,12 @@ function renderPanel(countryName) {
   if (!comparisonActive) {
     const fallback = document.getElementById('no-selection-message');
     if (fallback) fallback.hidden = true;
-    document.getElementById('panel-content').style.display = '';
+    document.getElementById('panel-content')!.style.display = '';
   }
 
-  document.getElementById('country-name').textContent = countryName;
+  document.getElementById('country-name')!.textContent = countryName;
 
-  const badge = document.getElementById('confidence-badge');
+  const badge = document.getElementById('confidence-badge')!;
   const level = normalizeConfidence(reg && reg.confidence);
   if (level) {
     badge.textContent = CONFIDENCE_LABELS[level];
@@ -100,7 +102,7 @@ function renderPanel(countryName) {
   const countText = sourceUrls.length > 0
     ? `${sourceUrls.length} source${sourceUrls.length === 1 ? '' : 's'}`
     : 'no primary sources';
-  document.getElementById('last-updated').textContent = dateStr
+  document.getElementById('last-updated')!.textContent = dateStr
     ? `Data as of ${dateStr} · ${countText}`
     : countText;
 
@@ -114,16 +116,16 @@ function renderPanel(countryName) {
   updateCiteButton();
 }
 
-function clearPanel() {
+function clearPanel(): void {
   const fallback = document.getElementById('no-selection-message');
   if (fallback) fallback.hidden = false;
-  document.getElementById('panel-content').style.display = 'none';
+  document.getElementById('panel-content')!.style.display = 'none';
   clearHighlight();
   updateCompareButton();
   updateCiteButton();
 }
 
-export function initPanel() {
+export function initPanel(): void {
   const compareBtn = document.getElementById('compare-btn');
   if (compareBtn) {
     compareBtn.addEventListener('click', () => {

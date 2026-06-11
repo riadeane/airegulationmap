@@ -49,23 +49,23 @@ pip install -r requirements.txt
 
 ### Frontend (`src/`)
 
-Vanilla JS/TS + D3.js + TopoJSON, built with Vite. No framework.
+Vanilla TypeScript + D3.js + TopoJSON, built with Vite. No framework.
 
-**TypeScript is being adopted incrementally** (`allowJs: true`): the state store, constants, and `src/data/` modules are typed `.ts`; DOM-heavy controls are still `.js` and convert opportunistically. Relative imports are extensionless so renames don't break importers. New modules should be written in TypeScript. The state shape lives in the `AppState` interface in `src/state/store.ts`.
+**The frontend is fully TypeScript** (strict mode, `tsc --noEmit` in CI). Relative imports are extensionless. The state shape lives in the `AppState` interface in `src/state/store.ts`; data row shapes (`ScoreEntry`, `RegulationEntry`) in `src/data/loader.ts`; the score-dimension unions (`AttributeKey`, `DimensionKey`) in `src/constants.ts`.
 
 **Module structure:**
 
 | Directory | Purpose |
 |-----------|---------|
-| `src/main.js` | Entry point — boots app, loads data, wires subscriptions |
-| `src/state/store.js` | Centralized state store with event bus (`getState`, `setState`, `on`) |
-| `src/constants.js` | Attribute labels, legend endpoints, score options, shared regex |
-| `src/data/loader.js` | CSV loading and parsing (scores + regulation data) |
-| `src/data/history.js` | History JSON loading and date-based score reconstruction |
-| `src/data/changelog.js` | Per-country score-change computation from history snapshots |
-| `src/data/searchIndex.js` | Full-text index + substring search over regulation text |
-| `src/data/countryMatch.js` | Shared country-name autocomplete matcher |
-| `src/data/blocs.js` | Bloc membership loading + aggregate stats (`computeBlocStats`) |
+| `src/main.ts` | Entry point — boots app, loads data, wires subscriptions |
+| `src/state/store.ts` | Centralized state store with event bus (`getState`, `setState`, `on`) |
+| `src/constants.ts` | Attribute labels, legend endpoints, score options, shared regex |
+| `src/data/loader.ts` | CSV loading and parsing (scores + regulation data) |
+| `src/data/history.ts` | History JSON loading and date-based score reconstruction |
+| `src/data/changelog.ts` | Per-country score-change computation from history snapshots |
+| `src/data/searchIndex.ts` | Full-text index + substring search over regulation text |
+| `src/data/countryMatch.ts` | Shared country-name autocomplete matcher |
+| `src/data/blocs.ts` | Bloc membership loading + aggregate stats (`computeBlocStats`) |
 | `src/map/` | Map rendering (renderer, legend, zoom, tooltip) |
 | `src/panel/` | Country detail panel (scores, text sections, changelog) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
@@ -73,10 +73,10 @@ Vanilla JS/TS + D3.js + TopoJSON, built with Vite. No framework.
 | `src/controls/` | UI controls (search, score selector, filter, blocs, export, timeline, URL sync, citations) |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
-**State management:** All mutable state lives in `src/state/store.js` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
+**State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
 
 **Data flow:**
-1. `main.js` loads `scores.csv` and `regulation_data.csv` in parallel via `Promise.all`
+1. `main.ts` loads `scores.csv` and `regulation_data.csv` in parallel via `Promise.all`
 2. Data is stored in the centralized state store
 3. D3 renders a choropleth SVG world map; TopoJSON provides country geometries
 4. User interactions dispatch state changes which trigger subscribed re-renders

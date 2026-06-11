@@ -2,6 +2,7 @@ import { getState, setState } from '../state/store';
 import { updateSearchHighlight } from '../map/index';
 import { matchCountryNames } from '../data/countryMatch';
 import { buildSearchIndex, searchRegulationText, FIELD_LABELS } from '../data/searchIndex';
+import type { IndexEntry, SearchMatch } from '../data/searchIndex';
 
 const COUNTRY_LIMIT = 4;
 const TEXT_LIMIT = 6;
@@ -9,17 +10,17 @@ const TEXT_LIMIT = 6;
 // Trailing debounce — typing filters the country list, scans the text
 // index, AND walks every map path for highlight classes, so don't do
 // it per keystroke.
-function debounce(fn, ms) {
-  let t;
+function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: number): (...args: A) => void {
+  let t: ReturnType<typeof setTimeout> | undefined;
   return (...args) => {
     clearTimeout(t);
     t = setTimeout(() => fn(...args), ms);
   };
 }
 
-let textIndex = null;
+let textIndex: IndexEntry[] | null = null;
 
-function sectionLabel(text) {
+function sectionLabel(text: string): HTMLLIElement {
   const li = document.createElement('li');
   li.className = 'search-section-label';
   li.setAttribute('role', 'presentation');
@@ -30,7 +31,7 @@ function sectionLabel(text) {
 
 // Snippet with the matched term wrapped in <mark>, built from index
 // offsets via textContent — no innerHTML with data-derived strings.
-function snippetNode(match) {
+function snippetNode(match: SearchMatch): HTMLSpanElement {
   const span = document.createElement('span');
   span.className = 'match-snippet';
   span.appendChild(document.createTextNode(match.snippet.slice(0, match.matchStart)));
@@ -41,18 +42,18 @@ function snippetNode(match) {
   return span;
 }
 
-export function initSearch() {
-  const searchInput = document.getElementById('country-search');
-  const suggestions = document.getElementById('search-suggestions');
+export function initSearch(): void {
+  const searchInput = document.getElementById('country-search') as HTMLInputElement;
+  const suggestions = document.getElementById('search-suggestions')!;
 
-  const selectCountry = (name) => {
+  const selectCountry = (name: string) => {
     searchInput.value = name;
     suggestions.replaceChildren();
     updateSearchHighlight(null);
     setState({ selectedCountry: name });
   };
 
-  const updateSuggestions = (query) => {
+  const updateSuggestions = (query: string) => {
     suggestions.replaceChildren();
     if (query.length < 2) {
       updateSearchHighlight(null);
@@ -119,7 +120,7 @@ export function initSearch() {
 
   // Close suggestions on outside click
   document.addEventListener('click', e => {
-    if (!e.target.closest('#search-container')) {
+    if (!(e.target as Element).closest('#search-container')) {
       suggestions.replaceChildren();
       updateSearchHighlight(null);
       searchInput.value = '';
@@ -129,9 +130,9 @@ export function initSearch() {
   // Keyboard navigation for search. Only real options participate —
   // section labels are presentational.
   searchInput.addEventListener('keydown', function (e) {
-    const items = suggestions.querySelectorAll('li[role="option"]');
+    const items = suggestions.querySelectorAll<HTMLLIElement>('li[role="option"]');
     if (!items.length) return;
-    const highlighted = suggestions.querySelector('li.highlighted');
+    const highlighted = suggestions.querySelector<HTMLLIElement>('li.highlighted');
     let idx = highlighted ? Array.from(items).indexOf(highlighted) : -1;
 
     if (e.key === 'ArrowDown') {
@@ -156,12 +157,13 @@ export function initSearch() {
   });
 }
 
-export function initKeyboardNav() {
+export function initKeyboardNav(): void {
   document.addEventListener('keydown', e => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
       if (e.key === 'Escape') {
-        e.target.blur();
-        document.getElementById('search-suggestions').replaceChildren();
+        target.blur();
+        document.getElementById('search-suggestions')!.replaceChildren();
         updateSearchHighlight(null);
       }
       return;
@@ -169,7 +171,7 @@ export function initKeyboardNav() {
 
     if (e.key === '?') {
       e.preventDefault();
-      const dialog = document.getElementById('help-overlay');
+      const dialog = document.getElementById('help-overlay') as HTMLDialogElement | null;
       if (dialog && !dialog.open && typeof dialog.showModal === 'function') {
         dialog.showModal();
       }
@@ -178,7 +180,7 @@ export function initKeyboardNav() {
 
     if (e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) {
       e.preventDefault();
-      document.getElementById('country-search').focus();
+      document.getElementById('country-search')!.focus();
       return;
     }
 
@@ -188,12 +190,12 @@ export function initKeyboardNav() {
       if (getState().comparisonCountries.length < 2) {
         setState({ selectedCountry: null });
       }
-      document.getElementById('score-dropdown').classList.remove('open');
-      document.getElementById('score-btn').classList.remove('active');
-      document.getElementById('filter-popover').classList.remove('open');
-      document.getElementById('filter-btn').classList.remove('active');
-      document.getElementById('export-popover').classList.remove('open');
-      document.getElementById('export-btn').classList.remove('active');
+      document.getElementById('score-dropdown')!.classList.remove('open');
+      document.getElementById('score-btn')!.classList.remove('active');
+      document.getElementById('filter-popover')!.classList.remove('open');
+      document.getElementById('filter-btn')!.classList.remove('active');
+      document.getElementById('export-popover')!.classList.remove('open');
+      document.getElementById('export-btn')!.classList.remove('active');
       return;
     }
 

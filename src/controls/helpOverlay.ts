@@ -3,20 +3,20 @@
 // search.js) or the header ? button (wired here). Esc and backdrop
 // click close it for free via <dialog> semantics.
 
-export function openHelpOverlay() {
-  const dialog = document.getElementById('help-overlay');
+export function openHelpOverlay(): void {
+  const dialog = document.getElementById('help-overlay') as HTMLDialogElement | null;
   if (dialog && !dialog.open && typeof dialog.showModal === 'function') {
     dialog.showModal();
   }
 }
 
-export function closeHelpOverlay() {
-  const dialog = document.getElementById('help-overlay');
+export function closeHelpOverlay(): void {
+  const dialog = document.getElementById('help-overlay') as HTMLDialogElement | null;
   if (dialog && dialog.open) dialog.close();
 }
 
-export function initHelpOverlay() {
-  const dialog = document.getElementById('help-overlay');
+export function initHelpOverlay(): void {
+  const dialog = document.getElementById('help-overlay') as HTMLDialogElement | null;
   if (!dialog) return;
 
   document.getElementById('help-overlay-close')

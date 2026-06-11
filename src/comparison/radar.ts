@@ -2,11 +2,13 @@ import { create } from 'd3-selection';
 import { scaleLinear } from 'd3-scale';
 import { lineRadial, curveLinearClosed } from 'd3-shape';
 import { ATTRIBUTE_LABELS } from '../constants';
+import type { AttributeKey } from '../constants';
+import type { ScoreData, ScoreEntry } from '../data/loader';
 import { getColorFor } from './index';
 
 // Axis order for the radar (6 axes). Keep averageScore first so the most
 // prominent axis is the composite score.
-export const RADAR_AXES = [
+export const RADAR_AXES: AttributeKey[] = [
   'averageScore',
   'regulationStatus',
   'policyLever',
@@ -21,12 +23,12 @@ const R = (SIZE - MARGIN * 2) / 2;
 const CENTER = SIZE / 2;
 const MAX_SCORE = 5;
 
-function angleFor(i) {
+function angleFor(i: number): number {
   // 0 at top (-PI/2), going clockwise.
   return -Math.PI / 2 + (i / RADAR_AXES.length) * Math.PI * 2;
 }
 
-export function renderRadar(containerEl, countries, scoreData) {
+export function renderRadar(containerEl: Element, countries: string[], scoreData: ScoreData): void {
   containerEl.replaceChildren();
 
   const svg = create('svg')
@@ -78,15 +80,15 @@ export function renderRadar(containerEl, countries, scoreData) {
   });
 
   // One polygon per country
-  const polyGen = lineRadial()
+  const polyGen = lineRadial<number>()
     .angle((_, i) => (i / RADAR_AXES.length) * Math.PI * 2)
     .radius(d => rScale(d))
     .curve(curveLinearClosed);
 
   const polyGroup = svg.append('g').attr('class', 'radar-polygons');
   countries.forEach((name) => {
-    const scores = scoreData[name] || {};
-    const values = RADAR_AXES.map(k => (scores[k] == null ? 0 : scores[k]));
+    const scores: Partial<ScoreEntry> = scoreData[name] || {};
+    const values = RADAR_AXES.map(k => (scores[k] == null ? 0 : scores[k]!));
     const color = getColorFor(name);
     const pathD = polyGen(values);
     polyGroup.append('path')
@@ -110,7 +112,7 @@ export function renderRadar(containerEl, countries, scoreData) {
     });
   });
 
-  containerEl.appendChild(svg.node());
+  containerEl.appendChild(svg.node()!);
 
   // Accessibility: plain data table
   const table = document.createElement('table');
@@ -138,7 +140,7 @@ export function renderRadar(containerEl, countries, scoreData) {
     countries.forEach(name => {
       const td = document.createElement('td');
       const val = (scoreData[name] && scoreData[name][key]);
-      td.textContent = val == null ? '—' : val;
+      td.textContent = val == null ? '—' : String(val);
       tr.appendChild(td);
     });
     tbody.appendChild(tr);

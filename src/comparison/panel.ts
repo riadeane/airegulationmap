@@ -1,11 +1,12 @@
 import { getState } from '../state/store';
 import { ATTRIBUTE_LABELS } from '../constants';
+import type { DimensionKey } from '../constants';
 import { matchCountryNames } from '../data/countryMatch';
 import { cleanRegulationText } from '../panel/sections';
 import { renderRadar } from './radar';
 import { addToComparison, removeFromComparison, getColorFor, MAX_COMPARISON } from './index';
 
-const DETAIL_DIMENSIONS = [
+const DETAIL_DIMENSIONS: DimensionKey[] = [
   'regulationStatus',
   'policyLever',
   'governanceType',
@@ -17,7 +18,7 @@ const DETAIL_DIMENSIONS = [
 // comparison. Much faster than hunting for a country on the map.
 // Clicking a country on the map still works; that path hands the
 // most recent click to the "quick add" button alongside the search.
-function buildSearchInput(atCap) {
+function buildSearchInput(atCap: boolean): HTMLDivElement {
   const wrap = document.createElement('div');
   wrap.className = 'comp-search';
 
@@ -43,7 +44,7 @@ function buildSearchInput(atCap) {
     list.classList.remove('open');
   }
 
-  function commit(name) {
+  function commit(name: string): void {
     addToComparison(name);
     input.value = '';
     close();
@@ -76,7 +77,7 @@ function buildSearchInput(atCap) {
   input.addEventListener('input', render);
   input.addEventListener('keydown', (e) => {
     const items = Array.from(list.querySelectorAll('li'));
-    const active = list.querySelector('li.active');
+    const active = list.querySelector<HTMLLIElement>('li.active');
     let idx = active ? items.indexOf(active) : -1;
 
     if (e.key === 'ArrowDown') {
@@ -94,7 +95,7 @@ function buildSearchInput(atCap) {
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const target = active || items[0];
-      if (target) commit(target.textContent);
+      if (target) commit(target.textContent!);
     } else if (e.key === 'Escape') {
       close();
       input.blur();
@@ -107,7 +108,7 @@ function buildSearchInput(atCap) {
   return wrap;
 }
 
-export function renderAddBar() {
+export function renderAddBar(): void {
   const bar = document.getElementById('comparison-add-bar');
   if (!bar) return;
   bar.replaceChildren();
@@ -133,8 +134,8 @@ export function renderAddBar() {
   }
 }
 
-function renderChips(names) {
-  const container = document.getElementById('comparison-chips');
+function renderChips(names: string[]): void {
+  const container = document.getElementById('comparison-chips')!;
   container.replaceChildren();
   names.forEach((name) => {
     const color = getColorFor(name);
@@ -159,8 +160,8 @@ function renderChips(names) {
   });
 }
 
-function renderDetails(names) {
-  const container = document.getElementById('comparison-details');
+function renderDetails(names: string[]): void {
+  const container = document.getElementById('comparison-details')!;
   container.replaceChildren();
 
   const { regulationData } = getState();
@@ -211,12 +212,12 @@ function renderDetails(names) {
   });
 }
 
-export function renderComparisonPanel(names) {
+export function renderComparisonPanel(names: string[]): void {
   renderAddBar();
   renderChips(names);
 
-  const radarEl = document.getElementById('radar-chart');
-  const detailsEl = document.getElementById('comparison-details');
+  const radarEl = document.getElementById('radar-chart')!;
+  const detailsEl = document.getElementById('comparison-details')!;
 
   // Radar + details grid need two or more countries to be meaningful.
   // At exactly one country, clear them and show a friendly prompt so
@@ -241,7 +242,7 @@ export function renderComparisonPanel(names) {
   }
 }
 
-export function clearComparisonPanel() {
+export function clearComparisonPanel(): void {
   const addBar = document.getElementById('comparison-add-bar');
   const chips = document.getElementById('comparison-chips');
   const radar = document.getElementById('radar-chart');

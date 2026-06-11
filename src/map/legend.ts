@@ -1,5 +1,7 @@
 import { select } from 'd3-selection';
+import type { Selection } from 'd3-selection';
 import { scaleLinear } from 'd3-scale';
+import type { ScaleLinear } from 'd3-scale';
 import { interpolateLab } from 'd3-interpolate';
 import { range } from 'd3-array';
 
@@ -7,15 +9,21 @@ import { LEGEND_ENDPOINTS } from '../constants';
 import { getState } from '../state/store';
 import { cssVar } from './cssColors';
 
-export function makeColorScale() {
-  return scaleLinear()
+export type ColorScale = ScaleLinear<string, string>;
+
+export function makeColorScale(): ColorScale {
+  return scaleLinear<string>()
     .domain([1, 5])
     .range([cssVar('--score-low'), cssVar('--score-high')])
     .interpolate(interpolateLab)
     .clamp(true);
 }
 
-export function addLegend(svg, colorScale, size) {
+export function addLegend(
+  svg: Selection<SVGSVGElement, unknown, HTMLElement, unknown>,
+  colorScale: ColorScale,
+  size?: { w: number; h: number }
+): void {
   const { w, h } = size || { w: 1000, h: 500 };
   // Legend width scales with viewport. Min 190 so endpoint labels like
   // "Comprehensive" / "Centralized" don't crowd the midpoint.
@@ -70,7 +78,7 @@ export function addLegend(svg, colorScale, size) {
     .text(endpoints[1]);
 }
 
-export function updateLegendLabels() {
+export function updateLegendLabels(): void {
   const { currentAttribute } = getState();
   const endpoints = LEGEND_ENDPOINTS[currentAttribute] || ['Low', 'High'];
   select('.legend-label-low').text(endpoints[0]);

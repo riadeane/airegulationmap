@@ -7,23 +7,24 @@
 
 import { getState, on } from '../state/store';
 import { citationsFor } from './citation';
+import type { Citations } from './citation';
 import { buildPermalink } from './url';
 
-const FORMATS = [
+const FORMATS: { key: keyof Citations; label: string }[] = [
   { key: 'apa', label: 'APA' },
   { key: 'chicago', label: 'Chicago' },
   { key: 'mla', label: 'MLA' },
 ];
 
-let popoverEl;
-let buttonEl;
+let popoverEl: HTMLElement | null = null;
+let buttonEl: HTMLElement | null = null;
 let isOpen = false;
 
-function removeAllChildren(node) {
+function removeAllChildren(node: Element): void {
   while (node.firstChild) node.removeChild(node.firstChild);
 }
 
-async function copyToClipboard(text, confirmBtn) {
+async function copyToClipboard(text: string, confirmBtn: HTMLButtonElement): Promise<void> {
   const original = confirmBtn.textContent;
   let success = false;
   try {
@@ -76,19 +77,19 @@ function renderRows() {
     url,
   });
 
-  removeAllChildren(popoverEl);
+  removeAllChildren(popoverEl!);
 
   const heading = document.createElement('p');
   heading.className = 'cite-popover-heading';
   heading.textContent = 'Copy a formatted citation for this view';
-  popoverEl.appendChild(heading);
+  popoverEl!.appendChild(heading);
 
   const liveRegion = document.createElement('div');
   liveRegion.id = 'cite-live-region';
   liveRegion.className = 'sr-only';
   liveRegion.setAttribute('role', 'status');
   liveRegion.setAttribute('aria-live', 'polite');
-  popoverEl.appendChild(liveRegion);
+  popoverEl!.appendChild(liveRegion);
 
   for (const { key, label } of FORMATS) {
     const row = document.createElement('div');
@@ -116,7 +117,7 @@ function renderRows() {
 
     row.appendChild(header);
     row.appendChild(block);
-    popoverEl.appendChild(row);
+    popoverEl!.appendChild(row);
   }
 }
 
@@ -144,18 +145,18 @@ function closePopover() {
   document.removeEventListener('keydown', onDocKey);
 }
 
-function onDocClick(e) {
+function onDocClick(e: MouseEvent): void {
   if (!isOpen) return;
-  if (popoverEl.contains(e.target)) return;
-  if (buttonEl && buttonEl.contains(e.target)) return;
+  if (popoverEl!.contains(e.target as Node)) return;
+  if (buttonEl && buttonEl.contains(e.target as Node)) return;
   closePopover();
 }
 
-function onDocKey(e) {
+function onDocKey(e: KeyboardEvent): void {
   if (e.key === 'Escape') closePopover();
 }
 
-export function initCitePopover() {
+export function initCitePopover(): void {
   buttonEl = document.getElementById('cite-btn');
   popoverEl = document.getElementById('cite-popover');
   if (!buttonEl || !popoverEl) return;

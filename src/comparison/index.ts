@@ -9,9 +9,9 @@ export const MAX_COMPARISON = 4;
 // lifetime of its presence in the comparison. Without this, removing
 // a middle country reshuffles every other country's color (because
 // callers were using the array index).
-const colorSlots = new Map(); // countryName -> 0..MAX_COMPARISON-1
+const colorSlots = new Map<string, number>(); // countryName -> 0..MAX_COMPARISON-1
 
-function syncColorSlots(names) {
+function syncColorSlots(names: string[]): void {
   // Release slots for countries that left the list.
   for (const name of [...colorSlots.keys()]) {
     if (!names.includes(name)) colorSlots.delete(name);
@@ -30,15 +30,15 @@ function syncColorSlots(names) {
   }
 }
 
-export function getColorIndex(name) {
+export function getColorIndex(name: string): number {
   return colorSlots.get(name) ?? 0;
 }
 
-export function getColorFor(name) {
+export function getColorFor(name: string): string {
   return comparisonColor(getColorIndex(name));
 }
 
-export function addToComparison(name) {
+export function addToComparison(name: string | null): void {
   const { comparisonCountries } = getState();
   if (!name) return;
   if (comparisonCountries.includes(name)) return;
@@ -46,13 +46,13 @@ export function addToComparison(name) {
   setState({ comparisonCountries: [...comparisonCountries, name] });
 }
 
-export function removeFromComparison(name) {
+export function removeFromComparison(name: string): void {
   const { comparisonCountries } = getState();
   if (!comparisonCountries.includes(name)) return;
   setState({ comparisonCountries: comparisonCountries.filter(c => c !== name) });
 }
 
-export function toggleComparison(name) {
+export function toggleComparison(name: string): void {
   const { comparisonCountries } = getState();
   if (comparisonCountries.includes(name)) {
     removeFromComparison(name);
@@ -61,11 +61,11 @@ export function toggleComparison(name) {
   }
 }
 
-export function clearComparison() {
+export function clearComparison(): void {
   setState({ comparisonCountries: [] });
 }
 
-export function initComparison() {
+export function initComparison(): void {
   const panelEl = document.getElementById('comparison-panel');
   const countryPanelEl = document.getElementById('country-panel');
   const clearBtn = document.getElementById('clear-comparison-btn');

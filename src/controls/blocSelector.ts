@@ -3,7 +3,7 @@
 
 import { getState, setState, on } from '../state/store';
 
-export function initBlocSelector() {
+export function initBlocSelector(): void {
   const popover = document.getElementById('filter-popover');
   const { blocsData } = getState();
   if (!popover || !blocsData) return;

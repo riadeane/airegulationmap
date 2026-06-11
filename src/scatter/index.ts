@@ -7,13 +7,16 @@
 // silently mix vintages).
 
 import { select } from 'd3-selection';
+import type { Selection } from 'd3-selection';
 import { scaleLinear } from 'd3-scale';
+import type { ScaleLinear } from 'd3-scale';
 import { axisBottom, axisLeft } from 'd3-axis';
 import { format } from 'd3-format';
 import 'd3-transition';
 
 import { getState, setState, on } from '../state/store';
 import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants';
+import type { AttributeKey } from '../constants';
 import { makeColorScale } from '../map/legend';
 import { cssVar, onThemeChange } from '../map/cssColors';
 import { createTooltip, showTooltip, hideTooltip } from '../map/tooltip';
@@ -25,13 +28,25 @@ const MARGIN = { top: 16, right: 16, bottom: 44, left: 44 };
 
 const AXIS_DIMENSIONS = SCORE_OPTIONS.filter(o => o.value !== 'averageScore');
 
-let svg = null;
-let xScale, yScale;
+/** One country positioned on the two chosen score dimensions. */
+interface ScatterDot {
+  name: string;
+  x: number | null;
+  y: number | null;
+  avg: number | null;
+  visible: boolean;
+}
 
-function populateAxisSelects() {
+/** A dot that survived the null-coordinate filter below. */
+type PlottedDot = ScatterDot & { x: number; y: number };
+
+let svg: Selection<SVGSVGElement, unknown, HTMLElement, unknown> | null = null;
+let xScale: ScaleLinear<number, number>, yScale: ScaleLinear<number, number>;
+
+function populateAxisSelects(): void {
   const { scatterX, scatterY } = getState();
   for (const [id, current] of [['scatter-x', scatterX], ['scatter-y', scatterY]]) {
-    const sel = document.getElementById(id);
+    const sel = document.getElementById(id) as HTMLSelectElement;
     for (const dim of AXIS_DIMENSIONS) {
       const opt = document.createElement('option');
       opt.value = dim.value;
@@ -40,14 +55,14 @@ function populateAxisSelects() {
     }
     sel.value = current;
     sel.addEventListener('change', () => {
-      setState(id === 'scatter-x' ? { scatterX: sel.value } : { scatterY: sel.value });
+      setState(id === 'scatter-x' ? { scatterX: sel.value as AttributeKey } : { scatterY: sel.value as AttributeKey });
     });
   }
 }
 
-function createChart() {
+function createChart(): void {
   const chart = select('#scatter-chart');
-  svg = chart.append('svg')
+  svg = chart.append<SVGSVGElement>('svg')
     .attr('viewBox', `0 0 ${WIDTH} ${HEIGHT}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .attr('role', 'img')
@@ -84,13 +99,13 @@ function createChart() {
     .attr('text-anchor', 'middle');
 }
 
-function dotTooltipHtml(d, xKey, yKey) {
+function dotTooltipHtml(d: PlottedDot, xKey: AttributeKey, yKey: AttributeKey): string {
   return `<strong>${d.name}</strong><br>` +
     `${ATTRIBUTE_LABELS[xKey]}: ${d.x}<br>` +
     `${ATTRIBUTE_LABELS[yKey]}: ${d.y}`;
 }
 
-function updateChart() {
+function updateChart(): void {
   if (!svg) return;
   const {
     scoreData, scatterX, scatterY, selectedCountry,
@@ -105,7 +120,7 @@ function updateChart() {
     : null;
 
   const countries = Object.entries(scoreData)
-    .map(([name, scores]) => {
+    .map(([name, scores]): ScatterDot => {
       const filterScore = scores[currentAttribute];
       const inRange = filterScore != null
         && filterScore >= filterMin && filterScore <= filterMax;
@@ -118,13 +133,13 @@ function updateChart() {
         visible: inRange && inBloc,
       };
     })
-    .filter(d => d.x != null && d.y != null);
+    .filter((d): d is PlottedDot => d.x != null && d.y != null);
 
   const colorScale = makeColorScale();
   const noData = cssVar('--no-data');
   const strokeColor = cssVar('--surface');
 
-  svg.selectAll('circle.scatter-dot')
+  svg.selectAll<SVGCircleElement, PlottedDot>('circle.scatter-dot')
     .data(countries, d => d.name)
     .join(
       enter => enter.append('circle')
@@ -147,9 +162,9 @@ function updateChart() {
     .style('opacity', d => d.visible ? 0.85 : 0.15);
 }
 
-function setVisible(open) {
-  const container = document.getElementById('scatter-container');
-  const btn = document.getElementById('scatter-btn');
+function setVisible(open: boolean): void {
+  const container = document.getElementById('scatter-container')!;
+  const btn = document.getElementById('scatter-btn')!;
   container.hidden = !open;
   btn.classList.toggle('active', open);
   btn.setAttribute('aria-pressed', String(open));
@@ -162,7 +177,7 @@ function setVisible(open) {
   }
 }
 
-export function initScatter() {
+export function initScatter(): void {
   const btn = document.getElementById('scatter-btn');
   const closeBtn = document.getElementById('scatter-close');
   if (!btn || !closeBtn) return;
@@ -178,12 +193,12 @@ export function initScatter() {
 
   const refreshIfOpen = () => { if (getState().scatterOpen) updateChart(); };
   on('scatterX', () => {
-    const sel = document.getElementById('scatter-x');
+    const sel = document.getElementById('scatter-x') as HTMLSelectElement;
     sel.value = getState().scatterX;
     refreshIfOpen();
   });
   on('scatterY', () => {
-    const sel = document.getElementById('scatter-y');
+    const sel = document.getElementById('scatter-y') as HTMLSelectElement;
     sel.value = getState().scatterY;
     refreshIfOpen();
   });

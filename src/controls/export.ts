@@ -8,12 +8,13 @@
 
 import { csvFormat } from 'd3-dsv';
 import { getState } from '../state/store';
+import type { ScoreEntry, RegulationEntry } from '../data/loader';
 
-function buildExportRows(countries) {
+function buildExportRows(countries: string[]) {
   const { scoreData, regulationData } = getState();
   return countries.map(name => {
-    const scores = scoreData[name] || {};
-    const reg = regulationData[name] || {};
+    const scores: Partial<ScoreEntry> = scoreData[name] || {};
+    const reg: Partial<RegulationEntry> = regulationData[name] || {};
     return {
       'Country': name,
       'Average Score': scores.averageScore,
@@ -38,7 +39,7 @@ function buildExportRows(countries) {
 // Countries passing the active score-range filter. Countries with no
 // score for the current attribute are excluded — they're dimmed on the
 // map, and "all countries" covers them.
-function getFilteredCountries() {
+function getFilteredCountries(): string[] {
   const { scoreData, currentAttribute, filterMin, filterMax } = getState();
   return Object.keys(scoreData)
     .filter(name => {
@@ -48,7 +49,7 @@ function getFilteredCountries() {
     .sort();
 }
 
-function downloadFile(content, filename, mimeType) {
+function downloadFile(content: string, filename: string, mimeType: string): void {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -58,7 +59,7 @@ function downloadFile(content, filename, mimeType) {
   URL.revokeObjectURL(url);
 }
 
-function exportData(format, allCountries) {
+function exportData(format: string, allCountries: boolean): void {
   const countries = allCountries
     ? Object.keys(getState().scoreData).sort()
     : getFilteredCountries();
@@ -72,7 +73,7 @@ function exportData(format, allCountries) {
   }
 }
 
-export function initExport() {
+export function initExport(): void {
   const btn = document.getElementById('export-btn');
   const popover = document.getElementById('export-popover');
   if (!btn || !popover) return;
@@ -85,9 +86,9 @@ export function initExport() {
   });
 
   popover.addEventListener('click', e => {
-    const target = e.target.closest('button[data-format]');
+    const target = (e.target as Element).closest<HTMLButtonElement>('button[data-format]');
     if (!target) return;
-    exportData(target.dataset.format, target.dataset.scope === 'all');
+    exportData(target.dataset.format!, target.dataset.scope === 'all');
     popover.classList.remove('open');
     btn.classList.remove('active');
     btn.setAttribute('aria-expanded', 'false');

@@ -1,28 +1,50 @@
 import { select, selectAll } from 'd3-selection';
+import type { Selection } from 'd3-selection';
 import { json } from 'd3-fetch';
 import { geoEquirectangular, geoPath, geoGraticule } from 'd3-geo';
+import type { GeoPath, GeoProjection, GeoSphere } from 'd3-geo';
 import { feature } from 'topojson-client';
+import type { Topology } from 'topojson-specification';
+import type { Feature, FeatureCollection, Geometry, MultiLineString } from 'geojson';
 import 'd3-transition';
 
 import { ATTRIBUTE_LABELS } from '../constants';
+import type { AttributeKey } from '../constants';
 import { getState, setState } from '../state/store';
+import type { ScoreData, ScoreEntry } from '../data/loader';
+import type { HistorySnapshot } from '../data/history';
 import { makeColorScale, addLegend } from './legend';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip';
 import { setupZoom } from './zoom';
+import type { ZoomHandle } from './zoom';
 import { toggleComparison, getColorIndex } from '../comparison/index';
 import { cssVar, onThemeChange } from './cssColors';
 
+/** A world-atlas country geometry with its bound name property. */
+export type CountryFeature = Feature<Geometry, { name: string }>;
+
+/** Scores renderable on the map — live rows or historical snapshots. */
+type MapScores = ScoreData | Record<string, HistorySnapshot>;
+type MapScoreEntry = ScoreEntry | HistorySnapshot;
+
+type SvgSelection = Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
+
+interface Size {
+  w: number;
+  h: number;
+}
+
 // Module-level refs so resize and theme-change handlers can redraw
 // without re-running the whole generateMap async flow.
-let svgRef = null;
-let mapGroupRef = null;
-let projectionRef = null;
-let pathRef = null;
-let graticuleRef = null;
-let currentSize = { w: 1000, h: 500 };
-let zoomHandle = null;
+let svgRef: SvgSelection | null = null;
+let mapGroupRef: Selection<SVGGElement, unknown, HTMLElement, unknown> | null = null;
+let projectionRef: GeoProjection | null = null;
+let pathRef: GeoPath | null = null;
+let graticuleRef: MultiLineString | null = null;
+let currentSize: Size = { w: 1000, h: 500 };
+let zoomHandle: ZoomHandle | null = null;
 
-function readContainerSize() {
+function readContainerSize(): Size {
   const wrapper = document.getElementById('map-wrapper');
   if (!wrapper) return { w: 1000, h: 500 };
   // Use clientWidth/Height so an in-flight CSS transform on the wrapper
@@ -48,9 +70,9 @@ function readContainerSize() {
 // than the 0° meridian. That way whatever horizontal crop does happen
 // eats into the Pacific Ocean first, not into populated continents.
 const FILL_BLEND = 0.75;
-const MAP_ROTATION = [-15, 0];
+const MAP_ROTATION: [number, number] = [-15, 0];
 
-function fitProjectionToFill(projection, w, h) {
+function fitProjectionToFill(projection: GeoProjection, w: number, h: number): void {
   projection.rotate(MAP_ROTATION).fitSize([w, h], { type: 'Sphere' });
   const tmpPath = geoPath().projection(projection);
   const [[x0, y0], [x1, y1]] = tmpPath.bounds({ type: 'Sphere' });
@@ -62,7 +84,7 @@ function fitProjectionToFill(projection, w, h) {
   projection.scale(projection.scale() * blendScale).translate([w / 2, h / 2]);
 }
 
-function fitToSize({ w, h }) {
+function fitToSize({ w, h }: Size): void {
   if (!svgRef || !projectionRef) return;
 
   currentSize = { w, h };
@@ -78,9 +100,9 @@ function fitToSize({ w, h }) {
 
   fitProjectionToFill(projectionRef, w, h);
 
-  select('#map .sphere').attr('d', pathRef);
-  select('#map .graticule').attr('d', pathRef(graticuleRef));
-  mapGroupRef.selectAll('.country').attr('d', pathRef);
+  select<SVGPathElement, GeoSphere>('#map .sphere').attr('d', pathRef!);
+  select('#map .graticule').attr('d', pathRef!(graticuleRef!));
+  mapGroupRef!.selectAll<SVGPathElement, CountryFeature>('.country').attr('d', pathRef!);
 
   if (zoomHandle) zoomHandle.updateBounds({ w, h });
 
@@ -88,14 +110,14 @@ function fitToSize({ w, h }) {
   addLegend(svgRef, makeColorScale(), { w, h });
 }
 
-export async function generateMap() {
+export async function generateMap(): Promise<void> {
   const { scoreData, currentAttribute } = getState();
 
   const size = readContainerSize();
   currentSize = size;
 
   const svg = select('#map')
-    .append('svg')
+    .append<SVGSVGElement>('svg')
     .attr('role', 'img')
     .attr('aria-label', 'World map showing AI regulation scores by country. Click a country for details; Shift+click to compare.')
     .attr('width', size.w)
@@ -116,7 +138,7 @@ export async function generateMap() {
     .attr('rx', 20)
     .attr('ry', 20);
 
-  const g = svg.append('g')
+  const g = svg.append<SVGGElement>('g')
     .attr('clip-path', 'url(#clip)');
 
   const projection = geoEquirectangular();
@@ -133,14 +155,14 @@ export async function generateMap() {
 
   // Self-hosted from /public/data so there's no third-party request on
   // page load and offline dev works. Source: world-atlas@2 (Natural Earth).
-  const world = await json('/data/countries-110m.json');
-  const countries = feature(world, world.objects.countries).features;
+  const world = (await json<Topology>('/data/countries-110m.json'))!;
+  const countries = (feature(world, world.objects.countries) as FeatureCollection<Geometry, { name: string }>).features;
 
-  const mapGroup = g.append('g').attr('class', 'map-group');
+  const mapGroup = g.append<SVGGElement>('g').attr('class', 'map-group');
   mapGroupRef = mapGroup;
 
   mapGroup.append('path')
-    .datum({ type: 'Sphere' })
+    .datum<GeoSphere>({ type: 'Sphere' })
     .attr('class', 'sphere')
     .attr('fill', cssVar('--ocean'))
     .attr('d', path);
@@ -157,18 +179,18 @@ export async function generateMap() {
     .attr('stroke-width', 0.4)
     .attr('stroke-dasharray', '2,3');
 
-  mapGroup.selectAll('.country')
+  mapGroup.selectAll<SVGPathElement, CountryFeature>('.country')
     .data(countries)
     .enter().append('path')
     .attr('class', 'country')
     .attr('d', path)
     .attr('fill', d => {
       const entry = scoreData[d.properties.name];
-      return entry ? colorScale(entry[currentAttribute]) : cssVar('--no-data');
+      return entry ? colorScale(entry[currentAttribute] as number) : cssVar('--no-data');
     })
     .attr('stroke', cssVar('--map-stroke'))
     .attr('stroke-width', 0.3)
-    .on('mouseover', function (event, d) {
+    .on('mouseover', function (event: MouseEvent, d) {
       const countryName = d.properties.name;
       const { currentAttribute: attr, comparisonCountries } = getState();
       const entry = getState().scoreData[countryName];
@@ -185,7 +207,7 @@ export async function generateMap() {
       );
     })
     .on('mouseout', hideTooltip)
-    .on('click', function (event, d) {
+    .on('click', function (event: MouseEvent, d) {
       const name = d.properties.name;
       if (event.shiftKey) {
         toggleComparison(name);
@@ -201,17 +223,17 @@ export async function generateMap() {
   onThemeChange(() => {
     const refreshed = makeColorScale();
     const { scoreData: sd, currentAttribute: attr } = getState();
-    selectAll('#map .country')
+    selectAll<SVGPathElement, CountryFeature>('#map .country')
       .transition().duration(220)
       .attr('fill', d => {
         const entry = sd[d.properties.name];
-        return entry ? refreshed(entry[attr]) : cssVar('--no-data');
+        return entry ? refreshed(entry[attr] as number) : cssVar('--no-data');
       })
       .attr('stroke', cssVar('--map-stroke'));
     select('#map .sphere').attr('fill', cssVar('--ocean'));
     select('#map .graticule').attr('stroke', cssVar('--text-tertiary'));
     select('#map .legend').remove();
-    addLegend(svgRef, refreshed, currentSize);
+    addLegend(svgRef!, refreshed, currentSize);
   });
 
   // Observe the wrapper so the map grows/shrinks with the viewport.
@@ -234,19 +256,27 @@ export async function generateMap() {
 // Single opacity composition for the score-range filter and the bloc
 // filter. (Search dimming stays class-based in CSS and intentionally
 // wins over this inline value while the user is mid-search.)
-function countryOpacity(entry, { currentAttribute, filterMin, filterMax, blocSet }) {
+function countryOpacity(
+  entry: MapScoreEntry | undefined,
+  { currentAttribute, filterMin, filterMax, blocSet }: {
+    currentAttribute: AttributeKey;
+    filterMin: number;
+    filterMax: number;
+    blocSet: Set<string> | null;
+  }
+): number {
   if (!entry || entry[currentAttribute] == null) {
     // No data: keep the usual soft presence, but recede fully while a
     // bloc is highlighted so the bloc reads cleanly.
     return blocSet ? 0.15 : 0.4;
   }
-  const score = entry[currentAttribute];
+  const score = entry[currentAttribute]!;
   const inRange = score >= filterMin && score <= filterMax;
-  const inBloc = !blocSet || blocSet.has(entry.country);
+  const inBloc = !blocSet || blocSet.has((entry as ScoreEntry).country);
   return (inRange && inBloc) ? 1 : 0.15;
 }
 
-export function updateMap(overrideScoreData) {
+export function updateMap(overrideScoreData?: MapScores): void {
   const { currentAttribute, filterMin, filterMax, scoreData, selectedBloc, blocsData } = getState();
   const data = overrideScoreData || scoreData;
   const colorScale = makeColorScale();
@@ -255,37 +285,37 @@ export function updateMap(overrideScoreData) {
     : null;
 
   select('#map')
-    .selectAll('.country')
+    .selectAll<SVGPathElement, CountryFeature>('.country')
     .transition()
     .duration(500)
     .attr('fill', d => {
       const entry = data[d.properties.name];
-      return entry ? colorScale(entry[currentAttribute]) : cssVar('--no-data');
+      return entry ? colorScale(entry[currentAttribute] as number) : cssVar('--no-data');
     })
     .style('opacity', d => countryOpacity(data[d.properties.name], {
       currentAttribute, filterMin, filterMax, blocSet,
     }));
 }
 
-export function highlightCountry(countryName) {
+export function highlightCountry(countryName: string): void {
   selectAll('.country').classed('selected', false).attr('stroke-width', 0.3);
-  selectAll('.country')
+  selectAll<SVGPathElement, CountryFeature>('.country')
     .filter(d => d.properties.name === countryName)
     .classed('selected', true)
     .attr('stroke-width', 2);
 }
 
-export function clearHighlight() {
+export function clearHighlight(): void {
   selectAll('.country').classed('selected', false).attr('stroke-width', 0.3);
 }
 
-export function markComparisonCountries(names) {
+export function markComparisonCountries(names: string[] | null | undefined): void {
   selectAll('.country')
     .classed('in-comparison', false)
     .attr('data-comparison-index', null);
   if (!names || names.length === 0) return;
   const namesSet = new Set(names);
-  selectAll('.country')
+  selectAll<SVGPathElement, CountryFeature>('.country')
     .filter(d => namesSet.has(d.properties.name))
     .classed('in-comparison', true)
     .attr('data-comparison-index', d => getColorIndex(d.properties.name));
@@ -294,14 +324,14 @@ export function markComparisonCountries(names) {
 // Dim countries outside the current search result set. `matchedNames`
 // is a Set of country names (name matches plus full-text matches), or
 // null to clear the highlight entirely.
-export function updateSearchHighlight(matchedNames) {
+export function updateSearchHighlight(matchedNames: Set<string> | null): void {
   if (!matchedNames) {
     selectAll('.country')
       .classed('search-dimmed', false)
       .classed('search-highlighted', false);
     return;
   }
-  selectAll('.country').each(function (d) {
+  selectAll<SVGPathElement, CountryFeature>('.country').each(function (d) {
     const matches = matchedNames.has(d.properties.name);
     select(this)
       .classed('search-dimmed', !matches)

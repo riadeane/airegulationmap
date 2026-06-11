@@ -4,12 +4,13 @@
 
 import { getState, setState, on } from '../state/store';
 import { computeBlocStats } from '../data/blocs';
+import type { BlocMemberScore } from '../data/blocs';
 import { ATTRIBUTE_LABELS } from '../constants';
 
 // Map a 1–5 score to a percentage along the range track.
-const pct = score => ((score - 1) / 4) * 100;
+const pct = (score: number) => ((score - 1) / 4) * 100;
 
-function memberLink(label, member) {
+function memberLink(label: string, member: BlocMemberScore): HTMLDivElement {
   const wrap = document.createElement('div');
   wrap.className = 'bloc-member-line';
 
@@ -77,7 +78,7 @@ function render() {
 
   const statRow = document.createElement('div');
   statRow.className = 'bloc-summary-stats';
-  for (const [label, value] of [['Average', stats.average], ['Spread (σ)', stats.stdDev]]) {
+  for (const [label, value] of [['Average', stats.average], ['Spread (σ)', stats.stdDev]] as [string, number][]) {
     const cell = document.createElement('div');
     cell.className = 'bloc-stat';
     const v = document.createElement('span');
@@ -120,7 +121,7 @@ function render() {
   }
 }
 
-export function initBlocSummary() {
+export function initBlocSummary(): void {
   on('selectedBloc', render);
   on('currentAttribute', render);
   render();

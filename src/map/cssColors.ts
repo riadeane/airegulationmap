@@ -12,10 +12,10 @@
 // fillStyle getter always normalizes to a short hex string (or rgba()
 // when there's alpha). That form d3-color parses cleanly.
 
-let probe;
-let normCtx;
+let probe: HTMLSpanElement | null = null;
+let normCtx: CanvasRenderingContext2D | null = null;
 
-function getProbe() {
+function getProbe(): HTMLSpanElement {
   if (probe && probe.isConnected) return probe;
   probe = document.createElement('span');
   probe.style.position = 'absolute';
@@ -27,7 +27,7 @@ function getProbe() {
   return probe;
 }
 
-function getNormCtx() {
+function getNormCtx(): CanvasRenderingContext2D {
   if (normCtx) return normCtx;
   const canvas = document.createElement('canvas');
   canvas.width = 1;
@@ -35,11 +35,11 @@ function getNormCtx() {
   // willReadFrequently hints to the browser that we'll call getImageData
   // often — avoids a console warning and keeps the canvas on the CPU
   // side where readbacks are cheap.
-  normCtx = canvas.getContext('2d', { willReadFrequently: true });
+  normCtx = canvas.getContext('2d', { willReadFrequently: true })!;
   return normCtx;
 }
 
-export function cssVar(name) {
+export function cssVar(name: string): string {
   const el = getProbe();
   // Clear first so the browser doesn't skip the assignment when the
   // underlying token string is identical to the previous read.
@@ -72,7 +72,7 @@ export function cssVar(name) {
 
 // Invalidate any cached results on theme change. Call from the theme
 // toggle path. Re-renders the map with fresh colors.
-export function onThemeChange(callback) {
+export function onThemeChange(callback: () => void): void {
   const observer = new MutationObserver((records) => {
     for (const r of records) {
       if (r.type === 'attributes' && r.attributeName === 'data-theme') {

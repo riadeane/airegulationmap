@@ -1,15 +1,24 @@
 import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom';
 import { select } from 'd3-selection';
+import type { Selection } from 'd3-selection';
 import 'd3-transition';
+
+export interface ZoomHandle {
+  updateBounds(size: { w: number; h: number }): void;
+}
 
 // d3-zoom accepts a function for .extent() (evaluated lazily) but NOT
 // for .translateExtent() — the latter must be a concrete 2x2 array.
 // We therefore expose an updateBounds hook the renderer can call after
 // a resize to keep the pan bounds in sync with the new viewport size.
-export function setupZoom(svg, mapGroup, getSize) {
-  const zoom = d3Zoom()
+export function setupZoom(
+  svg: Selection<SVGSVGElement, unknown, HTMLElement, unknown>,
+  mapGroup: Selection<SVGGElement, unknown, HTMLElement, unknown>,
+  getSize: () => { w: number; h: number }
+): ZoomHandle {
+  const zoom = d3Zoom<SVGSVGElement, unknown>()
     .scaleExtent([1, 8])
-    .extent(() => {
+    .extent((): [[number, number], [number, number]] => {
       const { w, h } = getSize();
       return [[0, 0], [w, h]];
     })

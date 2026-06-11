@@ -4,6 +4,7 @@
 
 import { getState } from '../state/store';
 import { computeChangelog } from '../data/changelog';
+import type { ChangelogDiffEntry, ChangelogInitialEntry } from '../data/changelog';
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', {
   day: 'numeric',
@@ -11,18 +12,18 @@ const dateFormat = new Intl.DateTimeFormat('en-GB', {
   year: 'numeric',
 });
 
-function formatDate(iso) {
+function formatDate(iso: string): string {
   return dateFormat.format(new Date(iso + 'T00:00:00'));
 }
 
-function renderEmptyMessage(container, text) {
+function renderEmptyMessage(container: Element, text: string): void {
   const p = document.createElement('p');
   p.className = 'changelog-empty';
   p.textContent = text;
   container.appendChild(p);
 }
 
-function renderChangeEntry(entry) {
+function renderChangeEntry(entry: ChangelogDiffEntry): HTMLDivElement {
   const entryDiv = document.createElement('div');
   entryDiv.className = 'changelog-entry';
 
@@ -48,7 +49,7 @@ function renderChangeEntry(entry) {
     arrowSpan.textContent = `${c.from} → ${c.to}`;
     li.appendChild(arrowSpan);
 
-    const up = c.to > c.from;
+    const up = c.to! > c.from!;
     const dirSpan = document.createElement('span');
     dirSpan.className = `changelog-direction ${up ? 'up' : 'down'}`;
     dirSpan.textContent = up ? '↑' : '↓';
@@ -62,7 +63,7 @@ function renderChangeEntry(entry) {
   return entryDiv;
 }
 
-function renderInitialEntry(entry) {
+function renderInitialEntry(entry: ChangelogInitialEntry): HTMLDivElement {
   const entryDiv = document.createElement('div');
   entryDiv.className = 'changelog-entry changelog-initial';
 
@@ -75,7 +76,7 @@ function renderInitialEntry(entry) {
   return entryDiv;
 }
 
-export function renderChangelog(countryName) {
+export function renderChangelog(countryName: string): void {
   const section = document.getElementById('changelog-section');
   const container = document.getElementById('changelog-entries');
   if (!section || !container) return;

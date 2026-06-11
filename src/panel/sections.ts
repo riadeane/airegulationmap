@@ -1,12 +1,14 @@
 import { PLACEHOLDER_RE } from '../constants';
+import type { DimensionKey } from '../constants';
 import { normalizeRegulationText } from './normalize';
+import type { RegulationEntry } from '../data/loader';
 
-export function showSection(id, show) {
+export function showSection(id: string, show: boolean): void {
   const el = document.getElementById(id);
   if (el) el.style.display = show ? '' : 'none';
 }
 
-export function cleanRegulationText(text) {
+export function cleanRegulationText(text: string | null | undefined): string | null {
   if (!text || typeof text !== 'string') return null;
   const trimmed = text.trim();
   if (trimmed.length === 0) return null;
@@ -16,7 +18,7 @@ export function cleanRegulationText(text) {
   return normalizeRegulationText(trimmed);
 }
 
-const SECTION_MAP = [
+const SECTION_MAP: { key: DimensionKey; sectionId: string; detailId: string }[] = [
   { key: 'regulationStatus', sectionId: 'regulation-section', detailId: 'regulation-details' },
   { key: 'policyLever',      sectionId: 'policy-section',     detailId: 'policy-details' },
   { key: 'governanceType',   sectionId: 'governance-section', detailId: 'governance-details' },
@@ -24,16 +26,16 @@ const SECTION_MAP = [
   { key: 'enforcementLevel', sectionId: 'enforcement-section', detailId: 'enforcement-details' },
 ];
 
-export function renderTextSections(regData) {
+export function renderTextSections(regData: RegulationEntry | null | undefined): void {
   if (!regData) {
     for (const s of SECTION_MAP) showSection(s.sectionId, false);
     showSection('laws-section', false);
     showSection('sources-section', false);
-    document.getElementById('no-details-message').style.display = '';
+    document.getElementById('no-details-message')!.style.display = '';
     return;
   }
 
-  const cleanedTexts = {};
+  const cleanedTexts: Partial<Record<DimensionKey, string | null>> = {};
   let hasAny = false;
 
   for (const s of SECTION_MAP) {
@@ -41,7 +43,7 @@ export function renderTextSections(regData) {
     cleanedTexts[s.key] = text;
     showSection(s.sectionId, !!text);
     if (text) {
-      document.getElementById(s.detailId).textContent = text;
+      document.getElementById(s.detailId)!.textContent = text;
       hasAny = true;
     }
   }
@@ -49,12 +51,12 @@ export function renderTextSections(regData) {
   const lawsText = cleanRegulationText(regData.specificLaws);
   showSection('laws-section', !!lawsText);
   if (lawsText) {
-    document.getElementById('specific-laws').textContent = lawsText;
+    document.getElementById('specific-laws')!.textContent = lawsText;
     hasAny = true;
   }
 
   // Sources
-  const sourcesContainer = document.getElementById('sources-list');
+  const sourcesContainer = document.getElementById('sources-list')!;
   sourcesContainer.replaceChildren();
   const urls = regData.sources
     ? regData.sources.split('|').map(u => u.trim()).filter(u => u && !PLACEHOLDER_RE.test(u))
@@ -78,7 +80,7 @@ export function renderTextSections(regData) {
     showSection('sources-section', false);
   }
 
-  document.getElementById('no-details-message').style.display = hasAny ? 'none' : '';
+  document.getElementById('no-details-message')!.style.display = hasAny ? 'none' : '';
 
   if (regData.confidence === 'low') {
     document.querySelectorAll('#panel-content .panel-section').forEach(s => s.classList.add('low-quality'));

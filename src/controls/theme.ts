@@ -7,23 +7,23 @@
 
 const STORAGE_KEY = 'theme';
 
-function systemPrefersLight() {
-  return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+function systemPrefersLight(): boolean {
+  return !!window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
 }
 
-function currentTheme() {
+function currentTheme(): 'light' | 'dark' {
   const explicit = document.documentElement.getAttribute('data-theme');
   if (explicit === 'light' || explicit === 'dark') return explicit;
   return systemPrefersLight() ? 'light' : 'dark';
 }
 
-function applyTheme(theme) {
+function applyTheme(theme: 'light' | 'dark'): void {
   document.documentElement.setAttribute('data-theme', theme);
   try { localStorage.setItem(STORAGE_KEY, theme); } catch (e) { /* storage blocked */ }
   updateToggleLabel(theme);
 }
 
-function updateToggleLabel(theme) {
+function updateToggleLabel(theme: 'light' | 'dark'): void {
   const btn = document.getElementById('theme-toggle');
   if (!btn) return;
   const next = theme === 'light' ? 'dark' : 'light';
@@ -31,7 +31,7 @@ function updateToggleLabel(theme) {
   btn.dataset.theme = theme;
 }
 
-export function initTheme() {
+export function initTheme(): void {
   const btn = document.getElementById('theme-toggle');
   if (!btn) return;
 

@@ -4,16 +4,16 @@
 // needs. The copy is honest about the failure but offers the user a
 // way forward (retry + a link to the raw data on GitHub).
 
-export function removeMapSkeleton() {
+export function removeMapSkeleton(): void {
   const skel = document.getElementById('map-skeleton');
   if (skel) skel.remove();
 }
 
-function removeAllChildren(node) {
+function removeAllChildren(node: Element): void {
   while (node.firstChild) node.removeChild(node.firstChild);
 }
 
-export function showLoadError(err) {
+export function showLoadError(err: unknown): void {
   // Keep the page shell alive (header, theme toggle, footer, search).
   // Only the map area is replaced.
   removeMapSkeleton();
@@ -74,9 +74,10 @@ export function showLoadError(err) {
   console.error('[airegulationmap] data load failed at', new Date().toISOString(), err);
 }
 
-function classifyError(err) {
+function classifyError(err: unknown): 'network' | 'unknown' {
   if (!err) return 'unknown';
   if (err instanceof TypeError) return 'network'; // fetch throws TypeError on network failure
-  if (err.message && /fetch|network|failed to load/i.test(err.message)) return 'network';
+  const e = err as { message?: string };
+  if (e.message && /fetch|network|failed to load/i.test(e.message)) return 'network';
   return 'unknown';
 }

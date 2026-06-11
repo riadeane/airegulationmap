@@ -30,16 +30,16 @@ Open [localhost:5173](http://localhost:5173) in your browser.
 ## Project structure
 
 ```
-src/              Vanilla JS frontend (no framework)
-  main.js           Entry point
-  state/store.js    Centralized state with event bus
+src/              TypeScript frontend (no framework)
+  main.ts           Entry point
+  state/store.ts    Centralized state with event bus
   map/              Map rendering, legend, zoom, tooltip
   panel/            Country detail panel (scores, text, changelog)
   comparison/       Side-by-side comparison panel + radar chart
   scatter/          Cross-dimension scatter plot
   controls/         Search, score selector, filter, blocs, export, timeline
   styles/           CSS partials
-  constants.js      Shared labels, options, regex
+  constants.ts      Shared labels, options, regex
   data/             CSV + history loading, search index, blocs
 
 public/           Static data files served as-is
@@ -60,7 +60,7 @@ tests/            Vitest unit tests (frontend) + pytest (pipeline)
 
 ```bash
 npm run lint       # ESLint
-npm run typecheck  # TypeScript (strict, incremental adoption via allowJs)
+npm run typecheck  # TypeScript (strict)
 npm test           # Vitest unit tests
 python -m pytest   # pipeline tests (pip install -r requirements-dev.txt)
 ```

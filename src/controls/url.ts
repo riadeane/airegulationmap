@@ -10,24 +10,37 @@
 // Defaults are omitted from the URL to keep links short.
 
 import { getState, setState, on } from '../state/store';
+import type { AppState } from '../state/store';
 import { SCORE_OPTIONS } from '../constants';
+import type { AttributeKey } from '../constants';
 import { MAX_COMPARISON } from '../comparison/index';
 
-const VALID_MODES = new Set(SCORE_OPTIONS.map(o => o.value));
+/** State parsed from the URL — only keys present in the query appear. */
+export interface UrlState {
+  country?: string;
+  mode?: AttributeKey;
+  compare?: string[];
+  date?: string;
+  theme?: 'light' | 'dark';
+  bloc?: string;
+  scatter?: { x: AttributeKey; y: AttributeKey };
+}
+
+const VALID_MODES = new Set<string>(SCORE_OPTIONS.map(o => o.value));
 const DEFAULT_MODE = 'averageScore';
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // Scatter axes exclude the derived average.
-const VALID_SCATTER_DIMS = new Set(
+const VALID_SCATTER_DIMS = new Set<string>(
   SCORE_OPTIONS.map(o => o.value).filter(v => v !== DEFAULT_MODE)
 );
 const DEFAULT_SCATTER_X = 'enforcementLevel';
 const DEFAULT_SCATTER_Y = 'regulationStatus';
 
-function splitCompare(raw) {
+function splitCompare(raw: string): string[] {
   if (!raw) return [];
-  const seen = new Set();
-  const out = [];
+  const seen = new Set<string>();
+  const out: string[] = [];
   for (const part of raw.split(',')) {
     const name = part.trim();
     if (!name || seen.has(name)) continue;
@@ -41,15 +54,15 @@ function splitCompare(raw) {
 // Parse the current window URL into a partial state object. Only keys
 // actually present in the URL appear in the returned object — callers
 // decide which defaults to apply.
-export function parseUrl(search = window.location.search) {
+export function parseUrl(search: string = window.location.search): UrlState {
   const params = new URLSearchParams(search);
-  const out = {};
+  const out: UrlState = {};
 
   const country = params.get('country');
   if (country) out.country = decodeURIComponent(country);
 
   const mode = params.get('mode');
-  if (mode && VALID_MODES.has(mode)) out.mode = mode;
+  if (mode && VALID_MODES.has(mode)) out.mode = mode as AttributeKey;
 
   const compare = params.get('compare');
   if (compare) {
@@ -76,7 +89,7 @@ export function parseUrl(search = window.location.search) {
   } else if (scatter) {
     const [x, y] = scatter.split(',');
     if (VALID_SCATTER_DIMS.has(x) && VALID_SCATTER_DIMS.has(y)) {
-      out.scatter = { x, y };
+      out.scatter = { x: x as AttributeKey, y: y as AttributeKey };
     }
   }
 
@@ -85,7 +98,7 @@ export function parseUrl(search = window.location.search) {
 
 // Build a query string from the current (or supplied) state. Omits any
 // key whose value matches the app default so the URL stays short.
-export function buildPermalink(stateSnapshot) {
+export function buildPermalink(stateSnapshot?: AppState): string {
   const s = stateSnapshot || getState();
   const params = new URLSearchParams();
 
@@ -126,7 +139,7 @@ export function buildPermalink(stateSnapshot) {
   return window.location.origin + url;
 }
 
-function currentQueryString() {
+function currentQueryString(): string {
   const link = buildPermalink();
   const i = link.indexOf('?');
   return i >= 0 ? link.slice(i) : '';
@@ -135,7 +148,7 @@ function currentQueryString() {
 // Replace the URL without adding a history entry. Used for hovers and
 // click-style navigation inside the app (Back should not undo a country
 // selection or score-mode flip — too chatty).
-function writeReplace() {
+function writeReplace(): void {
   const qs = currentQueryString();
   const next = window.location.pathname + qs;
   const current = window.location.pathname + window.location.search;
@@ -143,7 +156,7 @@ function writeReplace() {
   window.history.replaceState(null, '', next);
 }
 
-function applyUrlState(urlState, { initial = false } = {}) {
+function applyUrlState(urlState: UrlState, { initial = false }: { initial?: boolean } = {}): void {
   if (urlState.theme) {
     document.documentElement.setAttribute('data-theme', urlState.theme);
     try { localStorage.setItem('theme', urlState.theme); } catch (e) { /* storage blocked */ }
@@ -175,7 +188,7 @@ function applyUrlState(urlState, { initial = false } = {}) {
   // Comparison wins over country — the comparison panel takes the
   // right-hand slot either way.
   const { scoreData } = getState();
-  const validCountry = (name) => !!scoreData[name];
+  const validCountry = (name: string) => !!scoreData[name];
 
   if (urlState.compare && urlState.compare.length > 0) {
     const valid = urlState.compare.filter(validCountry);
@@ -193,7 +206,7 @@ function applyUrlState(urlState, { initial = false } = {}) {
 
 // Subscribe to the relevant state slices and keep the URL in sync with
 // the view the user is looking at.
-export function initUrlSync() {
+export function initUrlSync(): void {
   on('selectedCountry', writeReplace);
   on('comparisonCountries', writeReplace);
   on('currentAttribute', writeReplace);
