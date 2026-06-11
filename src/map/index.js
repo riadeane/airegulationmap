@@ -28,4 +28,5 @@ export function initMapSubscriptions() {
 
   on('filterMin', () => updateMap());
   on('filterMax', () => updateMap());
+  on('selectedBloc', () => updateMap());
 }

@@ -14,6 +14,10 @@ const state = {
   // Parsed history.json — loaded async after first paint; null until
   // then (and stays null if the fetch fails).
   history: null,
+  // Bloc filter: key into blocsData ("EU", "G20", …) or null for all.
+  selectedBloc: null,
+  // Parsed blocs.json — loaded async; null until then / on failure.
+  blocsData: null,
 };
 
 const listeners = new Map();

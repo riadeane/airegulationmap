@@ -1,0 +1,193 @@
+/* Bloc filter row (inside the filter popover) */
+
+.filter-row-bloc {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+}
+
+#bloc-select {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 0.78rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-out);
+}
+
+#bloc-select:hover,
+#bloc-select:focus {
+  border-color: var(--accent);
+}
+
+/* Bloc summary card — floats top-left over the map; legend owns
+   bottom-right, zoom owns bottom-left. */
+
+.bloc-summary {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  z-index: 10;
+  width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  animation: fadeUp 0.25s var(--ease-out);
+}
+
+.bloc-summary-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bloc-summary-title {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.bloc-summary-close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s var(--ease-out);
+}
+
+.bloc-summary-close:hover {
+  color: var(--accent);
+}
+
+.bloc-summary-coverage {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bloc-summary-dim {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin-top: 12px;
+}
+
+.bloc-summary-stats {
+  display: flex;
+  gap: 20px;
+  margin-top: 6px;
+}
+
+.bloc-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.bloc-stat-value {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.bloc-stat-label {
+  font-size: 0.62rem;
+  color: var(--text-tertiary);
+}
+
+/* Min–max range bar with average marker */
+.bloc-range-track {
+  position: relative;
+  height: 4px;
+  margin-top: 12px;
+  border-radius: 2px;
+  background: var(--border-subtle);
+}
+
+.bloc-range-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--score-low), var(--score-high));
+  opacity: 0.55;
+}
+
+.bloc-range-avg {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 10px;
+  margin-left: -1px;
+  background: var(--accent);
+}
+
+.bloc-range-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6rem;
+  color: var(--text-tertiary);
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bloc-member-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.bloc-member-line:first-of-type {
+  margin-top: 12px;
+}
+
+.bloc-member-tag {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.bloc-member-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s var(--ease-out);
+  font-variant-numeric: tabular-nums;
+}
+
+.bloc-member-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .bloc-summary {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: 280px;
+    padding: 10px 12px;
+  }
+}

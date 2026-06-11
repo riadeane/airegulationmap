@@ -3,6 +3,9 @@ import './styles/main.css';
 import { setState } from './state/store.js';
 import { loadScores, loadRegulation } from './data/loader.js';
 import { loadHistory } from './data/history.js';
+import { loadBlocs } from './data/blocs.js';
+import { initBlocSelector } from './controls/blocSelector.js';
+import { initBlocSummary } from './controls/blocSummary.js';
 import { generateMap, initMapSubscriptions } from './map/index.js';
 import { initPanel } from './panel/index.js';
 import { initComparison } from './comparison/index.js';
@@ -117,6 +120,19 @@ async function main() {
   loadHistory().then(history => {
     setState({ history });
     initTimeline(history);
+  });
+
+  // Load bloc membership non-blocking; the bloc filter and summary
+  // appear once the data exists. URL bloc is applied late, same as
+  // country/compare above.
+  loadBlocs(sortedCountryNames).then(blocsData => {
+    if (!blocsData) return;
+    setState({ blocsData });
+    initBlocSelector();
+    initBlocSummary();
+    if (urlState.bloc && blocsData[urlState.bloc]) {
+      setState({ selectedBloc: urlState.bloc });
+    }
   });
 
   // Start writing URL changes. Done after initial state is applied so

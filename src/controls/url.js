@@ -56,6 +56,11 @@ export function parseUrl(search = window.location.search) {
   const theme = params.get('theme');
   if (theme === 'light' || theme === 'dark') out.theme = theme;
 
+  // Validated against blocsData when applied — blocs.json may not have
+  // loaded yet at parse time.
+  const bloc = params.get('bloc');
+  if (bloc && /^[A-Z0-9]{2,8}$/i.test(bloc)) out.bloc = bloc.toUpperCase();
+
   return out;
 }
 
@@ -77,6 +82,10 @@ export function buildPermalink(stateSnapshot) {
 
   if (s.timelineDate) {
     params.set('date', s.timelineDate);
+  }
+
+  if (s.selectedBloc) {
+    params.set('bloc', s.selectedBloc);
   }
 
   const theme = document.documentElement.getAttribute('data-theme');
@@ -122,6 +131,13 @@ function applyUrlState(urlState, { initial = false } = {}) {
   if (urlState.date !== undefined) setState({ timelineDate: urlState.date || null });
   else if (!initial) setState({ timelineDate: null });
 
+  const { blocsData } = getState();
+  if (urlState.bloc && blocsData && blocsData[urlState.bloc]) {
+    setState({ selectedBloc: urlState.bloc });
+  } else if (!initial) {
+    setState({ selectedBloc: null });
+  }
+
   // Comparison wins over country — the comparison panel takes the
   // right-hand slot either way.
   const { scoreData } = getState();
@@ -148,6 +164,7 @@ export function initUrlSync() {
   on('comparisonCountries', writeReplace);
   on('currentAttribute', writeReplace);
   on('timelineDate', writeReplace);
+  on('selectedBloc', writeReplace);
 
   // Theme changes come from two sources: the toggle (sets data-theme
   // directly) and prefers-color-scheme. We watch the attribute.

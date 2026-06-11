@@ -231,10 +231,28 @@ export async function generateMap() {
   }
 }
 
+// Single opacity composition for the score-range filter and the bloc
+// filter. (Search dimming stays class-based in CSS and intentionally
+// wins over this inline value while the user is mid-search.)
+function countryOpacity(entry, { currentAttribute, filterMin, filterMax, blocSet }) {
+  if (!entry || entry[currentAttribute] == null) {
+    // No data: keep the usual soft presence, but recede fully while a
+    // bloc is highlighted so the bloc reads cleanly.
+    return blocSet ? 0.15 : 0.4;
+  }
+  const score = entry[currentAttribute];
+  const inRange = score >= filterMin && score <= filterMax;
+  const inBloc = !blocSet || blocSet.has(entry.country);
+  return (inRange && inBloc) ? 1 : 0.15;
+}
+
 export function updateMap(overrideScoreData) {
-  const { currentAttribute, filterMin, filterMax, scoreData } = getState();
+  const { currentAttribute, filterMin, filterMax, scoreData, selectedBloc, blocsData } = getState();
   const data = overrideScoreData || scoreData;
   const colorScale = makeColorScale();
+  const blocSet = selectedBloc && blocsData?.[selectedBloc]
+    ? new Set(blocsData[selectedBloc].members)
+    : null;
 
   select('#map')
     .selectAll('.country')
@@ -244,13 +262,9 @@ export function updateMap(overrideScoreData) {
       const entry = data[d.properties.name];
       return entry ? colorScale(entry[currentAttribute]) : cssVar('--no-data');
     })
-    .style('opacity', d => {
-      const entry = data[d.properties.name];
-      if (!entry) return 0.4;
-      const score = entry[currentAttribute];
-      if (score == null) return 0.4;
-      return (score >= filterMin && score <= filterMax) ? 1 : 0.15;
-    });
+    .style('opacity', d => countryOpacity(data[d.properties.name], {
+      currentAttribute, filterMin, filterMax, blocSet,
+    }));
 }
 
 export function highlightCountry(countryName) {
