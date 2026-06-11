@@ -60,6 +60,7 @@ tests/            Vitest unit tests (frontend) + pytest (pipeline)
 
 ```bash
 npm run lint       # ESLint
+npm run typecheck  # TypeScript (strict, incremental adoption via allowJs)
 npm test           # Vitest unit tests
 python -m pytest   # pipeline tests (pip install -r requirements-dev.txt)
 ```

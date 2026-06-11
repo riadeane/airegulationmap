@@ -13,8 +13,9 @@ npm install      # install dependencies
 npm run dev      # start Vite dev server with HMR
 npm run build    # production build to dist/
 npm run preview  # preview production build
-npm run lint     # ESLint (flat config in eslint.config.js)
-npm test         # Vitest unit tests (tests/*.test.js)
+npm run lint       # ESLint (flat config in eslint.config.js)
+npm run typecheck  # tsc --noEmit (strict; tsconfig.json)
+npm test           # Vitest unit tests (tests/*.test.js)
 ```
 
 Pipeline tests: `pip install -r requirements-dev.txt && python -m pytest` (configured in `pyproject.toml`, tests in `tests/pipeline/`). CI (`.github/workflows/ci.yml`) runs lint + tests + build on every push/PR.
@@ -48,7 +49,9 @@ pip install -r requirements.txt
 
 ### Frontend (`src/`)
 
-Vanilla JS + D3.js + TopoJSON, built with Vite. No framework.
+Vanilla JS/TS + D3.js + TopoJSON, built with Vite. No framework.
+
+**TypeScript is being adopted incrementally** (`allowJs: true`): the state store, constants, and `src/data/` modules are typed `.ts`; DOM-heavy controls are still `.js` and convert opportunistically. Relative imports are extensionless so renames don't break importers. New modules should be written in TypeScript. The state shape lives in the `AppState` interface in `src/state/store.ts`.
 
 **Module structure:**
 
