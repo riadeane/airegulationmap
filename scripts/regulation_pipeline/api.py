@@ -1,6 +1,8 @@
 """Claude API interaction for researching country regulation data."""
 
 import json
+import random
+import time
 from datetime import date
 
 try:
@@ -12,6 +14,61 @@ except ImportError:
 class FatalAPIError(Exception):
     """Raised when the API returns an unrecoverable error."""
     pass
+
+
+# Explicit retry policy for transient failures. The SDK's own silent
+# retries are disabled in cli.py (max_retries=0) so attempts here are
+# the only ones and every retry is logged.
+MAX_ATTEMPTS = 4  # 1 initial try + 3 retries (delays ~2s, 4s, 8s)
+
+
+def _retry_delay(attempt, exc=None):
+    """Exponential backoff with jitter; honors a Retry-After header."""
+    if exc is not None:
+        response = getattr(exc, "response", None)
+        if response is not None:
+            try:
+                retry_after = float(response.headers.get("retry-after"))
+                if retry_after > 0:
+                    return retry_after
+            except (AttributeError, TypeError, ValueError):
+                pass
+    return 2 * (2 ** attempt) + random.uniform(0, 1)
+
+
+def _call_with_retries(client, request_kwargs, country):
+    """messages.create with backoff. Returns a response or None after
+    exhausting retries on transient errors. Raises FatalAPIError for
+    unrecoverable conditions."""
+    for attempt in range(MAX_ATTEMPTS):
+        last_attempt = attempt == MAX_ATTEMPTS - 1
+        try:
+            return client.messages.create(**request_kwargs)
+        except anthropic.AuthenticationError as e:
+            raise FatalAPIError(f"Authentication failed (invalid API key): {e}")
+        except anthropic.PermissionDeniedError as e:
+            raise FatalAPIError(f"Permission denied (check credits/permissions): {e}")
+        except (anthropic.RateLimitError, anthropic.APITimeoutError, anthropic.APIConnectionError) as e:
+            kind = type(e).__name__
+            if last_attempt:
+                print(f"  WARNING: {kind} for {country} — giving up after {MAX_ATTEMPTS} attempts")
+                return None
+            delay = _retry_delay(attempt, e)
+            print(f"  WARNING: {kind} for {country} — retrying in {delay:.1f}s "
+                  f"(attempt {attempt + 1}/{MAX_ATTEMPTS})")
+            time.sleep(delay)
+        except anthropic.APIStatusError as e:
+            if e.status_code < 500:
+                raise FatalAPIError(f"API error {e.status_code}: {e}")
+            if last_attempt:
+                print(f"  WARNING: server error ({e.status_code}) for {country} — "
+                      f"giving up after {MAX_ATTEMPTS} attempts")
+                return None
+            delay = _retry_delay(attempt)
+            print(f"  WARNING: server error ({e.status_code}) for {country} — retrying in "
+                  f"{delay:.1f}s (attempt {attempt + 1}/{MAX_ATTEMPTS})")
+            time.sleep(delay)
+    return None
 
 
 RESEARCH_PROMPT = """You are a researcher specializing in AI policy and regulation worldwide.
@@ -98,16 +155,19 @@ def research_country(client, country, existing_reg, model, use_search=False):
         existing_actors=existing_reg.get("Actor Involvement", "Unknown"),
     )
 
-    try:
-        request_kwargs = {
-            "model": model,
-            "max_tokens": 2048 if use_search else 1024,
-            "messages": [{"role": "user", "content": prompt}]
-        }
-        if use_search:
-            request_kwargs["tools"] = [{"type": "web_search_20250305", "name": "web_search"}]
+    request_kwargs = {
+        "model": model,
+        "max_tokens": 2048 if use_search else 1024,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    if use_search:
+        request_kwargs["tools"] = [{"type": "web_search_20250305", "name": "web_search"}]
 
-        response = client.messages.create(**request_kwargs)
+    response = _call_with_retries(client, request_kwargs, country)
+    if response is None:
+        return None
+
+    try:
         text = next((block.text for block in response.content if block.type == "text"), None)
         if not text:
             print(f"  WARNING: no text block in response for {country}")
@@ -122,24 +182,6 @@ def research_country(client, country, existing_reg, model, use_search=False):
     except json.JSONDecodeError as e:
         print(f"  WARNING: JSON parse error for {country}: {e}")
         return None
-    except anthropic.AuthenticationError as e:
-        raise FatalAPIError(f"Authentication failed (invalid API key): {e}")
-    except anthropic.PermissionDeniedError as e:
-        raise FatalAPIError(f"Permission denied (check credits/permissions): {e}")
-    except anthropic.RateLimitError as e:
-        print(f"  WARNING: Rate limited for {country}: {e}")
-        return None
-    except anthropic.APITimeoutError as e:
-        print(f"  WARNING: Timeout for {country}: {e}")
-        return None
-    except anthropic.APIConnectionError as e:
-        print(f"  WARNING: Connection error for {country}: {e}")
-        return None
-    except anthropic.APIStatusError as e:
-        if e.status_code >= 500:
-            print(f"  WARNING: Server error ({e.status_code}) for {country}: {e}")
-            return None
-        raise FatalAPIError(f"API error {e.status_code}: {e}")
     except Exception as e:
         print(f"  ERROR researching {country}: {e}")
         return None

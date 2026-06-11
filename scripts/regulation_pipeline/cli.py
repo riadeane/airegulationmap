@@ -20,7 +20,7 @@ from .data_io import (
 )
 from .history import append_history_snapshot
 from .names import canonicalize, load_alias_map
-from .processor import build_regulation_row, build_scores_row
+from .processor import build_regulation_row, build_scores_row, validate_result
 from .staleness import should_update
 
 
@@ -38,7 +38,9 @@ def main():
         print("ERROR: ANTHROPIC_API_KEY environment variable not set")
         sys.exit(1)
 
-    client = anthropic.Anthropic(api_key=api_key)
+    # SDK-level silent retries are disabled — api.py does explicit,
+    # logged retries with backoff, and the two must not multiply.
+    client = anthropic.Anthropic(api_key=api_key, max_retries=0)
     aliases = load_alias_map()
 
     print("Loading existing data...")
@@ -78,7 +80,14 @@ def main():
             model = "claude-sonnet-4-6" if use_search else args.model
             result = research_country(client, country, reg_data.get(country), model, use_search)
 
-            if result is None:
+            # A structurally invalid result (missing/out-of-range scores)
+            # is treated exactly like a failed call — it must never be
+            # written into the CSVs.
+            validation_errors = validate_result(result) if result is not None else None
+            if validation_errors:
+                print(f"  WARNING: invalid response for {country}: {'; '.join(validation_errors)}")
+
+            if result is None or validation_errors:
                 failed_countries.append(country)
                 consecutive_failures += 1
                 if consecutive_failures >= 5:
