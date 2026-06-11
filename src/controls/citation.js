@@ -2,7 +2,7 @@
 // view. The `url` argument is the permalink so a reader can reproduce
 // the exact view the researcher cited.
 
-import { ATTRIBUTE_LABELS } from '../constants.js';
+import { ATTRIBUTE_LABELS } from '../constants';
 
 const DEFAULT_MODE = 'averageScore';
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { jitterFor } from '../src/scatter/jitter.js';
+import { jitterFor } from '../src/scatter/jitter';
 
 describe('jitterFor', () => {
   it('is deterministic for the same country name', () => {

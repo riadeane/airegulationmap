@@ -5,9 +5,9 @@
 // copy buttons. The permalink embedded in each citation is generated
 // fresh every open so scoped views stay citeable.
 
-import { getState, on } from '../state/store.js';
-import { citationsFor } from './citation.js';
-import { buildPermalink } from './url.js';
+import { getState, on } from '../state/store';
+import { citationsFor } from './citation';
+import { buildPermalink } from './url';
 
 const FORMATS = [
   { key: 'apa', label: 'APA' },

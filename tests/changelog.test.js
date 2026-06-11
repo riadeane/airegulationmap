@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeChangelog } from '../src/data/changelog.js';
+import { computeChangelog } from '../src/data/changelog';
 
 const snap = (date, overrides = {}) => ({
   date,

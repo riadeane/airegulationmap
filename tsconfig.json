@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Incremental adoption: .js modules are part of the program (so .ts
+    // files can import them) but are not type-checked. Convert a module
+    // by renaming it to .ts and adding types.
+    "allowJs": true,
+    "checkJs": false
+  },
+  "include": ["src", "tests", "vite.config.js", "eslint.config.js"],
+  "exclude": ["tests/pipeline"]
+}

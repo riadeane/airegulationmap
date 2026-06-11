@@ -9,9 +9,9 @@
 // `history.replaceState`, and `popstate` writes back into the store.
 // Defaults are omitted from the URL to keep links short.
 
-import { getState, setState, on } from '../state/store.js';
-import { SCORE_OPTIONS } from '../constants.js';
-import { MAX_COMPARISON } from '../comparison/index.js';
+import { getState, setState, on } from '../state/store';
+import { SCORE_OPTIONS } from '../constants';
+import { MAX_COMPARISON } from '../comparison/index';
 
 const VALID_MODES = new Set(SCORE_OPTIONS.map(o => o.value));
 const DEFAULT_MODE = 'averageScore';

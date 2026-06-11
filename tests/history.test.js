@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildScoresAtDate, extractSortedDates } from '../src/data/history.js';
+import { buildScoresAtDate, extractSortedDates } from '../src/data/history';
 
 const history = {
   schema_version: 1,

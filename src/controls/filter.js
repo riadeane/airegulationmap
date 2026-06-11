@@ -1,4 +1,4 @@
-import { setState } from '../state/store.js';
+import { setState } from '../state/store';
 
 export function initFilter() {
   const btn = document.getElementById('filter-btn');

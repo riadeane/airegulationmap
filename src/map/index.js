@@ -1,9 +1,9 @@
-import { on, getState } from '../state/store.js';
-import { generateMap, updateMap } from './renderer.js';
-import { updateLegendLabels } from './legend.js';
-import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../constants.js';
+import { on, getState } from '../state/store';
+import { generateMap, updateMap } from './renderer';
+import { updateLegendLabels } from './legend';
+import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../constants';
 
-export { updateMap, highlightCountry, clearHighlight, updateSearchHighlight, markComparisonCountries } from './renderer.js';
+export { updateMap, highlightCountry, clearHighlight, updateSearchHighlight, markComparisonCountries } from './renderer';
 export { generateMap };
 
 // Speak the current map mode to assistive tech when it changes. The

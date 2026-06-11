@@ -4,13 +4,13 @@ import { geoEquirectangular, geoPath, geoGraticule } from 'd3-geo';
 import { feature } from 'topojson-client';
 import 'd3-transition';
 
-import { ATTRIBUTE_LABELS } from '../constants.js';
-import { getState, setState } from '../state/store.js';
-import { makeColorScale, addLegend } from './legend.js';
-import { createTooltip, showTooltip, hideTooltip } from './tooltip.js';
-import { setupZoom } from './zoom.js';
-import { toggleComparison, getColorIndex } from '../comparison/index.js';
-import { cssVar, onThemeChange } from './cssColors.js';
+import { ATTRIBUTE_LABELS } from '../constants';
+import { getState, setState } from '../state/store';
+import { makeColorScale, addLegend } from './legend';
+import { createTooltip, showTooltip, hideTooltip } from './tooltip';
+import { setupZoom } from './zoom';
+import { toggleComparison, getColorIndex } from '../comparison/index';
+import { cssVar, onThemeChange } from './cssColors';
 
 // Module-level refs so resize and theme-change handlers can redraw
 // without re-running the whole generateMap async flow.

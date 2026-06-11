@@ -7,7 +7,7 @@
 // text descriptions.
 
 import { csvFormat } from 'd3-dsv';
-import { getState } from '../state/store.js';
+import { getState } from '../state/store';
 
 function buildExportRows(countries) {
   const { scoreData, regulationData } = getState();

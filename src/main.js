@@ -1,25 +1,25 @@
 import './styles/main.css';
 
-import { setState } from './state/store.js';
-import { loadScores, loadRegulation } from './data/loader.js';
-import { loadHistory } from './data/history.js';
-import { loadBlocs } from './data/blocs.js';
-import { initBlocSelector } from './controls/blocSelector.js';
-import { initBlocSummary } from './controls/blocSummary.js';
-import { generateMap, initMapSubscriptions } from './map/index.js';
-import { initPanel } from './panel/index.js';
-import { initComparison } from './comparison/index.js';
-import { initScatter } from './scatter/index.js';
-import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelector.js';
-import { initFilter } from './controls/filter.js';
-import { initExport } from './controls/export.js';
-import { initSearch, initKeyboardNav } from './controls/search.js';
-import { initTimeline } from './controls/timeline.js';
-import { initTheme } from './controls/theme.js';
-import { parseUrl, initUrlSync } from './controls/url.js';
-import { initCitePopover } from './controls/citePopover.js';
-import { initHelpOverlay } from './controls/helpOverlay.js';
-import { removeMapSkeleton, showLoadError } from './panel/resilience.js';
+import { setState } from './state/store';
+import { loadScores, loadRegulation } from './data/loader';
+import { loadHistory } from './data/history';
+import { loadBlocs } from './data/blocs';
+import { initBlocSelector } from './controls/blocSelector';
+import { initBlocSummary } from './controls/blocSummary';
+import { generateMap, initMapSubscriptions } from './map/index';
+import { initPanel } from './panel/index';
+import { initComparison } from './comparison/index';
+import { initScatter } from './scatter/index';
+import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelector';
+import { initFilter } from './controls/filter';
+import { initExport } from './controls/export';
+import { initSearch, initKeyboardNav } from './controls/search';
+import { initTimeline } from './controls/timeline';
+import { initTheme } from './controls/theme';
+import { parseUrl, initUrlSync } from './controls/url';
+import { initCitePopover } from './controls/citePopover';
+import { initHelpOverlay } from './controls/helpOverlay';
+import { removeMapSkeleton, showLoadError } from './panel/resilience';
 
 function updateSiteLastUpdated(scoreData) {
   const dates = Object.values(scoreData)

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeBlocStats } from '../src/data/blocs.js';
+import { computeBlocStats } from '../src/data/blocs';
 
 const scoreData = {
   France: { averageScore: 4, enforcementLevel: 4 },

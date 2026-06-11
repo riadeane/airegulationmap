@@ -1,6 +1,6 @@
-import { getState, setState, on } from '../state/store.js';
-import { updateMap } from '../map/index.js';
-import { buildScoresAtDate, extractSortedDates } from '../data/history.js';
+import { getState, setState, on } from '../state/store';
+import { updateMap } from '../map/index';
+import { buildScoresAtDate, extractSortedDates } from '../data/history';
 
 // Module-scope so the map subscription (added in initTimeline) can
 // resolve `timelineDate` → historic scores without re-reading history.

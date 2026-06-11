@@ -2,8 +2,8 @@
 // history.json snapshots. DOM built programmatically — never innerHTML
 // with data-derived strings.
 
-import { getState } from '../state/store.js';
-import { computeChangelog } from '../data/changelog.js';
+import { getState } from '../state/store';
+import { computeChangelog } from '../data/changelog';
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', {
   day: 'numeric',

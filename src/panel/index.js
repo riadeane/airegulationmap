@@ -1,9 +1,9 @@
-import { getState, on } from '../state/store.js';
-import { renderScoreBar, renderAllDots } from './scores.js';
-import { renderTextSections } from './sections.js';
-import { renderChangelog } from './changelog.js';
-import { highlightCountry, clearHighlight } from '../map/index.js';
-import { toggleComparison, MAX_COMPARISON } from '../comparison/index.js';
+import { getState, on } from '../state/store';
+import { renderScoreBar, renderAllDots } from './scores';
+import { renderTextSections } from './sections';
+import { renderChangelog } from './changelog';
+import { highlightCountry, clearHighlight } from '../map/index';
+import { toggleComparison, MAX_COMPARISON } from '../comparison/index';
 
 const CONFIDENCE_LABELS = {
   high: 'High confidence',

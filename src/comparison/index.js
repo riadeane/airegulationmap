@@ -1,7 +1,7 @@
-import { getState, setState, on } from '../state/store.js';
-import { renderComparisonPanel, clearComparisonPanel, renderAddBar } from './panel.js';
-import { markComparisonCountries } from '../map/renderer.js';
-import { comparisonColor } from './colors.js';
+import { getState, setState, on } from '../state/store';
+import { renderComparisonPanel, clearComparisonPanel, renderAddBar } from './panel';
+import { markComparisonCountries } from '../map/renderer';
+import { comparisonColor } from './colors';
 
 export const MAX_COMPARISON = 4;
 

@@ -1,7 +1,7 @@
-import { getState, setState } from '../state/store.js';
-import { updateSearchHighlight } from '../map/index.js';
-import { matchCountryNames } from '../data/countryMatch.js';
-import { buildSearchIndex, searchRegulationText, FIELD_LABELS } from '../data/searchIndex.js';
+import { getState, setState } from '../state/store';
+import { updateSearchHighlight } from '../map/index';
+import { matchCountryNames } from '../data/countryMatch';
+import { buildSearchIndex, searchRegulationText, FIELD_LABELS } from '../data/searchIndex';
 
 const COUNTRY_LIMIT = 4;
 const TEXT_LIMIT = 6;

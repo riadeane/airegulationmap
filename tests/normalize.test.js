@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeRegulationText } from '../src/panel/normalize.js';
+import { normalizeRegulationText } from '../src/panel/normalize';
 
 describe('normalizeRegulationText', () => {
   it('passes through non-string and empty values', () => {

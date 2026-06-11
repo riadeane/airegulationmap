@@ -1,5 +1,5 @@
-import { SCORE_OPTIONS, ATTRIBUTE_LABELS } from '../constants.js';
-import { getState, setState } from '../state/store.js';
+import { SCORE_OPTIONS, ATTRIBUTE_LABELS } from '../constants';
+import { getState, setState } from '../state/store';
 
 export function switchAttribute(attr) {
   setState({ currentAttribute: attr });

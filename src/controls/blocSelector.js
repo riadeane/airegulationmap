@@ -1,7 +1,7 @@
 // Bloc filter — a third row inside the existing filter popover. Blocs
 // are semantically a filter, and the header is already at capacity.
 
-import { getState, setState, on } from '../state/store.js';
+import { getState, setState, on } from '../state/store';
 
 export function initBlocSelector() {
   const popover = document.getElementById('filter-popover');

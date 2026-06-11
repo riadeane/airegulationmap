@@ -1,9 +1,9 @@
-import { getState } from '../state/store.js';
-import { ATTRIBUTE_LABELS } from '../constants.js';
-import { matchCountryNames } from '../data/countryMatch.js';
-import { cleanRegulationText } from '../panel/sections.js';
-import { renderRadar } from './radar.js';
-import { addToComparison, removeFromComparison, getColorFor, MAX_COMPARISON } from './index.js';
+import { getState } from '../state/store';
+import { ATTRIBUTE_LABELS } from '../constants';
+import { matchCountryNames } from '../data/countryMatch';
+import { cleanRegulationText } from '../panel/sections';
+import { renderRadar } from './radar';
+import { addToComparison, removeFromComparison, getColorFor, MAX_COMPARISON } from './index';
 
 const DETAIL_DIMENSIONS = [
   'regulationStatus',

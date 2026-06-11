@@ -2,9 +2,9 @@
 // coverage, average, spread (how aligned the bloc is), and the
 // highest / lowest scoring members as jump links.
 
-import { getState, setState, on } from '../state/store.js';
-import { computeBlocStats } from '../data/blocs.js';
-import { ATTRIBUTE_LABELS } from '../constants.js';
+import { getState, setState, on } from '../state/store';
+import { computeBlocStats } from '../data/blocs';
+import { ATTRIBUTE_LABELS } from '../constants';
 
 // Map a 1–5 score to a percentage along the range track.
 const pct = score => ((score - 1) / 4) * 100;

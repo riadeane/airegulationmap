@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildSearchIndex, searchRegulationText } from '../src/data/searchIndex.js';
-import { matchCountryNames } from '../src/data/countryMatch.js';
+import { buildSearchIndex, searchRegulationText } from '../src/data/searchIndex';
+import { matchCountryNames } from '../src/data/countryMatch';
 
 const regulationData = {
   France: {

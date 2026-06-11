@@ -1,5 +1,5 @@
-import { PLACEHOLDER_RE } from '../constants.js';
-import { normalizeRegulationText } from './normalize.js';
+import { PLACEHOLDER_RE } from '../constants';
+import { normalizeRegulationText } from './normalize';
 
 export function showSection(id, show) {
   const el = document.getElementById(id);

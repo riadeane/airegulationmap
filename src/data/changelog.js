@@ -1,7 +1,7 @@
 // Per-country score change history derived from history.json snapshots.
 // Pure — no DOM, unit-tested.
 
-import { ATTRIBUTE_LABELS } from '../constants.js';
+import { ATTRIBUTE_LABELS } from '../constants';
 
 // The five independently scored dimensions. averageScore is derived,
 // so it never appears as its own changelog line.

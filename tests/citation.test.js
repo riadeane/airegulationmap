@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { citationsFor } from '../src/controls/citation.js';
+import { citationsFor } from '../src/controls/citation';
 
 const base = { url: 'https://airegulationmap.org/?country=Germany', accessed: '2026-06-11' };
 

@@ -12,12 +12,12 @@ import { axisBottom, axisLeft } from 'd3-axis';
 import { format } from 'd3-format';
 import 'd3-transition';
 
-import { getState, setState, on } from '../state/store.js';
-import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants.js';
-import { makeColorScale } from '../map/legend.js';
-import { cssVar, onThemeChange } from '../map/cssColors.js';
-import { createTooltip, showTooltip, hideTooltip } from '../map/tooltip.js';
-import { jitterFor } from './jitter.js';
+import { getState, setState, on } from '../state/store';
+import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants';
+import { makeColorScale } from '../map/legend';
+import { cssVar, onThemeChange } from '../map/cssColors';
+import { createTooltip, showTooltip, hideTooltip } from '../map/tooltip';
+import { jitterFor } from './jitter';
 
 const WIDTH = 480;
 const HEIGHT = 380;

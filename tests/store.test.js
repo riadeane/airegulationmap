@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getState, setState, on } from '../src/state/store.js';
+import { getState, setState, on } from '../src/state/store';
 
 // The store is a module-level singleton, so tests share state — each test
 // uses keys it owns or reads back what it just wrote.

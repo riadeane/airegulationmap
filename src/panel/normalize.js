@@ -7,7 +7,7 @@
 // CSV data is never modified. Every call is scoped to one free-text field
 // at render time in src/panel/sections.js.
 
-import { NORMALIZE_COPY } from '../constants.js';
+import { NORMALIZE_COPY } from '../constants';
 
 const MONTHS = 'January|February|March|April|May|June|July|August|September|October|November|December';
 

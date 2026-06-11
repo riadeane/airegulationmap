@@ -3,9 +3,9 @@ import { scaleLinear } from 'd3-scale';
 import { interpolateLab } from 'd3-interpolate';
 import { range } from 'd3-array';
 
-import { LEGEND_ENDPOINTS } from '../constants.js';
-import { getState } from '../state/store.js';
-import { cssVar } from './cssColors.js';
+import { LEGEND_ENDPOINTS } from '../constants';
+import { getState } from '../state/store';
+import { cssVar } from './cssColors';
 
 export function makeColorScale() {
   return scaleLinear()
