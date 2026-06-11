@@ -8,9 +8,14 @@ Live at [airegulationmap.org](https://airegulationmap.org)
 
 - Choropleth world map colored by regulation score, built with D3.js and TopoJSON
 - Six scoring dimensions: regulation status, policy lever, governance type, actor involvement, enforcement level, and a composite average
-- Click any country to see detailed descriptions, relevant laws, and source links
+- Click any country to see detailed descriptions, relevant laws, source links, and a per-country score change history
+- Compare up to four countries side-by-side on a radar chart
+- Full-text search across regulation text ("sandbox", "facial recognition", …) alongside country-name search
+- Filter by score range or by bloc (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD) with aggregate stats
+- Cross-dimension scatter plot to explore governance clusters
+- One-click CSV/JSON export of the full or filtered dataset
 - Timeline slider to view how scores have changed over time
-- Search and filter controls to find specific countries or score ranges
+- Shareable URLs, formatted citations (APA/Chicago/MLA), and light/dark themes
 - Data is automatically re-researched monthly using Claude to keep it current
 
 ## Quick start
@@ -29,22 +34,37 @@ src/              Vanilla JS frontend (no framework)
   main.js           Entry point
   state/store.js    Centralized state with event bus
   map/              Map rendering, legend, zoom, tooltip
-  panel/            Country detail panel
-  controls/         Search, score selector, filter, timeline
+  panel/            Country detail panel (scores, text, changelog)
+  comparison/       Side-by-side comparison panel + radar chart
+  scatter/          Cross-dimension scatter plot
+  controls/         Search, score selector, filter, blocs, export, timeline
   styles/           CSS partials
   constants.js      Shared labels, options, regex
-  data/             CSV + history loading
+  data/             CSV + history loading, search index, blocs
 
 public/           Static data files served as-is
   scores.csv        Numeric scores (1–5) per country
   regulation_data.csv  Text descriptions, laws, sources
   history.json      Timestamped score snapshots for timeline
   data/country_names.json  Country name aliases
+  data/blocs.json   Bloc membership (EU, G20, …)
 
 scripts/          Python data pipeline
   update_data.py    CLI entry point
   regulation_pipeline/  Modules for API calls, parsing, staleness
+
+tests/            Vitest unit tests (frontend) + pytest (pipeline)
 ```
+
+## Development
+
+```bash
+npm run lint       # ESLint
+npm test           # Vitest unit tests
+python -m pytest   # pipeline tests (pip install -r requirements-dev.txt)
+```
+
+CI runs lint, tests, and the production build on every push and pull request.
 
 ## Updating the data
 

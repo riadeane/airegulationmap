@@ -13,7 +13,11 @@ npm install      # install dependencies
 npm run dev      # start Vite dev server with HMR
 npm run build    # production build to dist/
 npm run preview  # preview production build
+npm run lint     # ESLint (flat config in eslint.config.js)
+npm test         # Vitest unit tests (tests/*.test.js)
 ```
+
+Pipeline tests: `pip install -r requirements-dev.txt && python -m pytest` (configured in `pyproject.toml`, tests in `tests/pipeline/`). CI (`.github/workflows/ci.yml`) runs lint + tests + build on every push/PR.
 
 ## Data Update Script
 
@@ -55,9 +59,15 @@ Vanilla JS + D3.js + TopoJSON, built with Vite. No framework.
 | `src/constants.js` | Attribute labels, legend endpoints, score options, shared regex |
 | `src/data/loader.js` | CSV loading and parsing (scores + regulation data) |
 | `src/data/history.js` | History JSON loading and date-based score reconstruction |
+| `src/data/changelog.js` | Per-country score-change computation from history snapshots |
+| `src/data/searchIndex.js` | Full-text index + substring search over regulation text |
+| `src/data/countryMatch.js` | Shared country-name autocomplete matcher |
+| `src/data/blocs.js` | Bloc membership loading + aggregate stats (`computeBlocStats`) |
 | `src/map/` | Map rendering (renderer, legend, zoom, tooltip) |
-| `src/panel/` | Country detail panel (scores, text sections) |
-| `src/controls/` | UI controls (search, score selector, filter, timeline) |
+| `src/panel/` | Country detail panel (scores, text sections, changelog) |
+| `src/comparison/` | Side-by-side comparison panel + radar chart |
+| `src/scatter/` | Cross-dimension scatter plot with deterministic jitter |
+| `src/controls/` | UI controls (search, score selector, filter, blocs, export, timeline, URL sync, citations) |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
 **State management:** All mutable state lives in `src/state/store.js` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
@@ -93,6 +103,7 @@ Python package that calls the Claude API to research regulation status per count
 | `public/regulation_data.csv` | Text descriptions, laws, source URLs, confidence, last_updated |
 | `public/history.json` | Timestamped snapshots of score data for timeline playback |
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
+| `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
 
 These files are served as static assets by Vite (via `publicDir`) and copied unchanged to `dist/` on build.
 
