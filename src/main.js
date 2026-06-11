@@ -9,6 +9,7 @@ import { initBlocSummary } from './controls/blocSummary.js';
 import { generateMap, initMapSubscriptions } from './map/index.js';
 import { initPanel } from './panel/index.js';
 import { initComparison } from './comparison/index.js';
+import { initScatter } from './scatter/index.js';
 import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelector.js';
 import { initFilter } from './controls/filter.js';
 import { initExport } from './controls/export.js';
@@ -89,7 +90,16 @@ async function main() {
   initSearch();
   initKeyboardNav();
   initMapSubscriptions();
+  initScatter();
   initHelpOverlay();
+
+  if (urlState.scatter) {
+    setState({
+      scatterOpen: true,
+      scatterX: urlState.scatter.x,
+      scatterY: urlState.scatter.y,
+    });
+  }
 
   // Render map
   try {

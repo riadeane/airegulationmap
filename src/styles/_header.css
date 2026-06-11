@@ -215,7 +215,8 @@ h1 {
 
 #score-btn,
 #filter-btn,
-#export-btn {
+#export-btn,
+#scatter-btn {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -233,7 +234,8 @@ h1 {
 
 #score-btn:hover,
 #filter-btn:hover,
-#export-btn:hover {
+#export-btn:hover,
+#scatter-btn:hover {
   border-color: var(--accent);
   color: var(--text-primary);
   box-shadow: 0 0 0 3px var(--accent-muted);
@@ -241,7 +243,8 @@ h1 {
 
 #score-btn.active,
 #filter-btn.active,
-#export-btn.active {
+#export-btn.active,
+#scatter-btn.active {
   border-color: var(--accent);
   background: var(--accent-muted);
   color: var(--accent);

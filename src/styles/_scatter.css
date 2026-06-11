@@ -1,0 +1,117 @@
+/* Scatter plot ("dimension explorer") — overlay card on the map,
+   bottom-left above the zoom controls. */
+
+.scatter-container {
+  position: absolute;
+  bottom: 24px;
+  left: 20px;
+  z-index: 20;
+  width: min(480px, calc(100% - 40px));
+  max-height: calc(100% - 48px);
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeUp 0.25s var(--ease-out);
+}
+
+.scatter-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scatter-title {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+#scatter-close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s var(--ease-out);
+}
+
+#scatter-close:hover {
+  color: var(--accent);
+}
+
+.scatter-controls {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.scatter-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.scatter-controls select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 7px;
+  font-size: 0.75rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-out);
+}
+
+.scatter-controls select:hover,
+.scatter-controls select:focus {
+  border-color: var(--accent);
+}
+
+#scatter-chart {
+  margin-top: 8px;
+  /* d3-axis strokes/fills draw in currentColor */
+  color: var(--text-tertiary);
+}
+
+#scatter-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.scatter-axis text {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 10px;
+}
+
+.scatter-axis-label {
+  fill: var(--text-secondary);
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 11px;
+}
+
+circle.scatter-dot {
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .scatter-container {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+    padding: 10px 12px;
+  }
+}

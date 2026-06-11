@@ -17,6 +17,13 @@ const VALID_MODES = new Set(SCORE_OPTIONS.map(o => o.value));
 const DEFAULT_MODE = 'averageScore';
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+// Scatter axes exclude the derived average.
+const VALID_SCATTER_DIMS = new Set(
+  SCORE_OPTIONS.map(o => o.value).filter(v => v !== DEFAULT_MODE)
+);
+const DEFAULT_SCATTER_X = 'enforcementLevel';
+const DEFAULT_SCATTER_Y = 'regulationStatus';
+
 function splitCompare(raw) {
   if (!raw) return [];
   const seen = new Set();
@@ -61,6 +68,18 @@ export function parseUrl(search = window.location.search) {
   const bloc = params.get('bloc');
   if (bloc && /^[A-Z0-9]{2,8}$/i.test(bloc)) out.bloc = bloc.toUpperCase();
 
+  // scatter=1 → open with default axes; scatter=<x>,<y> → open with
+  // those axes. Invalid axis names are ignored entirely.
+  const scatter = params.get('scatter');
+  if (scatter === '1') {
+    out.scatter = { x: DEFAULT_SCATTER_X, y: DEFAULT_SCATTER_Y };
+  } else if (scatter) {
+    const [x, y] = scatter.split(',');
+    if (VALID_SCATTER_DIMS.has(x) && VALID_SCATTER_DIMS.has(y)) {
+      out.scatter = { x, y };
+    }
+  }
+
   return out;
 }
 
@@ -86,6 +105,11 @@ export function buildPermalink(stateSnapshot) {
 
   if (s.selectedBloc) {
     params.set('bloc', s.selectedBloc);
+  }
+
+  if (s.scatterOpen) {
+    const isDefault = s.scatterX === DEFAULT_SCATTER_X && s.scatterY === DEFAULT_SCATTER_Y;
+    params.set('scatter', isDefault ? '1' : `${s.scatterX},${s.scatterY}`);
   }
 
   const theme = document.documentElement.getAttribute('data-theme');
@@ -138,6 +162,16 @@ function applyUrlState(urlState, { initial = false } = {}) {
     setState({ selectedBloc: null });
   }
 
+  if (urlState.scatter) {
+    setState({
+      scatterOpen: true,
+      scatterX: urlState.scatter.x,
+      scatterY: urlState.scatter.y,
+    });
+  } else if (!initial) {
+    setState({ scatterOpen: false });
+  }
+
   // Comparison wins over country — the comparison panel takes the
   // right-hand slot either way.
   const { scoreData } = getState();
@@ -165,6 +199,9 @@ export function initUrlSync() {
   on('currentAttribute', writeReplace);
   on('timelineDate', writeReplace);
   on('selectedBloc', writeReplace);
+  on('scatterOpen', writeReplace);
+  on('scatterX', writeReplace);
+  on('scatterY', writeReplace);
 
   // Theme changes come from two sources: the toggle (sets data-theme
   // directly) and prefers-color-scheme. We watch the attribute.

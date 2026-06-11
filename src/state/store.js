@@ -18,6 +18,10 @@ const state = {
   selectedBloc: null,
   // Parsed blocs.json — loaded async; null until then / on failure.
   blocsData: null,
+  // Scatter plot ("dimension explorer") panel state.
+  scatterOpen: false,
+  scatterX: 'enforcementLevel',
+  scatterY: 'regulationStatus',
 };
 
 const listeners = new Map();

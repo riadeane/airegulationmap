@@ -121,6 +121,7 @@
           </div>
         </div>
       </div>
+      <button id="scatter-btn" aria-pressed="false" title="Cross-dimension scatter plot">Scatter</button>
       <div id="export-btn-container">
         <button id="export-btn" aria-haspopup="true" aria-expanded="false">
           Export <span class="caret">▾</span>
@@ -160,6 +161,17 @@
       </div>
       <div id="zoom-controls"></div>
       <div id="bloc-summary" class="bloc-summary" hidden></div>
+      <div id="scatter-container" class="scatter-container" hidden>
+        <div class="scatter-header">
+          <span class="scatter-title">Dimension explorer</span>
+          <button id="scatter-close" type="button" aria-label="Close scatter plot">&times;</button>
+        </div>
+        <div class="scatter-controls">
+          <label>X <select id="scatter-x" aria-label="X axis dimension"></select></label>
+          <label>Y <select id="scatter-y" aria-label="Y axis dimension"></select></label>
+        </div>
+        <div id="scatter-chart"></div>
+      </div>
       <div
         id="map-live-region"
         class="sr-only"
