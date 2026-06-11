@@ -124,6 +124,8 @@ export function initKeyboardNav() {
       document.getElementById('score-btn').classList.remove('active');
       document.getElementById('filter-popover').classList.remove('open');
       document.getElementById('filter-btn').classList.remove('active');
+      document.getElementById('export-popover').classList.remove('open');
+      document.getElementById('export-btn').classList.remove('active');
       return;
     }
 

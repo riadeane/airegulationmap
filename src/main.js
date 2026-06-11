@@ -8,6 +8,7 @@ import { initPanel } from './panel/index.js';
 import { initComparison } from './comparison/index.js';
 import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelector.js';
 import { initFilter } from './controls/filter.js';
+import { initExport } from './controls/export.js';
 import { initSearch, initKeyboardNav } from './controls/search.js';
 import { initTimeline } from './controls/timeline.js';
 import { initTheme } from './controls/theme.js';
@@ -33,13 +34,17 @@ function updateCountryCount(scoreData) {
 }
 
 function closeAllDropdowns(e) {
-  if (e.target.closest('#score-dropdown, #score-btn, #filter-popover, #filter-btn')) return;
-  document.getElementById('score-dropdown').classList.remove('open');
-  document.getElementById('score-btn').classList.remove('active');
-  document.getElementById('score-btn').setAttribute('aria-expanded', 'false');
-  document.getElementById('filter-popover').classList.remove('open');
-  document.getElementById('filter-btn').classList.remove('active');
-  document.getElementById('filter-btn').setAttribute('aria-expanded', 'false');
+  if (e.target.closest('#score-dropdown, #score-btn, #filter-popover, #filter-btn, #export-popover, #export-btn')) return;
+  for (const [popoverId, btnId] of [
+    ['score-dropdown', 'score-btn'],
+    ['filter-popover', 'filter-btn'],
+    ['export-popover', 'export-btn'],
+  ]) {
+    document.getElementById(popoverId).classList.remove('open');
+    const btn = document.getElementById(btnId);
+    btn.classList.remove('active');
+    btn.setAttribute('aria-expanded', 'false');
+  }
 }
 
 async function main() {
@@ -73,6 +78,7 @@ async function main() {
   initTheme();
   buildScoreSelector();
   initFilter();
+  initExport();
   initDimensionClicks();
   initPanel();
   initCitePopover();

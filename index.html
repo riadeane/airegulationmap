@@ -121,6 +121,17 @@
           </div>
         </div>
       </div>
+      <div id="export-btn-container">
+        <button id="export-btn" aria-haspopup="true" aria-expanded="false">
+          Export <span class="caret">▾</span>
+        </button>
+        <div id="export-popover" aria-label="Export data">
+          <button type="button" data-format="csv" data-scope="filtered">CSV — filtered view</button>
+          <button type="button" data-format="json" data-scope="filtered">JSON — filtered view</button>
+          <button type="button" data-format="csv" data-scope="all">CSV — all countries</button>
+          <button type="button" data-format="json" data-scope="all">JSON — all countries</button>
+        </div>
+      </div>
       <button
         id="theme-toggle"
         class="theme-toggle"

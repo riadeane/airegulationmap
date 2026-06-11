@@ -1,0 +1,95 @@
+// CSV / JSON export of the dataset — the whole thing or the current
+// filtered view. Researchers feed this straight into R / Python / Excel.
+//
+// Exports always reflect the LATEST data, even while the timeline is
+// scrubbed to a historical date: history snapshots carry scores only,
+// so a historical export would silently pair old scores with current
+// text descriptions.
+
+import { csvFormat } from 'd3-dsv';
+import { getState } from '../state/store.js';
+
+function buildExportRows(countries) {
+  const { scoreData, regulationData } = getState();
+  return countries.map(name => {
+    const scores = scoreData[name] || {};
+    const reg = regulationData[name] || {};
+    return {
+      'Country': name,
+      'Average Score': scores.averageScore,
+      'Regulation Status (Score)': scores.regulationStatus,
+      'Policy Lever (Score)': scores.policyLever,
+      'Governance Type (Score)': scores.governanceType,
+      'Actor Involvement (Score)': scores.actorInvolvement,
+      'Enforcement Level (Score)': scores.enforcementLevel,
+      'Regulation Status': reg.regulationStatus || '',
+      'Policy Lever': reg.policyLever || '',
+      'Governance Type': reg.governanceType || '',
+      'Actor Involvement': reg.actorInvolvement || '',
+      'Enforcement Level': reg.enforcementLevel || '',
+      'Specific Laws': reg.specificLaws || '',
+      'Sources': reg.sources || '',
+      'Confidence': reg.confidence || '',
+      'Last Updated': scores.lastUpdated || reg.lastUpdated || '',
+    };
+  });
+}
+
+// Countries passing the active score-range filter. Countries with no
+// score for the current attribute are excluded — they're dimmed on the
+// map, and "all countries" covers them.
+function getFilteredCountries() {
+  const { scoreData, currentAttribute, filterMin, filterMax } = getState();
+  return Object.keys(scoreData)
+    .filter(name => {
+      const score = scoreData[name]?.[currentAttribute];
+      return score != null && score >= filterMin && score <= filterMax;
+    })
+    .sort();
+}
+
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportData(format, allCountries) {
+  const countries = allCountries
+    ? Object.keys(getState().scoreData).sort()
+    : getFilteredCountries();
+  const rows = buildExportRows(countries);
+  const date = new Date().toISOString().slice(0, 10);
+  const scope = allCountries ? 'all' : 'filtered';
+  if (format === 'csv') {
+    downloadFile(csvFormat(rows), `ai-regulation-data-${scope}-${date}.csv`, 'text/csv');
+  } else {
+    downloadFile(JSON.stringify(rows, null, 2), `ai-regulation-data-${scope}-${date}.json`, 'application/json');
+  }
+}
+
+export function initExport() {
+  const btn = document.getElementById('export-btn');
+  const popover = document.getElementById('export-popover');
+  if (!btn || !popover) return;
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = popover.classList.toggle('open');
+    btn.classList.toggle('active', open);
+    btn.setAttribute('aria-expanded', String(open));
+  });
+
+  popover.addEventListener('click', e => {
+    const target = e.target.closest('button[data-format]');
+    if (!target) return;
+    exportData(target.dataset.format, target.dataset.scope === 'all');
+    popover.classList.remove('open');
+    btn.classList.remove('active');
+    btn.setAttribute('aria-expanded', 'false');
+  });
+}
