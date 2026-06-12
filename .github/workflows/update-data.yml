@@ -24,6 +24,16 @@ on:
         required: false
         default: 'false'
         type: boolean
+      search_all:
+        description: 'Enable web search for ALL countries (Sonnet; ~$10-12 for a full run with batch)'
+        required: false
+        default: 'false'
+        type: boolean
+      batch:
+        description: 'Use the Message Batches API (50% token pricing, results within ~1h)'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   update-data:
@@ -51,12 +61,16 @@ jobs:
           INPUT_MODEL: ${{ github.event.inputs.model || 'claude-haiku-4-5-20251001' }}
           INPUT_FORCE: ${{ (github.event.inputs.force_update == 'true') && '--force' || '' }}
           INPUT_SEARCH: ${{ (github.event_name == 'schedule' || github.event.inputs.search == 'true') && '--search' || '' }}
+          INPUT_SEARCH_ALL: ${{ (github.event.inputs.search_all == 'true') && '--search-all' || '' }}
+          INPUT_BATCH: ${{ (github.event_name == 'schedule' || github.event.inputs.batch == 'true') && '--batch' || '' }}
         run: |
           python scripts/update_data.py \
             --countries "$INPUT_COUNTRIES" \
             --model "$INPUT_MODEL" \
             $INPUT_FORCE \
-            $INPUT_SEARCH
+            $INPUT_SEARCH \
+            $INPUT_SEARCH_ALL \
+            $INPUT_BATCH
 
       - name: Check for changes
         id: changes

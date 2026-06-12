@@ -24,6 +24,37 @@ DIMENSIONS = list(SUBSCORE_FIELDS.keys())
 MATURITY_DIMENSIONS = ["regulation_status", "policy_lever", "enforcement_level"]
 
 
+def build_output_schema():
+    """JSON schema for structured outputs (output_config.format).
+
+    The API constrains the response to this schema, so sub-scores are
+    guaranteed integers 1-5 and every field is present — JSON parse
+    failures and missing-field rejects disappear at the source.
+    Structured outputs don't support minimum/maximum, so the 1-5 range
+    is expressed as an enum.
+    """
+    score = {"type": "integer", "enum": [1, 2, 3, 4, 5]}
+    properties = {}
+    for dim, subs in SUBSCORE_FIELDS.items():
+        dim_props = {sub: score for sub in subs}
+        dim_props["text"] = {"type": "string"}
+        properties[dim] = {
+            "type": "object",
+            "properties": dim_props,
+            "required": subs + ["text"],
+            "additionalProperties": False,
+        }
+    properties["specific_laws"] = {"type": "string"}
+    properties["sources"] = {"type": "string"}
+    properties["confidence"] = {"type": "string", "enum": ["high", "medium", "low"]}
+    return {
+        "type": "object",
+        "properties": properties,
+        "required": list(properties),
+        "additionalProperties": False,
+    }
+
+
 def validate_result(result):
     """Check that an API result carries every sub-indicator as an int 1-5.
 

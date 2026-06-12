@@ -134,3 +134,19 @@ class TestBuildSubscoresEntry:
         for dim, subs in SUBSCORE_FIELDS.items():
             assert set(entry[dim].keys()) == set(subs)
         assert entry["regulation_status"]["ai_specificity"] == 5
+
+
+class TestBuildOutputSchema:
+    def test_schema_covers_every_dimension_and_subscore(self):
+        from regulation_pipeline.processor import build_output_schema
+
+        schema = build_output_schema()
+        assert schema["additionalProperties"] is False
+        for dim, subs in SUBSCORE_FIELDS.items():
+            block = schema["properties"][dim]
+            assert block["additionalProperties"] is False
+            assert set(block["required"]) == set(subs) | {"text"}
+            for sub in subs:
+                assert block["properties"][sub] == {"type": "integer", "enum": [1, 2, 3, 4, 5]}
+        assert schema["properties"]["confidence"]["enum"] == ["high", "medium", "low"]
+        assert set(schema["required"]) == set(schema["properties"])

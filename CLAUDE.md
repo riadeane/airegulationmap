@@ -37,7 +37,19 @@ python scripts/update_data.py --dry-run
 
 # Use a specific Claude model
 python scripts/update_data.py --model claude-opus-4-5
+
+# Message Batches API: 50% token pricing, results within ~1h.
+# The recommended mode for full runs (the workflow defaults to it).
+python scripts/update_data.py --force --batch
+
+# Web search for every country (not just priority) — always uses
+# Sonnet 4.6; pair with --batch. ~$10-12 for a full 196-country run.
+python scripts/update_data.py --force --batch --search-all
 ```
+
+Requests use structured outputs (`output_config.format`, schema built in
+`processor.build_output_schema()`), so responses are guaranteed schema-valid
+JSON — sub-scores arrive as ints 1–5 with all fields present.
 
 Requires `ANTHROPIC_API_KEY` in environment. Install Python dependencies:
 
@@ -89,6 +101,7 @@ Python package that calls the Claude API to research regulation status per count
 |--------|---------|
 | `cli.py` | CLI entry point — arg parsing, orchestration loop |
 | `api.py` | Claude API calls, prompt template, response parsing |
+| `batch.py` | Message Batches API submission/polling (50% token pricing) |
 | `config.py` | Constants — file paths, field lists, staleness threshold, priority countries |
 | `data_io.py` | CSV/JSON loading and writing, validation |
 | `names.py` | Country name normalization via alias map |

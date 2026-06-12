@@ -5,6 +5,8 @@ import random
 import time
 from datetime import date
 
+from .processor import build_output_schema
+
 try:
     import anthropic
 except ImportError:
@@ -164,8 +166,9 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.
 """
 
 
-def research_country(client, country, existing_reg, model, use_search=False):
-    """Call Claude API to research one country. Returns parsed dict or None on error."""
+def build_request_params(country, existing_reg, model, use_search=False):
+    """Build the messages.create kwargs for one country. Shared by the
+    synchronous path (research_country) and the Batches path."""
     existing_reg = existing_reg or {}
     prompt = RESEARCH_PROMPT.format(
         country=country,
@@ -176,35 +179,61 @@ def research_country(client, country, existing_reg, model, use_search=False):
         existing_actors=existing_reg.get("Actor Involvement", "Unknown"),
     )
 
-    request_kwargs = {
+    params = {
         "model": model,
         # The sub-indicator schema is a substantially larger response
         # than the old flat scores.
         "max_tokens": 3072 if use_search else 2048,
-        "messages": [{"role": "user", "content": prompt}]
+        "messages": [{"role": "user", "content": prompt}],
+        # Structured outputs: the API constrains the answer to the
+        # schema, so sub-scores arrive as guaranteed ints 1-5 with all
+        # fields present.
+        "output_config": {
+            "format": {"type": "json_schema", "schema": build_output_schema()}
+        },
     }
     if use_search:
-        request_kwargs["tools"] = [{"type": "web_search_20250305", "name": "web_search"}]
+        # Search runs always use Sonnet 4.6 (cli.py), which supports the
+        # 20260209 tool version — it filters search results before they
+        # reach context (cheaper, more accurate than 20250305).
+        params["tools"] = [{"type": "web_search_20260209", "name": "web_search"}]
+    return params
 
-    response = _call_with_retries(client, request_kwargs, country)
-    if response is None:
+
+def parse_message(message, country):
+    """Extract and parse the JSON answer from a Message. Returns dict or
+    None. With web search enabled, responses interleave text and
+    server_tool_use blocks — the constrained JSON answer is the LAST
+    text block, not the first."""
+    text = next(
+        (block.text for block in reversed(message.content) if block.type == "text"),
+        None,
+    )
+    if not text:
+        print(f"  WARNING: no text block in response for {country}")
         return None
-
+    text = text.strip()
+    # Defensive: structured outputs shouldn't produce fences, but strip
+    # them if present.
+    if text.startswith("```"):
+        text = text.split("```")[1]
+        if text.startswith("json"):
+            text = text[4:]
     try:
-        text = next((block.text for block in response.content if block.type == "text"), None)
-        if not text:
-            print(f"  WARNING: no text block in response for {country}")
-            return None
-        text = text.strip()
-        # Strip markdown code fences if present
-        if text.startswith("```"):
-            text = text.split("```")[1]
-            if text.startswith("json"):
-                text = text[4:]
         return json.loads(text)
     except json.JSONDecodeError as e:
         print(f"  WARNING: JSON parse error for {country}: {e}")
         return None
+
+
+def research_country(client, country, existing_reg, model, use_search=False):
+    """Call Claude API to research one country. Returns parsed dict or None on error."""
+    request_kwargs = build_request_params(country, existing_reg, model, use_search)
+    response = _call_with_retries(client, request_kwargs, country)
+    if response is None:
+        return None
+    try:
+        return parse_message(response, country)
     except Exception as e:
         print(f"  ERROR researching {country}: {e}")
         return None
