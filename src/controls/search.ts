@@ -185,6 +185,12 @@ export function initKeyboardNav(): void {
     }
 
     if (e.key === 'Escape') {
+      // Esc backs out one layer at a time: explorer view first, then
+      // selection/dropdowns on the next press.
+      if (getState().scatterOpen) {
+        setState({ scatterOpen: false });
+        return;
+      }
       // While the comparison panel is active, leave selectedCountry
       // alone so the add-bar keeps reflecting the last clicked country.
       if (getState().comparisonCountries.length < 2) {

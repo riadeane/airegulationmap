@@ -678,3 +678,18 @@
 .changelog-note a {
   color: var(--text-secondary);
 }
+
+/* Disclosure caret — the dimension rows expand to sub-indicators, and
+   nothing else hints at that. */
+.dimension-row[aria-expanded]::after {
+  content: '▸';
+  font-size: 0.6rem;
+  color: var(--text-tertiary);
+  margin-left: 8px;
+  transition: transform 0.15s var(--ease-out);
+  flex-shrink: 0;
+}
+
+.dimension-row[aria-expanded='true']::after {
+  transform: rotate(90deg);
+}

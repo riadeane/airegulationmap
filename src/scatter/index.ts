@@ -1,9 +1,11 @@
 // Cross-dimension scatter plot ("dimension explorer"). Plots every
 // country on two chosen score dimensions to reveal governance
-// clusters. Overlays the map; clicking a dot selects the country.
+// clusters. Opens as a full view in the map's slot (body.view-scatter
+// hides the map layer); the country panel stays alongside, so clicking
+// a dot reads exactly like clicking a country on the map.
 //
 // Shows LATEST scores only — the timeline scrubber drives the map, not
-// this panel (history snapshots are score-only and axis pairs would
+// this view (history snapshots are score-only and axis pairs would
 // silently mix vintages).
 
 import { select } from 'd3-selection';
@@ -22,9 +24,9 @@ import { cssVar, onThemeChange } from '../map/cssColors';
 import { createTooltip, showTooltip, hideTooltip } from '../map/tooltip';
 import { jitterFor } from './jitter';
 
-const WIDTH = 480;
-const HEIGHT = 380;
-const MARGIN = { top: 16, right: 16, bottom: 44, left: 44 };
+const WIDTH = 760;
+const HEIGHT = 540;
+const MARGIN = { top: 24, right: 28, bottom: 52, left: 52 };
 
 const AXIS_DIMENSIONS = SCORE_OPTIONS.filter(o => o.value !== 'averageScore');
 
@@ -160,12 +162,29 @@ function updateChart(): void {
     .attr('stroke', strokeColor)
     .attr('stroke-width', d => d.name === selectedCountry ? 2 : 0.6)
     .style('opacity', d => d.visible ? 0.85 : 0.15);
+
+  // Name label pinned to the selected country's dot — in a 196-dot
+  // field the highlight ring alone is easy to lose.
+  const selectedDot = selectedCountry
+    ? countries.find(d => d.name === selectedCountry)
+    : undefined;
+  svg.selectAll<SVGTextElement, PlottedDot>('text.scatter-dot-label')
+    .data(selectedDot ? [selectedDot] : [], d => d.name)
+    .join('text')
+    .attr('class', 'scatter-dot-label')
+    .attr('x', d => xScale(d.x + jitterFor(d.name).dx) + 11)
+    .attr('y', d => yScale(d.y + jitterFor(d.name).dy) + 4)
+    .text(d => d.name);
 }
 
 function setVisible(open: boolean): void {
   const container = document.getElementById('scatter-container')!;
   const btn = document.getElementById('scatter-btn')!;
   container.hidden = !open;
+  // The explorer takes over the map's slot; the map layer (svg, zoom,
+  // bloc card, timeline) hides via this class but keeps its DOM and
+  // layout so switching back is instant.
+  document.body.classList.toggle('view-scatter', open);
   btn.classList.toggle('active', open);
   btn.setAttribute('aria-pressed', String(open));
   if (open) {
