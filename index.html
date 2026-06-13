@@ -25,6 +25,10 @@
 
   <!-- General meta -->
   <meta name="description" content="Interactive map tracking AI governance and regulation status across every country. Scores, legislation, and policy details updated monthly.">
+  <link rel="canonical" href="https://airegulationmap.org/">
+  <!-- Browser-chrome tint: hex equivalents of --surface per theme -->
+  <meta name="theme-color" content="#16130f" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#fefdfc" media="(prefers-color-scheme: light)">
 
   <!-- Resolve theme before paint to avoid a flash of wrong theme.
        URL wins over localStorage wins over prefers-color-scheme. -->
@@ -85,9 +89,9 @@
         <input
           type="text"
           id="country-search"
-          placeholder="Search countries..."
+          placeholder="Search countries or policies…"
           autocomplete="off"
-          aria-label="Search for a country"
+          aria-label="Search for a country or policy keyword"
           aria-autocomplete="list"
           aria-controls="search-suggestions"
         />
@@ -117,6 +121,18 @@
           </div>
         </div>
       </div>
+      <button id="scatter-btn" aria-pressed="false" title="Dimension explorer — cross-dimension scatter view">Explorer</button>
+      <div id="export-btn-container">
+        <button id="export-btn" aria-haspopup="true" aria-expanded="false">
+          Export <span class="caret">▾</span>
+        </button>
+        <div id="export-popover" aria-label="Export data">
+          <button type="button" data-format="csv" data-scope="filtered">CSV — filtered view</button>
+          <button type="button" data-format="json" data-scope="filtered">JSON — filtered view</button>
+          <button type="button" data-format="csv" data-scope="all">CSV — all countries</button>
+          <button type="button" data-format="json" data-scope="all">JSON — all countries</button>
+        </div>
+      </div>
       <button
         id="theme-toggle"
         class="theme-toggle"
@@ -144,6 +160,18 @@
         </div>
       </div>
       <div id="zoom-controls"></div>
+      <div id="bloc-summary" class="bloc-summary" hidden></div>
+      <div id="scatter-container" class="scatter-container" hidden>
+        <div class="scatter-header">
+          <span class="scatter-title">Dimension explorer</span>
+          <button id="scatter-close" type="button" aria-label="Close scatter plot">&times;</button>
+        </div>
+        <div class="scatter-controls">
+          <label>X <select id="scatter-x" aria-label="X axis dimension"></select></label>
+          <label>Y <select id="scatter-y" aria-label="Y axis dimension"></select></label>
+        </div>
+        <div id="scatter-chart"></div>
+      </div>
       <div
         id="map-live-region"
         class="sr-only"
@@ -168,6 +196,7 @@
           <div class="panel-name-row">
             <span id="country-name"></span>
             <span id="confidence-badge" class="confidence-badge"></span>
+            <button id="panel-close" class="panel-close" type="button" aria-label="Close country details">&times;</button>
           </div>
           <small id="last-updated" class="data-freshness"></small>
           <div class="panel-header-actions">
@@ -197,6 +226,7 @@
             </div>
             <span class="score-value" id="average-score"></span>
           </div>
+          <div class="maturity-rank" id="maturity-rank"></div>
         </div>
         <div class="panel-section">
           <div class="panel-section-label">DIMENSIONS</div>
@@ -251,13 +281,29 @@
           <p id="specific-laws"></p>
         </div>
         <div class="panel-section" id="sources-section">
-          <div class="panel-section-label">SOURCES</div>
+          <div class="panel-section-label panel-section-label-row">
+            SOURCES
+            <button id="sources-copy" class="sources-copy" type="button" hidden>Copy all</button>
+          </div>
           <ul id="sources-list"></ul>
         </div>
+        <div class="panel-section" id="changelog-section" style="display:none">
+          <div class="panel-section-label">SCORE HISTORY</div>
+          <div id="changelog-entries"></div>
+        </div>
+      </div>
+      <div id="comparison-strip" class="comparison-strip" role="region" aria-label="Comparison set" hidden>
+        <div class="strip-header">
+          <span class="strip-title">Comparison set</span>
+          <span class="strip-count"><span id="comparison-strip-count">0</span>/4</span>
+        </div>
+        <div id="tray-chips" class="strip-chips"></div>
+        <button id="tray-view-btn" class="strip-view-btn" type="button" disabled>View comparison</button>
       </div>
     </aside>
     <aside id="comparison-panel" hidden>
       <div class="comparison-header">
+        <button id="comparison-back-btn" class="comparison-back-btn" type="button" aria-label="Back to map">&larr; Map</button>
         <div class="comparison-title">
           <h2>Country Comparison</h2>
           <small><span id="comparison-count">0</span> / 4 selected</small>
@@ -266,8 +312,10 @@
       </div>
       <div id="comparison-add-bar" class="comparison-add-bar"></div>
       <div id="comparison-chips" class="comparison-chips"></div>
-      <div id="radar-chart" class="radar-chart"></div>
-      <div id="comparison-details" class="comparison-details"></div>
+      <div class="comparison-body">
+        <div id="radar-chart" class="radar-chart"></div>
+        <div id="comparison-table" class="comparison-table-wrap"></div>
+      </div>
     </aside>
   </main>
 
@@ -280,7 +328,7 @@
   </div>
 
   <footer>
-    <p>Data sourced from the <a href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region" target="_blank" rel="noopener noreferrer">EA AI Governance Tracker</a>. Scores assigned by <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>. Updated monthly.</p>
+    <p>Scores researched and assigned by <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>. Updated monthly.</p>
     <p>Methodology: <a href="/methodology.html">How countries are scored</a></p>
     <p>Made by Ria Deane &nbsp;&middot;&nbsp;
       <a href="https://www.linkedin.com/in/riadeane" target="_blank" rel="noopener noreferrer">LinkedIn</a> &nbsp;&middot;&nbsp;
@@ -314,6 +362,6 @@
     </div>
   </dialog>
 
-  <script type="module" src="/src/main.js"></script>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

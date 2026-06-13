@@ -84,6 +84,11 @@
     left: 0;
     right: auto;
   }
+
+  #export-popover {
+    left: auto;
+    right: 0;
+  }
 }
 
 /* Coarse pointers (touch devices): guarantee 44px hit targets even
@@ -91,6 +96,8 @@
 @media (pointer: coarse) {
   #score-btn,
   #filter-btn,
+  #export-btn,
+  #scatter-btn,
   .theme-toggle,
   #timeline-reset,
   #zoom-controls button {

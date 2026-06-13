@@ -1,0 +1,236 @@
+// Cross-dimension scatter plot ("dimension explorer"). Plots every
+// country on two chosen score dimensions to reveal governance
+// clusters. Opens as a full view in the map's slot (body.view-scatter
+// hides the map layer); the country panel stays alongside, so clicking
+// a dot reads exactly like clicking a country on the map.
+//
+// Shows LATEST scores only — the timeline scrubber drives the map, not
+// this view (history snapshots are score-only and axis pairs would
+// silently mix vintages).
+
+import { select } from 'd3-selection';
+import type { Selection } from 'd3-selection';
+import { scaleLinear } from 'd3-scale';
+import type { ScaleLinear } from 'd3-scale';
+import { axisBottom, axisLeft } from 'd3-axis';
+import { format } from 'd3-format';
+import 'd3-transition';
+
+import { getState, setState, on } from '../state/store';
+import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants';
+import type { AttributeKey } from '../constants';
+import { makeColorScale } from '../map/legend';
+import { cssVar, onThemeChange } from '../map/cssColors';
+import { createTooltip, showTooltip, hideTooltip } from '../map/tooltip';
+import { jitterFor } from './jitter';
+
+const WIDTH = 760;
+const HEIGHT = 540;
+const MARGIN = { top: 24, right: 28, bottom: 52, left: 52 };
+
+const AXIS_DIMENSIONS = SCORE_OPTIONS.filter(o => o.value !== 'averageScore');
+
+/** One country positioned on the two chosen score dimensions. */
+interface ScatterDot {
+  name: string;
+  x: number | null;
+  y: number | null;
+  avg: number | null;
+  visible: boolean;
+}
+
+/** A dot that survived the null-coordinate filter below. */
+type PlottedDot = ScatterDot & { x: number; y: number };
+
+let svg: Selection<SVGSVGElement, unknown, HTMLElement, unknown> | null = null;
+let xScale: ScaleLinear<number, number>, yScale: ScaleLinear<number, number>;
+
+function populateAxisSelects(): void {
+  const { scatterX, scatterY } = getState();
+  for (const [id, current] of [['scatter-x', scatterX], ['scatter-y', scatterY]]) {
+    const sel = document.getElementById(id) as HTMLSelectElement;
+    for (const dim of AXIS_DIMENSIONS) {
+      const opt = document.createElement('option');
+      opt.value = dim.value;
+      opt.textContent = dim.text;
+      sel.appendChild(opt);
+    }
+    sel.value = current;
+    sel.addEventListener('change', () => {
+      setState(id === 'scatter-x' ? { scatterX: sel.value as AttributeKey } : { scatterY: sel.value as AttributeKey });
+    });
+  }
+}
+
+function createChart(): void {
+  const chart = select('#scatter-chart');
+  svg = chart.append<SVGSVGElement>('svg')
+    .attr('viewBox', `0 0 ${WIDTH} ${HEIGHT}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet')
+    .attr('role', 'img')
+    .attr('aria-label', 'Scatter plot of countries across two score dimensions');
+
+  xScale = scaleLinear().domain([0.5, 5.5]).range([MARGIN.left, WIDTH - MARGIN.right]);
+  yScale = scaleLinear().domain([0.5, 5.5]).range([HEIGHT - MARGIN.bottom, MARGIN.top]);
+
+  // Axes inherit currentColor from CSS so theme switches restyle them
+  // for free; only the dot fills need explicit recoloring.
+  svg.append('g')
+    .attr('class', 'scatter-axis scatter-axis-x')
+    .attr('transform', `translate(0,${HEIGHT - MARGIN.bottom})`)
+    .call(axisBottom(xScale).tickValues([1, 2, 3, 4, 5]).tickFormat(format('d')));
+
+  svg.append('g')
+    .attr('class', 'scatter-axis scatter-axis-y')
+    .attr('transform', `translate(${MARGIN.left},0)`)
+    .call(axisLeft(yScale).tickValues([1, 2, 3, 4, 5]).tickFormat(format('d')));
+
+  svg.append('text')
+    .attr('class', 'scatter-axis-label')
+    .attr('id', 'scatter-x-label')
+    .attr('x', MARGIN.left + (WIDTH - MARGIN.left - MARGIN.right) / 2)
+    .attr('y', HEIGHT - 8)
+    .attr('text-anchor', 'middle');
+
+  svg.append('text')
+    .attr('class', 'scatter-axis-label')
+    .attr('id', 'scatter-y-label')
+    .attr('transform', 'rotate(-90)')
+    .attr('x', -(MARGIN.top + (HEIGHT - MARGIN.top - MARGIN.bottom) / 2))
+    .attr('y', 13)
+    .attr('text-anchor', 'middle');
+}
+
+function dotTooltipHtml(d: PlottedDot, xKey: AttributeKey, yKey: AttributeKey): string {
+  return `<strong>${d.name}</strong><br>` +
+    `${ATTRIBUTE_LABELS[xKey]}: ${d.x}<br>` +
+    `${ATTRIBUTE_LABELS[yKey]}: ${d.y}`;
+}
+
+function updateChart(): void {
+  if (!svg) return;
+  const {
+    scoreData, scatterX, scatterY, selectedCountry,
+    currentAttribute, filterMin, filterMax, selectedBloc, blocsData,
+  } = getState();
+
+  svg.select('#scatter-x-label').text(ATTRIBUTE_LABELS[scatterX]);
+  svg.select('#scatter-y-label').text(ATTRIBUTE_LABELS[scatterY]);
+
+  const blocSet = selectedBloc && blocsData?.[selectedBloc]
+    ? new Set(blocsData[selectedBloc].members)
+    : null;
+
+  const countries = Object.entries(scoreData)
+    .map(([name, scores]): ScatterDot => {
+      const filterScore = scores[currentAttribute];
+      const inRange = filterScore != null
+        && filterScore >= filterMin && filterScore <= filterMax;
+      const inBloc = !blocSet || blocSet.has(name);
+      return {
+        name,
+        x: scores[scatterX],
+        y: scores[scatterY],
+        avg: scores.averageScore,
+        visible: inRange && inBloc,
+      };
+    })
+    .filter((d): d is PlottedDot => d.x != null && d.y != null);
+
+  const colorScale = makeColorScale();
+  const noData = cssVar('--no-data');
+  const strokeColor = cssVar('--surface');
+
+  svg.selectAll<SVGCircleElement, PlottedDot>('circle.scatter-dot')
+    .data(countries, d => d.name)
+    .join(
+      enter => enter.append('circle')
+        .attr('class', 'scatter-dot')
+        .attr('cx', d => xScale(d.x + jitterFor(d.name).dx))
+        .attr('cy', d => yScale(d.y + jitterFor(d.name).dy))
+        .on('click', (e, d) => setState({ selectedCountry: d.name }))
+        .on('mouseenter', (e, d) => showTooltip(e, dotTooltipHtml(d, getState().scatterX, getState().scatterY)))
+        .on('mouseleave', hideTooltip),
+      update => update,
+      exit => exit.remove()
+    )
+    .transition().duration(300)
+    .attr('cx', d => xScale(d.x + jitterFor(d.name).dx))
+    .attr('cy', d => yScale(d.y + jitterFor(d.name).dy))
+    .attr('r', d => d.name === selectedCountry ? 7 : 4.5)
+    .attr('fill', d => d.avg != null ? colorScale(d.avg) : noData)
+    .attr('stroke', strokeColor)
+    .attr('stroke-width', d => d.name === selectedCountry ? 2 : 0.6)
+    .style('opacity', d => d.visible ? 0.85 : 0.15);
+
+  // Name label pinned to the selected country's dot — in a 196-dot
+  // field the highlight ring alone is easy to lose.
+  const selectedDot = selectedCountry
+    ? countries.find(d => d.name === selectedCountry)
+    : undefined;
+  svg.selectAll<SVGTextElement, PlottedDot>('text.scatter-dot-label')
+    .data(selectedDot ? [selectedDot] : [], d => d.name)
+    .join('text')
+    .attr('class', 'scatter-dot-label')
+    .attr('x', d => xScale(d.x + jitterFor(d.name).dx) + 11)
+    .attr('y', d => yScale(d.y + jitterFor(d.name).dy) + 4)
+    .text(d => d.name);
+}
+
+function setVisible(open: boolean): void {
+  const container = document.getElementById('scatter-container')!;
+  const btn = document.getElementById('scatter-btn')!;
+  container.hidden = !open;
+  // The explorer takes over the map's slot; the map layer (svg, zoom,
+  // bloc card, timeline) hides via this class but keeps its DOM and
+  // layout so switching back is instant.
+  document.body.classList.toggle('view-scatter', open);
+  btn.classList.toggle('active', open);
+  btn.setAttribute('aria-pressed', String(open));
+  if (open) {
+    if (!svg) {
+      createTooltip();
+      createChart();
+    }
+    updateChart();
+  }
+}
+
+export function initScatter(): void {
+  const btn = document.getElementById('scatter-btn');
+  const closeBtn = document.getElementById('scatter-close');
+  if (!btn || !closeBtn) return;
+
+  populateAxisSelects();
+
+  btn.addEventListener('click', () => {
+    const opening = !getState().scatterOpen;
+    // Explorer and the comparison view are mutually exclusive — both
+    // own the main area.
+    if (opening && getState().comparisonViewOpen) setState({ comparisonViewOpen: false });
+    setState({ scatterOpen: opening });
+  });
+  closeBtn.addEventListener('click', () => setState({ scatterOpen: false }));
+
+  on('scatterOpen', setVisible);
+
+  const refreshIfOpen = () => { if (getState().scatterOpen) updateChart(); };
+  on('scatterX', () => {
+    const sel = document.getElementById('scatter-x') as HTMLSelectElement;
+    sel.value = getState().scatterX;
+    refreshIfOpen();
+  });
+  on('scatterY', () => {
+    const sel = document.getElementById('scatter-y') as HTMLSelectElement;
+    sel.value = getState().scatterY;
+    refreshIfOpen();
+  });
+  on('selectedCountry', refreshIfOpen);
+  on('currentAttribute', refreshIfOpen);
+  on('filterMin', refreshIfOpen);
+  on('filterMax', refreshIfOpen);
+  on('selectedBloc', refreshIfOpen);
+  onThemeChange(refreshIfOpen);
+
+  setVisible(getState().scatterOpen);
+}

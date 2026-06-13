@@ -1,0 +1,157 @@
+// "Cite" popover anchored under the panel's Cite button.
+//
+// Not a modal — a lightweight dismissable popover that shows three
+// formatted citation strings (APA / Chicago / MLA) with per-format
+// copy buttons. The permalink embedded in each citation is generated
+// fresh every open so scoped views stay citeable.
+
+import { getState, on } from '../state/store';
+import { citationsFor } from './citation';
+import { writeClipboard } from './clipboard';
+import type { Citations } from './citation';
+import { buildPermalink } from './url';
+
+const FORMATS: { key: keyof Citations; label: string }[] = [
+  { key: 'apa', label: 'APA' },
+  { key: 'chicago', label: 'Chicago' },
+  { key: 'mla', label: 'MLA' },
+];
+
+let popoverEl: HTMLElement | null = null;
+let buttonEl: HTMLElement | null = null;
+let isOpen = false;
+
+function removeAllChildren(node: Element): void {
+  while (node.firstChild) node.removeChild(node.firstChild);
+}
+
+async function copyToClipboard(text: string, confirmBtn: HTMLButtonElement): Promise<void> {
+  const original = confirmBtn.textContent;
+  const success = await writeClipboard(text);
+
+  confirmBtn.textContent = success ? 'Copied \u2713' : 'Copy failed';
+  confirmBtn.classList.toggle('copied', success);
+
+  // Announce the outcome to screen readers \u2014 the visual button-label
+  // swap alone is silent.
+  const liveRegion = document.getElementById('cite-live-region');
+  if (liveRegion) {
+    liveRegion.textContent = success ? 'Citation copied to clipboard' : 'Copy failed';
+  }
+
+  setTimeout(() => {
+    confirmBtn.textContent = original;
+    confirmBtn.classList.remove('copied');
+    if (liveRegion) liveRegion.textContent = '';
+  }, 1500);
+}
+
+function renderRows() {
+  const state = getState();
+  const url = buildPermalink(state);
+  const citations = citationsFor({
+    country: state.selectedCountry,
+    compareCountries: state.comparisonCountries,
+    mode: state.currentAttribute,
+    timelineDate: state.timelineDate,
+    url,
+  });
+
+  removeAllChildren(popoverEl!);
+
+  const heading = document.createElement('p');
+  heading.className = 'cite-popover-heading';
+  heading.textContent = 'Copy a formatted citation for this view';
+  popoverEl!.appendChild(heading);
+
+  const liveRegion = document.createElement('div');
+  liveRegion.id = 'cite-live-region';
+  liveRegion.className = 'sr-only';
+  liveRegion.setAttribute('role', 'status');
+  liveRegion.setAttribute('aria-live', 'polite');
+  popoverEl!.appendChild(liveRegion);
+
+  for (const { key, label } of FORMATS) {
+    const row = document.createElement('div');
+    row.className = 'cite-row';
+
+    const header = document.createElement('div');
+    header.className = 'cite-row-header';
+
+    const formatLabel = document.createElement('span');
+    formatLabel.className = 'cite-format';
+    formatLabel.textContent = label;
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'cite-copy';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', () => copyToClipboard(citations[key], copyBtn));
+
+    header.appendChild(formatLabel);
+    header.appendChild(copyBtn);
+
+    const block = document.createElement('code');
+    block.className = 'cite-block';
+    block.textContent = citations[key];
+
+    row.appendChild(header);
+    row.appendChild(block);
+    popoverEl!.appendChild(row);
+  }
+}
+
+function openPopover() {
+  if (!popoverEl || !buttonEl) return;
+  renderRows();
+  popoverEl.hidden = false;
+  buttonEl.setAttribute('aria-expanded', 'true');
+  isOpen = true;
+
+  // Dismiss on outside click / Escape. Bound in a microtask so the
+  // opening click itself doesn't immediately close it.
+  setTimeout(() => {
+    document.addEventListener('click', onDocClick);
+    document.addEventListener('keydown', onDocKey);
+  }, 0);
+}
+
+function closePopover() {
+  if (!popoverEl) return;
+  popoverEl.hidden = true;
+  if (buttonEl) buttonEl.setAttribute('aria-expanded', 'false');
+  isOpen = false;
+  document.removeEventListener('click', onDocClick);
+  document.removeEventListener('keydown', onDocKey);
+}
+
+function onDocClick(e: MouseEvent): void {
+  if (!isOpen) return;
+  if (popoverEl!.contains(e.target as Node)) return;
+  if (buttonEl && buttonEl.contains(e.target as Node)) return;
+  closePopover();
+}
+
+function onDocKey(e: KeyboardEvent): void {
+  if (e.key === 'Escape') closePopover();
+}
+
+export function initCitePopover(): void {
+  buttonEl = document.getElementById('cite-btn');
+  popoverEl = document.getElementById('cite-popover');
+  if (!buttonEl || !popoverEl) return;
+
+  buttonEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isOpen) closePopover();
+    else openPopover();
+  });
+
+  // Re-render in place if the state changes while the popover is open
+  // (e.g. user clicks a country in comparison mode without closing).
+  const rerenderIfOpen = () => { if (isOpen) renderRows(); };
+  on('selectedCountry', rerenderIfOpen);
+  on('comparisonCountries', rerenderIfOpen);
+  on('currentAttribute', rerenderIfOpen);
+  on('timelineDate', rerenderIfOpen);
+}

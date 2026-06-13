@@ -1,1 +1,3 @@
-anthropic>=0.40.0
+# Floor verified against 0.109.1 — needs messages.batches and the
+# output_config (structured outputs) parameter.
+anthropic>=0.109.0

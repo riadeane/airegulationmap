@@ -13,7 +13,12 @@ npm install      # install dependencies
 npm run dev      # start Vite dev server with HMR
 npm run build    # production build to dist/
 npm run preview  # preview production build
+npm run lint       # ESLint (flat config in eslint.config.js)
+npm run typecheck  # tsc --noEmit (strict; tsconfig.json)
+npm test           # Vitest unit tests (tests/*.test.js)
 ```
+
+Pipeline tests: `pip install -r requirements-dev.txt && python -m pytest` (configured in `pyproject.toml`, tests in `tests/pipeline/`). CI (`.github/workflows/ci.yml`) runs lint + tests + build on every push/PR.
 
 ## Data Update Script
 
@@ -32,7 +37,19 @@ python scripts/update_data.py --dry-run
 
 # Use a specific Claude model
 python scripts/update_data.py --model claude-opus-4-5
+
+# Message Batches API: 50% token pricing, results within ~1h.
+# The recommended mode for full runs (the workflow defaults to it).
+python scripts/update_data.py --force --batch
+
+# Web search for every country (not just priority) — always uses
+# Sonnet 4.6; pair with --batch. ~$10-12 for a full 196-country run.
+python scripts/update_data.py --force --batch --search-all
 ```
+
+Requests use structured outputs (`output_config.format`, schema built in
+`processor.build_output_schema()`), so responses are guaranteed schema-valid
+JSON — sub-scores arrive as ints 1–5 with all fields present.
 
 Requires `ANTHROPIC_API_KEY` in environment. Install Python dependencies:
 
@@ -44,26 +61,36 @@ pip install -r requirements.txt
 
 ### Frontend (`src/`)
 
-Vanilla JS + D3.js + TopoJSON, built with Vite. No framework.
+Vanilla TypeScript + D3.js + TopoJSON, built with Vite. No framework.
+
+**The frontend is fully TypeScript** (strict mode, `tsc --noEmit` in CI). Relative imports are extensionless. The state shape lives in the `AppState` interface in `src/state/store.ts`; data row shapes (`ScoreEntry`, `RegulationEntry`) in `src/data/loader.ts`; the score-dimension unions (`AttributeKey`, `DimensionKey`) in `src/constants.ts`.
 
 **Module structure:**
 
 | Directory | Purpose |
 |-----------|---------|
-| `src/main.js` | Entry point — boots app, loads data, wires subscriptions |
-| `src/state/store.js` | Centralized state store with event bus (`getState`, `setState`, `on`) |
-| `src/constants.js` | Attribute labels, legend endpoints, score options, shared regex |
-| `src/data/loader.js` | CSV loading and parsing (scores + regulation data) |
-| `src/data/history.js` | History JSON loading and date-based score reconstruction |
+| `src/main.ts` | Entry point — boots app, loads data, wires subscriptions |
+| `src/state/store.ts` | Centralized state store with event bus (`getState`, `setState`, `on`) |
+| `src/constants.ts` | Attribute labels, legend endpoints, score options, shared regex |
+| `src/data/loader.ts` | CSV loading and parsing (scores + regulation data) |
+| `src/data/history.ts` | History JSON loading and date-based score reconstruction |
+| `src/data/changelog.ts` | Per-country score-change computation from history snapshots |
+| `src/data/searchIndex.ts` | Full-text index + substring search over regulation text |
+| `src/data/countryMatch.ts` | Shared country-name autocomplete matcher |
+| `src/data/blocs.ts` | Bloc membership loading + aggregate stats (`computeBlocStats`) |
+| `src/data/sources.ts` | Source URL classification (official vs other) + copy formatting |
+| `src/data/subscores.ts` | subscores.json loading + sub-indicator labels (methodology v2) |
 | `src/map/` | Map rendering (renderer, legend, zoom, tooltip) |
-| `src/panel/` | Country detail panel (scores, text sections) |
-| `src/controls/` | UI controls (search, score selector, filter, timeline) |
+| `src/panel/` | Country detail panel (scores, text sections, changelog) |
+| `src/comparison/` | Side-by-side comparison panel + radar chart |
+| `src/scatter/` | Cross-dimension scatter plot with deterministic jitter |
+| `src/controls/` | UI controls (search, score selector, filter, blocs, export, timeline, URL sync, citations) |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
-**State management:** All mutable state lives in `src/state/store.js` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
+**State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
 
 **Data flow:**
-1. `main.js` loads `scores.csv` and `regulation_data.csv` in parallel via `Promise.all`
+1. `main.ts` loads `scores.csv` and `regulation_data.csv` in parallel via `Promise.all`
 2. Data is stored in the centralized state store
 3. D3 renders a choropleth SVG world map; TopoJSON provides country geometries
 4. User interactions dispatch state changes which trigger subscribed re-renders
@@ -76,6 +103,7 @@ Python package that calls the Claude API to research regulation status per count
 |--------|---------|
 | `cli.py` | CLI entry point — arg parsing, orchestration loop |
 | `api.py` | Claude API calls, prompt template, response parsing |
+| `batch.py` | Message Batches API submission/polling (50% token pricing) |
 | `config.py` | Constants — file paths, field lists, staleness threshold, priority countries |
 | `data_io.py` | CSV/JSON loading and writing, validation |
 | `names.py` | Country name normalization via alias map |
@@ -93,18 +121,22 @@ Python package that calls the Claude API to research regulation status per count
 | `public/regulation_data.csv` | Text descriptions, laws, source URLs, confidence, last_updated |
 | `public/history.json` | Timestamped snapshots of score data for timeline playback |
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
+| `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
+| `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2) |
 
 These files are served as static assets by Vite (via `publicDir`) and copied unchanged to `dist/` on build.
 
 ### Scoring Dimensions
 
 Six attributes scored 1–5 (used in the score selector dropdown):
-- **avg_score** — composite average
-- **regulation_status** — existence and maturity of regulation
-- **policy_lever** — type of policy instrument used
-- **governance_type** — governance model
-- **actor_involvement** — which actors are involved
-- **enforcement_level** — enforcement rigor
+- **avg_score** — maturity index: mean of the three normative dimensions (regulation_status, policy_lever, enforcement_level)
+- **regulation_status** — existence and maturity of regulation (normative)
+- **policy_lever** — breadth of policy instruments (normative)
+- **governance_type** — centralized↔distributed (descriptive — excluded from the composite)
+- **actor_involvement** — narrow↔broad participation (descriptive — excluded from the composite)
+- **enforcement_level** — enforcement rigor (normative)
+
+**Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/api.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. Calibration: 5 = the global frontier at scoring time, not perfection; governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
 
 ### Automated Updates
 

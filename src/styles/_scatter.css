@@ -1,0 +1,156 @@
+/* Scatter plot ("dimension explorer") — a full view in the map's slot.
+   body.view-scatter hides the map layer (visibility, not display, so
+   the map keeps its layout and switching back is instant). */
+
+body.view-scatter #map,
+body.view-scatter #zoom-controls,
+body.view-scatter #bloc-summary {
+  visibility: hidden;
+}
+
+/* The scatter is latest-data-only; the timeline drives the map. */
+body.view-scatter #timeline-strip {
+  display: none !important;
+}
+
+.scatter-container {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  padding: 18px 28px 12px;
+  animation: fadeIn 0.25s var(--ease-out);
+}
+
+/* The author display:flex above overrides the UA's [hidden] rule —
+   without this, the "hidden" container covers the map on every load. */
+.scatter-container[hidden] {
+  display: none;
+}
+
+.scatter-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scatter-title {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+#scatter-close {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 3px 10px;
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+#scatter-close:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.scatter-controls {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.scatter-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.scatter-controls select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 7px;
+  font-size: 0.75rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-out);
+}
+
+.scatter-controls select:hover,
+.scatter-controls select:focus {
+  border-color: var(--accent);
+}
+
+#scatter-chart {
+  flex: 1;
+  min-height: 0;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* d3-axis strokes/fills draw in currentColor */
+  color: var(--text-tertiary);
+}
+
+#scatter-chart svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.scatter-axis text {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.scatter-axis-label {
+  fill: var(--text-secondary);
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 12px;
+}
+
+circle.scatter-dot {
+  cursor: pointer;
+  transition: r 0.12s var(--ease-out);
+}
+
+circle.scatter-dot:hover {
+  r: 7px;
+  stroke: var(--accent);
+  stroke-width: 1.5px;
+}
+
+.scatter-dot-label {
+  fill: var(--text-primary);
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3px;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .scatter-container {
+    padding: 12px 14px 8px;
+  }
+
+  .scatter-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

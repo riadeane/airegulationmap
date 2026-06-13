@@ -327,6 +327,13 @@
       different jurisdictions approach AI, and a jumping-off point to the
       primary sources behind each score.
     </p>
+    <p>
+      The project was originally seeded from the
+      <a href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region" rel="noopener noreferrer">EA Forum AI Governance Tracker</a>
+      in early 2026. Since then every country has been independently
+      re-researched and re-scored by the automated pipeline described
+      below; the current dataset no longer derives from that source.
+    </p>
 
     <div class="callout">
       <strong>Epistemic caveat.</strong> Scores are inferred by
@@ -339,9 +346,29 @@
 
     <h2 id="the-six-dimensions">The six dimensions</h2>
     <p>
-      Each country is scored on six dimensions. Five of them describe
-      <em>how</em> regulation operates; the sixth (<strong>average
-      score</strong>) is their mean, shown by default.
+      Each country is scored on five dimensions, plus a composite
+      <strong>average score</strong> shown by default. Three dimensions
+      (regulation status, policy lever, enforcement level) are
+      <em>normative</em>: higher means more developed. Two
+      (governance type, actor involvement) are <em>descriptive</em>:
+      they record how a country governs — centralized vs. distributed,
+      narrow vs. broad participation — not how well. Descriptive
+      dimensions are excluded from the composite.
+    </p>
+    <p>
+      Since June 2026, each dimension score is the mean of <strong>four
+      concrete sub-indicators</strong>, each rated 1&ndash;5 against a written
+      definition (for enforcement level, for example: sanctions
+      framework, actions actually taken, dedicated authority, monitoring
+      practice). This produces quarter-point decimal scores that are
+      traceable to specific facts; the full sub-indicator table per
+      country is published in
+      <a href="/data/subscores.json"><code>subscores.json</code></a>.
+      Scoring is calibrated so that <strong>5 means the global frontier at
+      the time of scoring</strong> — the standard set by the two or three
+      most advanced jurisdictions for that aspect — not perfection.
+      Countries scored before June 2026 carry integer scores until their
+      next research pass.
     </p>
 
     <h3>Regulation Status</h3>
@@ -365,7 +392,7 @@
     </div>
 
     <h3>Governance Type</h3>
-    <p>Where authority for AI regulation sits — concentrated in a single body vs. distributed across agencies, sectors, and levels of government.</p>
+    <p>Where authority for AI regulation sits — concentrated in a single body vs. distributed across agencies, sectors, and levels of government. <strong>Descriptive, not a quality scale:</strong> a 1 here means highly centralized, not bad; a 5 means highly distributed, not good. This dimension does not enter the average score.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Centralized: a single national authority sets and enforces policy.</div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Lead authority with informal delegation to one or two sectoral bodies; coordination happens ad hoc.</div></div>
@@ -375,7 +402,7 @@
     </div>
 
     <h3>Actor Involvement</h3>
-    <p>Which actors shape AI policy — narrow expert circles vs. broad engagement with industry, civil society, academia, and the public.</p>
+    <p>Which actors shape AI policy — narrow expert circles vs. broad engagement with industry, civil society, academia, and the public. <strong>Descriptive, not a quality scale</strong>, and scored on domestic process: international standard-setting activity does not substitute for civil-society access at home. This dimension does not enter the average score.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Limited: policy is set inside government with minimal external input.</div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Industry is consulted informally; civil society and academia have no structured access.</div></div>
@@ -395,7 +422,8 @@
     </div>
 
     <h3>Average Score</h3>
-    <p>The arithmetic mean of the five substantive dimensions above. Shown by default on the map because it gives the fastest cross-country read, but the individual dimensions are where the interesting signal lives.</p>
+    <p>A <strong>regulatory maturity index</strong>: the arithmetic mean of the three normative dimensions — regulation status, policy lever, and enforcement level. Governance type and actor involvement are excluded because they describe regulatory <em>style</em>, not development; averaging them in would reward or punish countries for being centralized or distributed. Shown by default on the map because it gives the fastest cross-country read, but the individual dimensions are where the interesting signal lives.</p>
+    <div class="callout"><strong>Continuity note:</strong> Before June 2026 the composite averaged four dimensions (including the two descriptive ones, excluding enforcement) and all scores were integers. Comparisons across that boundary should use the per-dimension scores, which kept their definitions.</div>
 
     <h2 id="confidence">Confidence levels</h2>
     <p>Each country record carries a confidence label that reflects how much public, primary evidence was available to the research pass.</p>
@@ -416,8 +444,28 @@
       <li><strong>English-source bias.</strong> Non-English primary sources are under-represented, which systematically disadvantages countries whose regulatory debates happen in other languages. Claude mitigates this but does not eliminate it.</li>
       <li><strong>Aggregate hides regional variance.</strong> Federations (US, India, Brazil) are scored at the national level; substantial sub-national variation is flattened.</li>
       <li><strong>Draft vs. enacted.</strong> The rubric tries to distinguish these, but a bill that passes the week after a research pass will not update until the next monthly run.</li>
-      <li><strong>No independent audit.</strong> Scores are LLM-inferred, not human-coded, and have not been audited by domain experts.</li>
+      <li><strong>No independent audit.</strong> Scores are LLM-inferred, not human-coded, and have not been audited by domain experts. The sub-indicator breakdown in <code>subscores.json</code> exists precisely so that every dimension score can be checked claim-by-claim.</li>
+      <li><strong>Methodology change, June 2026.</strong> Sub-indicator scoring, frontier-anchored calibration, and the three-dimension maturity composite were introduced in June 2026. Score movements around that date partly reflect the methodology change, not only regulatory change.</li>
     </ul>
+
+    <h2 id="data-access">Data access for analysts</h2>
+    <p>
+      Every data file behind this site is a static, versioned artifact —
+      no API key, no rate limits. Load it directly into your tools:
+    </p>
+    <div class="rubric">
+      <div class="rubric-row"><div class="rubric-score">py</div><div class="rubric-body"><code>pd.read_csv("https://airegulationmap.org/scores.csv")</code></div></div>
+      <div class="rubric-row"><div class="rubric-score">R</div><div class="rubric-body"><code>read.csv("https://airegulationmap.org/regulation_data.csv")</code></div></div>
+      <div class="rubric-row"><div class="rubric-score">json</div><div class="rubric-body"><code>/history.json</code> (score snapshots), <code>/data/subscores.json</code> (sub-indicators), <code>/data/blocs.json</code> (bloc membership)</div></div>
+    </div>
+    <p>
+      Column definitions match this page. The
+      <a href="https://github.com/riadeane/airegulationmap/commits/main/public">git history</a>
+      of each file is the audit trail: every monthly update is one commit,
+      so any past state of the dataset is retrievable and citeable by
+      commit hash. The in-app Export button produces the same data merged
+      into a single CSV/JSON.
+    </p>
 
     <h2 id="citing">Citing this site</h2>
     <p>

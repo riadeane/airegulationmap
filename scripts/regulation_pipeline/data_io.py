@@ -5,7 +5,7 @@ import json
 import os
 
 from .config import (
-    SCORES_CSV, REGULATION_CSV, HISTORY_JSON,
+    SCORES_CSV, REGULATION_CSV, HISTORY_JSON, SUBSCORES_JSON,
     SCORES_FIELDS, REGULATION_FIELDS,
 )
 from .names import canonicalize
@@ -45,6 +45,19 @@ def load_history():
         return {"schema_version": 1, "countries": {}}
     with open(HISTORY_JSON, encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_subscores():
+    """Load subscores.json (per-country sub-indicator audit trail)."""
+    if not os.path.exists(SUBSCORES_JSON):
+        return {"schema_version": 1, "countries": {}}
+    with open(SUBSCORES_JSON, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def write_subscores(subscores):
+    with open(SUBSCORES_JSON, "w", encoding="utf-8") as f:
+        json.dump(subscores, f, ensure_ascii=False, indent=2, sort_keys=True)
 
 
 def write_scores(scores_data):

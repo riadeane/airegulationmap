@@ -1,0 +1,6473 @@
+{
+  "countries": {
+    "Afghanistan": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Albania": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Algeria": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 2,
+        "scope": 1
+      }
+    },
+    "Andorra": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Angola": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 3,
+        "implementation": 1,
+        "scope": 3
+      }
+    },
+    "Antigua and Barbuda": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Argentina": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "Armenia": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Australia": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 3,
+        "dedicated_authority": 3,
+        "monitoring_practice": 3,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 4,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 3,
+        "scope": 2
+      }
+    },
+    "Austria": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 4,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Azerbaijan": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Bahamas": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Bahrain": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 3,
+        "implementation": 2,
+        "scope": 3
+      }
+    },
+    "Bangladesh": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "Barbados": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Belarus": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Belgium": {
+      "actor_involvement": {
+        "academia": 4,
+        "civil_society": 3,
+        "industry": 4,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 3,
+        "monitoring_practice": 3,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 4,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 4,
+        "subnational_role": 4
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Belize": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Benin": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 2,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 2,
+        "scope": 1
+      }
+    },
+    "Bhutan": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Bolivia": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Bosnia and Herz.": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 3
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Botswana": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Brazil": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 4,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 3,
+        "implementation": 2,
+        "scope": 3
+      }
+    },
+    "Brunei": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Bulgaria": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 4,
+        "implementation": 3,
+        "scope": 4
+      }
+    },
+    "Burkina Faso": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Burundi": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Cambodia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Cameroon": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Canada": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 5
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 4,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Cape Verde": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Central African Rep.": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Chad": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Chile": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 3,
+        "implementation": 2,
+        "scope": 3
+      }
+    },
+    "China": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 4,
+        "dedicated_authority": 4,
+        "monitoring_practice": 4,
+        "sanctions_framework": 5
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 3,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 5,
+        "economic_tools": 5,
+        "institutional_capacity": 5,
+        "soft_law": 5
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 5,
+        "implementation": 5,
+        "scope": 5
+      }
+    },
+    "Colombia": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Comoros": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Congo": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Costa Rica": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "Croatia": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 4,
+        "implementation": 3,
+        "scope": 4
+      }
+    },
+    "Cuba": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 2,
+        "scope": 1
+      }
+    },
+    "Cyprus": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Czechia": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 4,
+        "implementation": 3,
+        "scope": 4
+      }
+    },
+    "Côte d'Ivoire": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 2,
+        "scope": 1
+      }
+    },
+    "Dem. Rep. Congo": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Denmark": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 4,
+        "monitoring_practice": 3,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 4,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 3,
+        "institutional_capacity": 4,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 4,
+        "scope": 5
+      }
+    },
+    "Djibouti": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Dominica": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Dominican Republic": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "East Timor": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Ecuador": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Egypt": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "El Salvador": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 3,
+        "implementation": 2,
+        "scope": 3
+      }
+    },
+    "Equatorial Guinea": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Eritrea": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Estonia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 4,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Ethiopia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Fiji": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Finland": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 4,
+        "monitoring_practice": 3,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 4,
+        "nongovernmental_checks": 4,
+        "regulator_plurality": 4,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 4,
+        "institutional_capacity": 4,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 5,
+        "implementation": 4,
+        "scope": 5
+      }
+    },
+    "France": {
+      "actor_involvement": {
+        "academia": 4,
+        "civil_society": 3,
+        "industry": 4,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 4,
+        "dedicated_authority": 4,
+        "monitoring_practice": 4,
+        "sanctions_framework": 5
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 4,
+        "regulator_plurality": 4,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 4,
+        "institutional_capacity": 4,
+        "soft_law": 5
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Gabon": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Gambia": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Georgia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "Germany": {
+      "actor_involvement": {
+        "academia": 4,
+        "civil_society": 3,
+        "industry": 4,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 4,
+        "subnational_role": 3
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 3,
+        "implementation": 3,
+        "scope": 4
+      }
+    },
+    "Ghana": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Greece": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Grenada": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Guatemala": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Guinea": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Guinea-Bissau": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Guyana": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Haiti": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Honduras": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Hungary": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Iceland": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "India": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Indonesia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "Iran": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Iraq": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Ireland": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 4,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 3,
+        "implementation": 3,
+        "scope": 4
+      }
+    },
+    "Israel": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 3,
+        "dedicated_authority": 3,
+        "monitoring_practice": 3,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 3,
+        "scope": 2
+      }
+    },
+    "Italy": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 3,
+        "dedicated_authority": 4,
+        "monitoring_practice": 3,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 4,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 4,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 5,
+        "economic_tools": 4,
+        "institutional_capacity": 4,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 5,
+        "implementation": 4,
+        "scope": 5
+      }
+    },
+    "Jamaica": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Japan": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 4,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 3,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 4,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 4,
+        "institutional_capacity": 4,
+        "soft_law": 5
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 4,
+        "implementation": 4,
+        "scope": 4
+      }
+    },
+    "Jordan": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 2,
+        "scope": 1
+      }
+    },
+    "Kazakhstan": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 4
+      }
+    },
+    "Kenya": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 3,
+        "implementation": 1,
+        "scope": 3
+      }
+    },
+    "Kiribati": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Kosovo": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Kuwait": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Kyrgyzstan": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Laos": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Latvia": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Lebanon": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Lesotho": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Liberia": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Libya": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Liechtenstein": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Lithuania": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 4,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 5,
+        "implementation": 4,
+        "scope": 5
+      }
+    },
+    "Luxembourg": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 4,
+        "monitoring_practice": 3,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 4,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 3,
+        "institutional_capacity": 4,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 4,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Macedonia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Madagascar": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Malawi": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Malaysia": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Maldives": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Mali": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Malta": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Marshall Islands": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Mauritania": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Mauritius": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Mexico": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Micronesia": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Moldova": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "Monaco": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Mongolia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Montenegro": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Morocco": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "Mozambique": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Myanmar": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Namibia": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Nauru": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Nepal": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "Netherlands": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 4,
+        "dedicated_authority": 5,
+        "monitoring_practice": 5,
+        "sanctions_framework": 5
+      },
+      "governance_type": {
+        "formal_coordination": 4,
+        "nongovernmental_checks": 4,
+        "regulator_plurality": 4,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 3,
+        "institutional_capacity": 5,
+        "soft_law": 5
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 4,
+        "scope": 5
+      }
+    },
+    "New Zealand": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Nicaragua": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Niger": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Nigeria": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "North Korea": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Norway": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 3,
+        "implementation": 2,
+        "scope": 3
+      }
+    },
+    "Oman": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Pakistan": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Palau": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Panama": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Papua New Guinea": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Paraguay": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Peru": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Philippines": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Poland": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 4,
+        "implementation": 3,
+        "scope": 4
+      }
+    },
+    "Portugal": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Qatar": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 3,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Romania": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Russia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 3,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 2,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Rwanda": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 3,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 1,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "S. Sudan": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Saint Kitts and Nevis": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Saint Lucia": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Saint Vincent and the Grenadines": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Samoa": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "San Marino": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Sao Tome and Principe": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Saudi Arabia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 4,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Senegal": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 2,
+        "scope": 1
+      }
+    },
+    "Serbia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Seychelles": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Sierra Leone": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Singapore": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 4,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 4,
+        "institutional_capacity": 4,
+        "soft_law": 5
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 2,
+        "implementation": 3,
+        "scope": 2
+      }
+    },
+    "Slovakia": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Slovenia": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 4,
+        "scope": 5
+      }
+    },
+    "Solomon Islands": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Somalia": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "South Africa": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 1,
+        "scope": 2
+      }
+    },
+    "South Korea": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 4,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Spain": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 5,
+        "monitoring_practice": 3,
+        "sanctions_framework": 4
+      },
+      "governance_type": {
+        "formal_coordination": 4,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 4,
+        "institutional_capacity": 5,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 4,
+        "implementation": 4,
+        "scope": 5
+      }
+    },
+    "Sri Lanka": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Sudan": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Suriname": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Swaziland": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Sweden": {
+      "actor_involvement": {
+        "academia": 4,
+        "civil_society": 3,
+        "industry": 4,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 3,
+        "monitoring_practice": 3,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 4,
+        "nongovernmental_checks": 4,
+        "regulator_plurality": 5,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 4,
+        "economic_tools": 4,
+        "institutional_capacity": 3,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Switzerland": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 3,
+        "subnational_role": 2
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Syria": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Taiwan": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 4,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 4,
+        "implementation": 2,
+        "scope": 3
+      }
+    },
+    "Tajikistan": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Tanzania": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Thailand": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 4,
+        "implementation": 2,
+        "scope": 4
+      }
+    },
+    "Togo": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Tonga": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Trinidad and Tobago": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Tunisia": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Turkey": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 2,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Turkmenistan": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Tuvalu": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Uganda": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Ukraine": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "United Arab Emirates": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 1,
+        "industry": 3,
+        "international": 5
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 3,
+        "subnational_role": 4
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 4,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 3,
+        "binding_force": 3,
+        "implementation": 3,
+        "scope": 3
+      }
+    },
+    "United Kingdom": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 4,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 3,
+        "dedicated_authority": 2,
+        "monitoring_practice": 3,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 3,
+        "regulator_plurality": 5,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 3,
+        "scope": 3
+      }
+    },
+    "United States of America": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 3,
+        "industry": 4,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 4,
+        "dedicated_authority": 3,
+        "monitoring_practice": 3,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 4,
+        "regulator_plurality": 5,
+        "subnational_role": 5
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 3,
+        "implementation": 3,
+        "scope": 3
+      }
+    },
+    "Uruguay": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 2
+      }
+    },
+    "Uzbekistan": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 3
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 2,
+        "institutional_capacity": 3,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 4,
+        "implementation": 3,
+        "scope": 4
+      }
+    },
+    "Vanuatu": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 2,
+        "implementation": 2,
+        "scope": 1
+      }
+    },
+    "Vatican City": {
+      "actor_involvement": {
+        "academia": 3,
+        "civil_society": 1,
+        "industry": 2,
+        "international": 4
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 3,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 2,
+        "economic_tools": 1,
+        "institutional_capacity": 2,
+        "soft_law": 4
+      },
+      "regulation_status": {
+        "ai_specificity": 4,
+        "binding_force": 4,
+        "implementation": 3,
+        "scope": 3
+      }
+    },
+    "Venezuela": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Vietnam": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 3,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 3,
+        "monitoring_practice": 2,
+        "sanctions_framework": 2
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 3,
+        "economic_tools": 3,
+        "institutional_capacity": 3,
+        "soft_law": 2
+      },
+      "regulation_status": {
+        "ai_specificity": 5,
+        "binding_force": 5,
+        "implementation": 3,
+        "scope": 5
+      }
+    },
+    "Yemen": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 1
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 1,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Zambia": {
+      "actor_involvement": {
+        "academia": 1,
+        "civil_society": 1,
+        "industry": 1,
+        "international": 2
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 1,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 1,
+        "nongovernmental_checks": 1,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 1,
+        "institutional_capacity": 1,
+        "soft_law": 1
+      },
+      "regulation_status": {
+        "ai_specificity": 1,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 1
+      }
+    },
+    "Zimbabwe": {
+      "actor_involvement": {
+        "academia": 2,
+        "civil_society": 2,
+        "industry": 2,
+        "international": 3
+      },
+      "date": "2026-06-13",
+      "enforcement_level": {
+        "actions_taken": 1,
+        "dedicated_authority": 2,
+        "monitoring_practice": 1,
+        "sanctions_framework": 1
+      },
+      "governance_type": {
+        "formal_coordination": 2,
+        "nongovernmental_checks": 2,
+        "regulator_plurality": 2,
+        "subnational_role": 1
+      },
+      "policy_lever": {
+        "binding_instruments": 1,
+        "economic_tools": 2,
+        "institutional_capacity": 2,
+        "soft_law": 3
+      },
+      "regulation_status": {
+        "ai_specificity": 2,
+        "binding_force": 1,
+        "implementation": 1,
+        "scope": 2
+      }
+    }
+  },
+  "schema_version": 1
+}

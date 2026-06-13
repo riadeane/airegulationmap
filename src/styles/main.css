@@ -8,5 +8,7 @@
 @import './_legend.css';
 @import './_footer.css';
 @import './_comparison.css';
+@import './_blocs.css';
+@import './_scatter.css';
 @import './_responsive.css';
 @import './_overlay.css';

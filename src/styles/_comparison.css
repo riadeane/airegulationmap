@@ -1,6 +1,6 @@
 /* Comparison panel — sibling to #country-panel inside <main> */
 #comparison-panel {
-  width: min(520px, 46vw);
+  width: min(640px, 52vw);
   min-width: 380px;
   flex-shrink: 0;
   background: var(--surface);
@@ -316,106 +316,138 @@
   font-weight: 500;
 }
 
-.radar-data-table {
+/* ── Full comparison view ─────────────────────────────────────
+   Two or more countries: the map and single-country panel hide so the
+   comparison reads at full width. body.view-compare is toggled in
+   src/comparison/index.ts. */
+body.view-compare #map-wrapper {
+  display: none;
+}
+
+body.view-compare #timeline-strip {
+  display: none !important;
+}
+
+/* The explorer overlays the (now-hidden) map slot, so its trigger has
+   nothing to act on while comparing. */
+body.view-compare #scatter-btn {
+  display: none;
+}
+
+body.view-compare #comparison-panel {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  border-left: none;
+}
+
+/* Radar (capped, top) + unified table (below, full width). The table
+   scales cleanly from two to four countries; stacking the radar above
+   it keeps reading columns wide. */
+.comparison-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 24px;
+}
+
+body.view-compare .comparison-body {
+  align-items: stretch;
+}
+
+body.view-compare .radar-chart {
+  align-self: center;
+  border-bottom: none;
+}
+
+body.view-compare .radar-chart svg {
+  max-width: 460px;
+}
+
+.comparison-table-wrap {
+  width: 100%;
+  padding: 4px 24px 0;
+  overflow-x: auto;
+}
+
+.comparison-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 14px;
-  font-size: 0.72rem;
-  color: var(--text-secondary);
 }
 
-/* Numeric cells only get the mono */
-.radar-data-table tbody td {
+/* The single-country / pre-second-country state has no table. */
+.comparison-table-wrap.is-empty {
+  display: none;
+}
+
+.comparison-table th,
+.comparison-table td {
+  vertical-align: top;
+  padding: 14px 16px 14px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+}
+
+.comparison-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 1;
+  padding-top: 6px;
+}
+
+/* Label column (dimension names) — fixed, quiet. */
+.ct-label {
+  width: 150px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-family: 'Geist', -apple-system, sans-serif;
+}
+
+/* Country column headers — the only place names appear in the table. */
+.ct-country {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  border-bottom: 2px solid currentColor !important;
+}
+
+/* Value columns size to fill the available width; the min-width floor
+   keeps prose legible, so four countries on a narrow screen overflow
+   and the wrap scrolls horizontally rather than crushing the text. */
+.comparison-table td {
+  min-width: 210px;
+}
+
+.ct-score {
+  display: inline-block;
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
   font-variant-numeric: tabular-nums;
-}
-
-.radar-data-table th,
-.radar-data-table td {
-  padding: 4px 8px;
-  text-align: center;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.radar-data-table thead th {
-  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.9rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
-  font-size: 0.66rem;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+
+.ct-score-lg {
+  font-size: 1.5rem;
+  margin-bottom: 0;
+}
+
+.ct-text {
+  margin: 0;
+  font-size: 0.8rem;
   color: var(--text-primary);
-}
-
-.radar-data-table tbody th {
-  font-family: 'Geist', -apple-system, sans-serif;
-  text-align: left;
-  font-weight: 400;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
-}
-
-/* Details grid — container-aware. On narrow panels (e.g. tablet tier
-   or stacked mobile) the value columns tighten so the header label
-   column stays aligned without forcing horizontal scroll unless the
-   countries genuinely won't fit. */
-.comparison-details {
-  padding: 8px 24px 24px;
-  overflow-x: auto;
-  container-type: inline-size;
-  container-name: comp-details;
-}
-
-.comp-details-row {
-  display: grid;
-  grid-template-columns: 120px repeat(var(--col-count, 1), 180px);
-  gap: 14px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-subtle);
-  align-items: start;
-  width: max-content;
-}
-
-@container comp-details (max-width: 560px) {
-  .comp-details-row {
-    grid-template-columns: 96px repeat(var(--col-count, 1), 150px);
-    gap: 10px;
-  }
-}
-
-.comp-details-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
-}
-
-.comp-details-label {
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  font-family: 'Geist', -apple-system, sans-serif;
-  padding-top: 2px;
-}
-
-.comp-details-cell {
-  font-size: 0.76rem;
-  color: var(--text-secondary);
-  line-height: 1.55;
-  min-width: 0;
+  line-height: 1.6;
   word-wrap: break-word;
 }
 
-.comp-details-cell.empty {
+.ct-text.empty {
   color: var(--text-tertiary);
   font-style: italic;
-}
-
-.comp-details-country {
-  font-family: 'Literata', Georgia, serif;
-  font-size: 1rem;
-  font-weight: 500;
-  font-style: normal;
 }
 
 /* Compare button in single-country panel */
@@ -489,5 +521,121 @@
     min-height: 40px;
     padding-top: 9px;
     padding-bottom: 9px;
+  }
+}
+
+/* ── Comparison set ───────────────────────────────────────────
+   Pinned footer of the country panel: the set the user is building,
+   always visible while picking, never over the map. Sticks to the
+   panel's bottom (margin-top:auto handles short panels; sticky handles
+   long, scrolling ones). */
+.comparison-strip {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  z-index: 2;
+  padding: 14px 24px 16px;
+  background: var(--surface-raised);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 20px -12px rgba(0, 0, 0, 0.35);
+  animation: fadeUp 0.22s var(--ease-out);
+}
+
+.comparison-strip[hidden] {
+  display: none;
+}
+
+.strip-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.strip-title {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.strip-count {
+  font-size: 0.66rem;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chips wrap tidily in the narrow panel (at most four, two rows). */
+.strip-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.strip-view-btn {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  color: var(--bg);
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease-out), background 0.15s var(--ease-out);
+}
+
+.strip-view-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.strip-view-btn:disabled {
+  background: var(--border);
+  color: var(--text-tertiary);
+  cursor: default;
+}
+
+/* Back-to-map button in the comparison header */
+.comparison-back-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.comparison-back-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* The comparison view slides in from the right as it takes over. */
+body.view-compare #comparison-panel {
+  animation: slideInRight 0.3s var(--ease-out);
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comparison-strip,
+  body.view-compare #comparison-panel,
+  .scatter-container,
+  .comparison-body,
+  .radar-chart svg {
+    animation: none !important;
   }
 }
