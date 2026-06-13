@@ -524,73 +524,77 @@ body.view-compare .radar-chart svg {
   }
 }
 
-/* ── Staging tray ─────────────────────────────────────────────
-   Floats over the map while the user assembles a comparison set.
-   Slides up when it has members; the View button opens the full view. */
-.comparison-tray {
-  position: absolute;
-  bottom: 22px;
-  left: 50%;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: calc(100% - 140px);
-  padding: 10px 12px 10px 16px;
+/* ── Comparison set ───────────────────────────────────────────
+   Pinned footer of the country panel: the set the user is building,
+   always visible while picking, never over the map. Sticks to the
+   panel's bottom (margin-top:auto handles short panels; sticky handles
+   long, scrolling ones). */
+.comparison-strip {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  z-index: 2;
+  padding: 14px 24px 16px;
   background: var(--surface-raised);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
-  /* Hidden state: tucked below, faded, non-interactive. */
-  transform: translate(-50%, calc(100% + 30px));
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.32s var(--ease-out), opacity 0.32s var(--ease-out);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 20px -12px rgba(0, 0, 0, 0.35);
+  animation: fadeUp 0.22s var(--ease-out);
 }
 
-.comparison-tray.open {
-  transform: translate(-50%, 0);
-  opacity: 1;
-  pointer-events: auto;
+.comparison-strip[hidden] {
+  display: none;
 }
 
-.tray-label {
+.strip-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.strip-title {
   font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-tertiary);
-  flex-shrink: 0;
 }
 
-.tray-chips {
+.strip-count {
+  font-size: 0.66rem;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chips wrap tidily in the narrow panel (at most four, two rows). */
+.strip-chips {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
-  min-width: 0;
+  margin-bottom: 12px;
 }
 
-.tray-view-btn {
-  flex-shrink: 0;
+.strip-view-btn {
+  width: 100%;
   background: var(--accent);
   border: none;
   color: var(--bg);
   font-family: 'Geist', -apple-system, sans-serif;
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 999px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  white-space: nowrap;
   transition: opacity 0.15s var(--ease-out), background 0.15s var(--ease-out);
 }
 
-.tray-view-btn:hover:not(:disabled) {
+.strip-view-btn:hover:not(:disabled) {
   background: var(--accent-hover);
 }
 
-.tray-view-btn:disabled {
+.strip-view-btn:disabled {
   background: var(--border);
   color: var(--text-tertiary);
   cursor: default;
@@ -627,10 +631,7 @@ body.view-compare #comparison-panel {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .comparison-tray {
-    transition: opacity 0.01s;
-    transform: translate(-50%, 0);
-  }
+  .comparison-strip,
   body.view-compare #comparison-panel,
   .scatter-container,
   .comparison-body,

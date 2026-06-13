@@ -161,11 +161,6 @@
       </div>
       <div id="zoom-controls"></div>
       <div id="bloc-summary" class="bloc-summary" hidden></div>
-      <div id="comparison-tray" class="comparison-tray" role="region" aria-label="Comparison set">
-        <span class="tray-label">Compare</span>
-        <div id="tray-chips" class="tray-chips"></div>
-        <button id="tray-view-btn" class="tray-view-btn" type="button" disabled>View comparison</button>
-      </div>
       <div id="scatter-container" class="scatter-container" hidden>
         <div class="scatter-header">
           <span class="scatter-title">Dimension explorer</span>
@@ -296,6 +291,14 @@
           <div class="panel-section-label">SCORE HISTORY</div>
           <div id="changelog-entries"></div>
         </div>
+      </div>
+      <div id="comparison-strip" class="comparison-strip" role="region" aria-label="Comparison set" hidden>
+        <div class="strip-header">
+          <span class="strip-title">Comparison set</span>
+          <span class="strip-count"><span id="comparison-strip-count">0</span>/4</span>
+        </div>
+        <div id="tray-chips" class="strip-chips"></div>
+        <button id="tray-view-btn" class="strip-view-btn" type="button" disabled>View comparison</button>
       </div>
     </aside>
     <aside id="comparison-panel" hidden>

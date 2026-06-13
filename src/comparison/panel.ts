@@ -160,9 +160,9 @@ function renderChips(names: string[]): void {
   names.forEach(name => container.appendChild(buildChip(name)));
 }
 
-// The staging tray: the set the user is building, floating over the map.
-// Shown whenever there's at least one staged country and the full view
-// is closed; the "View comparison" button (enabled at 2+) opens it.
+// The comparison set — a pinned footer in the country panel listing the
+// staged countries. The "View comparison" button (enabled at 2+) opens
+// the full view.
 export function renderTray(names: string[]): void {
   const chips = document.getElementById('tray-chips')!;
   const btn = document.getElementById('tray-view-btn') as HTMLButtonElement;

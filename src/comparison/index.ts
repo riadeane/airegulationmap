@@ -78,31 +78,33 @@ export function clearComparison(): void {
 export function initComparison(): void {
   const panelEl = document.getElementById('comparison-panel');
   const countryPanelEl = document.getElementById('country-panel');
-  const trayEl = document.getElementById('comparison-tray');
+  const stripEl = document.getElementById('comparison-strip');
   const clearBtn = document.getElementById('clear-comparison-btn');
   const backBtn = document.getElementById('comparison-back-btn');
   const viewBtn = document.getElementById('tray-view-btn');
   const countEl = document.getElementById('comparison-count');
+  const stripCountEl = document.getElementById('comparison-strip-count');
 
   if (clearBtn) clearBtn.addEventListener('click', clearComparison);
   if (backBtn) backBtn.addEventListener('click', closeComparisonView);
   if (viewBtn) viewBtn.addEventListener('click', openComparisonView);
 
-  // The tray floats over the map while the user assembles a set; it
-  // hides once the full view is open or the set is empty.
-  function updateTray(): void {
+  // The comparison set lives as a pinned footer in the country panel
+  // while the user assembles it — visible the whole time you're picking
+  // countries, never over the map. It hides once the full view opens or
+  // the set is empty.
+  function updateStrip(): void {
     const { comparisonCountries, comparisonViewOpen } = getState();
-    if (trayEl) {
-      trayEl.classList.toggle('open', comparisonCountries.length >= 1 && !comparisonViewOpen);
-    }
+    if (stripEl) stripEl.hidden = !(comparisonCountries.length >= 1 && !comparisonViewOpen);
   }
 
   on('comparisonCountries', (names) => {
     syncColorSlots(names);
     markComparisonCountries(names);
     if (countEl) countEl.textContent = String(names.length);
+    if (stripCountEl) stripCountEl.textContent = String(names.length);
     renderTray(names);
-    updateTray();
+    updateStrip();
 
     // Can't compare fewer than two — drop out of the full view if the
     // set falls below the threshold while it's open.
@@ -116,7 +118,7 @@ export function initComparison(): void {
 
   on('comparisonViewOpen', (open) => {
     document.body.classList.toggle('view-compare', open);
-    updateTray();
+    updateStrip();
 
     if (open) {
       // Comparison and the scatter explorer both claim the main area.
