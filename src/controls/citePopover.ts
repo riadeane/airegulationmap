@@ -7,6 +7,7 @@
 
 import { getState, on } from '../state/store';
 import { citationsFor } from './citation';
+import { writeClipboard } from './clipboard';
 import type { Citations } from './citation';
 import { buildPermalink } from './url';
 
@@ -26,28 +27,7 @@ function removeAllChildren(node: Element): void {
 
 async function copyToClipboard(text: string, confirmBtn: HTMLButtonElement): Promise<void> {
   const original = confirmBtn.textContent;
-  let success = false;
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      success = true;
-    } else {
-      // Fallback for non-HTTPS (e.g. preview servers). Ephemeral
-      // textarea + execCommand is deprecated but still broadly
-      // supported and works when the Clipboard API isn't available.
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.setAttribute('readonly', '');
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      success = document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-  } catch (e) {
-    console.warn('[cite] copy failed', e);
-  }
+  const success = await writeClipboard(text);
 
   confirmBtn.textContent = success ? 'Copied \u2713' : 'Copy failed';
   confirmBtn.classList.toggle('copied', success);

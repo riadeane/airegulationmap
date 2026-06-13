@@ -4,6 +4,10 @@
 
 import { getState } from '../state/store';
 import { computeChangelog } from '../data/changelog';
+
+// Snapshots from this date onward use methodology v2 (sub-indicator
+// means, frontier calibration, 3-dimension maturity composite).
+const METHODOLOGY_V2_DATE = '2026-06-13';
 import type { ChangelogDiffEntry, ChangelogInitialEntry } from '../data/changelog';
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', {
@@ -104,5 +108,24 @@ export function renderChangelog(countryName: string): void {
 
   for (const entry of changelog) {
     container.appendChild(entry.initial ? renderInitialEntry(entry) : renderChangeEntry(entry));
+  }
+
+  // Methodology v2 (June 2026) changed both the scoring mechanics and
+  // the calibration — without this note, a change entry crossing the
+  // boundary (e.g. "Governance Type 5 → 2.25 ↓") reads as a regulatory
+  // collapse rather than a re-measurement.
+  const crossesV2 = snapshots.some(s => s.date < METHODOLOGY_V2_DATE)
+    && changelog.some(e => !e.initial && e.date >= METHODOLOGY_V2_DATE);
+  if (crossesV2) {
+    const note = document.createElement('p');
+    note.className = 'changelog-note';
+    note.append(
+      `Changes on or after ${formatDate(METHODOLOGY_V2_DATE)} partly reflect a `,
+    );
+    const link = document.createElement('a');
+    link.href = '/methodology.html';
+    link.textContent = 'methodology revision';
+    note.append(link, ' (sub-indicator scoring, recalibrated scale), not only regulatory change.');
+    container.appendChild(note);
   }
 }

@@ -1,9 +1,11 @@
-import { getState, on } from '../state/store';
+import { getState, setState, on } from '../state/store';
 import { renderScoreBar, renderAllDots } from './scores';
 import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { toggleComparison, MAX_COMPARISON } from '../comparison/index';
+import { classifySources, formatSourcesForCopy } from '../data/sources';
+import { writeClipboard } from '../controls/clipboard';
 
 const CONFIDENCE_LABELS = {
   high: 'High confidence',
@@ -61,6 +63,24 @@ function updateCiteButton(): void {
   btn.title = disabled ? 'Select a country first' : '';
 }
 
+// Maturity-index rank among countries with a composite score. Ties
+// share a rank (strictly-higher count + 1).
+function renderRank(countryName: string): void {
+  const el = document.getElementById('maturity-rank');
+  if (!el) return;
+  const { scoreData } = getState();
+  const mine = scoreData[countryName]?.averageScore;
+  if (mine == null) {
+    el.textContent = '';
+    return;
+  }
+  const scored = Object.values(scoreData)
+    .map(d => d.averageScore)
+    .filter((v): v is number => v != null);
+  const rank = scored.filter(v => v > mine).length + 1;
+  el.textContent = `Rank ${rank} of ${scored.length}`;
+}
+
 function renderPanel(countryName: string): void {
   const { scoreData, regulationData, comparisonCountries } = getState();
   const score = scoreData[countryName];
@@ -96,17 +116,18 @@ function renderPanel(countryName: string): void {
   }
 
   const dateStr = (score && score.lastUpdated) || (reg && reg.lastUpdated);
-  const sourceUrls = reg && reg.sources
-    ? reg.sources.split('|').map(u => u.trim()).filter(Boolean)
-    : [];
-  const countText = sourceUrls.length > 0
-    ? `${sourceUrls.length} source${sourceUrls.length === 1 ? '' : 's'}`
+  const sources = classifySources(reg?.sources);
+  const officialCount = sources.filter(s => s.kind === 'official').length;
+  const countText = sources.length > 0
+    ? `${sources.length} source${sources.length === 1 ? '' : 's'}`
+      + (officialCount > 0 ? ` · ${officialCount} official` : '')
     : 'no primary sources';
   document.getElementById('last-updated')!.textContent = dateStr
     ? `Data as of ${dateStr} · ${countText}`
     : countText;
 
   renderScoreBar(score ? score.averageScore : null);
+  renderRank(countryName);
   renderAllDots(score);
   updateDimensionHighlight();
   renderTextSections(reg);
@@ -114,6 +135,12 @@ function renderPanel(countryName: string): void {
   highlightCountry(countryName);
   updateCompareButton();
   updateCiteButton();
+
+  // On phones the panel sits below the map — without this, tapping a
+  // country appears to do nothing (April 2026 mobile diagnosis, #3).
+  if (!comparisonActive && window.matchMedia('(max-width: 768px)').matches) {
+    document.getElementById('country-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function clearPanel(): void {
@@ -131,6 +158,28 @@ export function initPanel(): void {
     compareBtn.addEventListener('click', () => {
       const { selectedCountry } = getState();
       if (selectedCountry) toggleComparison(selectedCountry);
+    });
+  }
+
+  // Touch-equivalent of Esc — visible on coarse pointers only (CSS).
+  const closeBtn = document.getElementById('panel-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => setState({ selectedCountry: null }));
+  }
+
+  // Copy the full source list as a numbered, paste-ready block —
+  // analysts move these into footnotes and research notes.
+  const sourcesCopyBtn = document.getElementById('sources-copy') as HTMLButtonElement | null;
+  if (sourcesCopyBtn) {
+    sourcesCopyBtn.addEventListener('click', async () => {
+      const { selectedCountry, regulationData } = getState();
+      if (!selectedCountry) return;
+      const sources = classifySources(regulationData[selectedCountry]?.sources);
+      if (sources.length === 0) return;
+      const ok = await writeClipboard(formatSourcesForCopy(sources, selectedCountry));
+      const original = 'Copy all';
+      sourcesCopyBtn.textContent = ok ? 'Copied ✓' : 'Copy failed';
+      setTimeout(() => { sourcesCopyBtn.textContent = original; }, 1500);
     });
   }
 

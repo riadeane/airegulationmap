@@ -2,6 +2,7 @@ import type { AttributeKey } from '../constants';
 import type { ScoreData, RegulationData } from '../data/loader';
 import type { HistoryData } from '../data/history';
 import type { BlocsData } from '../data/blocs';
+import type { SubscoresData } from '../data/subscores';
 
 export interface AppState {
   currentAttribute: AttributeKey;
@@ -23,6 +24,9 @@ export interface AppState {
   selectedBloc: string | null;
   // Parsed blocs.json — loaded async; null until then / on failure.
   blocsData: BlocsData | null;
+  // Parsed subscores.json (methodology v2 sub-indicator audit trail) —
+  // loaded async; null until then / on failure.
+  subscores: SubscoresData | null;
   // Scatter plot ("dimension explorer") panel state.
   scatterOpen: boolean;
   scatterX: AttributeKey;
@@ -42,6 +46,7 @@ const state: AppState = {
   history: null,
   selectedBloc: null,
   blocsData: null,
+  subscores: null,
   scatterOpen: false,
   scatterX: 'enforcementLevel',
   scatterY: 'regulationStatus',

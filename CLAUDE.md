@@ -78,6 +78,8 @@ Vanilla TypeScript + D3.js + TopoJSON, built with Vite. No framework.
 | `src/data/searchIndex.ts` | Full-text index + substring search over regulation text |
 | `src/data/countryMatch.ts` | Shared country-name autocomplete matcher |
 | `src/data/blocs.ts` | Bloc membership loading + aggregate stats (`computeBlocStats`) |
+| `src/data/sources.ts` | Source URL classification (official vs other) + copy formatting |
+| `src/data/subscores.ts` | subscores.json loading + sub-indicator labels (methodology v2) |
 | `src/map/` | Map rendering (renderer, legend, zoom, tooltip) |
 | `src/panel/` | Country detail panel (scores, text sections, changelog) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |

@@ -1,6 +1,7 @@
 import { PLACEHOLDER_RE } from '../constants';
 import type { DimensionKey } from '../constants';
 import { normalizeRegulationText } from './normalize';
+import { classifySources } from '../data/sources';
 import type { RegulationEntry } from '../data/loader';
 
 export function showSection(id: string, show: boolean): void {
@@ -55,23 +56,31 @@ export function renderTextSections(regData: RegulationEntry | null | undefined):
     hasAny = true;
   }
 
-  // Sources
+  // Sources — official (government/legislature/regulator) sources get
+  // a tag so analysts can spot primary-source coverage at a glance.
   const sourcesContainer = document.getElementById('sources-list')!;
   sourcesContainer.replaceChildren();
-  const urls = regData.sources
-    ? regData.sources.split('|').map(u => u.trim()).filter(u => u && !PLACEHOLDER_RE.test(u))
-    : [];
+  const sources = classifySources(regData.sources);
 
-  if (urls.length > 0) {
-    for (const [i, url] of urls.entries()) {
+  const copyBtn = document.getElementById('sources-copy') as HTMLButtonElement | null;
+  if (copyBtn) copyBtn.hidden = sources.length === 0;
+
+  if (sources.length > 0) {
+    for (const source of sources) {
       const li = document.createElement('li');
       const a = document.createElement('a');
-      a.href = url;
+      a.href = source.url;
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
-      try { a.textContent = new URL(url).hostname.replace('www.', ''); }
-      catch { a.textContent = `Source ${i + 1}`; }
+      a.title = source.url;
+      a.textContent = source.hostname;
       li.appendChild(a);
+      if (source.kind === 'official') {
+        const tag = document.createElement('span');
+        tag.className = 'source-tag';
+        tag.textContent = 'official';
+        li.appendChild(tag);
+      }
       sourcesContainer.appendChild(li);
     }
     showSection('sources-section', true);

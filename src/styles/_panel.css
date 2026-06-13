@@ -536,3 +536,145 @@
   color: var(--text-tertiary);
   font-style: italic;
 }
+
+/* Maturity rank under the overall score bar */
+.maturity-rank {
+  font-size: 0.68rem;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+}
+
+/* Panel close — touch-equivalent of Esc; desktop keeps keyboard/click-away */
+.panel-close {
+  display: none;
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 9px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .panel-close {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+  }
+}
+
+/* Sub-indicator breakdown (methodology v2 audit trail) */
+.subscore-panel {
+  margin: 2px 0 8px;
+  padding: 8px 10px 10px 14px;
+  border-left: 2px solid var(--border);
+  animation: fadeIn 0.2s var(--ease-out);
+}
+
+.subscore-caption {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+
+.subscore-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+}
+
+.subscore-label {
+  flex: 1;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+.subscore-track {
+  width: 64px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border-subtle);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.subscore-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  opacity: 0.7;
+}
+
+.subscore-value {
+  font-size: 0.7rem;
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  min-width: 12px;
+  text-align: right;
+}
+
+/* Sources: official tag + copy-all */
+.panel-section-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sources-copy {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-size: 0.62rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+.sources-copy:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+#sources-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.source-tag {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: var(--accent-muted);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+/* Methodology-revision note in the changelog */
+.changelog-note {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+  margin-top: 10px;
+  line-height: 1.45;
+}
+
+.changelog-note a {
+  color: var(--text-secondary);
+}

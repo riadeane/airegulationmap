@@ -11,12 +11,12 @@ describe('jitterFor', () => {
     expect(jitterFor('Germany')).not.toEqual(jitterFor('France'));
   });
 
-  it('stays within ±0.18 score units on both axes', () => {
+  it('stays well under the 0.25 quarter-point data step on both axes', () => {
     const names = ['Germany', 'France', 'China', 'United States of America', 'S. Sudan', 'Fiji'];
     for (const name of names) {
       const { dx, dy } = jitterFor(name);
-      expect(Math.abs(dx)).toBeLessThanOrEqual(0.18);
-      expect(Math.abs(dy)).toBeLessThanOrEqual(0.18);
+      expect(Math.abs(dx)).toBeLessThanOrEqual(0.06);
+      expect(Math.abs(dy)).toBeLessThanOrEqual(0.06);
     }
   });
 

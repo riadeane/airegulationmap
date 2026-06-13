@@ -196,6 +196,7 @@
           <div class="panel-name-row">
             <span id="country-name"></span>
             <span id="confidence-badge" class="confidence-badge"></span>
+            <button id="panel-close" class="panel-close" type="button" aria-label="Close country details">&times;</button>
           </div>
           <small id="last-updated" class="data-freshness"></small>
           <div class="panel-header-actions">
@@ -225,6 +226,7 @@
             </div>
             <span class="score-value" id="average-score"></span>
           </div>
+          <div class="maturity-rank" id="maturity-rank"></div>
         </div>
         <div class="panel-section">
           <div class="panel-section-label">DIMENSIONS</div>
@@ -279,7 +281,10 @@
           <p id="specific-laws"></p>
         </div>
         <div class="panel-section" id="sources-section">
-          <div class="panel-section-label">SOURCES</div>
+          <div class="panel-section-label panel-section-label-row">
+            SOURCES
+            <button id="sources-copy" class="sources-copy" type="button" hidden>Copy all</button>
+          </div>
           <ul id="sources-list"></ul>
         </div>
         <div class="panel-section" id="changelog-section" style="display:none">

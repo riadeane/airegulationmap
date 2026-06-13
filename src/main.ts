@@ -4,8 +4,10 @@ import { setState } from './state/store';
 import { loadScores, loadRegulation } from './data/loader';
 import { loadHistory } from './data/history';
 import { loadBlocs } from './data/blocs';
+import { loadSubscores } from './data/subscores';
 import { initBlocSelector } from './controls/blocSelector';
 import { initBlocSummary } from './controls/blocSummary';
+import { initSubscores } from './panel/subscores';
 import { generateMap, initMapSubscriptions } from './map/index';
 import { initPanel } from './panel/index';
 import { initComparison } from './comparison/index';
@@ -86,6 +88,7 @@ async function main(): Promise<void> {
   initExport();
   initDimensionClicks();
   initPanel();
+  initSubscores();
   initCitePopover();
   initComparison();
   initSearch();
@@ -132,6 +135,10 @@ async function main(): Promise<void> {
     setState({ history });
     initTimeline(history);
   });
+
+  // Sub-indicator audit trail (methodology v2) — non-blocking; the
+  // dimension-row breakdown appears once it loads.
+  loadSubscores().then(subscores => setState({ subscores }));
 
   // Load bloc membership non-blocking; the bloc filter and summary
   // appear once the data exists. URL bloc is applied late, same as

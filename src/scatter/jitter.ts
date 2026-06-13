@@ -3,7 +3,11 @@
 // every render, reload, and shared link. FNV-1a hash, two decorrelated
 // lanes for x and y. Pure, unit-tested.
 
-const SPREAD = 0.36; // total band width in score units (±0.18)
+// Total band width in score units (±0.06). Sized for methodology v2's
+// quarter-point data: jitter must stay well under the 0.25 step so it
+// separates ties without blurring real score differences. (The old
+// ±0.18 band was tuned for integer-only data.)
+const SPREAD = 0.12;
 
 export interface Jitter {
   dx: number;
