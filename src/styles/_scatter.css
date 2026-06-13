@@ -24,6 +24,12 @@ body.view-scatter #timeline-strip {
   animation: fadeIn 0.25s var(--ease-out);
 }
 
+/* The author display:flex above overrides the UA's [hidden] rule —
+   without this, the "hidden" container covers the map on every load. */
+.scatter-container[hidden] {
+  display: none;
+}
+
 .scatter-header {
   display: flex;
   align-items: baseline;
