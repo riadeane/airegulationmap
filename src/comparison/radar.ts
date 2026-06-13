@@ -113,38 +113,7 @@ export function renderRadar(containerEl: Element, countries: string[], scoreData
   });
 
   containerEl.appendChild(svg.node()!);
-
-  // Accessibility: plain data table
-  const table = document.createElement('table');
-  table.className = 'radar-data-table';
-  table.setAttribute('aria-label', 'Comparison scores');
-  const thead = document.createElement('thead');
-  const headRow = document.createElement('tr');
-  headRow.appendChild(document.createElement('th'));
-  countries.forEach((name) => {
-    const th = document.createElement('th');
-    th.textContent = name;
-    th.style.color = getColorFor(name);
-    headRow.appendChild(th);
-  });
-  thead.appendChild(headRow);
-  table.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
-  RADAR_AXES.forEach(key => {
-    const tr = document.createElement('tr');
-    const labelTh = document.createElement('th');
-    labelTh.scope = 'row';
-    labelTh.textContent = ATTRIBUTE_LABELS[key] || key;
-    tr.appendChild(labelTh);
-    countries.forEach(name => {
-      const td = document.createElement('td');
-      const val = (scoreData[name] && scoreData[name][key]);
-      td.textContent = val == null ? '—' : String(val);
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody);
-  containerEl.appendChild(table);
+  // The numeric scores live in the unified comparison table below the
+  // chart (renderComparisonTable), which is a real <table> and serves
+  // the accessibility role this chart needs — no separate data table.
 }

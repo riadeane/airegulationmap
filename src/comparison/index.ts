@@ -83,6 +83,15 @@ export function initComparison(): void {
     markComparisonCountries(names);
     if (countEl) countEl.textContent = String(names.length);
 
+    // Two or more countries take over the whole main area (map and the
+    // single-country panel hide) so the comparison reads at full width.
+    // One country keeps the side-panel layout beside the map.
+    const fullView = names.length >= 2;
+    document.body.classList.toggle('view-compare', fullView);
+    // Comparison and the scatter explorer both want the main area —
+    // entering compare closes the explorer.
+    if (fullView && getState().scatterOpen) setState({ scatterOpen: false });
+
     // Open the comparison panel as soon as the user adds the first
      // country. Without this the "+ Compare" button feels like a
     // no-op (panel only appears after a second add). At 1 country

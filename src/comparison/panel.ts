@@ -160,59 +160,119 @@ function renderChips(names: string[]): void {
   });
 }
 
-function renderDetails(names: string[]): void {
-  const container = document.getElementById('comparison-details')!;
+// One unified comparison table: dimensions down the side, countries
+// across the top, score + description together in each cell. Replaces
+// the old radar data table (numbers) AND the separate text grid, so
+// every label appears exactly once.
+function renderComparisonTable(names: string[]): void {
+  const container = document.getElementById('comparison-table')!;
   container.replaceChildren();
-  // 2 countries flex to fill the panel; 3+ switch to fixed-width
-  // columns and scroll horizontally.
-  container.classList.toggle('scrolls', names.length >= 3);
+  // The flex columns fill the view for 2-3 countries; 4 may exceed the
+  // width and scroll. min-width on cells keeps prose legible either way.
+  container.style.setProperty('--col-count', String(names.length));
 
-  const { regulationData } = getState();
+  const { scoreData, regulationData } = getState();
 
-  // Header row with country names colored by their palette entry
-  const header = document.createElement('div');
-  header.className = 'comp-details-row comp-details-header';
-  header.style.setProperty('--col-count', String(names.length));
-  const corner = document.createElement('div');
-  corner.className = 'comp-details-label';
-  header.appendChild(corner);
-  names.forEach((name) => {
-    const cell = document.createElement('div');
-    cell.className = 'comp-details-cell comp-details-country';
-    cell.style.color = getColorFor(name);
-    cell.dataset.country = name;
-    cell.textContent = name;
-    header.appendChild(cell);
+  const table = document.createElement('table');
+  table.className = 'comparison-table';
+  table.setAttribute('aria-label', 'Country comparison across scoring dimensions');
+
+  // Header: blank corner + colored country names.
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  headRow.appendChild(document.createElement('th')); // corner
+  names.forEach(name => {
+    const th = document.createElement('th');
+    th.scope = 'col';
+    th.className = 'ct-country';
+    th.style.color = getColorFor(name);
+    th.textContent = name;
+    headRow.appendChild(th);
   });
-  container.appendChild(header);
+  thead.appendChild(headRow);
+  table.appendChild(thead);
 
+  const tbody = document.createElement('tbody');
+
+  const fmtScore = (v: number | null | undefined) =>
+    v == null ? '—' : (Number.isInteger(v) ? String(v) : v.toFixed(2));
+
+  // Maturity index — score only (it is derived; no description).
+  const avgRow = document.createElement('tr');
+  avgRow.className = 'ct-row ct-row-maturity';
+  const avgLabel = document.createElement('th');
+  avgLabel.scope = 'row';
+  avgLabel.className = 'ct-label';
+  avgLabel.textContent = 'Maturity index';
+  avgRow.appendChild(avgLabel);
+  names.forEach(name => {
+    const td = document.createElement('td');
+    const score = document.createElement('span');
+    score.className = 'ct-score ct-score-lg';
+    score.textContent = fmtScore(scoreData[name]?.averageScore);
+    td.appendChild(score);
+    avgRow.appendChild(td);
+  });
+  tbody.appendChild(avgRow);
+
+  // The five scored dimensions — score badge + description per country.
   DETAIL_DIMENSIONS.forEach(dim => {
-    const row = document.createElement('div');
-    row.className = 'comp-details-row';
-    row.style.setProperty('--col-count', String(names.length));
-
-    const label = document.createElement('div');
-    label.className = 'comp-details-label';
+    const row = document.createElement('tr');
+    row.className = 'ct-row';
+    const label = document.createElement('th');
+    label.scope = 'row';
+    label.className = 'ct-label';
     label.textContent = ATTRIBUTE_LABELS[dim];
     row.appendChild(label);
 
     names.forEach(name => {
-      const cell = document.createElement('div');
-      cell.className = 'comp-details-cell';
-      cell.dataset.country = name;
-      cell.style.setProperty('--chip-color', getColorFor(name));
-      const reg = regulationData[name];
-      const text = reg ? cleanRegulationText(reg[dim]) : null;
+      const td = document.createElement('td');
+      const score = document.createElement('span');
+      score.className = 'ct-score';
+      score.textContent = fmtScore(scoreData[name]?.[dim]);
+      td.appendChild(score);
+
+      const text = regulationData[name] ? cleanRegulationText(regulationData[name][dim]) : null;
+      const p = document.createElement('p');
+      p.className = 'ct-text';
       if (text) {
-        cell.textContent = text;
+        p.textContent = text;
       } else {
-        cell.textContent = 'No data';
-        cell.classList.add('empty');
+        p.textContent = 'No data';
+        p.classList.add('empty');
       }
-      row.appendChild(cell);
+      td.appendChild(p);
+      row.appendChild(td);
     });
-    container.appendChild(row);
+    tbody.appendChild(row);
   });
+
+  // Key legislation — text only, useful side-by-side.
+  const lawsRow = document.createElement('tr');
+  lawsRow.className = 'ct-row';
+  const lawsLabel = document.createElement('th');
+  lawsLabel.scope = 'row';
+  lawsLabel.className = 'ct-label';
+  lawsLabel.textContent = 'Key Legislation';
+  lawsRow.appendChild(lawsLabel);
+  names.forEach(name => {
+    const td = document.createElement('td');
+    const text = regulationData[name] ? cleanRegulationText(regulationData[name].specificLaws) : null;
+    const p = document.createElement('p');
+    p.className = 'ct-text';
+    if (text) {
+      p.textContent = text;
+    } else {
+      p.textContent = '—';
+      p.classList.add('empty');
+    }
+    td.appendChild(p);
+    lawsRow.appendChild(td);
+  });
+  tbody.appendChild(lawsRow);
+
+  table.appendChild(tbody);
+  container.appendChild(table);
 }
 
 export function renderComparisonPanel(names: string[]): void {
@@ -220,16 +280,16 @@ export function renderComparisonPanel(names: string[]): void {
   renderChips(names);
 
   const radarEl = document.getElementById('radar-chart')!;
-  const detailsEl = document.getElementById('comparison-details')!;
+  const tableEl = document.getElementById('comparison-table')!;
 
-  // Radar + details grid need two or more countries to be meaningful.
-  // At exactly one country, clear them and show a friendly prompt so
-  // the user knows what to do next.
+  // Radar + table need two or more countries to be meaningful. At
+  // exactly one country, clear them and show a friendly prompt so the
+  // user knows what to do next.
   if (names.length >= 2) {
     radarEl.classList.remove('is-empty');
-    detailsEl.classList.remove('is-empty');
+    tableEl.classList.remove('is-empty');
     renderRadar(radarEl, names, getState().scoreData);
-    renderDetails(names);
+    renderComparisonTable(names);
   } else {
     radarEl.replaceChildren();
     radarEl.classList.add('is-empty');
@@ -240,8 +300,8 @@ export function renderComparisonPanel(names: string[]): void {
       : 'Add countries to compare.';
     radarEl.appendChild(prompt);
 
-    detailsEl.replaceChildren();
-    detailsEl.classList.add('is-empty');
+    tableEl.replaceChildren();
+    tableEl.classList.add('is-empty');
   }
 }
 
@@ -249,9 +309,9 @@ export function clearComparisonPanel(): void {
   const addBar = document.getElementById('comparison-add-bar');
   const chips = document.getElementById('comparison-chips');
   const radar = document.getElementById('radar-chart');
-  const details = document.getElementById('comparison-details');
+  const table = document.getElementById('comparison-table');
   if (addBar) addBar.replaceChildren();
   if (chips) chips.replaceChildren();
   if (radar) radar.replaceChildren();
-  if (details) details.replaceChildren();
+  if (table) table.replaceChildren();
 }

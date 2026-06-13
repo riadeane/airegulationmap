@@ -316,112 +316,138 @@
   font-weight: 500;
 }
 
-.radar-data-table {
+/* ── Full comparison view ─────────────────────────────────────
+   Two or more countries: the map and single-country panel hide so the
+   comparison reads at full width. body.view-compare is toggled in
+   src/comparison/index.ts. */
+body.view-compare #map-wrapper {
+  display: none;
+}
+
+body.view-compare #timeline-strip {
+  display: none !important;
+}
+
+/* The explorer overlays the (now-hidden) map slot, so its trigger has
+   nothing to act on while comparing. */
+body.view-compare #scatter-btn {
+  display: none;
+}
+
+body.view-compare #comparison-panel {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  border-left: none;
+}
+
+/* Radar (capped, top) + unified table (below, full width). The table
+   scales cleanly from two to four countries; stacking the radar above
+   it keeps reading columns wide. */
+.comparison-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 24px;
+}
+
+body.view-compare .comparison-body {
+  align-items: stretch;
+}
+
+body.view-compare .radar-chart {
+  align-self: center;
+  border-bottom: none;
+}
+
+body.view-compare .radar-chart svg {
+  max-width: 460px;
+}
+
+.comparison-table-wrap {
+  width: 100%;
+  padding: 4px 24px 0;
+  overflow-x: auto;
+}
+
+.comparison-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 14px;
-  font-size: 0.72rem;
-  color: var(--text-secondary);
 }
 
-/* Numeric cells only get the mono */
-.radar-data-table tbody td {
+/* The single-country / pre-second-country state has no table. */
+.comparison-table-wrap.is-empty {
+  display: none;
+}
+
+.comparison-table th,
+.comparison-table td {
+  vertical-align: top;
+  padding: 14px 16px 14px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+}
+
+.comparison-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 1;
+  padding-top: 6px;
+}
+
+/* Label column (dimension names) — fixed, quiet. */
+.ct-label {
+  width: 150px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-family: 'Geist', -apple-system, sans-serif;
+}
+
+/* Country column headers — the only place names appear in the table. */
+.ct-country {
+  font-family: 'Literata', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  border-bottom: 2px solid currentColor !important;
+}
+
+/* Value columns size to fill the available width; the min-width floor
+   keeps prose legible, so four countries on a narrow screen overflow
+   and the wrap scrolls horizontally rather than crushing the text. */
+.comparison-table td {
+  min-width: 210px;
+}
+
+.ct-score {
+  display: inline-block;
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
   font-variant-numeric: tabular-nums;
-}
-
-.radar-data-table th,
-.radar-data-table td {
-  padding: 4px 8px;
-  text-align: center;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.radar-data-table thead th {
-  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.9rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
-  font-size: 0.66rem;
-  color: var(--text-primary);
+  color: var(--accent);
+  margin-bottom: 5px;
 }
 
-.radar-data-table tbody th {
-  font-family: 'Geist', -apple-system, sans-serif;
-  text-align: left;
-  font-weight: 400;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
+.ct-score-lg {
+  font-size: 1.5rem;
+  margin-bottom: 0;
 }
 
-/* Details grid — container-aware. On narrow panels (e.g. tablet tier
-   or stacked mobile) the value columns tighten so the header label
-   column stays aligned without forcing horizontal scroll unless the
-   countries genuinely won't fit. */
-.comparison-details {
-  padding: 8px 24px 24px;
-  overflow-x: auto;
-  container-type: inline-size;
-  container-name: comp-details;
-}
-
-.comp-details-row {
-  display: grid;
-  /* Value columns flex to fill the panel — two countries get wide,
-     scroll-free reading columns; three or four exceed the panel and
-     the container scrolls horizontally (each column never below 190px
-     so prose stays legible). */
-  grid-template-columns: 112px repeat(var(--col-count, 1), minmax(190px, 1fr));
-  gap: 16px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border-subtle);
-  align-items: start;
-  min-width: 100%;
-}
-
-/* Three or more countries can't fit the flex columns — switch to fixed
-   widths so the row grows past the panel and scrolls horizontally. */
-.comparison-details.scrolls .comp-details-row {
-  grid-template-columns: 112px repeat(var(--col-count, 1), 230px);
-  width: max-content;
-}
-
-.comp-details-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
-}
-
-.comp-details-label {
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  font-family: 'Geist', -apple-system, sans-serif;
-  padding-top: 2px;
-}
-
-.comp-details-cell {
-  /* These cells ARE the content in comparison mode — primary text
-     color and a reading-size line, not caption styling. */
+.ct-text {
+  margin: 0;
   font-size: 0.8rem;
   color: var(--text-primary);
-  line-height: 1.65;
-  min-width: 0;
+  line-height: 1.6;
   word-wrap: break-word;
 }
 
-.comp-details-cell.empty {
+.ct-text.empty {
   color: var(--text-tertiary);
   font-style: italic;
-}
-
-.comp-details-country {
-  font-family: 'Literata', Georgia, serif;
-  font-size: 1rem;
-  font-weight: 500;
-  font-style: normal;
 }
 
 /* Compare button in single-country panel */
