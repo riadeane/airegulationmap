@@ -47,8 +47,14 @@ export function buildScoreSelector(): void {
 
 export function initDimensionClicks(): void {
   // Rows are real <button> elements now — Enter/Space activation comes
-  // free from the browser, so we only wire click.
+  // free from the browser, so we only wire click. Clicking a row colors
+  // the map by that dimension; clicking the active row again toggles
+  // back to the maturity index (there was no in-panel way back before).
   document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
-    row.addEventListener('click', () => switchAttribute(row.dataset.dimension as AttributeKey));
+    row.title = 'Color the map by this dimension — click again to return to the maturity index';
+    row.addEventListener('click', () => {
+      const dimension = row.dataset.dimension as AttributeKey;
+      switchAttribute(getState().currentAttribute === dimension ? 'averageScore' : dimension);
+    });
   });
 }

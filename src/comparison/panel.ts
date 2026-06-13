@@ -163,6 +163,9 @@ function renderChips(names: string[]): void {
 function renderDetails(names: string[]): void {
   const container = document.getElementById('comparison-details')!;
   container.replaceChildren();
+  // 2 countries flex to fill the panel; 3+ switch to fixed-width
+  // columns and scroll horizontally.
+  container.classList.toggle('scrolls', names.length >= 3);
 
   const { regulationData } = getState();
 

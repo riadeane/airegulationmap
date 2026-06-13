@@ -1,6 +1,6 @@
 /* Comparison panel — sibling to #country-panel inside <main> */
 #comparison-panel {
-  width: min(520px, 46vw);
+  width: min(640px, 52vw);
   min-width: 380px;
   flex-shrink: 0;
   background: var(--surface);
@@ -368,19 +368,23 @@
 
 .comp-details-row {
   display: grid;
-  grid-template-columns: 120px repeat(var(--col-count, 1), 180px);
-  gap: 14px;
-  padding: 12px 0;
+  /* Value columns flex to fill the panel — two countries get wide,
+     scroll-free reading columns; three or four exceed the panel and
+     the container scrolls horizontally (each column never below 190px
+     so prose stays legible). */
+  grid-template-columns: 112px repeat(var(--col-count, 1), minmax(190px, 1fr));
+  gap: 16px;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border-subtle);
   align-items: start;
-  width: max-content;
+  min-width: 100%;
 }
 
-@container comp-details (max-width: 560px) {
-  .comp-details-row {
-    grid-template-columns: 96px repeat(var(--col-count, 1), 150px);
-    gap: 10px;
-  }
+/* Three or more countries can't fit the flex columns — switch to fixed
+   widths so the row grows past the panel and scrolls horizontally. */
+.comparison-details.scrolls .comp-details-row {
+  grid-template-columns: 112px repeat(var(--col-count, 1), 230px);
+  width: max-content;
 }
 
 .comp-details-header {
@@ -399,9 +403,11 @@
 }
 
 .comp-details-cell {
-  font-size: 0.76rem;
-  color: var(--text-secondary);
-  line-height: 1.55;
+  /* These cells ARE the content in comparison mode — primary text
+     color and a reading-size line, not caption styling. */
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  line-height: 1.65;
   min-width: 0;
   word-wrap: break-word;
 }
