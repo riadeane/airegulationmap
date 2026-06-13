@@ -60,7 +60,7 @@ def main():
     parser.add_argument("--countries", default="", help="Comma-separated list of countries to update")
     parser.add_argument("--force", action="store_true", help="Force update regardless of staleness")
     parser.add_argument("--dry-run", action="store_true", help="Show what would change without writing")
-    parser.add_argument("--model", default="claude-haiku-4-5-20251001", help="Claude model to use")
+    parser.add_argument("--model", default="claude-sonnet-4-6", help="Claude model to use")
     parser.add_argument("--search", action="store_true", help="Enable web search for priority countries")
     parser.add_argument("--search-all", action="store_true",
                         help="Enable web search for ALL countries (uses Sonnet; pair with --batch for cost)")

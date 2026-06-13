@@ -18,7 +18,7 @@ on:
       model:
         description: 'Claude model to use'
         required: false
-        default: 'claude-haiku-4-5-20251001'
+        default: 'claude-sonnet-4-6'
       search:
         description: 'Enable web search for priority countries'
         required: false
@@ -58,7 +58,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           IS_SCHEDULED: ${{ github.event_name == 'schedule' }}
           INPUT_COUNTRIES: ${{ github.event.inputs.countries || '' }}
-          INPUT_MODEL: ${{ github.event.inputs.model || 'claude-haiku-4-5-20251001' }}
+          INPUT_MODEL: ${{ github.event.inputs.model || 'claude-sonnet-4-6' }}
           INPUT_FORCE: ${{ (github.event.inputs.force_update == 'true') && '--force' || '' }}
           INPUT_SEARCH: ${{ (github.event_name == 'schedule' || github.event.inputs.search == 'true') && '--search' || '' }}
           INPUT_SEARCH_ALL: ${{ (github.event.inputs.search_all == 'true') && '--search-all' || '' }}
