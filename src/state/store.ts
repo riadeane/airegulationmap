@@ -12,7 +12,11 @@ export interface AppState {
   filterMax: number;
   selectedCountry: string | null;
   sortedCountryNames: string[];
+  // The staged comparison set (0-4). Membership is separate from
+  // whether the full comparison VIEW is open (comparisonViewOpen) —
+  // the user builds a set, then opens the comparison deliberately.
   comparisonCountries: string[];
+  comparisonViewOpen: boolean;
   // null = "latest" (use current scoreData as-is); otherwise an ISO date
   // string (YYYY-MM-DD) present in history.json. The timeline slider
   // writes this; the map subscribes and re-renders historic scores.
@@ -42,6 +46,7 @@ const state: AppState = {
   selectedCountry: null,
   sortedCountryNames: [],
   comparisonCountries: [],
+  comparisonViewOpen: false,
   timelineDate: null,
   history: null,
   selectedBloc: null,

@@ -82,15 +82,14 @@ function renderRank(countryName: string): void {
 }
 
 function renderPanel(countryName: string): void {
-  const { scoreData, regulationData, comparisonCountries } = getState();
+  const { scoreData, regulationData, comparisonViewOpen } = getState();
   const score = scoreData[countryName];
   const reg = regulationData[countryName];
 
-  // If comparison is active, don't take over the panel slot — just update
-  // the map highlight and bail. The comparison panel owns the right side.
-  const comparisonActive = comparisonCountries.length >= 2;
-
-  if (!comparisonActive) {
+  // The full comparison view owns the main area; don't reveal the
+  // single-country panel underneath it. While merely staging a set
+  // (view closed), the panel stays usable so the user keeps browsing.
+  if (!comparisonViewOpen) {
     const fallback = document.getElementById('no-selection-message');
     if (fallback) fallback.hidden = true;
     document.getElementById('panel-content')!.style.display = '';
@@ -138,7 +137,7 @@ function renderPanel(countryName: string): void {
 
   // On phones the panel sits below the map — without this, tapping a
   // country appears to do nothing (April 2026 mobile diagnosis, #3).
-  if (!comparisonActive && window.matchMedia('(max-width: 768px)').matches) {
+  if (!comparisonViewOpen && window.matchMedia('(max-width: 768px)').matches) {
     document.getElementById('country-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }

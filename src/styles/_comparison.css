@@ -523,3 +523,118 @@ body.view-compare .radar-chart svg {
     padding-bottom: 9px;
   }
 }
+
+/* ── Staging tray ─────────────────────────────────────────────
+   Floats over the map while the user assembles a comparison set.
+   Slides up when it has members; the View button opens the full view. */
+.comparison-tray {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100% - 140px);
+  padding: 10px 12px 10px 16px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+  /* Hidden state: tucked below, faded, non-interactive. */
+  transform: translate(-50%, calc(100% + 30px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.32s var(--ease-out), opacity 0.32s var(--ease-out);
+}
+
+.comparison-tray.open {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tray-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.tray-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.tray-view-btn {
+  flex-shrink: 0;
+  background: var(--accent);
+  border: none;
+  color: var(--bg);
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s var(--ease-out), background 0.15s var(--ease-out);
+}
+
+.tray-view-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.tray-view-btn:disabled {
+  background: var(--border);
+  color: var(--text-tertiary);
+  cursor: default;
+}
+
+/* Back-to-map button in the comparison header */
+.comparison-back-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.comparison-back-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* The comparison view slides in from the right as it takes over. */
+body.view-compare #comparison-panel {
+  animation: slideInRight 0.3s var(--ease-out);
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comparison-tray {
+    transition: opacity 0.01s;
+    transform: translate(-50%, 0);
+  }
+  body.view-compare #comparison-panel,
+  .scatter-container,
+  .comparison-body,
+  .radar-chart svg {
+    animation: none !important;
+  }
+}

@@ -117,10 +117,10 @@ async function main(): Promise<void> {
   // Country / comparison selection needs the map to exist so the
   // highlight fires correctly. Unknown country names (typo, deleted
   // from data) are dropped silently.
-  if (urlState.compare && urlState.compare.length > 0) {
+  if (urlState.compare && urlState.compare.length >= 2) {
     const valid = urlState.compare.filter(name => scoreData[name]);
-    if (valid.length > 0) setState({ comparisonCountries: valid });
-    if (valid.length === 1) setState({ selectedCountry: valid[0] });
+    // A shared compare link opens the full comparison view directly.
+    if (valid.length >= 2) setState({ comparisonCountries: valid, comparisonViewOpen: true });
   } else if (urlState.country && scoreData[urlState.country]) {
     setState({ selectedCountry: urlState.country });
   }

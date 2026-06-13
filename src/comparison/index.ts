@@ -1,9 +1,19 @@
 import { getState, setState, on } from '../state/store';
-import { renderComparisonPanel, clearComparisonPanel, renderAddBar } from './panel';
+import { renderComparisonPanel, clearComparisonPanel, renderAddBar, renderTray } from './panel';
 import { markComparisonCountries } from '../map/renderer';
 import { comparisonColor } from './colors';
 
 export const MAX_COMPARISON = 4;
+
+export function openComparisonView(): void {
+  if (getState().comparisonCountries.length >= 2) {
+    setState({ comparisonViewOpen: true });
+  }
+}
+
+export function closeComparisonView(): void {
+  setState({ comparisonViewOpen: false });
+}
 
 // Stable color-slot assignment so a country keeps its color for the
 // lifetime of its presence in the comparison. Without this, removing
@@ -62,78 +72,68 @@ export function toggleComparison(name: string): void {
 }
 
 export function clearComparison(): void {
-  setState({ comparisonCountries: [] });
+  setState({ comparisonCountries: [], comparisonViewOpen: false });
 }
 
 export function initComparison(): void {
   const panelEl = document.getElementById('comparison-panel');
   const countryPanelEl = document.getElementById('country-panel');
+  const trayEl = document.getElementById('comparison-tray');
   const clearBtn = document.getElementById('clear-comparison-btn');
+  const backBtn = document.getElementById('comparison-back-btn');
+  const viewBtn = document.getElementById('tray-view-btn');
   const countEl = document.getElementById('comparison-count');
 
   if (clearBtn) clearBtn.addEventListener('click', clearComparison);
+  if (backBtn) backBtn.addEventListener('click', closeComparisonView);
+  if (viewBtn) viewBtn.addEventListener('click', openComparisonView);
 
-  // Tracks whether the comparison panel is already visible, so we only
-  // auto-scroll on the first transition from hidden → shown (avoids
-  // scroll-on-every-chip-change once the user is in compare mode).
-  let wasVisible = false;
+  // The tray floats over the map while the user assembles a set; it
+  // hides once the full view is open or the set is empty.
+  function updateTray(): void {
+    const { comparisonCountries, comparisonViewOpen } = getState();
+    if (trayEl) {
+      trayEl.classList.toggle('open', comparisonCountries.length >= 1 && !comparisonViewOpen);
+    }
+  }
 
   on('comparisonCountries', (names) => {
     syncColorSlots(names);
     markComparisonCountries(names);
     if (countEl) countEl.textContent = String(names.length);
+    renderTray(names);
+    updateTray();
 
-    // Two or more countries take over the whole main area (map and the
-    // single-country panel hide) so the comparison reads at full width.
-    // One country keeps the side-panel layout beside the map.
-    const fullView = names.length >= 2;
-    document.body.classList.toggle('view-compare', fullView);
-    // Comparison and the scatter explorer both want the main area —
-    // entering compare closes the explorer.
-    if (fullView && getState().scatterOpen) setState({ scatterOpen: false });
+    // Can't compare fewer than two — drop out of the full view if the
+    // set falls below the threshold while it's open.
+    if (getState().comparisonViewOpen && names.length < 2) {
+      setState({ comparisonViewOpen: false });
+    } else if (getState().comparisonViewOpen) {
+      // Set changed while viewing — re-render the table/radar.
+      renderComparisonPanel(names);
+    }
+  });
 
-    // Open the comparison panel as soon as the user adds the first
-     // country. Without this the "+ Compare" button feels like a
-    // no-op (panel only appears after a second add). At 1 country
-    // the panel shows the chip + search so the user understands
-    // they are in compare mode; radar + details stay hidden until
-    // there's something to actually compare.
-    if (names.length >= 1) {
+  on('comparisonViewOpen', (open) => {
+    document.body.classList.toggle('view-compare', open);
+    updateTray();
+
+    if (open) {
+      // Comparison and the scatter explorer both claim the main area.
+      if (getState().scatterOpen) setState({ scatterOpen: false });
       if (panelEl) panelEl.hidden = false;
       if (countryPanelEl) countryPanelEl.style.display = 'none';
-      renderComparisonPanel(names);
-
-      // On mobile, the comparison panel sits below the map — scroll
-      // it into view the first time it opens so the user doesn't
-      // have to hunt for it.
-      if (!wasVisible && panelEl && window.matchMedia('(max-width: 768px)').matches) {
-        requestAnimationFrame(() => {
-          panelEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-      }
-      wasVisible = true;
+      renderComparisonPanel(getState().comparisonCountries);
     } else {
       if (panelEl) panelEl.hidden = true;
       if (countryPanelEl) countryPanelEl.style.display = '';
       clearComparisonPanel();
-      // Re-render the single panel with the most relevant country:
-      // prefer the one country still left in the comparison (if any),
-      // otherwise fall back to whatever was selected before.
-      const { selectedCountry } = getState();
-      const target = names[0] || selectedCountry;
-      if (target) {
-        setState({ selectedCountry: target });
-      }
-      wasVisible = false;
     }
   });
 
-  // When comparison is active (even with just 1 country), refresh the
-  // add-bar whenever the user clicks a new country on the map so the
-  // "+ Add [country]" quick-add button follows the click.
+  // While a set is being assembled, keep the add-bar's quick-add button
+  // pointed at the most recently clicked country.
   on('selectedCountry', () => {
-    if (getState().comparisonCountries.length >= 1) {
-      renderAddBar();
-    }
+    if (getState().comparisonViewOpen) renderAddBar();
   });
 }

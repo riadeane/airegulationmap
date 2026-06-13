@@ -161,6 +161,11 @@
       </div>
       <div id="zoom-controls"></div>
       <div id="bloc-summary" class="bloc-summary" hidden></div>
+      <div id="comparison-tray" class="comparison-tray" role="region" aria-label="Comparison set">
+        <span class="tray-label">Compare</span>
+        <div id="tray-chips" class="tray-chips"></div>
+        <button id="tray-view-btn" class="tray-view-btn" type="button" disabled>View comparison</button>
+      </div>
       <div id="scatter-container" class="scatter-container" hidden>
         <div class="scatter-header">
           <span class="scatter-title">Dimension explorer</span>
@@ -295,6 +300,7 @@
     </aside>
     <aside id="comparison-panel" hidden>
       <div class="comparison-header">
+        <button id="comparison-back-btn" class="comparison-back-btn" type="button" aria-label="Back to map">&larr; Map</button>
         <div class="comparison-title">
           <h2>Country Comparison</h2>
           <small><span id="comparison-count">0</span> / 4 selected</small>

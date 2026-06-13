@@ -185,17 +185,17 @@ export function initKeyboardNav(): void {
     }
 
     if (e.key === 'Escape') {
-      // Esc backs out one layer at a time: explorer view first, then
-      // selection/dropdowns on the next press.
+      // Esc backs out one layer at a time: full views first (explorer,
+      // then comparison), then selection/dropdowns on later presses.
       if (getState().scatterOpen) {
         setState({ scatterOpen: false });
         return;
       }
-      // While the comparison panel is active, leave selectedCountry
-      // alone so the add-bar keeps reflecting the last clicked country.
-      if (getState().comparisonCountries.length < 2) {
-        setState({ selectedCountry: null });
+      if (getState().comparisonViewOpen) {
+        setState({ comparisonViewOpen: false });
+        return;
       }
+      setState({ selectedCountry: null });
       document.getElementById('score-dropdown')!.classList.remove('open');
       document.getElementById('score-btn')!.classList.remove('active');
       document.getElementById('filter-popover')!.classList.remove('open');

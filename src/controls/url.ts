@@ -102,7 +102,11 @@ export function buildPermalink(stateSnapshot?: AppState): string {
   const s = stateSnapshot || getState();
   const params = new URLSearchParams();
 
-  if (s.comparisonCountries && s.comparisonCountries.length > 0) {
+  // `compare` represents a COMMITTED comparison (the full view is
+  // open). A staged-but-not-yet-viewed set is in-app ephemeral state,
+  // so the URL keeps tracking the selected country until the user
+  // actually opens the comparison.
+  if (s.comparisonViewOpen && s.comparisonCountries && s.comparisonCountries.length >= 2) {
     params.set('compare', s.comparisonCountries.join(','));
   } else if (s.selectedCountry) {
     params.set('country', s.selectedCountry);
@@ -190,12 +194,12 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
   const { scoreData } = getState();
   const validCountry = (name: string) => !!scoreData[name];
 
-  if (urlState.compare && urlState.compare.length > 0) {
+  if (urlState.compare && urlState.compare.length >= 2) {
     const valid = urlState.compare.filter(validCountry);
-    setState({ comparisonCountries: valid });
-    if (valid.length === 1) setState({ selectedCountry: valid[0] });
+    // A shared compare link opens the full view directly.
+    setState({ comparisonCountries: valid, comparisonViewOpen: valid.length >= 2 });
   } else {
-    setState({ comparisonCountries: [] });
+    setState({ comparisonCountries: [], comparisonViewOpen: false });
     if (urlState.country && validCountry(urlState.country)) {
       setState({ selectedCountry: urlState.country });
     } else if (!initial) {
@@ -209,6 +213,7 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
 export function initUrlSync(): void {
   on('selectedCountry', writeReplace);
   on('comparisonCountries', writeReplace);
+  on('comparisonViewOpen', writeReplace);
   on('currentAttribute', writeReplace);
   on('timelineDate', writeReplace);
   on('selectedBloc', writeReplace);

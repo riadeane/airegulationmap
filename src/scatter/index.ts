@@ -204,7 +204,11 @@ export function initScatter(): void {
   populateAxisSelects();
 
   btn.addEventListener('click', () => {
-    setState({ scatterOpen: !getState().scatterOpen });
+    const opening = !getState().scatterOpen;
+    // Explorer and the comparison view are mutually exclusive — both
+    // own the main area.
+    if (opening && getState().comparisonViewOpen) setState({ comparisonViewOpen: false });
+    setState({ scatterOpen: opening });
   });
   closeBtn.addEventListener('click', () => setState({ scatterOpen: false }));
 

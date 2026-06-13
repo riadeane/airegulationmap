@@ -134,30 +134,45 @@ export function renderAddBar(): void {
   }
 }
 
+function buildChip(name: string): HTMLElement {
+  const chip = document.createElement('span');
+  chip.className = 'comp-chip';
+  chip.style.setProperty('--chip-color', getColorFor(name));
+
+  const label = document.createElement('span');
+  label.className = 'comp-chip-label';
+  label.textContent = name;
+  chip.appendChild(label);
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'comp-chip-remove';
+  btn.setAttribute('aria-label', `Remove ${name} from comparison`);
+  btn.textContent = '×';
+  btn.addEventListener('click', () => removeFromComparison(name));
+  chip.appendChild(btn);
+  return chip;
+}
+
 function renderChips(names: string[]): void {
   const container = document.getElementById('comparison-chips')!;
   container.replaceChildren();
-  names.forEach((name) => {
-    const color = getColorFor(name);
-    const chip = document.createElement('span');
-    chip.className = 'comp-chip';
-    chip.style.setProperty('--chip-color', color);
+  names.forEach(name => container.appendChild(buildChip(name)));
+}
 
-    const label = document.createElement('span');
-    label.className = 'comp-chip-label';
-    label.textContent = name;
-    chip.appendChild(label);
+// The staging tray: the set the user is building, floating over the map.
+// Shown whenever there's at least one staged country and the full view
+// is closed; the "View comparison" button (enabled at 2+) opens it.
+export function renderTray(names: string[]): void {
+  const chips = document.getElementById('tray-chips')!;
+  const btn = document.getElementById('tray-view-btn') as HTMLButtonElement;
+  chips.replaceChildren();
+  names.forEach(name => chips.appendChild(buildChip(name)));
 
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'comp-chip-remove';
-    btn.setAttribute('aria-label', `Remove ${name} from comparison`);
-    btn.textContent = '×';
-    btn.addEventListener('click', () => removeFromComparison(name));
-    chip.appendChild(btn);
-
-    container.appendChild(chip);
-  });
+  btn.disabled = names.length < 2;
+  btn.textContent = names.length < 2
+    ? 'Add one more to compare'
+    : `View comparison (${names.length})`;
 }
 
 // One unified comparison table: dimensions down the side, countries
