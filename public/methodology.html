@@ -441,6 +441,25 @@
       <li><strong>Methodology change, June 2026.</strong> Sub-indicator scoring, frontier-anchored calibration, and the three-dimension maturity composite were introduced in June 2026. Score movements around that date partly reflect the methodology change, not only regulatory change.</li>
     </ul>
 
+    <h2 id="data-access">Data access for analysts</h2>
+    <p>
+      Every data file behind this site is a static, versioned artifact —
+      no API key, no rate limits. Load it directly into your tools:
+    </p>
+    <div class="rubric">
+      <div class="rubric-row"><div class="rubric-score">py</div><div class="rubric-body"><code>pd.read_csv("https://airegulationmap.org/scores.csv")</code></div></div>
+      <div class="rubric-row"><div class="rubric-score">R</div><div class="rubric-body"><code>read.csv("https://airegulationmap.org/regulation_data.csv")</code></div></div>
+      <div class="rubric-row"><div class="rubric-score">json</div><div class="rubric-body"><code>/history.json</code> (score snapshots), <code>/data/subscores.json</code> (sub-indicators), <code>/data/blocs.json</code> (bloc membership)</div></div>
+    </div>
+    <p>
+      Column definitions match this page. The
+      <a href="https://github.com/riadeane/airegulationmap/commits/main/public">git history</a>
+      of each file is the audit trail: every monthly update is one commit,
+      so any past state of the dataset is retrievable and citeable by
+      commit hash. The in-app Export button produces the same data merged
+      into a single CSV/JSON.
+    </p>
+
     <h2 id="citing">Citing this site</h2>
     <p>
       Every view on the site &mdash; a single country, a comparison set, a
