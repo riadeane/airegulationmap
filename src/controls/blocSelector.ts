@@ -42,7 +42,10 @@ export function initBlocSelector(): void {
   });
 
   row.append(label, select);
-  popover.appendChild(row);
+  // Keep the reset button (appended by initFilter) last in the popover.
+  const resetRow = popover.querySelector('.filter-reset-row');
+  if (resetRow) popover.insertBefore(row, resetRow);
+  else popover.appendChild(row);
 
   select.value = getState().selectedBloc || '';
 }

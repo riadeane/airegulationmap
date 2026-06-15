@@ -99,7 +99,7 @@
       </div>
       <div id="score-btn-container">
         <button id="score-btn" aria-haspopup="listbox" aria-expanded="false">
-          <span id="score-btn-label">Average Score</span>
+          <span id="score-btn-label">Maturity Index</span>
           <span class="caret">▾</span>
         </button>
         <ul id="score-dropdown" role="listbox" aria-label="Score type"></ul>
@@ -121,7 +121,7 @@
           </div>
         </div>
       </div>
-      <button id="scatter-btn" aria-pressed="false" title="Dimension explorer — cross-dimension scatter view">Explorer</button>
+      <button id="scatter-btn" aria-pressed="false" title="Dimension explorer — plot every country across two score dimensions">Scatter</button>
       <div id="export-btn-container">
         <button id="export-btn" aria-haspopup="true" aria-expanded="false">
           Export <span class="caret">▾</span>
@@ -182,7 +182,7 @@
     </div>
     <aside id="country-panel">
       <div id="panel-intro" class="panel-intro">
-        <p class="panel-intro-lede">Global AI governance across 196 countries, scored on six dimensions.</p>
+        <p class="panel-intro-lede">Global AI governance across <span id="intro-country-count">196</span> countries, scored on six dimensions.</p>
         <ol class="panel-intro-steps">
           <li><span class="panel-intro-num">01</span> Select a country to read its regulatory posture.</li>
           <li><span class="panel-intro-num">02</span> Use <strong>+&nbsp;Compare</strong> to stack up to four side-by-side.</li>
@@ -219,7 +219,7 @@
           ></div>
         </div>
         <div class="panel-section">
-          <div class="panel-section-label">OVERALL SCORE</div>
+          <div class="panel-section-label">MATURITY INDEX</div>
           <div class="score-bar-row">
             <div class="score-bar-track">
               <div class="score-bar-fill" id="overall-bar-fill"></div>
@@ -231,26 +231,51 @@
         <div class="panel-section">
           <div class="panel-section-label">DIMENSIONS</div>
           <div class="dimensions-list">
-            <button type="button" class="dimension-row" data-dimension="regulationStatus">
-              <span class="dim-label">Regulation Status</span>
-              <span class="dim-dots" id="dots-regulation"></span>
-            </button>
-            <button type="button" class="dimension-row" data-dimension="policyLever">
-              <span class="dim-label">Policy Lever</span>
-              <span class="dim-dots" id="dots-policy"></span>
-            </button>
-            <button type="button" class="dimension-row" data-dimension="governanceType">
-              <span class="dim-label">Governance Type</span>
-              <span class="dim-dots" id="dots-governance"></span>
-            </button>
-            <button type="button" class="dimension-row" data-dimension="actorInvolvement">
-              <span class="dim-label">Actor Involvement</span>
-              <span class="dim-dots" id="dots-actors"></span>
-            </button>
-            <button type="button" class="dimension-row" data-dimension="enforcementLevel">
-              <span class="dim-label">Enforcement Level</span>
-              <span class="dim-dots" id="dots-enforcement"></span>
-            </button>
+            <div class="dimension-row" data-dimension="regulationStatus">
+              <button type="button" class="dim-main">
+                <span class="dim-label">Regulation Status</span>
+                <span class="dim-dots" id="dots-regulation"></span>
+              </button>
+              <button type="button" class="dim-expand" aria-expanded="false" aria-label="Show Regulation Status sub-indicators">
+                <span class="dim-expand-caret" aria-hidden="true">▸</span>
+              </button>
+            </div>
+            <div class="dimension-row" data-dimension="policyLever">
+              <button type="button" class="dim-main">
+                <span class="dim-label">Policy Lever</span>
+                <span class="dim-dots" id="dots-policy"></span>
+              </button>
+              <button type="button" class="dim-expand" aria-expanded="false" aria-label="Show Policy Lever sub-indicators">
+                <span class="dim-expand-caret" aria-hidden="true">▸</span>
+              </button>
+            </div>
+            <div class="dimension-row" data-dimension="governanceType">
+              <button type="button" class="dim-main">
+                <span class="dim-label">Governance Type</span>
+                <span class="dim-dots" id="dots-governance"></span>
+              </button>
+              <button type="button" class="dim-expand" aria-expanded="false" aria-label="Show Governance Type sub-indicators">
+                <span class="dim-expand-caret" aria-hidden="true">▸</span>
+              </button>
+            </div>
+            <div class="dimension-row" data-dimension="actorInvolvement">
+              <button type="button" class="dim-main">
+                <span class="dim-label">Actor Involvement</span>
+                <span class="dim-dots" id="dots-actors"></span>
+              </button>
+              <button type="button" class="dim-expand" aria-expanded="false" aria-label="Show Actor Involvement sub-indicators">
+                <span class="dim-expand-caret" aria-hidden="true">▸</span>
+              </button>
+            </div>
+            <div class="dimension-row" data-dimension="enforcementLevel">
+              <button type="button" class="dim-main">
+                <span class="dim-label">Enforcement Level</span>
+                <span class="dim-dots" id="dots-enforcement"></span>
+              </button>
+              <button type="button" class="dim-expand" aria-expanded="false" aria-label="Show Enforcement Level sub-indicators">
+                <span class="dim-expand-caret" aria-hidden="true">▸</span>
+              </button>
+            </div>
           </div>
         </div>
         <p id="no-details-message" class="panel-section" style="display:none; color: var(--text-secondary); font-size: 0.8rem; font-style: italic;">
@@ -321,8 +346,9 @@
 
   <div id="timeline-strip" style="display:none">
     <div id="timeline-inner">
+      <span class="timeline-title">History</span>
       <button id="timeline-reset" type="button" aria-label="Jump to latest date" title="Jump to latest">&#x21BA;</button>
-      <input type="range" id="timeline-slider" min="0" max="0" step="1" value="0" aria-label="Timeline date slider">
+      <input type="range" id="timeline-slider" min="0" max="0" step="1" value="0" aria-label="Scrub AI regulation scores back through monthly snapshots">
       <span id="timeline-date-label">Latest</span>
     </div>
   </div>

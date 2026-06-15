@@ -59,6 +59,27 @@ function downloadFile(content: string, filename: string, mimeType: string): void
   URL.revokeObjectURL(url);
 }
 
+let toastTimer: ReturnType<typeof setTimeout> | undefined;
+
+// Transient confirmation so the download isn't silent — and so the
+// researcher can see which scope (filtered vs all) they actually got.
+// Doubles as an aria-live announcement for screen-reader users.
+function showToast(message: string): void {
+  let toast = document.getElementById('app-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-toast';
+    toast.className = 'app-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast!.classList.remove('visible'), 2800);
+}
+
 function exportData(format: string, allCountries: boolean): void {
   const countries = allCountries
     ? Object.keys(getState().scoreData).sort()
@@ -71,6 +92,10 @@ function exportData(format: string, allCountries: boolean): void {
   } else {
     downloadFile(JSON.stringify(rows, null, 2), `ai-regulation-data-${scope}-${date}.json`, 'application/json');
   }
+  showToast(
+    `Exported ${rows.length} ${rows.length === 1 ? 'country' : 'countries'} · ` +
+    `${allCountries ? 'all countries' : 'filtered view'} · ${format.toUpperCase()}`
+  );
 }
 
 export function initExport(): void {

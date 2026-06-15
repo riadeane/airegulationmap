@@ -11,6 +11,18 @@
   gap: 14px;
 }
 
+/* Without a label the scrubber reads as an anonymous slider; this names
+   it so a first-time user knows it steps through historical snapshots. */
+.timeline-title {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 #timeline-reset {
   background: none;
   border: 1px solid var(--border);

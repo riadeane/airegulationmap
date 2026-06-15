@@ -67,13 +67,29 @@ function renderBreakdown(container: HTMLElement, dimension: DimensionKey): boole
 function collapseAll(): void {
   expanded = null;
   document.querySelectorAll<HTMLElement>('.subscore-panel').forEach(p => { p.hidden = true; });
-  document.querySelectorAll('.dimension-row').forEach(r => r.setAttribute('aria-expanded', 'false'));
+  document.querySelectorAll('.dim-expand').forEach(b => b.setAttribute('aria-expanded', 'false'));
+}
+
+// Hide the disclosure caret on rows that have no audit trail for the
+// current country — a control that opens nothing is worse than no
+// control. Runs when the country changes and when subscores.json lands.
+function updateExpandAvailability(): void {
+  const { subscores, selectedCountry } = getState();
+  const entry = subscores && selectedCountry ? subscores.countries[selectedCountry] : null;
+  document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
+    const btn = row.querySelector<HTMLButtonElement>('.dim-expand');
+    if (!btn) return;
+    const snake = DIMENSION_TO_SNAKE[row.dataset.dimension as Exclude<DimensionKey, never>];
+    btn.hidden = !(entry && entry[snake]);
+  });
 }
 
 export function initSubscores(): void {
   document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
-    row.setAttribute('aria-expanded', 'false');
-    row.addEventListener('click', () => {
+    const expandBtn = row.querySelector<HTMLButtonElement>('.dim-expand');
+    if (!expandBtn) return;
+    expandBtn.setAttribute('aria-expanded', 'false');
+    expandBtn.addEventListener('click', () => {
       const dimension = row.dataset.dimension as DimensionKey;
       const panel = panelFor(row);
 
@@ -84,12 +100,14 @@ export function initSubscores(): void {
       collapseAll();
       if (renderBreakdown(panel, dimension)) {
         panel.hidden = false;
-        row.setAttribute('aria-expanded', 'true');
+        expandBtn.setAttribute('aria-expanded', 'true');
         expanded = dimension;
       }
     });
   });
 
-  // New country: values change, so collapse rather than show stale data.
-  on('selectedCountry', collapseAll);
+  // New country: values change, so collapse rather than show stale data,
+  // and re-evaluate which rows actually have a breakdown to show.
+  on('selectedCountry', () => { collapseAll(); updateExpandAvailability(); });
+  on('subscores', updateExpandAvailability);
 }

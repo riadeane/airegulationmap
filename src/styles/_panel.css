@@ -177,7 +177,9 @@
 
 .score-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--score-low), var(--accent));
+  /* Same low→high ramp as the choropleth so a given score reads the
+     same color here as it does on the map. */
+  background: linear-gradient(90deg, var(--score-low), var(--score-high));
   border-radius: 2px;
   transition: width 0.5s var(--ease-out);
   width: 0%;
@@ -191,7 +193,7 @@
   top: -1px;
   width: 6px;
   height: 6px;
-  background: var(--accent);
+  background: var(--score-high);
   border-radius: 50%;
 }
 
@@ -212,30 +214,15 @@
   gap: 10px;
 }
 
+/* A row holds two distinct controls: the main button recolors the map
+   by this dimension; the trailing caret discloses the sub-indicator
+   breakdown. Keeping them as separate targets (not one overloaded
+   click) is the whole point. */
 .dimension-row {
-  /* Reset native <button> appearance so it inherits the panel's type
-     treatment. The element is a real button (keyboard, disabled, etc.
-     all come free) but looks like a row. */
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent;
-  border: 0;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  width: calc(100% + 16px);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 8px;
-  margin: -6px -8px;
+  align-items: stretch;
+  gap: 2px;
   border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background 0.15s var(--ease-out);
-}
-
-.dimension-row:hover {
-  background: var(--accent-muted);
 }
 
 .dimension-row.active-dimension {
@@ -245,6 +232,67 @@
 .dimension-row.active-dimension .dim-label {
   color: var(--accent);
   font-weight: 500;
+}
+
+/* Primary target — color the map by this dimension. */
+.dim-main {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s var(--ease-out);
+}
+
+.dim-main:hover {
+  background: var(--accent-muted);
+}
+
+/* Secondary target — disclose the sub-indicator audit trail. */
+.dim-expand {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0 7px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.dim-expand:hover {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.dim-expand[hidden] {
+  display: none;
+}
+
+.dim-expand-caret {
+  font-size: 0.6rem;
+  line-height: 1;
+  transition: transform 0.15s var(--ease-out);
+}
+
+.dim-expand[aria-expanded='true'] .dim-expand-caret {
+  transform: rotate(90deg);
+  color: var(--accent);
 }
 
 .dim-label {
@@ -280,6 +328,12 @@
 
 .dim-dot.filled {
   background: var(--accent);
+}
+
+/* Fractional dot — the quarter-point part of a v2 score, filled
+   left-to-right so a 1.75 reads as one full dot plus a three-quarter dot. */
+.dim-dot.partial {
+  background: linear-gradient(90deg, var(--accent) var(--fill, 50%), var(--border) var(--fill, 50%));
 }
 
 /* Confidence badge — always visible at high/medium/low, but visual
@@ -322,9 +376,12 @@
 }
 
 .confidence-badge[data-level='low'] {
-  color: var(--accent);
-  background: var(--accent-muted);
-  border-color: color-mix(in oklch, var(--accent) 30%, transparent);
+  /* A caution hue distinct from the brand accent — accent means
+     "interactive / selected" everywhere else, so a warning shouldn't
+     borrow it. Red-leaning so low confidence reads louder than medium. */
+  color: oklch(64% 0.19 28);
+  background: oklch(64% 0.19 28 / 0.12);
+  border-color: oklch(64% 0.19 28 / 0.30);
 }
 
 /* Panel header actions row — Compare + Cite sit side by side. */
@@ -677,19 +734,4 @@
 
 .changelog-note a {
   color: var(--text-secondary);
-}
-
-/* Disclosure caret — the dimension rows expand to sub-indicators, and
-   nothing else hints at that. */
-.dimension-row[aria-expanded]::after {
-  content: '▸';
-  font-size: 0.6rem;
-  color: var(--text-tertiary);
-  margin-left: 8px;
-  transition: transform 0.15s var(--ease-out);
-  flex-shrink: 0;
-}
-
-.dimension-row[aria-expanded='true']::after {
-  transform: rotate(90deg);
 }

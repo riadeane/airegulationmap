@@ -250,6 +250,54 @@ h1 {
   color: var(--accent);
 }
 
+/* Persistent "a filter is applied" signal — visible even when the
+   popover is closed. A leading accent dot + accent border, but no
+   filled background, so it reads as "active" without mimicking the
+   open (.active) state. */
+#filter-btn.has-filter {
+  border-color: var(--accent);
+}
+
+#filter-btn.has-filter::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* Reset row at the foot of the filter popover. */
+.filter-reset-row {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
+.filter-reset {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.filter-reset:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-reset:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .caret {
   font-size: 0.65em;
   opacity: 0.5;

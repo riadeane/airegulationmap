@@ -20,8 +20,8 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 50%, var(--bg) 100%);
-  opacity: 0.4;
+  background: radial-gradient(ellipse at center, transparent 60%, var(--bg) 100%);
+  opacity: 0.25;
   z-index: 1;
 }
 

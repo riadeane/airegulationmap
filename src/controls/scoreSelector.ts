@@ -46,13 +46,20 @@ export function buildScoreSelector(): void {
 }
 
 export function initDimensionClicks(): void {
-  // Rows are real <button> elements now — Enter/Space activation comes
-  // free from the browser, so we only wire click. Clicking a row colors
-  // the map by that dimension; clicking the active row again toggles
-  // back to the maturity index (there was no in-panel way back before).
+  // Each dimension row has two distinct controls: the main button
+  // recolors the map by that dimension (this handler), and a separate
+  // caret button discloses the sub-indicator breakdown (see
+  // panel/subscores.ts). They were a single overloaded click target
+  // before — one click did both, with contradictory signifiers.
+  //
+  // Clicking the main button colors the map by that dimension; clicking
+  // the active dimension again toggles back to the maturity index
+  // (there was no in-panel way back before).
   document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
-    row.title = 'Color the map by this dimension — click again to return to the maturity index';
-    row.addEventListener('click', () => {
+    const main = row.querySelector<HTMLElement>('.dim-main');
+    if (!main) return;
+    main.title = 'Color the map by this dimension — click again to return to the maturity index';
+    main.addEventListener('click', () => {
       const dimension = row.dataset.dimension as AttributeKey;
       switchAttribute(getState().currentAttribute === dimension ? 'averageScore' : dimension);
     });

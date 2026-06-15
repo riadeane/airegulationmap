@@ -76,6 +76,29 @@ export function addLegend(
     .attr('y', legendHeight - legendMargin.bottom + 4)
     .attr('text-anchor', 'end')
     .text(endpoints[1]);
+
+  // "No data" key — countries with no score render in --no-data grey,
+  // and without this the reader can't tell "no information" from a low
+  // score (or from a country filtered out of the current view).
+  const noData = legend.append('g')
+    .attr('class', 'legend-nodata')
+    .attr('transform', 'translate(0, -13)');
+
+  noData.append('rect')
+    .attr('width', 9)
+    .attr('height', 9)
+    .attr('y', -8)
+    .attr('rx', 2)
+    .style('fill', cssVar('--no-data'))
+    .attr('stroke', cssVar('--border'))
+    .attr('stroke-width', 0.5);
+
+  noData.append('text')
+    .attr('class', 'legend-label')
+    .attr('x', 14)
+    .attr('y', 0)
+    .attr('text-anchor', 'start')
+    .text('No data');
 }
 
 export function updateLegendLabels(): void {

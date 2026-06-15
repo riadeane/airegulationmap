@@ -109,3 +109,42 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Transient toast ──────────────────────────────────────────
+   Bottom-center confirmation (currently used by data export). Doubles
+   as an aria-live region for screen readers.
+   ----------------------------------------------------------- */
+.app-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  font-variant-numeric: tabular-nums;
+  z-index: 1100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+}
+
+.app-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-toast {
+    transition: opacity 0.2s var(--ease-out);
+    transform: translateX(-50%);
+  }
+  .app-toast.visible {
+    transform: translateX(-50%);
+  }
+}
