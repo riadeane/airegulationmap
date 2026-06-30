@@ -499,6 +499,7 @@ body.view-compare .radar-chart svg {
     width: 100%;
     min-width: 0;
     max-height: 70vh;
+    max-height: 70dvh;
     border-left: none;
     border-top: 1px solid var(--border);
   }

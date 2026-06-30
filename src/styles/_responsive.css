@@ -19,19 +19,37 @@
     overflow: auto;
   }
 
+  /* dvh tracks the visible viewport as the mobile URL bar shows/hides,
+     so the map doesn't jump or get clipped the way vh does. vh stays
+     as the fallback for engines without dvh. */
   #map-wrapper {
     min-height: 50vh;
+    min-height: 50dvh;
   }
 
+  /* Once a country is open, the prose is what you're reading on a
+     phone — give the panel a little more room than the map. It still
+     scrolls internally past this cap. */
   #country-panel {
     width: 100%;
     border-left: none;
     border-top: 1px solid var(--border);
     max-height: 50vh;
+    max-height: 60dvh;
   }
 
   #timeline-inner {
     max-width: 100%;
+  }
+
+  /* Tighten page gutters so the slider and footer links aren't crammed
+     against the screen edges on narrow phones. */
+  #timeline-strip {
+    padding: 10px 14px;
+  }
+
+  footer {
+    padding: 16px 18px;
   }
 
   /* Header reflows on mobile. The brand line (title + last-updated +
@@ -103,6 +121,24 @@
   #zoom-controls button {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* iOS Safari zooms the whole page in when you focus a control whose
+     text is under 16px, then leaves you scrolled awkwardly. Pin every
+     text field and dropdown to 16px on touch so tapping search,
+     compare, or the filters never triggers that jump. */
+  #country-search,
+  .comp-search-input,
+  #bloc-select,
+  .scatter-controls select {
+    font-size: 16px;
+  }
+
+  /* The map owns pan/pinch here; tell the browser not to also read
+     those gestures as page scroll/zoom. Removes the gesture tug-of-war
+     (and the touch-intent delay) when dragging across the map. */
+  #map svg {
+    touch-action: none;
   }
 
   .dimension-row {
