@@ -275,7 +275,12 @@ export async function generateMap(): Promise<void> {
 // Single opacity composition for the score-range filter and the bloc
 // filter. (Search dimming stays class-based in CSS and intentionally
 // wins over this inline value while the user is mid-search.)
+//
+// `country` is the geometry's name, which is also the key `entry` was
+// looked up under — use it for the bloc test rather than entry.country,
+// since historical snapshots (timeline playback) carry no country field.
 function countryOpacity(
+  country: string,
   entry: MapScoreEntry | undefined,
   { currentAttribute, filterMin, filterMax, blocSet }: {
     currentAttribute: AttributeKey;
@@ -291,7 +296,7 @@ function countryOpacity(
   }
   const score = entry[currentAttribute]!;
   const inRange = score >= filterMin && score <= filterMax;
-  const inBloc = !blocSet || blocSet.has((entry as ScoreEntry).country);
+  const inBloc = !blocSet || blocSet.has(country);
   return (inRange && inBloc) ? 1 : 0.15;
 }
 
@@ -311,7 +316,7 @@ export function updateMap(overrideScoreData?: MapScores): void {
       const entry = data[d.properties.name];
       return entry ? colorScale(entry[currentAttribute] as number) : cssVar('--no-data');
     })
-    .style('opacity', d => countryOpacity(data[d.properties.name], {
+    .style('opacity', d => countryOpacity(d.properties.name, data[d.properties.name], {
       currentAttribute, filterMin, filterMax, blocSet,
     }));
 }
