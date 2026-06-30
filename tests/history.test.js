@@ -26,10 +26,15 @@ describe('buildScoresAtDate', () => {
     expect(result.Germany.regulationStatus).toBe(5);
   });
 
-  it('omits countries with no snapshot before the target date', () => {
+  it('carries the earliest snapshot backward before a country first appears', () => {
+    // Algeria's first snapshot is 2026-04-01. Scrubbing earlier than that
+    // must not make it vanish from the map — we show its earliest known
+    // state rather than dropping it (snapshots are change-points, so there
+    // is no recorded change before the first one).
     const result = buildScoresAtDate(history, '2026-03-25');
-    expect(result.Germany).toBeDefined();
-    expect(result.Algeria).toBeUndefined();
+    expect(result.Germany.regulationStatus).toBe(4);
+    expect(result.Algeria).toBeDefined();
+    expect(result.Algeria.regulationStatus).toBe(2);
   });
 });
 
