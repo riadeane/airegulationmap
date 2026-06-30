@@ -511,6 +511,20 @@ body.view-compare .radar-chart svg {
     height: 32px;
     font-size: 1.1rem;
   }
+
+  /* Narrower columns let two or three countries fit without horizontal
+     scroll on a phone; prose wraps rather than the table crushing it.
+     Four countries still scroll — acknowledged in renderComparisonTable. */
+  .comparison-table td {
+    min-width: 148px;
+  }
+  .ct-label {
+    width: 96px;
+  }
+  .comparison-table th,
+  .comparison-table td {
+    padding: 12px 12px 12px 0;
+  }
 }
 
 @media (pointer: coarse) {

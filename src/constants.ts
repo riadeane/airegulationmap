@@ -1,5 +1,5 @@
 export const ATTRIBUTE_LABELS = {
-  averageScore: 'Average Score',
+  averageScore: 'Maturity Index',
   regulationStatus: 'Regulation Status',
   policyLever: 'Policy Lever',
   governanceType: 'Governance Type',
@@ -23,7 +23,7 @@ export const LEGEND_ENDPOINTS: Record<AttributeKey, [string, string]> = {
 };
 
 export const SCORE_OPTIONS: { value: AttributeKey; text: string }[] = [
-  { value: 'averageScore',     text: 'Average Score' },
+  { value: 'averageScore',     text: 'Maturity Index' },
   { value: 'regulationStatus', text: 'Regulation Status' },
   { value: 'policyLever',      text: 'Policy Lever' },
   { value: 'governanceType',   text: 'Governance Type' },

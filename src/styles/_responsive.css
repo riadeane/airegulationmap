@@ -109,6 +109,10 @@
     min-height: 44px;
   }
 
+  .dim-expand {
+    min-width: 44px;
+  }
+
   #search-suggestions li {
     min-height: 44px;
     display: flex;

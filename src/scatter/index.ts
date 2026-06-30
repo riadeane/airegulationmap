@@ -209,8 +209,15 @@ export function initScatter(): void {
     // own the main area.
     if (opening && getState().comparisonViewOpen) setState({ comparisonViewOpen: false });
     setState({ scatterOpen: opening });
+    // Move focus into the explorer so keyboard users land in the new
+    // view (and back to the trigger when it closes). Only on explicit
+    // toggles — not on load / URL restore, which call setVisible directly.
+    if (opening) closeBtn.focus();
   });
-  closeBtn.addEventListener('click', () => setState({ scatterOpen: false }));
+  closeBtn.addEventListener('click', () => {
+    setState({ scatterOpen: false });
+    btn.focus();
+  });
 
   on('scatterOpen', setVisible);
 

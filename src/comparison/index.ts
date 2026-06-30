@@ -116,6 +116,10 @@ export function initComparison(): void {
     }
   });
 
+  // Remember what had focus when the full view took over, so closing it
+  // can hand focus back rather than dropping it on a now-hidden element.
+  let focusBeforeView: HTMLElement | null = null;
+
   on('comparisonViewOpen', (open) => {
     document.body.classList.toggle('view-compare', open);
     updateStrip();
@@ -123,13 +127,22 @@ export function initComparison(): void {
     if (open) {
       // Comparison and the scatter explorer both claim the main area.
       if (getState().scatterOpen) setState({ scatterOpen: false });
+      focusBeforeView = document.activeElement as HTMLElement | null;
       if (panelEl) panelEl.hidden = false;
       if (countryPanelEl) countryPanelEl.style.display = 'none';
       renderComparisonPanel(getState().comparisonCountries);
+      // The country panel may have just been hidden — move focus into
+      // the new region so keyboard users aren't stranded.
+      backBtn?.focus();
     } else {
       if (panelEl) panelEl.hidden = true;
       if (countryPanelEl) countryPanelEl.style.display = '';
       clearComparisonPanel();
+      // Restore focus to the opener if it's still on-screen.
+      if (focusBeforeView && document.contains(focusBeforeView) && focusBeforeView.offsetParent !== null) {
+        focusBeforeView.focus();
+      }
+      focusBeforeView = null;
     }
   });
 

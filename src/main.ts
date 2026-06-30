@@ -38,6 +38,10 @@ function updateCountryCount(scoreData: ScoreData): void {
   const count = Object.keys(scoreData).length;
   const el = document.getElementById('country-count');
   if (el) el.textContent = `${count} countries`;
+  // Keep the intro lede's count in sync with the data rather than a
+  // hardcoded number that silently drifts.
+  const introCount = document.getElementById('intro-country-count');
+  if (introCount) introCount.textContent = String(count);
 }
 
 function closeAllDropdowns(e: MouseEvent): void {
