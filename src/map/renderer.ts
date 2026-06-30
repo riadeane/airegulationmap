@@ -56,6 +56,24 @@ function readContainerSize(): Size {
   return { w, h };
 }
 
+// True while a full-screen view has the map hidden: the scatter explorer
+// dims #map via visibility, the comparison view drops #map-wrapper via
+// display:none. Both also toggle #timeline-strip, which changes the map
+// box. A ResizeObserver fire in that window would re-fit the projection
+// to a transient size the map never actually shows at — then the stale
+// fit flashes ("zooms") the instant the view closes and the map repaints.
+// Skip those fits; closing the view changes the box again and re-fires
+// the observer, fitting to the real size.
+function mapIsHidden(): boolean {
+  const wrapper = document.getElementById('map-wrapper');
+  const mapEl = document.getElementById('map');
+  if (!wrapper || !mapEl) return true;
+  // display:none on the wrapper (comparison view) → no layout box.
+  if (wrapper.clientWidth === 0 || wrapper.clientHeight === 0) return true;
+  // visibility:hidden on the map layer (scatter explorer).
+  return getComputedStyle(mapEl).visibility === 'hidden';
+}
+
 // Fit the projection so the map fills as much of the container as it
 // reasonably can without lopping off whole regions.
 //
@@ -246,6 +264,7 @@ export async function generateMap(): Promise<void> {
       pending = true;
       requestAnimationFrame(() => {
         pending = false;
+        if (mapIsHidden()) return;
         fitToSize(readContainerSize());
       });
     });
