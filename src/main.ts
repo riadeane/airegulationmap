@@ -21,6 +21,7 @@ import { initTheme } from './controls/theme';
 import { parseUrl, initUrlSync } from './controls/url';
 import { initCitePopover } from './controls/citePopover';
 import { initHelpOverlay } from './controls/helpOverlay';
+import { initMenu } from './controls/menu';
 import { removeMapSkeleton, showLoadError } from './panel/resilience';
 import type { ScoreData, RegulationData } from './data/loader';
 
@@ -100,6 +101,7 @@ async function main(): Promise<void> {
   initMapSubscriptions();
   initScatter();
   initHelpOverlay();
+  initMenu();
 
   if (urlState.scatter) {
     setState({

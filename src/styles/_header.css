@@ -98,7 +98,8 @@ h1 {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 7px 12px;
+  height: var(--control-h);
+  padding: 0 12px;
   font-size: 0.8rem;
   font-family: 'Geist', -apple-system, sans-serif;
   color: var(--text-primary);
@@ -228,7 +229,8 @@ h1 {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 7px 12px;
+  height: var(--control-h);
+  padding: 0 12px;
   font-size: 0.8rem;
   font-family: 'Geist', -apple-system, sans-serif;
   color: var(--text-secondary);
@@ -468,8 +470,8 @@ input[type="range"] {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  width: 34px;
-  height: 34px;
+  width: var(--control-h);
+  height: var(--control-h);
   padding: 0;
   cursor: pointer;
   color: var(--text-secondary);
@@ -495,3 +497,41 @@ input[type="range"] {
 .theme-toggle .theme-icon-moon { display: none; }
 .theme-toggle[data-theme='light'] .theme-icon-sun { display: none; }
 .theme-toggle[data-theme='light'] .theme-icon-moon { display: block; }
+
+/* Menu (☰) toggle — only appears on mobile (see _responsive.css), where
+   it folds the secondary controls away so the map keeps the screen.
+   Hidden on desktop, which shows the full toolbar inline. */
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.18s var(--ease-out), border-color 0.18s var(--ease-out), background 0.18s var(--ease-out);
+}
+
+.menu-toggle:hover,
+.menu-toggle[aria-expanded='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.menu-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* On desktop the metadata just flows inline in the header; the wrapper
+   is only a layout handle for the mobile menu. */
+.header-meta {
+  display: contents;
+}

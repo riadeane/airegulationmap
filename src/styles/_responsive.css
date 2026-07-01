@@ -104,11 +104,11 @@
     padding: 16px 18px;
   }
 
-  /* Header reflows on mobile into calm rows instead of a cramped
-     cluster: the brand line up top, then the search paired with the
-     theme toggle, then the four view controls on their own roomy row.
-     Ordering is done with `order` (not DOM changes) so the popovers keep
-     anchoring to their buttons. */
+  /* Mobile header: a compact two-row bar — wordmark + a menu toggle on
+     top, then search paired with the score selector. The secondary
+     controls (filter, scatter, export, theme) and the freshness
+     metadata fold behind the ☰ toggle so the map keeps the screen.
+     Ordering is done with `order`, so popovers keep anchoring cleanly. */
   #app-header {
     flex-wrap: wrap;
     height: auto;
@@ -116,10 +116,32 @@
     gap: 10px;
   }
 
+  h1 {
+    font-size: 1.05rem;
+  }
+
   .header-left {
     flex-wrap: wrap;
+    align-items: center;
     gap: 6px 10px;
     width: 100%;
+  }
+
+  /* The ☰ toggle caps the wordmark row on the right. */
+  #menu-toggle {
+    display: inline-flex;
+    order: 1;
+    margin-left: auto;
+  }
+
+  /* Freshness metadata gets its own line, revealed with the menu — a
+     trust signal, not a permanent fixture eating vertical space. */
+  .header-meta {
+    order: 2;
+    flex-basis: 100%;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
   }
 
   .header-right {
@@ -130,8 +152,8 @@
     justify-content: flex-start;
   }
 
-  /* Row: search grows to fill, theme toggle rides along at the end so
-     it isn't wedged into the button group. */
+  /* Row 2: search grows; the score selector rides beside it and doubles
+     as the "you are viewing …" label for the map. */
   #search-container {
     order: 1;
     flex: 1 1 auto;
@@ -144,27 +166,31 @@
     width: 100%;
   }
 
-  .theme-toggle {
+  #score-btn-container {
     order: 2;
   }
 
-  /* Row: the four view controls, evenly spaced with room to breathe. */
-  #score-btn-container,
+  /* Secondary controls collapse behind the menu button. */
   #filter-btn-container,
   #scatter-btn,
-  #export-btn-container {
+  #export-btn-container,
+  .theme-toggle {
     order: 3;
+  }
+
+  body:not(.controls-open) .header-meta,
+  body:not(.controls-open) #filter-btn-container,
+  body:not(.controls-open) #scatter-btn,
+  body:not(.controls-open) #export-btn-container,
+  body:not(.controls-open) .theme-toggle {
+    display: none;
   }
 
   #score-btn,
   #filter-btn,
   #export-btn,
   #scatter-btn {
-    padding: 9px 14px;
-  }
-
-  h1 {
-    font-size: 1.05rem;
+    padding: 0 14px;
   }
 
   /* Anchor the toolbar popovers to the header itself rather than each
@@ -188,13 +214,13 @@
 }
 
 /* Coarse pointers (touch devices): guarantee 44px hit targets even
-   when the visual element stays compact. */
+   when the visual element stays compact. The shared control height
+   drives search, buttons and toggles up to 44px in one move. */
 @media (pointer: coarse) {
-  #score-btn,
-  #filter-btn,
-  #export-btn,
-  #scatter-btn,
-  .theme-toggle,
+  :root {
+    --control-h: 44px;
+  }
+
   #timeline-reset,
   #zoom-controls button {
     min-height: 44px;

@@ -10,7 +10,8 @@
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 6px 8px;
+  height: var(--control-h);
+  padding: 0 8px;
   font-size: 0.78rem;
   font-family: 'Geist', -apple-system, sans-serif;
   color: var(--text-primary);

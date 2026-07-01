@@ -81,8 +81,21 @@
         aria-label="Keyboard shortcuts and help"
         title="Keyboard shortcuts"
       >?</button>
-      <span class="header-subtitle">Last updated: <span id="site-last-updated">—</span></span>
-      <span class="country-count-badge" id="country-count"></span>
+      <button
+        id="menu-toggle"
+        class="menu-toggle"
+        type="button"
+        aria-label="Show controls"
+        aria-expanded="false"
+      >
+        <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+      </button>
+      <div class="header-meta">
+        <span class="header-subtitle">Last updated: <span id="site-last-updated">—</span></span>
+        <span class="country-count-badge" id="country-count"></span>
+      </div>
     </div>
     <div class="header-right">
       <div id="search-container">
