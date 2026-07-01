@@ -133,6 +133,14 @@ h1 {
   animation: fadeUp 0.2s var(--ease-out);
 }
 
+/* The list is emptied (not detached) when there are no matches; without
+   this it collapses to a thin bordered strip floating under the search.
+   Most visible on mobile where the input — and so the strip — is full
+   width. */
+#search-suggestions:empty {
+  display: none;
+}
+
 #search-suggestions li {
   padding: 9px 14px;
   cursor: pointer;
