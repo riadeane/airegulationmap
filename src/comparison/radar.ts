@@ -28,7 +28,7 @@ function angleFor(i: number): number {
   return -Math.PI / 2 + (i / RADAR_AXES.length) * Math.PI * 2;
 }
 
-export function renderRadar(containerEl: Element, countries: string[], scoreData: ScoreData): void {
+export function renderRadar(containerEl: Element, countries: readonly string[], scoreData: ScoreData): void {
   containerEl.replaceChildren();
 
   const svg = create('svg')

@@ -11,11 +11,14 @@ export interface AppState {
   filterMin: number;
   filterMax: number;
   selectedCountry: string | null;
-  sortedCountryNames: string[];
+  // Read-only arrays: the store owns these; consumers replace them via
+  // setState (always with a fresh array), never mutate in place. The
+  // `readonly` modifier makes an accidental `.push()` a compile error.
+  sortedCountryNames: readonly string[];
   // The staged comparison set (0-4). Membership is separate from
   // whether the full comparison VIEW is open (comparisonViewOpen) —
   // the user builds a set, then opens the comparison deliberately.
-  comparisonCountries: string[];
+  comparisonCountries: readonly string[];
   comparisonViewOpen: boolean;
   // null = "latest" (use current scoreData as-is); otherwise an ISO date
   // string (YYYY-MM-DD) present in history.json. The timeline slider
@@ -60,15 +63,35 @@ const state: AppState = {
 type AnyListener = (value: unknown) => void;
 const listeners = new Map<keyof AppState, Set<AnyListener>>();
 
-export function getState(): AppState {
+/**
+ * The state is exposed to consumers as deeply read-only. All mutation
+ * flows through setState(); getState() is a window, not a handle. This
+ * is a compile-time contract (zero runtime cost) — it turns an
+ * accidental `getState().comparisonCountries.push(...)`, which would
+ * silently bypass every listener, into a type error.
+ */
+export function getState(): Readonly<AppState> {
   return state;
 }
 
+/**
+ * Merge a patch into the state and notify listeners — but only for keys
+ * whose value actually changed. Skipping no-op writes prevents redundant
+ * re-renders: several call sites write multiple keys at once (e.g. both
+ * filter sliders) even when only one moved, and a bare deselect (Esc)
+ * writes selectedCountry:null when it is already null. Comparison is by
+ * reference, which is correct here because the store never mutates a
+ * non-primitive in place — a changed array/object is always a new one.
+ */
 export function setState(patch: Partial<AppState>): void {
-  Object.assign(state, patch);
+  const changed: (keyof AppState)[] = [];
   for (const key of Object.keys(patch) as (keyof AppState)[]) {
-    emit(key, state[key]);
+    if (state[key] !== patch[key]) {
+      (state as Record<keyof AppState, unknown>)[key] = patch[key];
+      changed.push(key);
+    }
   }
+  for (const key of changed) emit(key, state[key]);
 }
 
 /** Subscribe to changes of one state key. Returns an unsubscribe function. */

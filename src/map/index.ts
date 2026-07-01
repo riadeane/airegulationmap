@@ -38,16 +38,32 @@ function announceCountry(name: string | null) {
     : `Selected ${name}. No ${label} data.`;
 }
 
+// Coalesce map recolors to one per frame. Several state keys can flip in
+// the same tick (a reset writes filterMin + filterMax + selectedBloc; the
+// store already drops no-op writes, but genuine multi-key changes still
+// fan out). Without this, each key queued its own full-map 500ms
+// transition and they stacked up during a slider drag. rAF collapses a
+// burst into a single updateMap.
+let mapUpdatePending = false;
+function scheduleUpdateMap(): void {
+  if (mapUpdatePending) return;
+  mapUpdatePending = true;
+  requestAnimationFrame(() => {
+    mapUpdatePending = false;
+    updateMap();
+  });
+}
+
 export function initMapSubscriptions() {
   on('currentAttribute', () => {
-    updateMap();
+    scheduleUpdateMap();
     updateLegendLabels();
     announceMode();
   });
 
   on('selectedCountry', announceCountry);
 
-  on('filterMin', () => updateMap());
-  on('filterMax', () => updateMap());
-  on('selectedBloc', () => updateMap());
+  on('filterMin', scheduleUpdateMap);
+  on('filterMax', scheduleUpdateMap);
+  on('selectedBloc', scheduleUpdateMap);
 }

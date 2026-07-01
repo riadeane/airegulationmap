@@ -156,7 +156,7 @@ function buildChip(name: string): HTMLElement {
   return chip;
 }
 
-function renderChips(names: string[]): void {
+function renderChips(names: readonly string[]): void {
   const container = document.getElementById('comparison-chips')!;
   container.replaceChildren();
   names.forEach(name => container.appendChild(buildChip(name)));
@@ -165,7 +165,7 @@ function renderChips(names: string[]): void {
 // The comparison set — a pinned footer in the country panel listing the
 // staged countries. The "View comparison" button (enabled at 2+) opens
 // the full view.
-export function renderTray(names: string[]): void {
+export function renderTray(names: readonly string[]): void {
   const chips = document.getElementById('tray-chips')!;
   const btn = document.getElementById('tray-view-btn') as HTMLButtonElement;
   chips.replaceChildren();
@@ -200,7 +200,7 @@ export function renderTray(names: string[]): void {
 // across the top, score + description together in each cell. Replaces
 // the old radar data table (numbers) AND the separate text grid, so
 // every label appears exactly once.
-function renderComparisonTable(names: string[]): void {
+function renderComparisonTable(names: readonly string[]): void {
   const container = document.getElementById('comparison-table')!;
   container.replaceChildren();
   // The flex columns fill the view for 2-3 countries; 4 may exceed the
@@ -311,7 +311,7 @@ function renderComparisonTable(names: string[]): void {
   container.appendChild(table);
 }
 
-export function renderComparisonPanel(names: string[]): void {
+export function renderComparisonPanel(names: readonly string[]): void {
   renderAddBar();
   renderChips(names);
 

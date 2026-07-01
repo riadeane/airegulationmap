@@ -21,7 +21,7 @@ export function closeComparisonView(): void {
 // callers were using the array index).
 const colorSlots = new Map<string, number>(); // countryName -> 0..MAX_COMPARISON-1
 
-function syncColorSlots(names: string[]): void {
+function syncColorSlots(names: readonly string[]): void {
   // Release slots for countries that left the list.
   for (const name of [...colorSlots.keys()]) {
     if (!names.includes(name)) colorSlots.delete(name);
