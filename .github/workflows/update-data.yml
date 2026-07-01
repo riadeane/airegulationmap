@@ -74,6 +74,10 @@ jobs:
 
       - name: Check for changes
         id: changes
+        # Run even if the update step reported failures (non-zero exit for
+        # partial success): the countries that DID update are already written to
+        # disk and must still be committed, or the whole month's work is lost.
+        if: ${{ !cancelled() }}
         run: |
           # Stage first so the brand-new subscores.json (untracked on its
           # first run) is detected too.
@@ -82,7 +86,7 @@ jobs:
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push updated data
-        if: steps.changes.outputs.changed == 'true'
+        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
         run: |
           git config user.name "AI Regulation Bot"
           git config user.email "bot@github-actions"

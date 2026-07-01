@@ -1,20 +1,28 @@
-"""Country name normalization."""
+"""Country-name normalization to canonical forms."""
+
+from __future__ import annotations
 
 import json
-import os
-
-from .config import COUNTRY_NAMES_JSON
+from pathlib import Path
 
 
-def load_alias_map():
-    """Load country name alias map for normalization."""
-    if not os.path.exists(COUNTRY_NAMES_JSON):
-        return {}
-    with open(COUNTRY_NAMES_JSON, encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("aliases", {})
+class CountryNames:
+    """Maps aliases (``"Czech Republic"``) to canonical names (``"Czechia"``).
 
+    Load once from ``country_names.json`` and reuse; unknown names pass through
+    unchanged after stripping whitespace.
+    """
 
-def canonicalize(name, aliases):
-    """Normalize a country name to its canonical form."""
-    return aliases.get(name.strip(), name.strip())
+    def __init__(self, aliases: dict[str, str]):
+        self._aliases = aliases
+
+    @classmethod
+    def load(cls, path: Path) -> CountryNames:
+        if not path.exists():
+            return cls({})
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return cls(data.get("aliases", {}))
+
+    def canonical(self, name: str) -> str:
+        stripped = name.strip()
+        return self._aliases.get(stripped, stripped)

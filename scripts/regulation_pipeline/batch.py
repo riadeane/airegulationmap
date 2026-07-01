@@ -1,33 +1,38 @@
 """Message Batches API support.
 
-The monthly run is the textbook batch workload: ~196 independent
-requests, no latency requirement. Batches bill all token usage at 50%
-of standard prices, support every Messages API feature (including the
-web_search tool and structured outputs), and return per-request
-results — a transient failure costs one country, not the run.
+The monthly run is the textbook batch workload: ~196 independent requests, no
+latency requirement. Batches bill all token usage at 50% of standard prices,
+support every Messages API feature (web search, structured outputs), and return
+per-request results — a transient failure costs one country, not the run.
 """
 
+from __future__ import annotations
+
+import logging
 import time
+from collections.abc import Callable
 
-try:
-    import anthropic
-except ImportError:
-    anthropic = None
+import anthropic
 
-from .api import FatalAPIError
+from .errors import FatalAPIError
+
+logger = logging.getLogger(__name__)
 
 POLL_INTERVAL_SECONDS = 30
-# Most batches complete within an hour; the API allows up to 24h. The
-# GitHub Actions job would die long before that, so give up earlier.
+# Most batches complete within an hour; the API allows up to 24h. The GitHub
+# Actions job would die long before that, so give up earlier.
 MAX_WAIT_SECONDS = 4 * 60 * 60
+# After canceling a timed-out batch, how long to wait for it to reach a terminal
+# state so we can still collect the requests that already succeeded.
+CANCEL_GRACE_SECONDS = 5 * 60
 
 
-def build_batch_requests(params_by_country):
-    """Map countries to batch requests with safe custom_ids.
+def build_batch_requests(params_by_country: dict[str, dict]):
+    """Map countries to batch requests with safe ``custom_id``s.
 
-    custom_id allows a limited character set, and country names contain
-    spaces, dots, and non-ASCII ("Bosnia and Herz.", "Côte d'Ivoire") —
-    so use positional ids and return the reverse mapping.
+    ``custom_id`` allows a limited character set, and country names contain
+    spaces, dots, and non-ASCII ("Bosnia and Herz.", "Côte d'Ivoire") — so use
+    positional ids and return the reverse mapping.
     """
     requests = []
     id_map = {}
@@ -38,71 +43,112 @@ def build_batch_requests(params_by_country):
     return requests, id_map
 
 
-def run_batch(client, params_by_country, poll_interval=POLL_INTERVAL_SECONDS):
-    """Submit one batch and wait for it to end.
-
-    Returns (messages, errors): messages maps country -> Message for
-    succeeded requests; errors maps country -> "retryable" | "fatal".
+class BatchRunner:
+    """Submits a batch, polls to completion, and classifies per-request results.
+    ``sleep`` is injectable so tests can drive the poll loop without real waits.
     """
-    requests, id_map = build_batch_requests(params_by_country)
 
-    try:
-        batch = client.messages.batches.create(requests=requests)
-    except anthropic.AuthenticationError as e:
-        raise FatalAPIError(f"Authentication failed (invalid API key): {e}")
-    except anthropic.PermissionDeniedError as e:
-        raise FatalAPIError(f"Permission denied (check credits/permissions): {e}")
+    def __init__(
+        self,
+        client: anthropic.Anthropic,
+        *,
+        poll_interval: int = POLL_INTERVAL_SECONDS,
+        max_wait: int = MAX_WAIT_SECONDS,
+        sleep: Callable[[float], None] = time.sleep,
+    ):
+        self._client = client
+        self._poll_interval = poll_interval
+        self._max_wait = max_wait
+        self._sleep = sleep
 
-    print(f"  Batch {batch.id} submitted ({len(requests)} requests, 50% token pricing)")
+    def research(self, params_by_country: dict[str, dict]) -> tuple[dict, list[str]]:
+        """Run the batch, then retry transient failures once in a second,
+        smaller batch. Returns ``(messages, failed_countries)`` where messages
+        maps country -> Message for succeeded requests."""
+        messages, errors = self._run_once(params_by_country)
 
-    waited = 0
-    while batch.processing_status != "ended":
-        if waited >= MAX_WAIT_SECONDS:
-            client.messages.batches.cancel(batch.id)
-            raise FatalAPIError(
-                f"Batch {batch.id} still processing after {MAX_WAIT_SECONDS}s — canceled"
+        retryable = {c for c, kind in errors.items() if kind == "retryable"}
+        if retryable:
+            logger.info("Retrying %d transient failures in a second batch...", len(retryable))
+            retry_params = {c: params_by_country[c] for c in retryable}
+            retry_messages, retry_errors = self._run_once(retry_params)
+            messages.update(retry_messages)
+            errors = {c: k for c, k in errors.items() if c not in retry_messages}
+            errors.update(retry_errors)
+
+        return messages, sorted(errors)
+
+    def _run_once(self, params_by_country: dict[str, dict]) -> tuple[dict, dict]:
+        """Submit one batch and wait for it to end. Returns ``(messages,
+        errors)`` where ``errors`` maps country -> "retryable" | "fatal"."""
+        requests, id_map = build_batch_requests(params_by_country)
+
+        try:
+            batch = self._client.messages.batches.create(requests=requests)
+        except anthropic.AuthenticationError as exc:
+            raise FatalAPIError(f"Authentication failed (invalid API key): {exc}") from exc
+        except anthropic.PermissionDeniedError as exc:
+            raise FatalAPIError(f"Permission denied (check credits/permissions): {exc}") from exc
+
+        logger.info("Batch %s submitted (%d requests, 50%% token pricing)", batch.id, len(requests))
+
+        waited = 0
+        while batch.processing_status != "ended":
+            if waited >= self._max_wait:
+                # Don't discard already-succeeded (already-billed) work: cancel
+                # the batch, let it reach a terminal state, then collect whatever
+                # completed. Requests still in flight come back as "canceled" and
+                # are retried/reported by the caller.
+                logger.warning(
+                    "Batch %s still processing after %ds — canceling and collecting "
+                    "partial results", batch.id, self._max_wait,
+                )
+                self._client.messages.batches.cancel(batch.id)
+                batch = self._drain_after_cancel(batch)
+                break
+            self._sleep(self._poll_interval)
+            waited += self._poll_interval
+            batch = self._client.messages.batches.retrieve(batch.id)
+            counts = batch.request_counts
+            logger.info(
+                "... %s: %d processing, %d succeeded, %d errored (%ds)",
+                batch.processing_status, counts.processing, counts.succeeded, counts.errored, waited,
             )
-        time.sleep(poll_interval)
-        waited += poll_interval
-        batch = client.messages.batches.retrieve(batch.id)
-        c = batch.request_counts
-        print(
-            f"  ... {batch.processing_status}: {c.processing} processing, "
-            f"{c.succeeded} succeeded, {c.errored} errored ({waited}s)"
-        )
 
-    messages = {}
-    errors = {}
-    for result in client.messages.batches.results(batch.id):
-        country = id_map[result.custom_id]
-        kind = result.result.type
-        if kind == "succeeded":
-            messages[country] = result.result.message
-        elif kind == "errored":
-            error_type = result.result.error.type
-            # invalid_request means the request itself is malformed —
-            # resubmitting the same thing can't succeed.
-            errors[country] = "fatal" if error_type == "invalid_request" else "retryable"
-            print(f"  WARNING: batch request for {country} errored ({error_type})")
-        else:  # canceled / expired
-            errors[country] = "retryable"
-            print(f"  WARNING: batch request for {country} {kind}")
+        return self._collect(batch, id_map)
 
-    return messages, errors
+    def _drain_after_cancel(self, batch):
+        """Poll a canceled batch until it ends, so succeeded results are
+        collectable. Bounded by :data:`CANCEL_GRACE_SECONDS`."""
+        grace = 0
+        while batch.processing_status != "ended" and grace < CANCEL_GRACE_SECONDS:
+            self._sleep(self._poll_interval)
+            grace += self._poll_interval
+            batch = self._client.messages.batches.retrieve(batch.id)
+        return batch
 
+    def _collect(self, batch, id_map: dict[str, str]) -> tuple[dict, dict]:
+        messages: dict = {}
+        errors: dict = {}
+        if batch.processing_status != "ended":
+            # Couldn't reach a terminal state to read results — treat everything
+            # not already collected as retryable rather than losing the run.
+            logger.warning("Batch %s did not end; treating all requests as retryable", batch.id)
+            return messages, {country: "retryable" for country in id_map.values()}
 
-def research_countries_batch(client, params_by_country):
-    """Run the batch, then retry transient failures once in a second,
-    smaller batch. Returns (messages, failed_countries)."""
-    messages, errors = run_batch(client, params_by_country)
+        for result in self._client.messages.batches.results(batch.id):
+            country = id_map[result.custom_id]
+            kind = result.result.type
+            if kind == "succeeded":
+                messages[country] = result.result.message
+            elif kind == "errored":
+                error_type = result.result.error.type
+                # invalid_request means the request itself is malformed —
+                # resubmitting the same thing can't succeed.
+                errors[country] = "fatal" if error_type == "invalid_request" else "retryable"
+                logger.warning("batch request for %s errored (%s)", country, error_type)
+            else:  # canceled / expired
+                errors[country] = "retryable"
+                logger.warning("batch request for %s %s", country, kind)
 
-    retryable = {c for c, kind in errors.items() if kind == "retryable"}
-    if retryable:
-        print(f"Retrying {len(retryable)} transient failures in a second batch...")
-        retry_params = {c: params_by_country[c] for c in retryable}
-        retry_messages, retry_errors = run_batch(client, retry_params)
-        messages.update(retry_messages)
-        errors = {c: k for c, k in errors.items() if c not in retry_messages}
-        errors.update(retry_errors)
-
-    return messages, sorted(errors)
+        return messages, errors

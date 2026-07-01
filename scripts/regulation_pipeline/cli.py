@@ -1,187 +1,121 @@
-"""CLI entry point for the regulation data update pipeline."""
+"""Command-line entry point.
 
-import argparse
+A thin Typer command that wires the pieces together and translates the run
+outcome into an exit code. All the real work lives in
+:class:`~regulation_pipeline.service.PipelineService`; this layer only handles
+argument parsing, logging setup, credentials, and dependency construction.
+"""
+
+from __future__ import annotations
+
+import logging
 import os
 import sys
-import time
 from datetime import date
 
-try:
-    import anthropic
-except ImportError:
-    print("ERROR: anthropic package not installed. Run: pip install anthropic")
-    sys.exit(1)
+import anthropic
+import typer
 
-from .api import FatalAPIError, build_request_params, parse_message, research_country
-from .batch import research_countries_batch
-from .config import PRIORITY_COUNTRIES
-from .data_io import (
-    load_history, load_regulation, load_scores, load_subscores,
-    validate_outputs, write_history, write_regulation, write_scores, write_subscores,
-)
-from .history import append_history_snapshot
-from .names import canonicalize, load_alias_map
-from .processor import (
-    build_regulation_row, build_scores_row, build_subscores_entry,
-    flatten_result, validate_result,
-)
-from .staleness import should_update
+from .api import ResearchClient
+from .batch import BatchRunner
+from .config import DEFAULT_MODEL, Settings
+from .names import CountryNames
+from .repository import Dataset
+from .service import PipelineService
+from .staleness import StalenessPolicy
+from .strategies import BatchStrategy, SyncStrategy
+
+logger = logging.getLogger("regulation_pipeline")
 
 
-def apply_result(country, result, scores_data, reg_data, history, subscores, today_str):
-    """Validate one parsed API result and fold it into the data dicts.
-    Returns True on success. A structurally invalid result (missing or
-    out-of-range scores) must never be written into the CSVs."""
-    validation_errors = validate_result(result)
-    if validation_errors:
-        print(f"  WARNING: invalid response for {country}: {'; '.join(validation_errors)}")
-        return False
-
-    current_version = int(scores_data.get(country, {}).get("Data Version", 1) or 1)
-
-    # Sub-indicator blocks -> flat dimension scores (means).
-    flat = flatten_result(result)
-
-    scores_data[country] = build_scores_row(country, flat, current_version, today_str)
-    reg_data[country] = build_regulation_row(country, flat, today_str)
-    subscores["countries"][country] = build_subscores_entry(result, today_str)
-
-    added = append_history_snapshot(history, country, flat, today_str)
-
-    confidence = flat.get("confidence", "?")
-    avg_score = flat.get("average_score")
-    snapshot_note = "(new snapshot)" if added else "(no score change)"
-    print(f"  {country}: avg {avg_score}, confidence {confidence} {snapshot_note}")
-    return True
+def configure_logging(verbose: bool) -> None:
+    logging.basicConfig(
+        level=logging.DEBUG if verbose else logging.INFO,
+        format="%(levelname)-7s %(message)s",
+        stream=sys.stderr,
+        force=True,
+    )
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Update AI regulation data using Claude API")
-    parser.add_argument("--countries", default="", help="Comma-separated list of countries to update")
-    parser.add_argument("--force", action="store_true", help="Force update regardless of staleness")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would change without writing")
-    parser.add_argument("--model", default="claude-sonnet-4-6", help="Claude model to use")
-    parser.add_argument("--search", action="store_true", help="Enable web search for priority countries")
-    parser.add_argument("--search-all", action="store_true",
-                        help="Enable web search for ALL countries (uses Sonnet; pair with --batch for cost)")
-    parser.add_argument("--batch", action="store_true",
-                        help="Use the Message Batches API: 50%% token pricing, results within ~1h")
-    args = parser.parse_args()
+def _run(
+    countries: str = typer.Option("", help="Comma-separated countries to update"),
+    force: bool = typer.Option(False, help="Update regardless of staleness"),
+    dry_run: bool = typer.Option(False, help="Show what would change without writing"),
+    model: str = typer.Option(DEFAULT_MODEL, help="Claude model to use"),
+    search: bool = typer.Option(False, help="Enable web search for priority countries"),
+    search_all: bool = typer.Option(
+        False, help="Enable web search for ALL countries (uses Sonnet; pair with --batch for cost)"
+    ),
+    batch: bool = typer.Option(
+        False, help="Use the Message Batches API: 50% token pricing, results within ~1h"
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose (DEBUG) logging"),
+) -> None:
+    """Update AI regulation data using the Claude API."""
+    configure_logging(verbose)
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        print("ERROR: ANTHROPIC_API_KEY environment variable not set")
-        sys.exit(1)
+        logger.error("ANTHROPIC_API_KEY environment variable not set")
+        raise typer.Exit(code=1)
 
-    # SDK-level silent retries are disabled — api.py does explicit,
-    # logged retries with backoff, and the two must not multiply.
+    settings = Settings(default_model=model)
+    today = date.today()
+
+    # SDK-level silent retries are disabled — retry.py does explicit, logged
+    # retries with backoff, and the two must not multiply.
     client = anthropic.Anthropic(api_key=api_key, max_retries=0)
-    aliases = load_alias_map()
+    names = CountryNames.load(settings.country_names_json)
 
-    print("Loading existing data...")
-    scores_data = load_scores(aliases)
-    reg_data = load_regulation(aliases)
-    history = load_history()
-    subscores = load_subscores()
+    research_client = ResearchClient(
+        client, default_model=model, search_model=settings.search_model, today=today
+    )
+    priority = settings.priority_countries
 
-    today_str = date.today().isoformat()
+    def use_search_for(country: str) -> bool:
+        return search_all or (search and country in priority)
 
-    # Determine which countries to process
-    if args.countries:
-        target_countries = [canonicalize(c.strip(), aliases) for c in args.countries.split(",") if c.strip()]
-    else:
-        target_countries = sorted(scores_data.keys())
+    strategy = (
+        BatchStrategy(research_client, BatchRunner(client), use_search_for)
+        if batch
+        else SyncStrategy(research_client, use_search_for)
+    )
 
-    to_update = [c for c in target_countries if should_update(c, scores_data, reg_data, force=args.force)]
+    logger.info("Loading existing data...")
+    dataset = Dataset.load(settings, names)
+    service = PipelineService(dataset, StalenessPolicy(settings.staleness_days, today), today)
 
-    print(f"Countries to update: {len(to_update)} / {len(target_countries)}")
+    targets = None
+    if countries.strip():
+        targets = [names.canonical(c) for c in countries.split(",") if c.strip()]
+
+    all_targets, to_update = service.select(targets, force=force)
+    logger.info("Countries to update: %d / %d", len(to_update), len(all_targets))
     if not to_update:
-        print("Nothing to update.")
+        logger.info("Nothing to update.")
         return
 
-    if args.dry_run:
-        print("DRY RUN - would update:")
-        for c in to_update:
-            print(f"  {c}")
+    if dry_run:
+        logger.info("DRY RUN - would update:")
+        for country in to_update:
+            logger.info("  %s", country)
         return
 
-    def request_params_for(country):
-        use_search = args.search_all or (args.search and country in PRIORITY_COUNTRIES)
-        model = "claude-sonnet-4-6" if use_search else args.model
-        return build_request_params(country, reg_data.get(country), model, use_search), use_search, model
+    result = service.run(strategy, to_update)
+    if result.fatal:
+        raise typer.Exit(code=2)
 
-    updated_count = 0
-    failed_countries = []
+    logger.info("Done. Updated %d countries.", result.updated)
+    if result.failed:
+        logger.warning(
+            "Failed countries (%d): %s", len(result.failed), ", ".join(result.failed)
+        )
+        raise typer.Exit(code=1)
 
-    try:
-        if args.batch:
-            params_by_country = {c: request_params_for(c)[0] for c in to_update}
-            print(f"Submitting batch of {len(params_by_country)} requests...")
-            messages, failed_countries = research_countries_batch(client, params_by_country)
 
-            for country in to_update:
-                message = messages.get(country)
-                if message is None:
-                    continue  # already recorded in failed_countries
-                result = parse_message(message, country)
-                if result is not None and apply_result(
-                    country, result, scores_data, reg_data, history, subscores, today_str
-                ):
-                    updated_count += 1
-                else:
-                    failed_countries.append(country)
-            failed_countries = sorted(set(failed_countries))
+def main() -> None:
+    typer.run(_run)
 
-        else:
-            consecutive_failures = 0
-            for i, country in enumerate(to_update, 1):
-                print(f"[{i}/{len(to_update)}] Researching {country}...")
-                _, use_search, model = request_params_for(country)
-                result = research_country(client, country, reg_data.get(country), model, use_search)
 
-                if result is None or not apply_result(
-                    country, result, scores_data, reg_data, history, subscores, today_str
-                ):
-                    failed_countries.append(country)
-                    consecutive_failures += 1
-                    if consecutive_failures >= 5:
-                        raise FatalAPIError(
-                            f"{consecutive_failures} consecutive failures — likely a systemic issue"
-                        )
-                    time.sleep(2)
-                    continue
-
-                consecutive_failures = 0
-                updated_count += 1
-
-                if i < len(to_update):
-                    time.sleep(0.5)
-
-    except FatalAPIError as e:
-        print(f"\nFATAL: {e}")
-        print(f"Aborting. {updated_count} countries updated before failure.")
-        if updated_count > 0:
-            print("Saving partial progress...")
-            write_scores(scores_data)
-            write_regulation(reg_data)
-            write_history(history)
-            write_subscores(subscores)
-        sys.exit(2)
-
-    # Validate before writing
-    errors = validate_outputs(scores_data, reg_data)
-    if errors:
-        print(f"\nWARNING: Validation errors found:")
-        for err in errors:
-            print(f"  {err}")
-
-    print(f"\nWriting output files...")
-    write_scores(scores_data)
-    write_regulation(reg_data)
-    write_history(history)
-    write_subscores(subscores)
-
-    print(f"\nDone. Updated {updated_count} countries.")
-    if failed_countries:
-        print(f"Failed countries ({len(failed_countries)}): {', '.join(failed_countries)}")
-        sys.exit(1)
+if __name__ == "__main__":
+    main()

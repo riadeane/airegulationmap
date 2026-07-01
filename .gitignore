@@ -10,3 +10,6 @@ dist/
 # Python cache
 __pycache__/
 *.pyc
+
+# Python build artifacts
+*.egg-info/

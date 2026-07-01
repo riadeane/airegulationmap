@@ -1,3 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "regulation-pipeline"
+version = "2.0.0"
+description = "Researches AI-regulation status per country via the Claude API and writes the site's data files."
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.109.0",
+    "pydantic>=2",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+update-regulation-data = "regulation_pipeline.cli:main"
+
+# The package lives under scripts/ (not src/) so `python scripts/update_data.py`
+# keeps working without an install.
+[tool.setuptools.packages.find]
+where = ["scripts"]
+include = ["regulation_pipeline*"]
+
 [tool.pytest.ini_options]
 pythonpath = ["scripts"]
 testpaths = ["tests/pipeline"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+extend-select = ["I", "UP", "B"]

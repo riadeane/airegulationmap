@@ -1,36 +1,46 @@
-"""Staleness check logic for determining which countries need re-research."""
+"""Decides which countries need re-researching."""
+
+from __future__ import annotations
 
 from datetime import date, datetime
 
-from .config import STALENESS_DAYS
 
+class StalenessPolicy:
+    """A country is stale (needs a fresh research pass) when its data is
+    empty/NA, its confidence is ``low``, or its ``Last Updated`` stamp is
+    missing, unparseable, or older than ``staleness_days``. The reference date
+    is injected so a run has one consistent "today" and the logic is testable
+    without patching the clock."""
 
-def should_update(country, scores_data, reg_data, force=False):
-    """Return True if this country needs re-researching."""
-    if force:
-        return True
+    def __init__(self, staleness_days: int, today: date):
+        self.staleness_days = staleness_days
+        self.today = today
 
-    row = scores_data.get(country, {})
-
-    # Always update if data is all empty/NA
-    reg = reg_data.get(country, {})
-    if all(v in ("", "NA", None) for k, v in reg.items() if k != "Country"):
-        return True
-
-    # Update if confidence is low
-    if reg.get("Confidence") == "low":
-        return True
-
-    # Update if last_updated is missing or stale
-    last_updated = row.get("Last Updated", "")
-    if not last_updated:
-        return True
-
-    try:
-        last_date = datetime.strptime(last_updated, "%Y-%m-%d").date()
-        if (date.today() - last_date).days > STALENESS_DAYS:
+    def should_update(
+        self,
+        scores_row: dict | None,
+        reg_row: dict | None,
+        *,
+        force: bool = False,
+    ) -> bool:
+        if force:
             return True
-    except ValueError:
-        return True
 
-    return False
+        reg = reg_row or {}
+        # No usable regulation data at all.
+        if all(value in ("", "NA", None) for key, value in reg.items() if key != "Country"):
+            return True
+
+        # Unsourced / low-confidence answers are re-researched.
+        if reg.get("Confidence") == "low":
+            return True
+
+        last_updated = (scores_row or {}).get("Last Updated", "")
+        if not last_updated:
+            return True
+
+        try:
+            last_date = datetime.strptime(last_updated, "%Y-%m-%d").date()
+        except ValueError:
+            return True
+        return (self.today - last_date).days > self.staleness_days
