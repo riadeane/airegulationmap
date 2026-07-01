@@ -110,4 +110,16 @@ export function initSubscores(): void {
   // and re-evaluate which rows actually have a breakdown to show.
   on('selectedCountry', () => { collapseAll(); updateExpandAvailability(); });
   on('subscores', updateExpandAvailability);
+
+  // Sub-indicators exist for the latest research only. While the timeline
+  // shows a historical date the disclosures would pair old dimension scores
+  // with current sub-scores, so they lock until the scrubber returns to
+  // Latest (the panel notice says why).
+  on('timelineDate', (date) => {
+    const historical = date != null;
+    document.querySelectorAll<HTMLButtonElement>('.dim-expand').forEach(b => {
+      b.disabled = historical;
+    });
+    if (historical) collapseAll();
+  });
 }

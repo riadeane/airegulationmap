@@ -2,6 +2,14 @@ import type { ScoreEntry } from '../data/loader';
 import { makeColorScale } from '../map/legend';
 import { cssVar } from '../map/cssColors';
 
+// The five dimension values the dots render. Live rows (ScoreEntry) and
+// historical snapshots (HistorySnapshot) both satisfy this structurally,
+// so the panel can re-vintage its dots during timeline playback.
+type DimensionScores = Pick<
+  ScoreEntry,
+  'regulationStatus' | 'policyLever' | 'governanceType' | 'actorInvolvement' | 'enforcementLevel'
+>;
+
 // Optional colouriser: maps a score to the fill colour for its dots. When
 // omitted the dots fall back to the accent (CSS default).
 type ColorFor = (score: number) => string;
@@ -51,7 +59,7 @@ export function renderScoreBar(avg: number | null): void {
   fill.style.setProperty('--fill-color', avg != null ? makeColorScale()(avg) : 'transparent');
 }
 
-export function renderAllDots(scoreData: ScoreEntry | null | undefined): void {
+export function renderAllDots(scoreData: DimensionScores | null | undefined): void {
   const scale = makeColorScale();
   // Normative dimensions carry the same red→blue quality language as the
   // map; the two descriptive dimensions (governance, actor) are NOT a

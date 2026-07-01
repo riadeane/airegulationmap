@@ -71,9 +71,21 @@ export function initFilter(): void {
     btn.title = active ? `Active filter: ${parts.join(' · ')}` : '';
   }
 
-  on('filterMin', updateActiveState);
-  on('filterMax', updateActiveState);
+  // Keep the sliders and labels in sync when the range changes from
+  // elsewhere (URL load, popstate, reset) — the input handler only covers
+  // the user dragging the sliders themselves.
+  function syncFromState() {
+    const { filterMin, filterMax } = getState();
+    if (parseFloat(minSlider.value) !== filterMin) minSlider.value = String(filterMin);
+    if (parseFloat(maxSlider.value) !== filterMax) maxSlider.value = String(filterMax);
+    minLabel.textContent = String(filterMin);
+    maxLabel.textContent = String(filterMax);
+  }
+
+  on('filterMin', () => { syncFromState(); updateActiveState(); });
+  on('filterMax', () => { syncFromState(); updateActiveState(); });
   on('selectedBloc', updateActiveState);
   on('blocsData', updateActiveState);
+  syncFromState();
   updateActiveState();
 }

@@ -5,7 +5,7 @@ import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { toggleComparison } from '../state/interactions';
-import { maturityRank } from '../state/selectors';
+import { maturityRank, scoresAtDate } from '../state/selectors';
 import { MAX_COMPARISON } from '../constants';
 import { classifySources, formatSourcesForCopy } from '../data/sources';
 import { writeClipboard } from '../controls/clipboard';
@@ -155,6 +155,37 @@ function renderRank(countryName: string): void {
   el.textContent = result ? `Rank ${result.rank} of ${result.total}` : '';
 }
 
+// Score bar, dots, and rank — split from renderPanel because the timeline
+// re-renders just these. While the timeline is scrubbed to a historical
+// date, the panel shows that date's snapshot (the same vintage the map is
+// painting) instead of silently disagreeing with it. Prose, sources, and
+// sub-indicators have no historical record, so a notice says exactly what
+// the reader is looking at; rank is a latest-data derivation and hides.
+function renderScores(countryName: string): void {
+  const { scoreData, timelineDate } = getState();
+  const historical = timelineDate != null;
+  const entry = historical
+    ? scoresAtDate()?.[countryName] ?? null
+    : scoreData[countryName] ?? null;
+
+  renderScoreBar(entry ? entry.averageScore : null);
+  renderAllDots(entry);
+
+  if (historical) {
+    const rankEl = document.getElementById('maturity-rank');
+    if (rankEl) rankEl.textContent = '';
+  } else {
+    renderRank(countryName);
+  }
+
+  const notice = document.getElementById('panel-history-notice');
+  if (notice) {
+    notice.hidden = !historical;
+    const dateEl = document.getElementById('panel-history-date');
+    if (dateEl && timelineDate) dateEl.textContent = timelineDate;
+  }
+}
+
 function renderPanel(countryName: string): void {
   const { scoreData, regulationData, mainView } = getState();
   const score = scoreData[countryName];
@@ -200,9 +231,7 @@ function renderPanel(countryName: string): void {
     ? `Data as of ${dateStr} · ${countText}`
     : countText;
 
-  renderScoreBar(score ? score.averageScore : null);
-  renderRank(countryName);
-  renderAllDots(score);
+  renderScores(countryName);
   updateDimensionHighlight();
   renderTextSections(reg);
   renderChangelog(countryName);
@@ -312,6 +341,14 @@ export function initPanel(): void {
   on('history', () => {
     const { selectedCountry } = getState();
     if (selectedCountry) renderChangelog(selectedCountry);
+  });
+
+  // The timeline scrubber re-vintages the open panel's scores so the panel
+  // and the map always show the same date. Only the score block re-renders —
+  // no scroll reset, no sheet re-open.
+  on('timelineDate', () => {
+    const { selectedCountry } = getState();
+    if (selectedCountry) renderScores(selectedCountry);
   });
   updateCiteButton();
 

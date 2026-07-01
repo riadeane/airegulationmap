@@ -18,6 +18,7 @@ import { format } from 'd3-format';
 import 'd3-transition';
 
 import { getState, setState, on } from '../state/store';
+import { visibleCountrySet } from '../state/selectors';
 import { toggleScatter, showMap } from '../state/interactions';
 import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants';
 import type { AttributeKey } from '../constants';
@@ -153,32 +154,23 @@ function dotTooltipHtml(d: PlottedDot, xKey: AttributeKey, yKey: AttributeKey): 
 
 function updateChart(): void {
   if (!svg) return;
-  const {
-    scoreData, scatterX, scatterY, selectedCountry,
-    currentAttribute, filterMin, filterMax, selectedBloc, blocsData,
-  } = getState();
+  const { scoreData, scatterX, scatterY, selectedCountry } = getState();
 
   svg.select('#scatter-x-label').text(ATTRIBUTE_LABELS[scatterX]);
   svg.select('#scatter-y-label').text(ATTRIBUTE_LABELS[scatterY]);
 
-  const blocSet = selectedBloc && blocsData?.[selectedBloc]
-    ? new Set(blocsData[selectedBloc].members)
-    : null;
+  // The shared visibility predicate (score range + bloc) — identical to the
+  // map's dimming and the export's "filtered view" scope.
+  const visibleSet = visibleCountrySet();
 
   const countries = Object.entries(scoreData)
-    .map(([name, scores]): ScatterDot => {
-      const filterScore = scores[currentAttribute];
-      const inRange = filterScore != null
-        && filterScore >= filterMin && filterScore <= filterMax;
-      const inBloc = !blocSet || blocSet.has(name);
-      return {
-        name,
-        x: scores[scatterX],
-        y: scores[scatterY],
-        avg: scores.averageScore,
-        visible: inRange && inBloc,
-      };
-    })
+    .map(([name, scores]): ScatterDot => ({
+      name,
+      x: scores[scatterX],
+      y: scores[scatterY],
+      avg: scores.averageScore,
+      visible: visibleSet.has(name),
+    }))
     .filter((d): d is PlottedDot => d.x != null && d.y != null);
 
   const colorScale = makeColorScale();

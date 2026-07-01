@@ -128,6 +128,26 @@
   letter-spacing: 0.04em;
 }
 
+/* Shown while the timeline is scrubbed to a historical date: the score
+   block above re-vintages to match the map, and this line says exactly
+   which parts of the entry are historical vs. latest. */
+.panel-history-notice {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.panel-history-notice #panel-history-date {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 /* Panel sections */
 .panel-section {
   padding: 16px 24px;

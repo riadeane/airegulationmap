@@ -19,6 +19,7 @@ import { createTooltip, showTooltip, hideTooltip } from './tooltip';
 import { setupZoom } from './zoom';
 import type { ZoomHandle } from './zoom';
 import { toggleComparison, selectCountry } from '../state/interactions';
+import { passesCountryFilters } from '../state/selectors';
 import { getColorIndex } from '../comparison/colorSlots';
 import { cssVar, onThemeChange } from './cssColors';
 
@@ -301,41 +302,43 @@ export async function generateMap(): Promise<void> {
   }
 }
 
-// Single opacity composition for the score-range filter and the bloc
-// filter. (Search dimming stays class-based in CSS and intentionally
-// wins over this inline value while the user is mid-search.)
+// Single opacity composition for the score-range filter and the
+// country-level filters (bloc — via the shared selector predicate).
+// (Search dimming stays class-based in CSS and intentionally wins over
+// this inline value while the user is mid-search.)
+//
+// The range check runs against `entry`, which during timeline playback is
+// a historical snapshot — that's why it stays per-datum here instead of
+// using visibleCountrySet(), which is defined over the latest data.
 //
 // `country` is the geometry's name, which is also the key `entry` was
-// looked up under — use it for the bloc test rather than entry.country,
-// since historical snapshots (timeline playback) carry no country field.
+// looked up under — use it for the country-filter test rather than
+// entry.country, since historical snapshots carry no country field.
 function countryOpacity(
   country: string,
   entry: MapScoreEntry | undefined,
-  { currentAttribute, filterMin, filterMax, blocSet }: {
+  { currentAttribute, filterMin, filterMax, blocActive }: {
     currentAttribute: AttributeKey;
     filterMin: number;
     filterMax: number;
-    blocSet: Set<string> | null;
+    blocActive: boolean;
   }
 ): number {
   if (!entry || entry[currentAttribute] == null) {
     // No data: keep the usual soft presence, but recede fully while a
     // bloc is highlighted so the bloc reads cleanly.
-    return blocSet ? 0.15 : 0.4;
+    return blocActive ? 0.15 : 0.4;
   }
   const score = entry[currentAttribute]!;
   const inRange = score >= filterMin && score <= filterMax;
-  const inBloc = !blocSet || blocSet.has(country);
-  return (inRange && inBloc) ? 1 : 0.15;
+  return (inRange && passesCountryFilters(country)) ? 1 : 0.15;
 }
 
 export function updateMap(overrideScoreData?: MapScores): void {
   const { currentAttribute, filterMin, filterMax, scoreData, selectedBloc, blocsData } = getState();
   const data = overrideScoreData || scoreData;
   const colorScale = makeColorScale();
-  const blocSet = selectedBloc && blocsData?.[selectedBloc]
-    ? new Set(blocsData[selectedBloc].members)
-    : null;
+  const blocActive = !!(selectedBloc && blocsData?.[selectedBloc]);
 
   select('#map')
     .selectAll<SVGPathElement, CountryFeature>('.country')
@@ -347,7 +350,7 @@ export function updateMap(overrideScoreData?: MapScores): void {
     .duration(500)
     .attr('fill', d => fillFor(data[d.properties.name], currentAttribute, colorScale))
     .style('opacity', d => countryOpacity(d.properties.name, data[d.properties.name], {
-      currentAttribute, filterMin, filterMax, blocSet,
+      currentAttribute, filterMin, filterMax, blocActive,
     }));
 }
 

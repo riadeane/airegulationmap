@@ -87,6 +87,9 @@ async function main(): Promise<void> {
   }
   if (urlState.mode) setState({ currentAttribute: urlState.mode });
   if (urlState.date) setState({ timelineDate: urlState.date });
+  if (urlState.filterMin !== undefined || urlState.filterMax !== undefined) {
+    setState({ filterMin: urlState.filterMin ?? 1, filterMax: urlState.filterMax ?? 5 });
+  }
 
   // Wire up UI controls
   initTheme();

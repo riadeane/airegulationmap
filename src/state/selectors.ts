@@ -10,6 +10,10 @@
 
 import { getState } from './store';
 import type { ScoreData } from '../data/loader';
+import type { BlocsData } from '../data/blocs';
+import type { HistoryData, HistorySnapshot } from '../data/history';
+import { buildScoresAtDate } from '../data/history';
+import type { AttributeKey } from '../constants';
 
 export interface RankResult {
   rank: number;
@@ -45,4 +49,105 @@ export function maturityRank(country: string): RankResult | null {
   const table = rankTable(getState().scoreData);
   const rank = table.ranks.get(country);
   return rank == null ? null : { rank, total: table.total };
+}
+
+// ---------------------------------------------------------------------------
+// Visibility — the single definition of "which countries pass the active
+// filters". Three surfaces used to duplicate this predicate (map opacity,
+// scatter dimming, export scope) and drifted: the export forgot the bloc
+// filter entirely. They all read it from here now.
+
+let blocSetCache: {
+  blocsData: BlocsData | null;
+  selectedBloc: string | null;
+  set: ReadonlySet<string> | null;
+} | null = null;
+
+function blocMemberSet(): ReadonlySet<string> | null {
+  const { blocsData, selectedBloc } = getState();
+  if (blocSetCache && blocSetCache.blocsData === blocsData && blocSetCache.selectedBloc === selectedBloc) {
+    return blocSetCache.set;
+  }
+  const set = selectedBloc && blocsData?.[selectedBloc]
+    ? new Set(blocsData[selectedBloc].members)
+    : null;
+  blocSetCache = { blocsData, selectedBloc, set };
+  return set;
+}
+
+/**
+ * Score-INDEPENDENT country filters (currently bloc membership). Split from
+ * visibleCountrySet() because the map filters historical snapshots during
+ * timeline playback — its score-range check runs against the snapshot, not
+ * live data, so only this half is shareable there.
+ */
+export function passesCountryFilters(country: string): boolean {
+  const blocSet = blocMemberSet();
+  return !blocSet || blocSet.has(country);
+}
+
+let visibleCache: {
+  scoreData: ScoreData;
+  attr: AttributeKey;
+  min: number;
+  max: number;
+  blocSet: ReadonlySet<string> | null;
+  set: ReadonlySet<string>;
+} | null = null;
+
+/**
+ * Countries visible under ALL active filters, evaluated on the LATEST data:
+ * a score for the current attribute exists and is inside [filterMin,
+ * filterMax], and every country-level filter passes. This is the export and
+ * scatter scope; the map composes passesCountryFilters() with its own
+ * per-datum range check instead (see above).
+ */
+export function visibleCountrySet(): ReadonlySet<string> {
+  const { scoreData, currentAttribute, filterMin, filterMax } = getState();
+  const blocSet = blocMemberSet();
+  if (
+    visibleCache
+    && visibleCache.scoreData === scoreData
+    && visibleCache.attr === currentAttribute
+    && visibleCache.min === filterMin
+    && visibleCache.max === filterMax
+    && visibleCache.blocSet === blocSet
+  ) {
+    return visibleCache.set;
+  }
+
+  const set = new Set<string>();
+  for (const [name, entry] of Object.entries(scoreData)) {
+    const score = entry[currentAttribute];
+    if (score == null || score < filterMin || score > filterMax) continue;
+    if (blocSet && !blocSet.has(name)) continue;
+    set.add(name);
+  }
+  visibleCache = { scoreData, attr: currentAttribute, min: filterMin, max: filterMax, blocSet, set };
+  return set;
+}
+
+// ---------------------------------------------------------------------------
+// Timeline — historical scores for the scrubbed date.
+
+let atDateCache: {
+  history: HistoryData;
+  date: string;
+  result: Record<string, HistorySnapshot>;
+} | null = null;
+
+/**
+ * Score snapshots as of the scrubbed timeline date, or null when the
+ * timeline is at "Latest" (or history hasn't loaded). Lets the panel render
+ * the same vintage the map is showing instead of silently disagreeing.
+ */
+export function scoresAtDate(): Record<string, HistorySnapshot> | null {
+  const { history, timelineDate } = getState();
+  if (!history || !timelineDate) return null;
+  if (atDateCache && atDateCache.history === history && atDateCache.date === timelineDate) {
+    return atDateCache.result;
+  }
+  const result = buildScoresAtDate(history, timelineDate);
+  atDateCache = { history, date: timelineDate, result };
+  return result;
 }

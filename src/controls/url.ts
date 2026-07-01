@@ -24,6 +24,8 @@ export interface UrlState {
   theme?: 'light' | 'dark';
   bloc?: string;
   scatter?: { x: AttributeKey; y: AttributeKey };
+  filterMin?: number;
+  filterMax?: number;
 }
 
 const VALID_MODES = new Set<string>(SCORE_OPTIONS.map(o => o.value));
@@ -36,6 +38,15 @@ const VALID_SCATTER_DIMS = new Set<string>(
 );
 const DEFAULT_SCATTER_X = 'enforcementLevel';
 const DEFAULT_SCATTER_Y = 'regulationStatus';
+
+// A score-range bound from the URL: a finite number in [1, 5], snapped to
+// the filter sliders' quarter-point steps. Anything else is ignored.
+function parseScoreBound(raw: string | null): number | undefined {
+  if (!raw) return undefined;
+  const v = Number(raw);
+  if (!Number.isFinite(v) || v < 1 || v > 5) return undefined;
+  return Math.round(v * 4) / 4;
+}
 
 function splitCompare(raw: string): string[] {
   if (!raw) return [];
@@ -81,6 +92,17 @@ export function parseUrl(search: string = window.location.search): UrlState {
   const bloc = params.get('bloc');
   if (bloc && /^[A-Z0-9]{2,8}$/i.test(bloc)) out.bloc = bloc.toUpperCase();
 
+  // Score-range filter. An inverted pair (min > max) is dropped entirely
+  // rather than guessing which bound the author meant.
+  const min = parseScoreBound(params.get('min'));
+  if (min !== undefined) out.filterMin = min;
+  const max = parseScoreBound(params.get('max'));
+  if (max !== undefined) out.filterMax = max;
+  if (out.filterMin !== undefined && out.filterMax !== undefined && out.filterMin > out.filterMax) {
+    delete out.filterMin;
+    delete out.filterMax;
+  }
+
   // scatter=1 → open with default axes; scatter=<x>,<y> → open with
   // those axes. Invalid axis names are ignored entirely.
   const scatter = params.get('scatter');
@@ -96,18 +118,10 @@ export function parseUrl(search: string = window.location.search): UrlState {
   return out;
 }
 
-// Build a query string from the current (or supplied) state. Omits any
-// key whose value matches the app default so the URL stays short.
-//
-// `omitTheme` drops the theme param: a citation permalink identifies the
-// DATA VIEW, and light-vs-dark is a display preference that has no place
-// in a scholarly footnote. Share links keep it (a recipient sees your
-// theme); citations don't.
-export function buildPermalink(
-  stateSnapshot?: AppState,
-  { omitTheme = false }: { omitTheme?: boolean } = {}
-): string {
-  const s = stateSnapshot || getState();
+// Build a query string from a state snapshot. Omits any key whose value
+// matches the app default so the URL stays short. Pure (no window/document)
+// so it is unit-testable; buildPermalink is the thin browser wrapper.
+export function buildQueryString(s: Readonly<AppState>, theme: 'light' | 'dark' | null = null): string {
   const params = new URLSearchParams();
 
   // `compare` represents a COMMITTED comparison (the full view is
@@ -132,23 +146,39 @@ export function buildPermalink(
     params.set('bloc', s.selectedBloc);
   }
 
+  if (s.filterMin !== 1) params.set('min', String(s.filterMin));
+  if (s.filterMax !== 5) params.set('max', String(s.filterMax));
+
   if (s.mainView === 'scatter') {
     const isDefault = s.scatterX === DEFAULT_SCATTER_X && s.scatterY === DEFAULT_SCATTER_Y;
     params.set('scatter', isDefault ? '1' : `${s.scatterX},${s.scatterY}`);
   }
 
-  const theme = document.documentElement.getAttribute('data-theme');
-  if (!omitTheme && (theme === 'light' || theme === 'dark')) {
+  if (theme) {
     params.set('theme', theme);
   }
 
   // URLSearchParams percent-encodes commas (%2C). We want readable
   // permalinks, so swap those back to literal commas in the final
   // string — browsers accept both on parse.
-  const qs = params.toString().replace(/%2C/g, ',');
-  const url = window.location.pathname + (qs ? '?' + qs : '');
-  // Absolute URL for citations / sharing.
-  return window.location.origin + url;
+  return params.toString().replace(/%2C/g, ',');
+}
+
+// Absolute permalink for the current (or supplied) state.
+//
+// `omitTheme` drops the theme param: a citation permalink identifies the
+// DATA VIEW, and light-vs-dark is a display preference that has no place
+// in a scholarly footnote. Share links keep it (a recipient sees your
+// theme); citations don't.
+export function buildPermalink(
+  stateSnapshot?: AppState,
+  { omitTheme = false }: { omitTheme?: boolean } = {}
+): string {
+  const s = stateSnapshot || getState();
+  const themeAttr = document.documentElement.getAttribute('data-theme');
+  const theme = !omitTheme && (themeAttr === 'light' || themeAttr === 'dark') ? themeAttr : null;
+  const qs = buildQueryString(s, theme);
+  return window.location.origin + window.location.pathname + (qs ? '?' + qs : '');
 }
 
 function currentQueryString(): string {
@@ -179,6 +209,12 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
 
   if (urlState.date !== undefined) setState({ timelineDate: urlState.date || null });
   else if (!initial) setState({ timelineDate: null });
+
+  if (urlState.filterMin !== undefined || urlState.filterMax !== undefined) {
+    setState({ filterMin: urlState.filterMin ?? 1, filterMax: urlState.filterMax ?? 5 });
+  } else if (!initial) {
+    setState({ filterMin: 1, filterMax: 5 });
+  }
 
   const { blocsData } = getState();
   if (urlState.bloc && blocsData && blocsData[urlState.bloc]) {
@@ -220,6 +256,8 @@ export function initUrlSync(): void {
   on('currentAttribute', writeReplace);
   on('timelineDate', writeReplace);
   on('selectedBloc', writeReplace);
+  on('filterMin', writeReplace);
+  on('filterMax', writeReplace);
   on('scatterX', writeReplace);
   on('scatterY', writeReplace);
 

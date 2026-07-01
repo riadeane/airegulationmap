@@ -8,6 +8,7 @@
 
 import { csvFormat } from 'd3-dsv';
 import { getState } from '../state/store';
+import { visibleCountrySet } from '../state/selectors';
 import type { ScoreEntry, RegulationEntry } from '../data/loader';
 
 function buildExportRows(countries: string[]) {
@@ -36,17 +37,13 @@ function buildExportRows(countries: string[]) {
   });
 }
 
-// Countries passing the active score-range filter. Countries with no
-// score for the current attribute are excluded — they're dimmed on the
-// map, and "all countries" covers them.
+// Countries passing the active filters — the same visibility predicate the
+// map and scatter use (score range AND bloc), so "filtered view" exports
+// exactly what the user is looking at. Countries with no score for the
+// current attribute are excluded — they're dimmed on the map, and "all
+// countries" covers them.
 function getFilteredCountries(): string[] {
-  const { scoreData, currentAttribute, filterMin, filterMax } = getState();
-  return Object.keys(scoreData)
-    .filter(name => {
-      const score = scoreData[name]?.[currentAttribute];
-      return score != null && score >= filterMin && score <= filterMax;
-    })
-    .sort();
+  return [...visibleCountrySet()].sort();
 }
 
 function downloadFile(content: string, filename: string, mimeType: string): void {
