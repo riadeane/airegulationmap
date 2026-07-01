@@ -1,3 +1,9 @@
 # Floor verified against 0.109.1 — needs messages.batches and the
 # output_config (structured outputs) parameter.
 anthropic>=0.109.0
+# Typed domain models: validation + structured-output JSON schema in one place.
+# (pydantic is already a transitive dependency of anthropic; pinned here because
+# the pipeline now depends on it directly.)
+pydantic>=2
+# Typed CLI.
+typer>=0.12

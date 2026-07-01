@@ -47,9 +47,9 @@ python scripts/update_data.py --force --batch
 python scripts/update_data.py --force --batch --search-all
 ```
 
-Requests use structured outputs (`output_config.format`, schema built in
-`processor.build_output_schema()`), so responses are guaranteed schema-valid
-JSON — sub-scores arrive as ints 1–5 with all fields present.
+Requests use structured outputs (`output_config.format`, schema generated from
+the pydantic model via `models.ResearchResult.output_schema()`), so responses are
+guaranteed schema-valid JSON — sub-scores arrive as ints 1–5 with all fields present.
 
 Requires `ANTHROPIC_API_KEY` in environment. Install Python dependencies:
 
@@ -97,21 +97,32 @@ Vanilla TypeScript + D3.js + TopoJSON, built with Vite. No framework.
 
 ### Backend (`scripts/regulation_pipeline/`)
 
-Python package that calls the Claude API to research regulation status per country.
+Python package that calls the Claude API to research regulation status per country. Layered around a few design patterns so the concerns stay separated and testable:
+
+- **Domain models** (`models.py`) — pydantic v2 `ResearchResult` is the single source of truth: it generates the structured-output JSON schema, validates responses, and computes dimension means / maturity composite / confidence. Sub-indicator field names live in exactly one place.
+- **Repository** (`repository.py`) — `Dataset` owns the four data stores that always travel together (scores/regulation/history/subscores); loads, applies a validated result, and saves them atomically (temp file + `os.replace`).
+- **Strategy** (`strategies.py`) — `ResearchStrategy` with `SyncStrategy` and `BatchStrategy` behind one generator interface, so the orchestrator treats sync and batch identically.
+- **Service** (`service.py`) — `PipelineService` orchestrates selection → research → validation → persistence, with no CLI/exit-code concerns, so it is unit-testable with a fake strategy.
+- **Settings** (`config.py`) — paths are anchored to the repo root via `pathlib` (not the CWD) and injectable, so tests redirect all I/O to a temp dir.
 
 | Module | Purpose |
 |--------|---------|
-| `cli.py` | CLI entry point — arg parsing, orchestration loop |
-| `api.py` | Claude API calls, prompt template, response parsing |
-| `batch.py` | Message Batches API submission/polling (50% token pricing) |
-| `config.py` | Constants — file paths, field lists, staleness threshold, priority countries |
-| `data_io.py` | CSV/JSON loading and writing, validation |
-| `names.py` | Country name normalization via alias map |
-| `staleness.py` | Determines which countries need re-research |
-| `history.py` | History snapshot append logic |
-| `processor.py` | Transforms API results into CSV row dicts |
+| `cli.py` | Typer CLI entry point — flags, logging, dependency wiring, exit codes |
+| `service.py` | `PipelineService` orchestrator (selection, apply loop, save) |
+| `models.py` | Pydantic `ResearchResult` — schema + validation + score projections |
+| `repository.py` | `Dataset` repository — load/apply/validate/atomic-save the four stores |
+| `strategies.py` | `ResearchStrategy` ABC + `SyncStrategy` / `BatchStrategy` |
+| `api.py` | `ResearchClient` — request params + response parsing (Claude transport) |
+| `batch.py` | `BatchRunner` — Message Batches submit/poll/classify (50% token pricing) |
+| `retry.py` | Reusable transient-error retry policy (backoff, Retry-After, fatal classification) |
+| `prompt.py` | Research prompt template + rendering |
+| `config.py` | `Settings` (repo-root paths) + constants (fields, staleness, priority countries) |
+| `staleness.py` | `StalenessPolicy` — which countries need re-research |
+| `history.py` | History snapshot append/change-detection |
+| `names.py` | `CountryNames` — country-name normalization via alias map |
+| `errors.py` | `FatalAPIError` |
 
-`scripts/update_data.py` is a thin shim that imports and calls `regulation_pipeline.cli.main()`.
+`scripts/update_data.py` is a thin shim that calls `regulation_pipeline.cli.main()`; after `pip install -e .` the `update-regulation-data` console command is equivalent, and `python -m regulation_pipeline` also works. All logging goes through the stdlib `logging` module. Pipeline logic is covered by `tests/pipeline/` (run `python -m pytest`).
 
 ### Data Files (in `public/`)
 
@@ -136,7 +147,7 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 - **actor_involvement** — narrow↔broad participation (descriptive — excluded from the composite)
 - **enforcement_level** — enforcement rigor (normative)
 
-**Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/api.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. Calibration: 5 = the global frontier at scoring time, not perfection; governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
+**Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/prompt.py` and modeled in `models.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. Calibration: 5 = the global frontier at scoring time, not perfection; governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
 
 ### Automated Updates
 
