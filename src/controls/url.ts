@@ -98,7 +98,15 @@ export function parseUrl(search: string = window.location.search): UrlState {
 
 // Build a query string from the current (or supplied) state. Omits any
 // key whose value matches the app default so the URL stays short.
-export function buildPermalink(stateSnapshot?: AppState): string {
+//
+// `omitTheme` drops the theme param: a citation permalink identifies the
+// DATA VIEW, and light-vs-dark is a display preference that has no place
+// in a scholarly footnote. Share links keep it (a recipient sees your
+// theme); citations don't.
+export function buildPermalink(
+  stateSnapshot?: AppState,
+  { omitTheme = false }: { omitTheme?: boolean } = {}
+): string {
   const s = stateSnapshot || getState();
   const params = new URLSearchParams();
 
@@ -130,7 +138,7 @@ export function buildPermalink(stateSnapshot?: AppState): string {
   }
 
   const theme = document.documentElement.getAttribute('data-theme');
-  if (theme === 'light' || theme === 'dark') {
+  if (!omitTheme && (theme === 'light' || theme === 'dark')) {
     params.set('theme', theme);
   }
 

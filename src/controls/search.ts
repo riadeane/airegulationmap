@@ -45,10 +45,17 @@ function snippetNode(match: SearchMatch): HTMLSpanElement {
 export function initSearch(): void {
   const searchInput = document.getElementById('country-search') as HTMLInputElement;
   const suggestions = document.getElementById('search-suggestions')!;
+  // The options list is role="listbox" with presentational section
+  // labels, so screen readers don't announce result changes on their
+  // own — and a no-results message inside it is invisible to AT. This
+  // out-of-band polite region speaks the outcome instead.
+  const statusRegion = document.getElementById('search-status');
+  const announce = (msg: string) => { if (statusRegion) statusRegion.textContent = msg; };
 
   const selectCountry = (name: string) => {
     searchInput.value = name;
     suggestions.replaceChildren();
+    announce('');
     updateSearchHighlight(null);
     setState({ selectedCountry: name });
   };
@@ -57,6 +64,7 @@ export function initSearch(): void {
     suggestions.replaceChildren();
     if (query.length < 2) {
       updateSearchHighlight(null);
+      announce('');
       return;
     }
 
@@ -81,6 +89,7 @@ export function initSearch(): void {
       empty.setAttribute('role', 'presentation');
       empty.textContent = `No countries or policies match “${query}”`;
       suggestions.appendChild(empty);
+      announce(`No countries or policies match ${query}`);
       return;
     }
 
@@ -88,6 +97,9 @@ export function initSearch(): void {
       ...countryMatches,
       ...textMatches.map(m => m.country),
     ]));
+
+    const total = countryMatches.length + textMatches.length;
+    announce(`${total} ${total === 1 ? 'result' : 'results'} for ${query}`);
 
     if (countryMatches.length > 0 && textMatches.length > 0) {
       suggestions.appendChild(sectionLabel('Countries'));
@@ -154,8 +166,13 @@ export function initSearch(): void {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       idx = Math.max(idx - 1, 0);
-    } else if (e.key === 'Enter' && highlighted) {
-      highlighted.click();
+    } else if (e.key === 'Enter') {
+      // Enter commits the highlighted option, or — when the user typed a
+      // query and hit Enter without arrowing — the first (top) option.
+      // Previously Enter with no highlight did nothing, so typing a full
+      // country name and pressing Enter was a dead end.
+      e.preventDefault();
+      (highlighted ?? items[0]).click();
       return;
     } else if (e.key === 'Escape') {
       suggestions.replaceChildren();
@@ -200,6 +217,11 @@ export function initKeyboardNav(): void {
     if (e.key === 'Escape') {
       // Esc backs out one layer at a time: full views first (explorer,
       // then comparison), then selection/dropdowns on later presses.
+      // The cite popover is the innermost layer and owns its own Esc
+      // (it closes and restores focus to the Cite button) — bail here so
+      // we don't also deselect the country and hide the button underneath.
+      const citePopover = document.getElementById('cite-popover');
+      if (citePopover && !citePopover.hidden) return;
       if (getState().scatterOpen) {
         setState({ scatterOpen: false });
         return;

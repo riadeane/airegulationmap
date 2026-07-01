@@ -109,6 +109,7 @@
           aria-controls="search-suggestions"
         />
         <ul id="search-suggestions" role="listbox" aria-label="Country suggestions"></ul>
+        <div id="search-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
       </div>
       <div id="score-btn-container">
         <button id="score-btn" aria-haspopup="listbox" aria-expanded="false">
@@ -123,13 +124,13 @@
         </button>
         <div id="filter-popover">
           <div class="filter-row">
-            <span class="filter-label">Min</span>
-            <input type="range" id="filter-min" min="1" max="5" step="0.25" value="1" aria-label="Minimum score">
+            <label class="filter-label" for="filter-min">Min</label>
+            <input type="range" id="filter-min" min="1" max="5" step="0.25" value="1" aria-label="Minimum score" aria-describedby="filter-min-label">
             <span id="filter-min-label">1</span>
           </div>
           <div class="filter-row">
-            <span class="filter-label">Max</span>
-            <input type="range" id="filter-max" min="1" max="5" step="0.25" value="5" aria-label="Maximum score">
+            <label class="filter-label" for="filter-max">Max</label>
+            <input type="range" id="filter-max" min="1" max="5" step="0.25" value="5" aria-label="Maximum score" aria-describedby="filter-max-label">
             <span id="filter-max-label">5</span>
           </div>
         </div>
@@ -187,6 +188,12 @@
         <div class="scatter-controls">
           <label>X <select id="scatter-x" aria-label="X axis dimension"></select></label>
           <label>Y <select id="scatter-y" aria-label="Y axis dimension"></select></label>
+          <span class="scatter-colorkey">
+            <span class="scatter-colorkey-text">Dot colour: maturity index</span>
+            <span class="scatter-colorkey-ends" aria-hidden="true">low</span>
+            <span class="scatter-colorkey-bar" aria-hidden="true"></span>
+            <span class="scatter-colorkey-ends" aria-hidden="true">high</span>
+          </span>
         </div>
         <div id="scatter-chart"></div>
       </div>

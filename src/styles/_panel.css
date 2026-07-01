@@ -104,6 +104,9 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 6px;
+  /* Long names (e.g. "Saint Vincent and the Grenadines") wrap the badge
+     to the next line instead of overflowing the panel or squashing it. */
+  flex-wrap: wrap;
 }
 
 #country-name {
@@ -112,6 +115,8 @@
   font-weight: 500;
   color: var(--text-primary);
   letter-spacing: -0.005em;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .data-freshness {
@@ -355,6 +360,7 @@
   background: transparent;
   color: var(--text-tertiary);
   border: 1px solid transparent;
+  flex-shrink: 0;
 }
 
 .confidence-badge::before {

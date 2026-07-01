@@ -235,7 +235,12 @@ function renderPanel(countryName: string): void {
 
 function clearPanel(): void {
   const fallback = document.getElementById('no-selection-message');
-  if (fallback) fallback.hidden = false;
+  // Show the "select a country" fallback only once the onboarding intro
+  // is gone. Until the user has selected their first country the intro
+  // is still mounted (consumeIntro removes it), and stacking both reads
+  // as a contradictory double empty-state — which a bare Esc (deselect
+  // with nothing selected) would otherwise trigger.
+  if (fallback) fallback.hidden = document.getElementById('panel-intro') !== null;
   document.getElementById('panel-content')!.style.display = 'none';
   // Slide the mobile bottom sheet back down (inert on desktop).
   document.body.classList.remove('sheet-open');
