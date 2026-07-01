@@ -13,7 +13,17 @@ export function createTooltip(): void {
     .style('opacity', 0);
 }
 
+// Devices without hover fire synthetic mouseover on tap, which would
+// strand this tooltip on-screen (and it carries desktop-only hints like
+// "Shift+click"). Suppress it there; touch users get identity from the
+// sheet (map) and the tap-to-identify flow (scatter) instead.
+function canHover(): boolean {
+  return typeof window.matchMedia !== 'function'
+    || window.matchMedia('(hover: hover)').matches;
+}
+
 export function showTooltip(event: MouseEvent, html: string): void {
+  if (!canHover()) return;
   if (!tooltipEl) createTooltip();
   const el = tooltipEl!;
   // Set content first so the box is measured at its real size, then

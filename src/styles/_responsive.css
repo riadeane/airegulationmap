@@ -1,7 +1,9 @@
 /* Tablet tier — compact the panel and search without collapsing
    the layout. Covers the gap between mobile (768px) and full
-   desktop (1041px+). */
-@media (max-width: 1040px) and (min-width: 769px) {
+   desktop (1041px+). The min-height guard keeps landscape phones
+   (short + wide) out of this cramped-sidebar tier — they get the
+   mobile sheet instead. */
+@media (max-width: 1040px) and (min-width: 769px) and (min-height: 501px) {
   #country-panel {
     width: 300px;
   }
@@ -13,96 +15,336 @@
   #country-search:focus { width: 180px; }
 }
 
-@media (max-width: 768px) {
+/* The mobile tier also covers landscape phones and other short touch
+   viewports (which are WIDER than 768px and would otherwise fall into the
+   cramped desktop/tablet layout). `pointer: coarse` keeps a short desktop
+   window from being flipped into a phone sheet. */
+@media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {
+  /* The map fills this whole area now; the detail panel is a sheet
+     layered on top (below) rather than a second row. position:relative
+     anchors that sheet to the map area, and overflow:hidden clips it
+     while it's parked off the bottom edge. */
   #app-main {
     flex-direction: column;
-    overflow: auto;
+    position: relative;
+    overflow: hidden;
   }
 
   #map-wrapper {
-    min-height: 50vh;
+    min-height: 0;
   }
 
+  /* Country detail as a bottom sheet. It slides up over the map when a
+     country is selected and back down on close, instead of pushing the
+     map into a shared scroll. Anchored to #app-main (not the viewport)
+     so it never collides with the header or the timeline/footer. */
   #country-panel {
-    width: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: 88%;
+    max-height: none;
     border-left: none;
     border-top: 1px solid var(--border);
-    max-height: 50vh;
+    border-radius: 18px 18px 0 0;
+    /* The inset top highlight defines the sheet's edge against a dark map
+       (a downward black shadow is invisible there); negligible on light. */
+    box-shadow: 0 -14px 44px -16px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    transform: translateY(100%);
+    transition: transform 0.34s var(--ease-out);
+    z-index: 400;
+    /* Keep an over-scroll of the sheet from chaining to the page
+       (accidental pull-to-refresh mid-read). */
+    overscroll-behavior: contain;
+  }
+
+  body.sheet-open #country-panel {
+    transform: translateY(0);
+  }
+
+  /* While reading a country the footer links add nothing and cost ~76px;
+     hiding them lets #app-main (and the sheet) reclaim the height. */
+  body.sheet-open footer {
+    display: none;
+  }
+
+  /* In the explorer, keep the sheet short enough that the X/Y axis
+     selectors at the top of the scatter view stay reachable while a
+     tapped dot's details are showing. */
+  body.view-scatter.sheet-open #country-panel {
+    height: 66%;
+  }
+
+  /* The Cite popover opens inline near the top of the sheet; cap it so its
+     APA/Chicago/MLA blocks scroll within the popover instead of shoving
+     the scores off-screen and clipping the last format. */
+  .cite-popover {
+    max-height: 60vh;
+    max-height: 60dvh;
+    overflow-y: auto;
+  }
+
+  /* Sticky grab handle: a familiar "swipe / tap to dismiss" affordance
+     that stays put while the sheet scrolls, so closing is always one
+     tap away. The wide invisible ::after is the real touch target. */
+  .sheet-grabber {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    width: 100%;
+    height: 22px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    background: var(--surface);
+    border-radius: 18px 18px 0 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    /* Let the pointer drag control the sheet instead of scrolling. */
+    touch-action: none;
+  }
+
+  .sheet-grabber::before {
+    content: '';
+    position: absolute;
+    top: 9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+  }
+
+  .sheet-grabber::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 96px;
+    height: 34px;
   }
 
   #timeline-inner {
     max-width: 100%;
   }
 
-  /* Header reflows on mobile. The brand line (title + last-updated +
-     badge) gets row 1. The search input gets row 2 (full-width so
-     users can type comfortably). Score + filter + theme toggle share
-     row 3, left-aligned. This keeps the freshness signal visible and
-     avoids the old right-edge overflow. */
+  /* Tighten page gutters so the slider and footer links aren't crammed
+     against the screen edges on narrow phones. */
+  #timeline-strip {
+    padding: 10px 14px;
+  }
+
+  footer {
+    padding: 16px 18px;
+  }
+
+  /* Mobile header: a compact two-row bar — wordmark + a menu toggle on
+     top, then search paired with the score selector. The secondary
+     controls (filter, scatter, export, theme) and the freshness
+     metadata fold behind the ☰ toggle so the map keeps the screen.
+     Ordering is done with `order`, so popovers keep anchoring cleanly. */
   #app-header {
     flex-wrap: wrap;
     height: auto;
-    padding: 10px 12px;
-    gap: 8px 10px;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  /* Bigger than desktop, not smaller: the wordmark is the brand anchor
+     and needs to hold its own against the 44px touch controls. */
+  h1 {
+    font-size: 1.3rem;
   }
 
   .header-left {
     flex-wrap: wrap;
+    align-items: center;
     gap: 6px 10px;
     width: 100%;
   }
 
+  /* The ☰ toggle caps the wordmark row on the right. */
+  #menu-toggle {
+    display: inline-flex;
+    order: 1;
+    margin-left: auto;
+  }
+
+  /* Freshness metadata gets its own line, revealed with the menu — a
+     trust signal, not a permanent fixture eating vertical space. */
+  .header-meta {
+    order: 2;
+    flex-basis: 100%;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
   .header-right {
-    gap: 6px;
+    gap: 10px;
     flex-wrap: wrap;
     width: 100%;
+    align-items: center;
     justify-content: flex-start;
   }
 
+  /* Row 2: search grows; the score selector rides beside it and doubles
+     as the "you are viewing …" label for the map. */
   #search-container {
-    width: 100%;
-    flex: 1 1 100%;
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
   }
 
-  #country-search {
-    width: 100%;
-  }
-
+  #country-search,
   #country-search:focus {
     width: 100%;
   }
 
-  h1 {
-    font-size: 1.05rem;
+  /* The score selector spans the row on its own line — it reads as a
+     deliberate "you are viewing …" control instead of a small button
+     stranded in empty space. Caret parks at the right like a select. */
+  #score-btn-container {
+    order: 2;
+    flex: 1 1 100%;
   }
 
-  /* On mobile the score and filter buttons sit on the LEFT side of
-     the row, so the popovers need to open to the right of their
-     trigger, not the left. Otherwise they clip off-screen. */
+  #score-btn {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* The theme toggle stays out on the search row — light/dark is the most
+     re-toggled control and the brand mandates a persistent toggle, so it
+     must not hide behind the menu. */
+  .theme-toggle {
+    order: 1;
+  }
+
+  /* Only the genuinely-secondary view controls collapse behind ☰. The
+     freshness metadata (a trust signal for this audience) stays visible. */
+  #filter-btn-container,
+  #scatter-btn,
+  #export-btn-container {
+    order: 3;
+  }
+
+  body:not(.controls-open) #filter-btn-container,
+  body:not(.controls-open) #scatter-btn,
+  body:not(.controls-open) #export-btn-container {
+    display: none;
+  }
+
+  #score-btn,
+  #filter-btn,
+  #export-btn,
+  #scatter-btn {
+    padding: 0 14px;
+  }
+
+  /* Anchor the toolbar popovers to the header itself rather than each
+     button, so they can't run off the right edge wherever a button
+     lands in the reflowed rows. They drop in as tidy full-width panels
+     just below the toolbar. */
+  #score-btn-container,
+  #filter-btn-container,
+  #export-btn-container {
+    position: static;
+  }
+
   #score-dropdown,
-  #filter-popover {
-    left: 0;
-    right: auto;
-  }
-
+  #filter-popover,
   #export-popover {
-    left: auto;
-    right: 0;
+    left: 14px;
+    right: 14px;
+    width: auto;
+    min-width: 0;
   }
 }
 
 /* Coarse pointers (touch devices): guarantee 44px hit targets even
-   when the visual element stays compact. */
+   when the visual element stays compact. The shared control height
+   drives search, buttons and toggles up to 44px in one move. */
 @media (pointer: coarse) {
-  #score-btn,
-  #filter-btn,
-  #export-btn,
-  #scatter-btn,
-  .theme-toggle,
+  :root {
+    --control-h: 44px;
+  }
+
   #timeline-reset,
   #zoom-controls button {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* iOS Safari zooms the whole page in when you focus a control whose
+     text is under 16px, then leaves you scrolled awkwardly. Pin every
+     text field and dropdown to 16px on touch so tapping search,
+     compare, or the filters never triggers that jump. */
+  #country-search,
+  .comp-search-input,
+  #bloc-select,
+  .scatter-controls select {
+    font-size: 16px;
+  }
+
+  /* The map owns pan/pinch here; tell the browser not to also read
+     those gestures as page scroll/zoom. Removes the gesture tug-of-war
+     (and the touch-intent delay) when dragging across the map. */
+  #map svg {
+    touch-action: none;
+  }
+
+  /* Range inputs (filter Min/Max, timeline scrubber) get a real 24px
+     thumb and a taller grab zone — the default thin native thumb is
+     almost unhittable with a fingertip. Custom track drops the accent
+     progress fill, but every slider here shows its value in a readout. */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 28px;
+    background: transparent;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+  }
+
+  input[type="range"]::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    margin-top: -10px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface-raised);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface-raised);
   }
 
   .dimension-row {
@@ -119,6 +361,42 @@
     align-items: center;
   }
 
+  /* Full-text search hits are readable, not squinty, on a phone. */
+  .match-snippet {
+    font-size: 0.82rem;
+  }
+
+  .match-field {
+    font-size: 0.72rem;
+  }
+
+  /* Citation + panel controls to the 44px standard. Source chips are the
+     core "citeable by default" interaction — a fat-finger minefield at
+     the default ~19px, and opening the wrong source mid-research is
+     exactly the friction the product promises to remove. */
+  #sources-list {
+    gap: 8px;
+  }
+
+  #sources-list li a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 12px;
+  }
+
+  .panel-close {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .cite-btn,
+  .sources-copy {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
   /* Keyboard-shortcut UI is meaningless on a touchscreen. Hide the
      header trigger and the intro step that explains it. The ? key
      handler stays intact so paired Bluetooth keyboards on tablets
@@ -129,5 +407,30 @@
 
   .panel-intro-steps li:has(kbd) {
     display: none;
+  }
+}
+
+/* Landscape phones are very short — reclaim vertical space so the map and
+   the open sheet aren't crushed. The mobile tier above already gives
+   these the collapsed header + sheet; this just tightens the fit. */
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  /* Footer links add nothing while reading and cost ~76px of height. */
+  footer {
+    display: none;
+  }
+
+  #timeline-strip {
+    padding: 6px 12px;
+  }
+
+  /* Pair search with the score selector on one row instead of stacking,
+     so the header eats two rows, not three. */
+  #score-btn-container {
+    flex: 1 1 auto;
+  }
+
+  /* The map slot is tiny here, so let the sheet claim more of it. */
+  #country-panel {
+    height: 94%;
   }
 }

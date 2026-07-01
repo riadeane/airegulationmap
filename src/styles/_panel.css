@@ -177,9 +177,11 @@
 
 .score-bar-fill {
   height: 100%;
-  /* Same low→high ramp as the choropleth so a given score reads the
-     same color here as it does on the map. */
-  background: linear-gradient(90deg, var(--score-low), var(--score-high));
+  /* Solid fill coloured by the score's position on the choropleth ramp
+     (set in renderScoreBar), so a given value reads the same colour here
+     as the country does on the map — the old gradient always ended in
+     "high/blue" regardless of the score. */
+  background: var(--fill-color, var(--score-high));
   border-radius: 2px;
   transition: width 0.5s var(--ease-out);
   width: 0%;
@@ -193,7 +195,7 @@
   top: -1px;
   width: 6px;
   height: 6px;
-  background: var(--score-high);
+  background: var(--fill-color, var(--score-high));
   border-radius: 50%;
 }
 
@@ -327,13 +329,13 @@
 }
 
 .dim-dot.filled {
-  background: var(--accent);
+  background: var(--dot-color, var(--accent));
 }
 
 /* Fractional dot — the quarter-point part of a v2 score, filled
    left-to-right so a 1.75 reads as one full dot plus a three-quarter dot. */
 .dim-dot.partial {
-  background: linear-gradient(90deg, var(--accent) var(--fill, 50%), var(--border) var(--fill, 50%));
+  background: linear-gradient(90deg, var(--dot-color, var(--accent)) var(--fill, 50%), var(--border) var(--fill, 50%));
 }
 
 /* Confidence badge — always visible at high/medium/low, but visual
@@ -365,8 +367,9 @@
 }
 
 .confidence-badge[data-level='high'] {
-  /* Understated — "nothing to see" for high-confidence records. */
-  opacity: 0.65;
+  /* Understated, but still legible — this is the "trust me" signal, so a
+     0.65 opacity on tertiary text was too faint to actually read. */
+  color: var(--text-secondary);
 }
 
 .confidence-badge[data-level='medium'] {
@@ -382,6 +385,28 @@
   color: oklch(64% 0.19 28);
   background: oklch(64% 0.19 28 / 0.12);
   border-color: oklch(64% 0.19 28 / 0.30);
+}
+
+/* The mid/high-lightness hues above are tuned for the dark surface; on the
+   cream light theme they don't clear AA at this small size. Darken the
+   text (keep the tint fill) so the caveat stays readable where it matters
+   most — the citation-friendly daylight default. */
+:root[data-theme='light'] .confidence-badge[data-level='medium'] {
+  color: oklch(52% 0.14 62);
+}
+
+:root[data-theme='light'] .confidence-badge[data-level='low'] {
+  color: oklch(48% 0.19 28);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .confidence-badge[data-level='medium'] {
+    color: oklch(52% 0.14 62);
+  }
+
+  :root:not([data-theme]) .confidence-badge[data-level='low'] {
+    color: oklch(48% 0.19 28);
+  }
 }
 
 /* Panel header actions row — Compare + Cite sit side by side. */
@@ -601,6 +626,12 @@
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
   margin-top: 4px;
+}
+
+/* Grab handle for the mobile bottom sheet — hidden on desktop, where
+   the panel is a fixed side column. Styled + revealed in _responsive.css. */
+.sheet-grabber {
+  display: none;
 }
 
 /* Panel close — touch-equivalent of Esc; desktop keeps keyboard/click-away */

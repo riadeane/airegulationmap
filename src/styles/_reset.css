@@ -10,10 +10,17 @@ body {
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
+  /* dvh follows the visible viewport as mobile browser chrome slides
+     in/out, so the footer never hides behind the URL bar. vh is the
+     fallback for engines without dvh. */
   min-height: 100vh;
+  min-height: 100dvh;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Drop the grey/blue flash iOS and Android paint over tapped
+     elements — selection/active states already give feedback. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Subtle grain texture — dark theme only. On light theme the grain

@@ -23,6 +23,11 @@
   --radius-sm: 5px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
+  /* Shared height for every toolbar control (search, buttons, toggles)
+     so they line up on one baseline. Bumped to a 44px touch target on
+     coarse pointers in _responsive.css. */
+  --control-h: 36px;
+
   /* ---- Brand hue (used to tint neutrals) ---- */
   --brand-hue: 75;
 

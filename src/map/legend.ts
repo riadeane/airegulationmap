@@ -82,16 +82,15 @@ export function addLegend(
   // score (or from a country filtered out of the current view).
   const noData = legend.append('g')
     .attr('class', 'legend-nodata')
-    .attr('transform', 'translate(0, -13)');
+    .attr('transform', 'translate(0, -11)');
 
-  noData.append('rect')
-    .attr('width', 9)
-    .attr('height', 9)
-    .attr('y', -8)
-    .attr('rx', 2)
-    .style('fill', cssVar('--no-data'))
-    .attr('stroke', cssVar('--border'))
-    .attr('stroke-width', 0.5);
+  // A filled dot (no outline) reads as a colour key; the old bordered
+  // square read as an unchecked checkbox.
+  noData.append('circle')
+    .attr('cx', 4)
+    .attr('cy', -4)
+    .attr('r', 4.5)
+    .style('fill', cssVar('--no-data'));
 
   noData.append('text')
     .attr('class', 'legend-label')

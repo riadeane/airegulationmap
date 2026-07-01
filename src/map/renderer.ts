@@ -137,7 +137,7 @@ export async function generateMap(): Promise<void> {
   const svg = select('#map')
     .append<SVGSVGElement>('svg')
     .attr('role', 'img')
-    .attr('aria-label', 'World map showing AI regulation scores by country. Click a country for details; Shift+click to compare.')
+    .attr('aria-label', 'World map showing AI regulation scores by country. Select a country for its profile.')
     .attr('width', size.w)
     .attr('height', size.h)
     .attr('viewBox', [0, 0, size.w, size.h])
@@ -237,6 +237,24 @@ export async function generateMap(): Promise<void> {
 
   zoomHandle = setupZoom(svg, mapGroup, () => currentSize);
   addLegend(svg, colorScale, size);
+
+  // Tap anywhere that ISN'T a country (ocean, sphere edge, graticule, bare
+  // svg) to deselect — the click-away that closes the mobile sheet and
+  // clears the selection on desktop. A country's own handler owns its
+  // clicks. Guard against the click that fires at the end of a pan by
+  // ignoring it when the pointer travelled since it went down.
+  let downX = 0;
+  let downY = 0;
+  svg.on('pointerdown.deselect', (event: PointerEvent) => {
+    downX = event.clientX;
+    downY = event.clientY;
+  });
+  svg.on('click.deselect', (event: MouseEvent) => {
+    if (Math.hypot(event.clientX - downX, event.clientY - downY) > 6) return;
+    const target = event.target as Element | null;
+    if (target?.classList?.contains('country')) return;
+    if (getState().selectedCountry) setState({ selectedCountry: null });
+  });
 
   onThemeChange(() => {
     const refreshed = makeColorScale();

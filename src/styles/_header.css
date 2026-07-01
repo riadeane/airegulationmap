@@ -98,11 +98,12 @@ h1 {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 7px 12px;
+  height: var(--control-h);
+  padding: 0 12px;
   font-size: 0.8rem;
   font-family: 'Geist', -apple-system, sans-serif;
   color: var(--text-primary);
-  width: 170px;
+  width: 200px;
   transition: border-color 0.2s var(--ease-out), width 0.3s var(--ease-out), box-shadow 0.2s var(--ease-out);
 }
 
@@ -113,7 +114,7 @@ h1 {
 
 #country-search:focus {
   border-color: var(--accent);
-  width: 220px;
+  width: 250px;
   box-shadow: 0 0 0 3px var(--accent-muted);
 }
 
@@ -131,6 +132,30 @@ h1 {
   overflow-y: auto;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
   animation: fadeUp 0.2s var(--ease-out);
+}
+
+/* The list is emptied (not detached) when there are no matches; without
+   this it collapses to a thin bordered strip floating under the search.
+   Most visible on mobile where the input — and so the strip — is full
+   width. */
+#search-suggestions:empty {
+  display: none;
+}
+
+/* Explicit "no matches" row so a fruitless search reads as answered,
+   not broken (the box no longer just disappears). Non-interactive. */
+#search-suggestions li.search-empty {
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+  cursor: default;
+  border-bottom: none;
+}
+
+#search-suggestions li.search-empty:hover {
+  background: none;
+  color: var(--text-tertiary);
 }
 
 #search-suggestions li {
@@ -220,7 +245,8 @@ h1 {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 7px 12px;
+  height: var(--control-h);
+  padding: 0 12px;
   font-size: 0.8rem;
   font-family: 'Geist', -apple-system, sans-serif;
   color: var(--text-secondary);
@@ -460,8 +486,8 @@ input[type="range"] {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  width: 34px;
-  height: 34px;
+  width: var(--control-h);
+  height: var(--control-h);
   padding: 0;
   cursor: pointer;
   color: var(--text-secondary);
@@ -487,3 +513,41 @@ input[type="range"] {
 .theme-toggle .theme-icon-moon { display: none; }
 .theme-toggle[data-theme='light'] .theme-icon-sun { display: none; }
 .theme-toggle[data-theme='light'] .theme-icon-moon { display: block; }
+
+/* Menu (☰) toggle — only appears on mobile (see _responsive.css), where
+   it folds the secondary controls away so the map keeps the screen.
+   Hidden on desktop, which shows the full toolbar inline. */
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.18s var(--ease-out), border-color 0.18s var(--ease-out), background 0.18s var(--ease-out);
+}
+
+.menu-toggle:hover,
+.menu-toggle[aria-expanded='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.menu-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* On desktop the metadata just flows inline in the header; the wrapper
+   is only a layout handle for the mobile menu. */
+.header-meta {
+  display: contents;
+}

@@ -10,7 +10,8 @@
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 6px 8px;
+  height: var(--control-h);
+  padding: 0 8px;
   font-size: 0.78rem;
   font-family: 'Geist', -apple-system, sans-serif;
   color: var(--text-primary);
@@ -181,7 +182,7 @@
   text-decoration: underline;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {
   .bloc-summary {
     top: 10px;
     left: 10px;
@@ -189,5 +190,11 @@
     width: auto;
     max-width: 280px;
     padding: 10px 12px;
+    /* The card sits over the very region it summarizes; a translucent,
+       blurred surface lets the highlighted members read through it
+       without sacrificing the stats' legibility. */
+    background: color-mix(in oklch, var(--surface) 85%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }

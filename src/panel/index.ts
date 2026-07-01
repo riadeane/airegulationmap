@@ -22,6 +22,85 @@ function normalizeConfidence(raw: string | null | undefined): ConfidenceLevel | 
   return null;
 }
 
+// The bottom-sheet layout is active exactly when this media list matches
+// (phone width OR a short touch viewport / landscape phone) — mirrors the
+// CSS in _responsive.css.
+function isSheetLayout(): boolean {
+  return typeof window.matchMedia === 'function'
+    && window.matchMedia('(max-width: 768px), (max-height: 500px) and (pointer: coarse)').matches;
+}
+
+// Element focused before the sheet took over, so focus can be handed back.
+let sheetOpener: HTMLElement | null = null;
+
+// Give the open sheet dialog semantics and move focus into it (mobile
+// only). Non-modal — the map stays visible and tappable behind the peek,
+// so we deliberately don't trap focus or `inert` the background.
+function openSheetDialog(): void {
+  const panel = document.getElementById('country-panel');
+  if (!panel || !isSheetLayout()) return;
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-modal', 'false');
+  panel.setAttribute('aria-labelledby', 'country-name');
+  sheetOpener = document.activeElement as HTMLElement | null;
+  const name = document.getElementById('country-name');
+  if (name) {
+    name.setAttribute('tabindex', '-1');
+    name.focus({ preventScroll: true });
+  }
+}
+
+function closeSheetDialog(): void {
+  const panel = document.getElementById('country-panel');
+  if (panel) {
+    panel.removeAttribute('role');
+    panel.removeAttribute('aria-modal');
+    panel.removeAttribute('aria-labelledby');
+  }
+  if (sheetOpener && document.contains(sheetOpener) && sheetOpener.offsetParent !== null) {
+    sheetOpener.focus({ preventScroll: true });
+  }
+  sheetOpener = null;
+}
+
+// Drag-down-to-dismiss on the grab handle — the gesture the pill affords.
+// A tap (no travel) closes via the button's click handler; a small drag
+// springs back; a firm downward drag closes.
+function initSheetDrag(): void {
+  const grabber = document.getElementById('sheet-grabber');
+  const panel = document.getElementById('country-panel');
+  if (!grabber || !panel) return;
+  let startY = 0;
+  let dy = 0;
+  let dragging = false;
+
+  grabber.addEventListener('pointerdown', (e: PointerEvent) => {
+    if (!isSheetLayout()) return;
+    dragging = true;
+    startY = e.clientY;
+    dy = 0;
+    panel.style.transition = 'none';
+    grabber.setPointerCapture(e.pointerId);
+  });
+  grabber.addEventListener('pointermove', (e: PointerEvent) => {
+    if (!dragging) return;
+    dy = Math.max(0, e.clientY - startY);   // downward only
+    panel.style.transform = `translateY(${dy}px)`;
+  });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    panel.style.transition = '';
+    panel.style.transform = '';
+    // Suppress the click that follows a real drag so it doesn't
+    // double-fire; only a firm downward drag dismisses.
+    if (dy > 6) grabber.dataset.dragged = '1';
+    if (dy > panel.offsetHeight * 0.3) setState({ selectedCountry: null });
+  };
+  grabber.addEventListener('pointerup', end);
+  grabber.addEventListener('pointercancel', end);
+}
+
 function updateDimensionHighlight(): void {
   const { currentAttribute } = getState();
   document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
@@ -135,10 +214,22 @@ function renderPanel(countryName: string): void {
   updateCompareButton();
   updateCiteButton();
 
-  // On phones the panel sits below the map — without this, tapping a
-  // country appears to do nothing (April 2026 mobile diagnosis, #3).
-  if (!comparisonViewOpen && window.matchMedia('(max-width: 768px)').matches) {
-    document.getElementById('country-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // On phones the panel is a bottom sheet layered over the map. Selecting
+  // a country slides it up (the transition lives in CSS); on desktop the
+  // class is inert. Skip while the full comparison view owns the screen.
+  if (!comparisonViewOpen) {
+    // Reset to the top for every fresh country — otherwise, after
+    // scrolling one country's sheet/panel, the next selection opens
+    // mid-content with the name and score off-screen. renderPanel only
+    // runs on a selection change, so this never clobbers a deliberate
+    // scroll mid-read.
+    document.getElementById('country-panel')?.scrollTo({ top: 0 });
+    const wasOpen = document.body.classList.contains('sheet-open');
+    document.body.classList.add('sheet-open');
+    // Only take over focus on the initial open, not when switching
+    // countries with the sheet already up (that would steal focus on
+    // every tap).
+    if (!wasOpen) openSheetDialog();
   }
 }
 
@@ -146,6 +237,9 @@ function clearPanel(): void {
   const fallback = document.getElementById('no-selection-message');
   if (fallback) fallback.hidden = false;
   document.getElementById('panel-content')!.style.display = 'none';
+  // Slide the mobile bottom sheet back down (inert on desktop).
+  document.body.classList.remove('sheet-open');
+  closeSheetDialog();
   clearHighlight();
   updateCompareButton();
   updateCiteButton();
@@ -165,6 +259,25 @@ export function initPanel(): void {
   if (closeBtn) {
     closeBtn.addEventListener('click', () => setState({ selectedCountry: null }));
   }
+
+  // The mobile bottom sheet's grab handle: tap (or keyboard) dismisses;
+  // drag-down dismisses via initSheetDrag(). The dataset flag guards the
+  // synthetic click that follows a real drag.
+  const grabber = document.getElementById('sheet-grabber');
+  if (grabber) {
+    grabber.addEventListener('click', () => {
+      if (grabber.dataset.dragged) { delete grabber.dataset.dragged; return; }
+      setState({ selectedCountry: null });
+    });
+  }
+  initSheetDrag();
+
+  // The scatter explorer takes over the map slot; drop the sheet out of
+  // the way when it opens so it doesn't sit on top of the plot. Tapping a
+  // dot re-selects a country, which re-opens the sheet over the scatter.
+  on('scatterOpen', (open) => {
+    if (open) document.body.classList.remove('sheet-open');
+  });
 
   // Copy the full source list as a numbered, paste-ready block —
   // analysts move these into footnotes and research notes.
