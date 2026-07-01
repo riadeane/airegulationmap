@@ -1,11 +1,12 @@
 """The pipeline orchestrator.
 
 :class:`PipelineService` ties selection (staleness), research (a
-:class:`~regulation_pipeline.strategies.ResearchStrategy`), validation (the
-:class:`~regulation_pipeline.models.ResearchResult` model), and persistence (the
+:class:`~regulation_pipeline.strategies.ResearchStrategy`), and persistence (the
 :class:`~regulation_pipeline.repository.Dataset`) together — the logic that used
 to live inside ``cli.main``. It has no argparse/exit-code/credential concerns, so
-it is unit-testable with a fake strategy and a temp dataset.
+it is unit-testable with a fake strategy and a temp dataset. Answers arrive
+already validated (as :class:`~regulation_pipeline.models.ResearchResult`), so the
+service only orchestrates applying, validating the dataset, and saving.
 """
 
 from __future__ import annotations
@@ -14,10 +15,7 @@ import logging
 from dataclasses import dataclass
 from datetime import date
 
-from pydantic import ValidationError
-
 from .errors import FatalAPIError
-from .models import ResearchResult
 from .repository import Dataset
 from .staleness import StalenessPolicy
 from .strategies import ResearchStrategy
@@ -67,11 +65,11 @@ class PipelineService:
         failed: list[str] = []
 
         try:
-            for country, raw in strategy.research(to_update, reg_rows):
-                if self._commit(country, raw):
-                    updated += 1
-                else:
+            for country, result in strategy.research(to_update, reg_rows):
+                if result is None or not self._apply(country, result):
                     failed.append(country)
+                else:
+                    updated += 1
         except FatalAPIError as exc:
             logger.error("FATAL: %s", exc)
             logger.error("Aborting. %d countries updated before failure.", updated)
@@ -87,16 +85,9 @@ class PipelineService:
         self._dataset.save()
         return RunResult(updated=updated, failed=sorted(set(failed)))
 
-    def _commit(self, country: str, raw: dict | None) -> bool:
-        """Validate and apply one raw answer. Returns True on success. Isolated
-        so one bad answer can never abort the whole run."""
-        if raw is None:
-            return False
-        try:
-            result = ResearchResult.model_validate(raw)
-        except ValidationError as exc:
-            logger.warning("invalid response for %s: %s", country, _summarize(exc))
-            return False
+    def _apply(self, country: str, result) -> bool:
+        """Apply one validated result. Isolated so an unexpected error on one
+        country can never abort the whole run."""
         try:
             outcome = self._dataset.apply(country, result, self._today)
         except Exception:
@@ -106,12 +97,3 @@ class PipelineService:
         note = "(new snapshot)" if outcome.history_added else "(no score change)"
         logger.info("%s: avg %s, confidence %s %s", country, outcome.average, outcome.confidence, note)
         return True
-
-
-def _summarize(exc: ValidationError) -> str:
-    """Condense a pydantic ValidationError to a short one-line summary."""
-    parts = []
-    for error in exc.errors():
-        loc = ".".join(str(p) for p in error["loc"])
-        parts.append(f"{loc}: {error['msg']}")
-    return "; ".join(parts)

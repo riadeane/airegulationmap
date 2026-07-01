@@ -166,3 +166,30 @@ def test_research_retries_transient_failures_in_second_batch():
     messages, failed = _runner(client).research(params)
     assert messages == {"A": msg_a, "B": msg_b}
     assert failed == []
+
+
+def test_fatal_batch_error_is_not_retried():
+    # invalid_request classifies as fatal, so it is NOT resubmitted in a second
+    # batch — it goes straight to the failed list.
+    params = {"A": {}}
+    batches = FakeBatches(
+        [{"statuses": ["ended"], "results": _items(params, {"A": ("errored", "invalid_request")})}]
+    )
+    client = FakeClient(batches)
+    messages, failed = _runner(client).research(params)
+    assert messages == {}
+    assert failed == ["A"]
+    assert batches.create_calls == 1  # no retry batch submitted
+
+
+def test_batch_that_never_terminates_classifies_all_retryable():
+    # If a canceled batch never reaches a terminal state within the grace
+    # window, results can't be read — everything is retryable, not lost.
+    params = {"A": {}}
+    batches = FakeBatches([{"statuses": ["canceling"], "results": []}])
+    client = FakeClient(batches)
+    # poll_interval == grace window so the drain loop runs exactly once.
+    messages, errors = _runner(client, max_wait=0, poll_interval=300)._run_once(params)
+    assert batches.canceled == ["batch_0"]
+    assert messages == {}
+    assert errors == {"A": "retryable"}

@@ -3,7 +3,10 @@ import json
 import pytest
 from conftest import full_result, text_message
 from regulation_pipeline.errors import FatalAPIError
+from regulation_pipeline.models import ResearchResult
 from regulation_pipeline.strategies import BatchStrategy, SyncStrategy
+
+INVALID = {"bad": "data"}  # parses as JSON, fails schema validation
 
 
 class StubResearchClient:
@@ -33,50 +36,65 @@ class StubRunner:
 
 
 class TestSyncStrategy:
-    def test_yields_success_and_failure(self):
-        result = full_result()
-        client = StubResearchClient({"A": result, "B": None})
-        strat = SyncStrategy(client, lambda c: False, sleep=lambda s: None)
-        assert list(strat.research(["A", "B"], {})) == [("A", result), ("B", None)]
+    def test_yields_validated_result_and_failure(self):
+        client = StubResearchClient({"A": full_result(), "B": None})
+        out = list(SyncStrategy(client, lambda c: False, sleep=lambda s: None).research(["A", "B"], {}))
+        assert out[0][0] == "A"
+        assert isinstance(out[0][1], ResearchResult)
+        assert out[1] == ("B", None)
+
+    def test_invalid_response_is_a_failure(self):
+        client = StubResearchClient({"A": INVALID})
+        out = list(SyncStrategy(client, lambda c: False, sleep=lambda s: None).research(["A"], {}))
+        assert out == [("A", None)]
 
     def test_search_decider_is_applied(self):
         client = StubResearchClient({"A": full_result()})
-        strat = SyncStrategy(client, lambda c: c == "A", sleep=lambda s: None)
-        list(strat.research(["A"], {}))
+        list(SyncStrategy(client, lambda c: c == "A", sleep=lambda s: None).research(["A"], {}))
         assert client.calls == [("A", True)]
 
-    def test_aborts_after_consecutive_failures(self):
+    def test_aborts_after_consecutive_none_failures(self):
         client = StubResearchClient({})  # every country returns None
         strat = SyncStrategy(client, lambda c: False, sleep=lambda s: None, max_consecutive_failures=3)
-        seen = []
-        with pytest.raises(FatalAPIError):
-            for item in strat.research(["A", "B", "C", "D"], {}):
-                seen.append(item)
+        seen = list(_drain_until_fatal(strat.research(["A", "B", "C", "D"], {})))
         assert seen == [("A", None), ("B", None), ("C", None)]
+
+    def test_aborts_after_consecutive_invalid_responses(self):
+        # Regression: schema-valid-JSON-but-invalid responses must count toward
+        # the circuit breaker, exactly as the old apply_result path did.
+        client = StubResearchClient({c: INVALID for c in ["A", "B", "C", "D"]})
+        strat = SyncStrategy(client, lambda c: False, sleep=lambda s: None, max_consecutive_failures=3)
+        with pytest.raises(FatalAPIError):
+            for _ in strat.research(["A", "B", "C", "D"], {}):
+                pass
 
     def test_success_resets_consecutive_counter(self):
         client = StubResearchClient({"B": full_result()})  # only B succeeds
         strat = SyncStrategy(client, lambda c: False, sleep=lambda s: None, max_consecutive_failures=2)
-        # A fail, B success (reset), C fail, D fail -> fatal only on 2nd straight fail
         seen = list(_drain_until_fatal(strat.research(["A", "B", "C", "D"], {})))
-        assert [c for c, _ in seen] == ["A", "B", "C", "D"]
+        assert [c for c, _ in seen] == ["A", "B", "C", "D"]  # B resets, so no abort
 
 
 class TestBatchStrategy:
     def test_parses_messages_and_marks_failed(self):
         client = StubResearchClient({})
         runner = StubRunner({"A": text_message(json.dumps(full_result()))}, ["B"])
-        strat = BatchStrategy(client, runner, lambda c: False)
-        out = dict(strat.research(["A", "B"], {}))
-        assert out["A"]["confidence"] == "high"
+        out = dict(BatchStrategy(client, runner, lambda c: False).research(["A", "B"], {}))
+        assert isinstance(out["A"], ResearchResult)
+        assert out["A"].confidence == "high"
         assert out["B"] is None
         assert set(runner.params) == {"A", "B"}
+
+    def test_invalid_message_is_a_failure(self):
+        client = StubResearchClient({})
+        runner = StubRunner({"A": text_message("not json")}, [])
+        out = dict(BatchStrategy(client, runner, lambda c: False).research(["A"], {}))
+        assert out["A"] is None
 
     def test_search_decider_flows_into_request_params(self):
         client = StubResearchClient({})
         runner = StubRunner({}, ["A"])
-        strat = BatchStrategy(client, runner, lambda c: True)
-        list(strat.research(["A"], {}))
+        list(BatchStrategy(client, runner, lambda c: True).research(["A"], {}))
         assert runner.params["A"]["use_search"] is True
 
 

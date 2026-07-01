@@ -2,9 +2,11 @@
 
 The synchronous path researches countries one call at a time (immediate, full
 price); the Batches path submits them all at once (50% token pricing, ~1h
-turnaround). Both are generators that yield ``(country, raw_result_or_None)`` as
-answers arrive, so the service can commit results incrementally — and still save
-whatever completed if the run aborts partway through.
+turnaround). Both are generators that yield ``(country, ResearchResult | None)``
+as answers arrive — ``None`` means the answer failed for *any* reason (transient
+error, unparseable JSON, or schema-invalid response). Validating here (rather than
+downstream) keeps the sync circuit-breaker able to count invalid responses, and
+lets the service deal only in validated domain objects.
 """
 
 from __future__ import annotations
@@ -14,24 +16,26 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterator
 
+from pydantic import ValidationError
+
 from .api import ResearchClient, parse_message
 from .batch import BatchRunner
 from .errors import FatalAPIError
+from .models import ResearchResult
 
 logger = logging.getLogger(__name__)
 
-# One yielded answer: the country and its raw parsed JSON dict, or None on failure.
-Answer = tuple[str, "dict | None"]
+# One yielded answer: the country and its validated result, or None on any failure.
+Answer = tuple[str, "ResearchResult | None"]
 
 # Decides whether a given country gets a web-search-backed research pass.
 SearchDecider = Callable[[str], bool]
 
 
 class ResearchStrategy(ABC):
-    """A backend that researches a list of countries, yielding answers as they
-    arrive. May raise :class:`~regulation_pipeline.errors.FatalAPIError` to abort
-    the run; answers yielded before the raise have already been handed to the
-    caller and are committed."""
+    """A backend that researches a list of countries, yielding validated answers
+    as they arrive. May raise :class:`~regulation_pipeline.errors.FatalAPIError`
+    to abort the run; answers yielded before the raise are committed."""
 
     @abstractmethod
     def research(self, countries: list[str], reg_rows: dict[str, dict]) -> Iterator[Answer]:
@@ -39,8 +43,10 @@ class ResearchStrategy(ABC):
 
 
 class SyncStrategy(ResearchStrategy):
-    """One API call per country, in order. Aborts the run if too many calls fail
-    in a row (a signal of a systemic problem rather than isolated flakiness)."""
+    """One API call per country, in order. Aborts the run if too many countries
+    fail in a row — a transient error, an unparseable answer, or a schema-invalid
+    answer all count, since any sustained run of them signals a systemic
+    problem rather than isolated flakiness."""
 
     def __init__(
         self,
@@ -59,9 +65,10 @@ class SyncStrategy(ResearchStrategy):
         consecutive = 0
         for i, country in enumerate(countries, 1):
             logger.info("[%d/%d] Researching %s...", i, len(countries), country)
-            result = self._client.research(
+            raw = self._client.research(
                 country, reg_rows.get(country), use_search=self._use_search_for(country)
             )
+            result = _validate(country, raw)
             if result is None:
                 consecutive += 1
                 yield country, None
@@ -80,7 +87,9 @@ class SyncStrategy(ResearchStrategy):
 
 class BatchStrategy(ResearchStrategy):
     """Submit every country in one batch (with a transient-failure retry batch),
-    then yield the parsed answer for each."""
+    then yield the validated answer for each. The Batches API returns per-request
+    results, so there is no consecutive-failure abort — a bad request costs one
+    country, not the run."""
 
     def __init__(
         self,
@@ -104,7 +113,26 @@ class BatchStrategy(ResearchStrategy):
 
         for country in countries:
             message = messages.get(country)
-            if message is None:
-                yield country, None  # errored/canceled — no message returned
-            else:
-                yield country, parse_message(message, country)
+            raw = parse_message(message, country) if message is not None else None
+            yield country, _validate(country, raw)
+
+
+def _validate(country: str, raw: dict | None) -> ResearchResult | None:
+    """Validate a raw answer into a typed result. Returns ``None`` (with a logged
+    warning) for a missing or schema-invalid answer."""
+    if raw is None:
+        return None
+    try:
+        return ResearchResult.model_validate(raw)
+    except ValidationError as exc:
+        logger.warning("invalid response for %s: %s", country, _summarize(exc))
+        return None
+
+
+def _summarize(exc: ValidationError) -> str:
+    """Condense a pydantic ValidationError to a short one-line summary."""
+    parts = []
+    for error in exc.errors():
+        loc = ".".join(str(p) for p in error["loc"])
+        parts.append(f"{loc}: {error['msg']}")
+    return "; ".join(parts)
