@@ -68,6 +68,13 @@
     display: none;
   }
 
+  /* In the explorer, keep the sheet short enough that the X/Y axis
+     selectors at the top of the scatter view stay reachable while a
+     tapped dot's details are showing. */
+  body.view-scatter.sheet-open #country-panel {
+    height: 66%;
+  }
+
   /* Sticky grab handle: a familiar "swipe / tap to dismiss" affordance
      that stays put while the sheet scrolls, so closing is always one
      tap away. The wide invisible ::after is the real touch target. */
@@ -283,6 +290,49 @@
      (and the touch-intent delay) when dragging across the map. */
   #map svg {
     touch-action: none;
+  }
+
+  /* Range inputs (filter Min/Max, timeline scrubber) get a real 24px
+     thumb and a taller grab zone — the default thin native thumb is
+     almost unhittable with a fingertip. Custom track drops the accent
+     progress fill, but every slider here shows its value in a readout. */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 28px;
+    background: transparent;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+  }
+
+  input[type="range"]::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    margin-top: -10px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface-raised);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface-raised);
   }
 
   .dimension-row {
