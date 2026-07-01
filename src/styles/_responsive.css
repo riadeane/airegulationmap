@@ -53,10 +53,19 @@
     transform: translateY(100%);
     transition: transform 0.34s var(--ease-out);
     z-index: 400;
+    /* Keep an over-scroll of the sheet from chaining to the page
+       (accidental pull-to-refresh mid-read). */
+    overscroll-behavior: contain;
   }
 
   body.sheet-open #country-panel {
     transform: translateY(0);
+  }
+
+  /* While reading a country the footer links add nothing and cost ~76px;
+     hiding them lets #app-main (and the sheet) reclaim the height. */
+  body.sheet-open footer {
+    display: none;
   }
 
   /* Sticky grab handle: a familiar "swipe / tap to dismiss" affordance
@@ -67,11 +76,20 @@
     position: sticky;
     top: 0;
     z-index: 5;
+    width: 100%;
     height: 22px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
     background: var(--surface);
     border-radius: 18px 18px 0 0;
     cursor: pointer;
     flex-shrink: 0;
+    /* Let the pointer drag control the sheet instead of scrolling. */
+    touch-action: none;
   }
 
   .sheet-grabber::before {
@@ -273,6 +291,33 @@
   #search-suggestions li {
     min-height: 44px;
     display: flex;
+    align-items: center;
+  }
+
+  /* Citation + panel controls to the 44px standard. Source chips are the
+     core "citeable by default" interaction — a fat-finger minefield at
+     the default ~19px, and opening the wrong source mid-research is
+     exactly the friction the product promises to remove. */
+  #sources-list {
+    gap: 8px;
+  }
+
+  #sources-list li a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 12px;
+  }
+
+  .panel-close {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .cite-btn,
+  .sources-copy {
+    min-height: 44px;
+    display: inline-flex;
     align-items: center;
   }
 

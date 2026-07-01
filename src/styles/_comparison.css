@@ -550,11 +550,11 @@ body.view-compare .radar-chart svg {
 }
 
 @media (pointer: coarse) {
-  .comp-chip-remove { width: 36px; height: 36px; }
+  .comp-chip-remove { width: 40px; height: 40px; }
   .clear-comparison-btn,
   .compare-btn,
   .comp-add-btn {
-    min-height: 40px;
+    min-height: 44px;
     padding-top: 9px;
     padding-bottom: 9px;
   }

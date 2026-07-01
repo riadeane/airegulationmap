@@ -238,6 +238,24 @@ export async function generateMap(): Promise<void> {
   zoomHandle = setupZoom(svg, mapGroup, () => currentSize);
   addLegend(svg, colorScale, size);
 
+  // Tap anywhere that ISN'T a country (ocean, sphere edge, graticule, bare
+  // svg) to deselect — the click-away that closes the mobile sheet and
+  // clears the selection on desktop. A country's own handler owns its
+  // clicks. Guard against the click that fires at the end of a pan by
+  // ignoring it when the pointer travelled since it went down.
+  let downX = 0;
+  let downY = 0;
+  svg.on('pointerdown.deselect', (event: PointerEvent) => {
+    downX = event.clientX;
+    downY = event.clientY;
+  });
+  svg.on('click.deselect', (event: MouseEvent) => {
+    if (Math.hypot(event.clientX - downX, event.clientY - downY) > 6) return;
+    const target = event.target as Element | null;
+    if (target?.classList?.contains('country')) return;
+    if (getState().selectedCountry) setState({ selectedCountry: null });
+  });
+
   onThemeChange(() => {
     const refreshed = makeColorScale();
     const { scoreData: sd, currentAttribute: attr } = getState();
