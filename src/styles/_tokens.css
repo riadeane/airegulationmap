@@ -40,7 +40,9 @@
 
   --text-primary:    oklch(92% 0.012 var(--brand-hue));
   --text-secondary:  oklch(72% 0.014 var(--brand-hue));
-  --text-tertiary:   oklch(58% 0.014 var(--brand-hue)); /* WCAG AA on --bg */
+  /* 62% clears WCAG AA (~5:1) against --surface, where most tertiary text
+     actually sits (header, footer, timeline). 58% only reached 4.3:1 there. */
+  --text-tertiary:   oklch(62% 0.014 var(--brand-hue));
 
   --accent:          oklch(76% 0.13 var(--brand-hue));
   --accent-hover:    oklch(82% 0.13 var(--brand-hue));
