@@ -61,8 +61,13 @@ const state: AppState = {
   scatterY: 'regulationStatus',
 };
 
-type AnyListener = (value: unknown) => void;
-const listeners = new Map<keyof AppState, Set<AnyListener>>();
+/** A listener for one state key `K`, receiving that key's value type. */
+type Listener<K extends keyof AppState> = (value: AppState[K]) => void;
+
+// The Set erases `K` — a heterogeneous "key → Set<Listener<that key>>" map
+// isn't expressible in TS — but on()/emit() reassert it at the boundary, so
+// every public caller stays fully typed.
+const listeners = new Map<keyof AppState, Set<Listener<keyof AppState>>>();
 
 /**
  * The state is exposed to consumers as deeply read-only. All mutation
@@ -96,19 +101,15 @@ export function setState(patch: Partial<AppState>): void {
 }
 
 /** Subscribe to changes of one state key. Returns an unsubscribe function. */
-export function on<K extends keyof AppState>(
-  event: K,
-  handler: (value: AppState[K]) => void
-): () => void {
-  if (!listeners.has(event)) listeners.set(event, new Set());
-  const set = listeners.get(event) as Set<AnyListener>;
-  set.add(handler as AnyListener);
-  return () => set.delete(handler as AnyListener);
+export function on<K extends keyof AppState>(event: K, handler: Listener<K>): () => void {
+  let set = listeners.get(event);
+  if (!set) { set = new Set(); listeners.set(event, set); }
+  set.add(handler as Listener<keyof AppState>);
+  return () => { set.delete(handler as Listener<keyof AppState>); };
 }
 
-function emit(event: keyof AppState, value: unknown): void {
+function emit<K extends keyof AppState>(event: K, value: AppState[K]): void {
   const handlers = listeners.get(event);
-  if (handlers) {
-    for (const fn of handlers) fn(value);
-  }
+  if (!handlers) return;
+  for (const fn of handlers) (fn as Listener<K>)(value);
 }

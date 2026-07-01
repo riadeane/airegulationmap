@@ -3,6 +3,7 @@
 // highest / lowest scoring members as jump links.
 
 import { getState, setState, on } from '../state/store';
+import { selectCountry } from '../state/interactions';
 import { computeBlocStats } from '../data/blocs';
 import type { BlocMemberScore } from '../data/blocs';
 import { ATTRIBUTE_LABELS } from '../constants';
@@ -22,7 +23,7 @@ function memberLink(label: string, member: BlocMemberScore): HTMLDivElement {
   btn.type = 'button';
   btn.className = 'bloc-member-link';
   btn.textContent = `${member.name} (${member.score})`;
-  btn.addEventListener('click', () => setState({ selectedCountry: member.name }));
+  btn.addEventListener('click', () => selectCountry(member.name));
 
   wrap.append(tag, btn);
   return wrap;

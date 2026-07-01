@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 // Exercises the mainView FSM end to end: exactly one overlay owns the main
 // area, switching to one leaves the other, and Escape backs out to the map.
@@ -9,7 +10,7 @@ test.beforeEach(async ({ page }) => {
   await page.waitForSelector('#map svg path.country', { timeout: 15_000 });
 });
 
-async function addToComparison(page, name: string) {
+async function addToComparison(page: Page, name: string) {
   await page.fill('#country-search', name);
   await page.waitForSelector('#search-suggestions li[role="option"]');
   await page.keyboard.press('Enter');

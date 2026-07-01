@@ -4,6 +4,7 @@ import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { toggleComparison } from '../state/interactions';
+import { maturityRank } from '../state/selectors';
 import { MAX_COMPARISON } from '../constants';
 import { classifySources, formatSourcesForCopy } from '../data/sources';
 import { writeClipboard } from '../controls/clipboard';
@@ -143,22 +144,14 @@ function updateCiteButton(): void {
   btn.title = disabled ? 'Select a country first' : '';
 }
 
-// Maturity-index rank among countries with a composite score. Ties
-// share a rank (strictly-higher count + 1).
+// Maturity-index rank among countries with a composite score. The ranking is
+// derived once per data load by the memoized selector, not recomputed on every
+// panel render.
 function renderRank(countryName: string): void {
   const el = document.getElementById('maturity-rank');
   if (!el) return;
-  const { scoreData } = getState();
-  const mine = scoreData[countryName]?.averageScore;
-  if (mine == null) {
-    el.textContent = '';
-    return;
-  }
-  const scored = Object.values(scoreData)
-    .map(d => d.averageScore)
-    .filter((v): v is number => v != null);
-  const rank = scored.filter(v => v > mine).length + 1;
-  el.textContent = `Rank ${rank} of ${scored.length}`;
+  const result = maturityRank(countryName);
+  el.textContent = result ? `Rank ${result.rank} of ${result.total}` : '';
 }
 
 function renderPanel(countryName: string): void {
