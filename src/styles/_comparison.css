@@ -547,6 +547,21 @@ body.view-compare .radar-chart svg {
   .comparison-table td {
     padding: 12px 12px 12px 0;
   }
+
+  /* Pin the dimension-name column while the 3-4 country table scrolls
+     sideways, so a value's row label doesn't scroll out of view. */
+  .ct-label {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--surface);
+  }
+
+  /* The radar's axis labels are ~10 units in a downscaled viewBox — ~7px
+     on a phone. Bump them so the dimension names are legible. */
+  .radar-axis-label {
+    font-size: 14px;
+  }
 }
 
 @media (pointer: coarse) {
@@ -610,6 +625,17 @@ body.view-compare .radar-chart svg {
   align-items: center;
   gap: 6px;
   margin-bottom: 12px;
+}
+
+.strip-add {
+  margin-bottom: 12px;
+}
+
+/* The strip sits at the bottom of the sheet, so its add-a-country dropdown
+   opens upward to stay on-screen. */
+#tray-add .comp-search-suggestions {
+  top: auto;
+  bottom: calc(100% + 6px);
 }
 
 .strip-view-btn {

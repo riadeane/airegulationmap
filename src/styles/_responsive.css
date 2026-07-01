@@ -75,6 +75,15 @@
     height: 66%;
   }
 
+  /* The Cite popover opens inline near the top of the sheet; cap it so its
+     APA/Chicago/MLA blocks scroll within the popover instead of shoving
+     the scores off-screen and clipping the last format. */
+  .cite-popover {
+    max-height: 60vh;
+    max-height: 60dvh;
+    overflow-y: auto;
+  }
+
   /* Sticky grab handle: a familiar "swipe / tap to dismiss" affordance
      that stays put while the sheet scrolls, so closing is always one
      tap away. The wide invisible ::after is the real touch target. */
@@ -347,6 +356,15 @@
     min-height: 44px;
     display: flex;
     align-items: center;
+  }
+
+  /* Full-text search hits are readable, not squinty, on a phone. */
+  .match-snippet {
+    font-size: 0.82rem;
+  }
+
+  .match-field {
+    font-size: 0.72rem;
   }
 
   /* Citation + panel controls to the 44px standard. Source chips are the

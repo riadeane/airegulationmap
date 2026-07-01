@@ -22,6 +22,7 @@ import { parseUrl, initUrlSync } from './controls/url';
 import { initCitePopover } from './controls/citePopover';
 import { initHelpOverlay } from './controls/helpOverlay';
 import { initMenu } from './controls/menu';
+import { initOnboarding } from './controls/onboarding';
 import { removeMapSkeleton, showLoadError } from './panel/resilience';
 import type { ScoreData, RegulationData } from './data/loader';
 
@@ -102,6 +103,7 @@ async function main(): Promise<void> {
   initScatter();
   initHelpOverlay();
   initMenu();
+  initOnboarding();
 
   if (urlState.scatter) {
     setState({

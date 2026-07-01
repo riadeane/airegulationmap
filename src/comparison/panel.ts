@@ -18,7 +18,9 @@ const DETAIL_DIMENSIONS: DimensionKey[] = [
 // comparison. Much faster than hunting for a country on the map.
 // Clicking a country on the map still works; that path hands the
 // most recent click to the "quick add" button alongside the search.
-function buildSearchInput(atCap: boolean): HTMLDivElement {
+// `listId` must be unique per instance — the full-view add-bar and the
+// staging strip both mount one, and duplicate ids break aria-controls.
+export function buildSearchInput(atCap: boolean, listId = 'comp-search-suggestions'): HTMLDivElement {
   const wrap = document.createElement('div');
   wrap.className = 'comp-search';
 
@@ -31,11 +33,11 @@ function buildSearchInput(atCap: boolean): HTMLDivElement {
   input.autocomplete = 'off';
   input.setAttribute('aria-label', 'Search country to add to comparison');
   input.setAttribute('aria-autocomplete', 'list');
-  input.setAttribute('aria-controls', 'comp-search-suggestions');
+  input.setAttribute('aria-controls', listId);
   input.disabled = atCap;
 
   const list = document.createElement('ul');
-  list.id = 'comp-search-suggestions';
+  list.id = listId;
   list.className = 'comp-search-suggestions';
   list.setAttribute('role', 'listbox');
 
@@ -168,6 +170,25 @@ export function renderTray(names: string[]): void {
   const btn = document.getElementById('tray-view-btn') as HTMLButtonElement;
   chips.replaceChildren();
   names.forEach(name => chips.appendChild(buildChip(name)));
+
+  // Add-a-country search, mounted once in the staging strip so the set can
+  // be built without hunting the map for the 2nd–4th country. Kept in
+  // sync with the cap; recreating it would drop focus mid-type.
+  const addSlot = document.getElementById('tray-add');
+  if (addSlot) {
+    const atCap = names.length >= MAX_COMPARISON;
+    let input = addSlot.querySelector<HTMLInputElement>('.comp-search-input');
+    if (!input) {
+      addSlot.appendChild(buildSearchInput(atCap, 'strip-comp-search-suggestions'));
+      input = addSlot.querySelector<HTMLInputElement>('.comp-search-input');
+    }
+    if (input) {
+      input.disabled = atCap;
+      input.placeholder = atCap
+        ? `Max ${MAX_COMPARISON} reached — remove one first`
+        : 'Add a country to compare…';
+    }
+  }
 
   btn.disabled = names.length < 2;
   btn.textContent = names.length < 2

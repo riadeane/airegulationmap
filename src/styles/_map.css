@@ -72,6 +72,58 @@
   background: var(--accent-muted);
 }
 
+/* First-run hint for touch users — the desktop intro panel lives in the
+   sheet, off-screen until a country is selected (the one thing it teaches).
+   Shown by src/controls/onboarding.ts only on the sheet layout and only
+   once; retired on the first selection. */
+.mobile-hint {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 8px 9px 14px;
+  background: color-mix(in oklch, var(--surface-raised) 92%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  animation: fadeUp 0.3s var(--ease-out);
+}
+
+.mobile-hint[hidden] {
+  display: none;
+}
+
+.mobile-hint span {
+  flex: 1;
+}
+
+.mobile-hint a {
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mobile-hint-close {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
 /* Tooltip */
 .tooltip {
   position: absolute;
