@@ -1,4 +1,5 @@
 import { getState } from '../state/store';
+import { el } from '../dom';
 import { ATTRIBUTE_LABELS } from '../constants';
 import type { DimensionKey } from '../constants';
 import { matchCountryNames } from '../data/countryMatch';
@@ -169,7 +170,7 @@ function renderChips(names: readonly string[]): void {
 // the full view.
 export function renderTray(names: readonly string[]): void {
   const chips = document.getElementById('tray-chips')!;
-  const btn = document.getElementById('tray-view-btn') as HTMLButtonElement;
+  const btn = el<HTMLButtonElement>('tray-view-btn');
   chips.replaceChildren();
   names.forEach(name => chips.appendChild(buildChip(name)));
 

@@ -9,6 +9,7 @@
 // silently mix vintages).
 
 import { select } from 'd3-selection';
+import { el } from '../dom';
 import type { Selection } from 'd3-selection';
 import { scaleLinear } from 'd3-scale';
 import type { ScaleLinear } from 'd3-scale';
@@ -63,7 +64,7 @@ let xScale: ScaleLinear<number, number>, yScale: ScaleLinear<number, number>;
 function populateAxisSelects(): void {
   const { scatterX, scatterY } = getState();
   for (const [id, current] of [['scatter-x', scatterX], ['scatter-y', scatterY]]) {
-    const sel = document.getElementById(id) as HTMLSelectElement;
+    const sel = el<HTMLSelectElement>(id);
     for (const dim of AXIS_DIMENSIONS) {
       const opt = document.createElement('option');
       opt.value = dim.value;
@@ -286,12 +287,12 @@ export function initScatter(): void {
 
   const refreshIfOpen = () => { if (getState().mainView === 'scatter') updateChart(); };
   on('scatterX', () => {
-    const sel = document.getElementById('scatter-x') as HTMLSelectElement;
+    const sel = el<HTMLSelectElement>('scatter-x');
     sel.value = getState().scatterX;
     refreshIfOpen();
   });
   on('scatterY', () => {
-    const sel = document.getElementById('scatter-y') as HTMLSelectElement;
+    const sel = el<HTMLSelectElement>('scatter-y');
     sel.value = getState().scatterY;
     refreshIfOpen();
   });

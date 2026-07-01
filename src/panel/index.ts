@@ -1,4 +1,5 @@
 import { getState, setState, on } from '../state/store';
+import { maybeEl } from '../dom';
 import { renderScoreBar, renderAllDots } from './scores';
 import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
@@ -111,7 +112,7 @@ function updateDimensionHighlight(): void {
 }
 
 function updateCompareButton(): void {
-  const btn = document.getElementById('compare-btn') as HTMLButtonElement | null;
+  const btn = maybeEl<HTMLButtonElement>('compare-btn');
   if (!btn) return;
   const { selectedCountry, comparisonCountries } = getState();
   if (!selectedCountry) {
@@ -136,7 +137,7 @@ function updateCompareButton(): void {
 }
 
 function updateCiteButton(): void {
-  const btn = document.getElementById('cite-btn') as HTMLButtonElement | null;
+  const btn = maybeEl<HTMLButtonElement>('cite-btn');
   if (!btn) return;
   const { selectedCountry, comparisonCountries } = getState();
   const disabled = !selectedCountry && comparisonCountries.length === 0;
@@ -281,7 +282,7 @@ export function initPanel(): void {
 
   // Copy the full source list as a numbered, paste-ready block —
   // analysts move these into footnotes and research notes.
-  const sourcesCopyBtn = document.getElementById('sources-copy') as HTMLButtonElement | null;
+  const sourcesCopyBtn = maybeEl<HTMLButtonElement>('sources-copy');
   if (sourcesCopyBtn) {
     sourcesCopyBtn.addEventListener('click', async () => {
       const { selectedCountry, regulationData } = getState();

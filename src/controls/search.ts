@@ -1,4 +1,5 @@
 import { getState } from '../state/store';
+import { el, maybeEl } from '../dom';
 import { selectCountry, stepCountry, escapeMainView } from '../state/interactions';
 import { updateSearchHighlight } from '../map/index';
 import { matchCountryNames } from '../data/countryMatch';
@@ -44,7 +45,7 @@ function snippetNode(match: SearchMatch): HTMLSpanElement {
 }
 
 export function initSearch(): void {
-  const searchInput = document.getElementById('country-search') as HTMLInputElement;
+  const searchInput = el<HTMLInputElement>('country-search');
   const suggestions = document.getElementById('search-suggestions')!;
   // The options list is role="listbox" with presentational section
   // labels, so screen readers don't announce result changes on their
@@ -202,7 +203,7 @@ export function initKeyboardNav(): void {
 
     if (e.key === '?') {
       e.preventDefault();
-      const dialog = document.getElementById('help-overlay') as HTMLDialogElement | null;
+      const dialog = maybeEl<HTMLDialogElement>('help-overlay');
       if (dialog && !dialog.open && typeof dialog.showModal === 'function') {
         dialog.showModal();
       }
