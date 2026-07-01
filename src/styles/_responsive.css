@@ -1,7 +1,9 @@
 /* Tablet tier — compact the panel and search without collapsing
    the layout. Covers the gap between mobile (768px) and full
-   desktop (1041px+). */
-@media (max-width: 1040px) and (min-width: 769px) {
+   desktop (1041px+). The min-height guard keeps landscape phones
+   (short + wide) out of this cramped-sidebar tier — they get the
+   mobile sheet instead. */
+@media (max-width: 1040px) and (min-width: 769px) and (min-height: 501px) {
   #country-panel {
     width: 300px;
   }
@@ -13,7 +15,11 @@
   #country-search:focus { width: 180px; }
 }
 
-@media (max-width: 768px) {
+/* The mobile tier also covers landscape phones and other short touch
+   viewports (which are WIDER than 768px and would otherwise fall into the
+   cramped desktop/tablet layout). `pointer: coarse` keeps a short desktop
+   window from being flipped into a phone sheet. */
+@media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {
   /* The map fills this whole area now; the detail panel is a sheet
      layered on top (below) rather than a second row. position:relative
      anchors that sheet to the map area, and overflow:hidden clips it
@@ -280,5 +286,30 @@
 
   .panel-intro-steps li:has(kbd) {
     display: none;
+  }
+}
+
+/* Landscape phones are very short — reclaim vertical space so the map and
+   the open sheet aren't crushed. The mobile tier above already gives
+   these the collapsed header + sheet; this just tightens the fit. */
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  /* Footer links add nothing while reading and cost ~76px of height. */
+  footer {
+    display: none;
+  }
+
+  #timeline-strip {
+    padding: 6px 12px;
+  }
+
+  /* Pair search with the score selector on one row instead of stacking,
+     so the header eats two rows, not three. */
+  #score-btn-container {
+    flex: 1 1 auto;
+  }
+
+  /* The map slot is tiny here, so let the sheet claim more of it. */
+  #country-panel {
+    height: 94%;
   }
 }

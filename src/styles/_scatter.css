@@ -150,7 +150,7 @@ circle.scatter-dot:hover {
   fill: var(--accent);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {
   .scatter-container {
     padding: 12px 14px 8px;
   }

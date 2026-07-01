@@ -494,7 +494,7 @@ body.view-compare .radar-chart svg {
 .country.in-comparison[data-comparison-index="2"] { stroke: var(--comparison-3); }
 .country.in-comparison[data-comparison-index="3"] { stroke: var(--comparison-4); }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {
   #comparison-panel {
     width: 100%;
     min-width: 0;

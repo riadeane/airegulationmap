@@ -182,7 +182,7 @@
   text-decoration: underline;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {
   .bloc-summary {
     top: 10px;
     left: 10px;
