@@ -1,4 +1,5 @@
 import { PLACEHOLDER_RE } from '../constants';
+import { maybeEl } from '../dom';
 import type { DimensionKey } from '../constants';
 import { normalizeRegulationText } from './normalize';
 import { classifySources } from '../data/sources';
@@ -62,7 +63,7 @@ export function renderTextSections(regData: RegulationEntry | null | undefined):
   sourcesContainer.replaceChildren();
   const sources = classifySources(regData.sources);
 
-  const copyBtn = document.getElementById('sources-copy') as HTMLButtonElement | null;
+  const copyBtn = maybeEl<HTMLButtonElement>('sources-copy');
   if (copyBtn) copyBtn.hidden = sources.length === 0;
 
   if (sources.length > 0) {

@@ -1,10 +1,13 @@
 import { getState } from '../state/store';
+import { el } from '../dom';
 import { ATTRIBUTE_LABELS } from '../constants';
 import type { DimensionKey } from '../constants';
 import { matchCountryNames } from '../data/countryMatch';
 import { cleanRegulationText } from '../panel/sections';
 import { renderRadar } from './radar';
-import { addToComparison, removeFromComparison, getColorFor, MAX_COMPARISON } from './index';
+import { addToComparison, removeFromComparison } from '../state/interactions';
+import { getColorFor } from './colorSlots';
+import { MAX_COMPARISON } from '../constants';
 
 const DETAIL_DIMENSIONS: DimensionKey[] = [
   'regulationStatus',
@@ -156,7 +159,7 @@ function buildChip(name: string): HTMLElement {
   return chip;
 }
 
-function renderChips(names: string[]): void {
+function renderChips(names: readonly string[]): void {
   const container = document.getElementById('comparison-chips')!;
   container.replaceChildren();
   names.forEach(name => container.appendChild(buildChip(name)));
@@ -165,9 +168,9 @@ function renderChips(names: string[]): void {
 // The comparison set — a pinned footer in the country panel listing the
 // staged countries. The "View comparison" button (enabled at 2+) opens
 // the full view.
-export function renderTray(names: string[]): void {
+export function renderTray(names: readonly string[]): void {
   const chips = document.getElementById('tray-chips')!;
-  const btn = document.getElementById('tray-view-btn') as HTMLButtonElement;
+  const btn = el<HTMLButtonElement>('tray-view-btn');
   chips.replaceChildren();
   names.forEach(name => chips.appendChild(buildChip(name)));
 
@@ -200,7 +203,7 @@ export function renderTray(names: string[]): void {
 // across the top, score + description together in each cell. Replaces
 // the old radar data table (numbers) AND the separate text grid, so
 // every label appears exactly once.
-function renderComparisonTable(names: string[]): void {
+function renderComparisonTable(names: readonly string[]): void {
   const container = document.getElementById('comparison-table')!;
   container.replaceChildren();
   // The flex columns fill the view for 2-3 countries; 4 may exceed the
@@ -311,7 +314,7 @@ function renderComparisonTable(names: string[]): void {
   container.appendChild(table);
 }
 
-export function renderComparisonPanel(names: string[]): void {
+export function renderComparisonPanel(names: readonly string[]): void {
   renderAddBar();
   renderChips(names);
 

@@ -94,6 +94,37 @@ body.view-scatter #timeline-strip {
   border-color: var(--accent);
 }
 
+/* Color key: dots are tinted by maturity index (same scale as the map's
+   choropleth), which is otherwise unexplained in this view. Pushed to
+   the right of the axis selects. */
+.scatter-colorkey {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.scatter-colorkey-ends {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.6rem;
+}
+
+.scatter-colorkey-bar {
+  width: 60px;
+  height: 8px;
+  border-radius: 2px;
+  /* CSS custom props so the swatch restyles with the theme for free. */
+  background: linear-gradient(90deg, var(--score-low), var(--score-high));
+}
+
+@media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {
+  .scatter-colorkey { margin-left: 0; }
+}
+
 #scatter-chart {
   flex: 1;
   min-height: 0;

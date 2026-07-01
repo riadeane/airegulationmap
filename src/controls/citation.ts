@@ -8,7 +8,7 @@ const DEFAULT_MODE = 'averageScore';
 
 export interface CitationView {
   country?: string | null;
-  compareCountries?: string[] | null;
+  compareCountries?: readonly string[] | null;
   mode?: string | null;
   timelineDate?: string | null;
   url: string;

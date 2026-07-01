@@ -16,12 +16,14 @@ footer p {
 
 footer a {
   color: var(--accent);
-  text-decoration: none;
+  /* Underlined by default: these links sit inline within paragraphs, so
+     colour alone can't distinguish them (WCAG 1.4.1). */
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: from-font;
   transition: color 0.15s;
 }
 
 footer a:hover {
   color: var(--accent-hover);
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }

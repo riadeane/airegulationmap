@@ -1,10 +1,11 @@
 import { getState, setState, on } from '../state/store';
+import { el } from '../dom';
 
 export function initFilter(): void {
   const btn = document.getElementById('filter-btn')!;
   const popover = document.getElementById('filter-popover')!;
-  const minSlider = document.getElementById('filter-min') as HTMLInputElement;
-  const maxSlider = document.getElementById('filter-max') as HTMLInputElement;
+  const minSlider = el<HTMLInputElement>('filter-min');
+  const maxSlider = el<HTMLInputElement>('filter-max');
   const minLabel = document.getElementById('filter-min-label')!;
   const maxLabel = document.getElementById('filter-max-label')!;
 

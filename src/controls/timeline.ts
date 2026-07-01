@@ -1,4 +1,5 @@
 import { getState, setState, on } from '../state/store';
+import { el } from '../dom';
 import { updateMap } from '../map/index';
 import { buildScoresAtDate, extractSortedDates } from '../data/history';
 import type { HistoryData, HistorySnapshot } from '../data/history';
@@ -28,7 +29,7 @@ export function initTimeline(history: HistoryData | null): void {
   const container = document.getElementById('timeline-strip')!;
   container.style.display = 'block';
 
-  const slider = document.getElementById('timeline-slider') as HTMLInputElement;
+  const slider = el<HTMLInputElement>('timeline-slider');
   slider.max = String(sortedDates.length - 1);
 
   const dateLabel = document.getElementById('timeline-date-label')!;

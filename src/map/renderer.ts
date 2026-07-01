@@ -10,14 +10,16 @@ import 'd3-transition';
 
 import { ATTRIBUTE_LABELS } from '../constants';
 import type { AttributeKey } from '../constants';
-import { getState, setState } from '../state/store';
+import { getState } from '../state/store';
 import type { ScoreData, ScoreEntry } from '../data/loader';
 import type { HistorySnapshot } from '../data/history';
 import { makeColorScale, addLegend } from './legend';
+import type { ColorScale } from './legend';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip';
 import { setupZoom } from './zoom';
 import type { ZoomHandle } from './zoom';
-import { toggleComparison, getColorIndex } from '../comparison/index';
+import { toggleComparison, selectCountry } from '../state/interactions';
+import { getColorIndex } from '../comparison/colorSlots';
 import { cssVar, onThemeChange } from './cssColors';
 
 /** A world-atlas country geometry with its bound name property. */
@@ -43,6 +45,21 @@ let pathRef: GeoPath | null = null;
 let graticuleRef: MultiLineString | null = null;
 let currentSize: Size = { w: 1000, h: 500 };
 let zoomHandle: ZoomHandle | null = null;
+
+// Resolve a country's fill. The color scale clamps its domain, but a
+// null/NaN score must read as "no data" grey, not as the low-end color
+// (a clamped scale maps null→0→domain floor). One guard, three callers
+// (initial paint, theme swap, updateMap) so the boundary stays honest.
+function fillFor(
+  entry: MapScoreEntry | undefined,
+  attr: AttributeKey,
+  colorScale: ColorScale
+): string {
+  const value = entry ? entry[attr] : null;
+  return value != null && Number.isFinite(value)
+    ? colorScale(value)
+    : cssVar('--no-data');
+}
 
 function readContainerSize(): Size {
   const wrapper = document.getElementById('map-wrapper');
@@ -202,10 +219,7 @@ export async function generateMap(): Promise<void> {
     .enter().append('path')
     .attr('class', 'country')
     .attr('d', path)
-    .attr('fill', d => {
-      const entry = scoreData[d.properties.name];
-      return entry ? colorScale(entry[currentAttribute] as number) : cssVar('--no-data');
-    })
+    .attr('fill', d => fillFor(scoreData[d.properties.name], currentAttribute, colorScale))
     .attr('stroke', cssVar('--map-stroke'))
     .attr('stroke-width', 0.3)
     .on('mouseover', function (event: MouseEvent, d) {
@@ -231,7 +245,7 @@ export async function generateMap(): Promise<void> {
         toggleComparison(name);
         event.preventDefault();
       } else {
-        setState({ selectedCountry: name });
+        selectCountry(name);
       }
     });
 
@@ -253,7 +267,7 @@ export async function generateMap(): Promise<void> {
     if (Math.hypot(event.clientX - downX, event.clientY - downY) > 6) return;
     const target = event.target as Element | null;
     if (target?.classList?.contains('country')) return;
-    if (getState().selectedCountry) setState({ selectedCountry: null });
+    if (getState().selectedCountry) selectCountry(null);
   });
 
   onThemeChange(() => {
@@ -261,10 +275,7 @@ export async function generateMap(): Promise<void> {
     const { scoreData: sd, currentAttribute: attr } = getState();
     selectAll<SVGPathElement, CountryFeature>('#map .country')
       .transition().duration(220)
-      .attr('fill', d => {
-        const entry = sd[d.properties.name];
-        return entry ? refreshed(entry[attr] as number) : cssVar('--no-data');
-      })
+      .attr('fill', d => fillFor(sd[d.properties.name], attr, refreshed))
       .attr('stroke', cssVar('--map-stroke'));
     select('#map .sphere').attr('fill', cssVar('--ocean'));
     select('#map .graticule').attr('stroke', cssVar('--text-tertiary'));
@@ -328,12 +339,13 @@ export function updateMap(overrideScoreData?: MapScores): void {
 
   select('#map')
     .selectAll<SVGPathElement, CountryFeature>('.country')
+    // Cancel any in-flight recolor before starting a new one, so a rapid
+    // sequence (slider drag, mode flips) doesn't queue overlapping
+    // transitions that fight over the same fill/opacity.
+    .interrupt()
     .transition()
     .duration(500)
-    .attr('fill', d => {
-      const entry = data[d.properties.name];
-      return entry ? colorScale(entry[currentAttribute] as number) : cssVar('--no-data');
-    })
+    .attr('fill', d => fillFor(data[d.properties.name], currentAttribute, colorScale))
     .style('opacity', d => countryOpacity(d.properties.name, data[d.properties.name], {
       currentAttribute, filterMin, filterMax, blocSet,
     }));
@@ -351,7 +363,7 @@ export function clearHighlight(): void {
   selectAll('.country').classed('selected', false).attr('stroke-width', 0.3);
 }
 
-export function markComparisonCountries(names: string[] | null | undefined): void {
+export function markComparisonCountries(names: readonly string[] | null | undefined): void {
   selectAll('.country')
     .classed('in-comparison', false)
     .attr('data-comparison-index', null);

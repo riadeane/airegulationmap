@@ -1,6 +1,7 @@
 import './styles/main.css';
 
 import { setState } from './state/store';
+import { restoreComparison, selectCountry, openScatter } from './state/interactions';
 import { loadScores, loadRegulation } from './data/loader';
 import { loadHistory } from './data/history';
 import { loadBlocs } from './data/blocs';
@@ -106,11 +107,7 @@ async function main(): Promise<void> {
   initOnboarding();
 
   if (urlState.scatter) {
-    setState({
-      scatterOpen: true,
-      scatterX: urlState.scatter.x,
-      scatterY: urlState.scatter.y,
-    });
+    setState({ scatterX: urlState.scatter.x, scatterY: urlState.scatter.y });
   }
 
   // Render map
@@ -128,10 +125,11 @@ async function main(): Promise<void> {
   if (urlState.compare && urlState.compare.length >= 2) {
     const valid = urlState.compare.filter(name => scoreData[name]);
     // A shared compare link opens the full comparison view directly.
-    if (valid.length >= 2) setState({ comparisonCountries: valid, comparisonViewOpen: true });
+    if (valid.length >= 2) restoreComparison(valid);
   } else if (urlState.country && scoreData[urlState.country]) {
-    setState({ selectedCountry: urlState.country });
+    selectCountry(urlState.country);
   }
+  if (urlState.scatter) openScatter();
 
   // Header info
   updateSiteLastUpdated(scoreData);

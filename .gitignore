@@ -1,6 +1,12 @@
 node_modules/
 dist/
 
+# Playwright e2e output
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/
+
 # macOS
 .DS_Store
 

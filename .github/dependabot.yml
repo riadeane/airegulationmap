@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # Frontend npm dependencies (d3, topojson, vite, typescript, playwright…).
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for the routine dev-tooling bumps instead of a dozen.
+      dev-dependencies:
+        dependency-type: development
+
+  # Python pipeline dependencies (anthropic, pydantic, typer, pytest…).
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # Keep the SHA-pinned GitHub Actions current (Dependabot updates both the
+  # pin and the version comment).
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

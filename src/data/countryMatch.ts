@@ -8,7 +8,7 @@ export interface MatchOptions {
 }
 
 export function matchCountryNames(
-  names: string[],
+  names: readonly string[],
   query: string,
   { limit = 8, exclude = null }: MatchOptions = {}
 ): string[] {

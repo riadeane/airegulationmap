@@ -13,6 +13,18 @@ export type AttributeKey = keyof typeof ATTRIBUTE_LABELS;
 /** The five independently scored dimensions (averageScore is derived). */
 export type DimensionKey = Exclude<AttributeKey, 'averageScore'>;
 
+/**
+ * What owns the main area. Exactly one of these is active at a time — the map,
+ * the scatter explorer, or the full comparison view. Modeling it as one value
+ * (rather than two independent `scatterOpen`/`comparisonViewOpen` booleans)
+ * makes "both overlays open at once" unrepresentable and lets every transition
+ * flow through a single writer (see state/interactions.ts).
+ */
+export type MainView = 'map' | 'scatter' | 'comparison';
+
+/** Maximum countries in a side-by-side comparison. */
+export const MAX_COMPARISON = 4;
+
 export const LEGEND_ENDPOINTS: Record<AttributeKey, [string, string]> = {
   averageScore:     ['Minimal', 'Comprehensive'],
   regulationStatus: ['Minimal', 'Comprehensive'],

@@ -48,7 +48,7 @@ async function copyToClipboard(text: string, confirmBtn: HTMLButtonElement): Pro
 
 function renderRows() {
   const state = getState();
-  const url = buildPermalink(state);
+  const url = buildPermalink(state, { omitTheme: true });
   const citations = citationsFor({
     country: state.selectedCountry,
     compareCountries: state.comparisonCountries,
@@ -133,7 +133,13 @@ function onDocClick(e: MouseEvent): void {
 }
 
 function onDocKey(e: KeyboardEvent): void {
-  if (e.key === 'Escape') closePopover();
+  if (e.key === 'Escape') {
+    closePopover();
+    // Keyboard dismissal must return focus to the trigger, or focus is
+    // stranded on document.body. (Outside-click dismissal deliberately
+    // does not, so the click's own target keeps focus.)
+    buttonEl?.focus();
+  }
 }
 
 export function initCitePopover(): void {

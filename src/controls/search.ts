@@ -1,4 +1,6 @@
-import { getState, setState } from '../state/store';
+import { getState } from '../state/store';
+import { el, maybeEl } from '../dom';
+import { selectCountry, stepCountry, escapeMainView } from '../state/interactions';
 import { updateSearchHighlight } from '../map/index';
 import { matchCountryNames } from '../data/countryMatch';
 import { buildSearchIndex, searchRegulationText, FIELD_LABELS } from '../data/searchIndex';
@@ -43,20 +45,28 @@ function snippetNode(match: SearchMatch): HTMLSpanElement {
 }
 
 export function initSearch(): void {
-  const searchInput = document.getElementById('country-search') as HTMLInputElement;
+  const searchInput = el<HTMLInputElement>('country-search');
   const suggestions = document.getElementById('search-suggestions')!;
+  // The options list is role="listbox" with presentational section
+  // labels, so screen readers don't announce result changes on their
+  // own — and a no-results message inside it is invisible to AT. This
+  // out-of-band polite region speaks the outcome instead.
+  const statusRegion = document.getElementById('search-status');
+  const announce = (msg: string) => { if (statusRegion) statusRegion.textContent = msg; };
 
-  const selectCountry = (name: string) => {
+  const pickSuggestion = (name: string) => {
     searchInput.value = name;
     suggestions.replaceChildren();
+    announce('');
     updateSearchHighlight(null);
-    setState({ selectedCountry: name });
+    selectCountry(name);
   };
 
   const updateSuggestions = (query: string) => {
     suggestions.replaceChildren();
     if (query.length < 2) {
       updateSearchHighlight(null);
+      announce('');
       return;
     }
 
@@ -81,6 +91,7 @@ export function initSearch(): void {
       empty.setAttribute('role', 'presentation');
       empty.textContent = `No countries or policies match “${query}”`;
       suggestions.appendChild(empty);
+      announce(`No countries or policies match ${query}`);
       return;
     }
 
@@ -89,6 +100,9 @@ export function initSearch(): void {
       ...textMatches.map(m => m.country),
     ]));
 
+    const total = countryMatches.length + textMatches.length;
+    announce(`${total} ${total === 1 ? 'result' : 'results'} for ${query}`);
+
     if (countryMatches.length > 0 && textMatches.length > 0) {
       suggestions.appendChild(sectionLabel('Countries'));
     }
@@ -96,7 +110,7 @@ export function initSearch(): void {
       const li = document.createElement('li');
       li.textContent = name;
       li.setAttribute('role', 'option');
-      li.addEventListener('click', () => selectCountry(name));
+      li.addEventListener('click', () => pickSuggestion(name));
       suggestions.appendChild(li);
     }
 
@@ -121,7 +135,7 @@ export function initSearch(): void {
       head.append(country, field);
 
       li.append(head, snippetNode(match));
-      li.addEventListener('click', () => selectCountry(match.country));
+      li.addEventListener('click', () => pickSuggestion(match.country));
       suggestions.appendChild(li);
     }
   };
@@ -154,8 +168,13 @@ export function initSearch(): void {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       idx = Math.max(idx - 1, 0);
-    } else if (e.key === 'Enter' && highlighted) {
-      highlighted.click();
+    } else if (e.key === 'Enter') {
+      // Enter commits the highlighted option, or — when the user typed a
+      // query and hit Enter without arrowing — the first (top) option.
+      // Previously Enter with no highlight did nothing, so typing a full
+      // country name and pressing Enter was a dead end.
+      e.preventDefault();
+      (highlighted ?? items[0]).click();
       return;
     } else if (e.key === 'Escape') {
       suggestions.replaceChildren();
@@ -184,7 +203,7 @@ export function initKeyboardNav(): void {
 
     if (e.key === '?') {
       e.preventDefault();
-      const dialog = document.getElementById('help-overlay') as HTMLDialogElement | null;
+      const dialog = maybeEl<HTMLDialogElement>('help-overlay');
       if (dialog && !dialog.open && typeof dialog.showModal === 'function') {
         dialog.showModal();
       }
@@ -198,17 +217,13 @@ export function initKeyboardNav(): void {
     }
 
     if (e.key === 'Escape') {
-      // Esc backs out one layer at a time: full views first (explorer,
-      // then comparison), then selection/dropdowns on later presses.
-      if (getState().scatterOpen) {
-        setState({ scatterOpen: false });
-        return;
-      }
-      if (getState().comparisonViewOpen) {
-        setState({ comparisonViewOpen: false });
-        return;
-      }
-      setState({ selectedCountry: null });
+      // Esc backs out one layer at a time: the cite popover owns its own Esc
+      // (closes + restores focus), then an overlay view (scatter/comparison)
+      // via the orchestrator, then selection/dropdowns on later presses.
+      const citePopover = document.getElementById('cite-popover');
+      if (citePopover && !citePopover.hidden) return;
+      if (escapeMainView()) return;
+      selectCountry(null);
       document.getElementById('score-dropdown')!.classList.remove('open');
       document.getElementById('score-btn')!.classList.remove('active');
       document.getElementById('filter-popover')!.classList.remove('open');
@@ -218,16 +233,9 @@ export function initKeyboardNav(): void {
       return;
     }
 
-    const { sortedCountryNames, selectedCountry } = getState();
-    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && sortedCountryNames.length > 0) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       e.preventDefault();
-      let idx = selectedCountry ? sortedCountryNames.indexOf(selectedCountry) : -1;
-      if (e.key === 'ArrowRight') {
-        idx = idx < sortedCountryNames.length - 1 ? idx + 1 : 0;
-      } else {
-        idx = idx > 0 ? idx - 1 : sortedCountryNames.length - 1;
-      }
-      setState({ selectedCountry: sortedCountryNames[idx] });
+      stepCountry(e.key === 'ArrowRight' ? 1 : -1);
     }
   });
 }

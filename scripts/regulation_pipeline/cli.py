@@ -49,6 +49,10 @@ def _run(
     batch: bool = typer.Option(
         False, help="Use the Message Batches API: 50% token pricing, results within ~1h"
     ),
+    max_runtime_minutes: int = typer.Option(
+        0, help="Abort a sync run after this many minutes (0 = unbounded). Bounds the "
+        "worst case when the API is slow-but-not-failing. Ignored with --batch."
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose (DEBUG) logging"),
 ) -> None:
     """Update AI regulation data using the Claude API."""
@@ -59,7 +63,7 @@ def _run(
         logger.error("ANTHROPIC_API_KEY environment variable not set")
         raise typer.Exit(code=1)
 
-    settings = Settings(default_model=model)
+    settings = Settings(default_model=model).validate()
     today = date.today()
 
     # SDK-level silent retries are disabled — retry.py does explicit, logged
@@ -78,7 +82,11 @@ def _run(
     strategy = (
         BatchStrategy(research_client, BatchRunner(client), use_search_for)
         if batch
-        else SyncStrategy(research_client, use_search_for)
+        else SyncStrategy(
+            research_client,
+            use_search_for,
+            max_wall_seconds=max_runtime_minutes * 60 if max_runtime_minutes > 0 else None,
+        )
     )
 
     logger.info("Loading existing data...")

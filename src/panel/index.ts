@@ -1,9 +1,12 @@
 import { getState, setState, on } from '../state/store';
+import { maybeEl } from '../dom';
 import { renderScoreBar, renderAllDots } from './scores';
 import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
 import { highlightCountry, clearHighlight } from '../map/index';
-import { toggleComparison, MAX_COMPARISON } from '../comparison/index';
+import { toggleComparison } from '../state/interactions';
+import { maturityRank } from '../state/selectors';
+import { MAX_COMPARISON } from '../constants';
 import { classifySources, formatSourcesForCopy } from '../data/sources';
 import { writeClipboard } from '../controls/clipboard';
 
@@ -109,7 +112,7 @@ function updateDimensionHighlight(): void {
 }
 
 function updateCompareButton(): void {
-  const btn = document.getElementById('compare-btn') as HTMLButtonElement | null;
+  const btn = maybeEl<HTMLButtonElement>('compare-btn');
   if (!btn) return;
   const { selectedCountry, comparisonCountries } = getState();
   if (!selectedCountry) {
@@ -134,7 +137,7 @@ function updateCompareButton(): void {
 }
 
 function updateCiteButton(): void {
-  const btn = document.getElementById('cite-btn') as HTMLButtonElement | null;
+  const btn = maybeEl<HTMLButtonElement>('cite-btn');
   if (!btn) return;
   const { selectedCountry, comparisonCountries } = getState();
   const disabled = !selectedCountry && comparisonCountries.length === 0;
@@ -142,33 +145,26 @@ function updateCiteButton(): void {
   btn.title = disabled ? 'Select a country first' : '';
 }
 
-// Maturity-index rank among countries with a composite score. Ties
-// share a rank (strictly-higher count + 1).
+// Maturity-index rank among countries with a composite score. The ranking is
+// derived once per data load by the memoized selector, not recomputed on every
+// panel render.
 function renderRank(countryName: string): void {
   const el = document.getElementById('maturity-rank');
   if (!el) return;
-  const { scoreData } = getState();
-  const mine = scoreData[countryName]?.averageScore;
-  if (mine == null) {
-    el.textContent = '';
-    return;
-  }
-  const scored = Object.values(scoreData)
-    .map(d => d.averageScore)
-    .filter((v): v is number => v != null);
-  const rank = scored.filter(v => v > mine).length + 1;
-  el.textContent = `Rank ${rank} of ${scored.length}`;
+  const result = maturityRank(countryName);
+  el.textContent = result ? `Rank ${result.rank} of ${result.total}` : '';
 }
 
 function renderPanel(countryName: string): void {
-  const { scoreData, regulationData, comparisonViewOpen } = getState();
+  const { scoreData, regulationData, mainView } = getState();
   const score = scoreData[countryName];
   const reg = regulationData[countryName];
+  const comparisonOpen = mainView === 'comparison';
 
   // The full comparison view owns the main area; don't reveal the
   // single-country panel underneath it. While merely staging a set
   // (view closed), the panel stays usable so the user keeps browsing.
-  if (!comparisonViewOpen) {
+  if (!comparisonOpen) {
     const fallback = document.getElementById('no-selection-message');
     if (fallback) fallback.hidden = true;
     document.getElementById('panel-content')!.style.display = '';
@@ -217,7 +213,7 @@ function renderPanel(countryName: string): void {
   // On phones the panel is a bottom sheet layered over the map. Selecting
   // a country slides it up (the transition lives in CSS); on desktop the
   // class is inert. Skip while the full comparison view owns the screen.
-  if (!comparisonViewOpen) {
+  if (!comparisonOpen) {
     // Reset to the top for every fresh country — otherwise, after
     // scrolling one country's sheet/panel, the next selection opens
     // mid-content with the name and score off-screen. renderPanel only
@@ -235,7 +231,12 @@ function renderPanel(countryName: string): void {
 
 function clearPanel(): void {
   const fallback = document.getElementById('no-selection-message');
-  if (fallback) fallback.hidden = false;
+  // Show the "select a country" fallback only once the onboarding intro
+  // is gone. Until the user has selected their first country the intro
+  // is still mounted (consumeIntro removes it), and stacking both reads
+  // as a contradictory double empty-state — which a bare Esc (deselect
+  // with nothing selected) would otherwise trigger.
+  if (fallback) fallback.hidden = document.getElementById('panel-intro') !== null;
   document.getElementById('panel-content')!.style.display = 'none';
   // Slide the mobile bottom sheet back down (inert on desktop).
   document.body.classList.remove('sheet-open');
@@ -272,16 +273,16 @@ export function initPanel(): void {
   }
   initSheetDrag();
 
-  // The scatter explorer takes over the map slot; drop the sheet out of
-  // the way when it opens so it doesn't sit on top of the plot. Tapping a
-  // dot re-selects a country, which re-opens the sheet over the scatter.
-  on('scatterOpen', (open) => {
-    if (open) document.body.classList.remove('sheet-open');
+  // An overlay view (scatter or comparison) takes over the map slot; drop the
+  // mobile sheet out of the way when one opens so it doesn't sit on top.
+  // Tapping a dot re-selects a country, which re-opens the sheet over scatter.
+  on('mainView', (view) => {
+    if (view !== 'map') document.body.classList.remove('sheet-open');
   });
 
   // Copy the full source list as a numbered, paste-ready block —
   // analysts move these into footnotes and research notes.
-  const sourcesCopyBtn = document.getElementById('sources-copy') as HTMLButtonElement | null;
+  const sourcesCopyBtn = maybeEl<HTMLButtonElement>('sources-copy');
   if (sourcesCopyBtn) {
     sourcesCopyBtn.addEventListener('click', async () => {
       const { selectedCountry, regulationData } = getState();
