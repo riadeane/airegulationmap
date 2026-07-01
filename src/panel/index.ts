@@ -135,10 +135,11 @@ function renderPanel(countryName: string): void {
   updateCompareButton();
   updateCiteButton();
 
-  // On phones the panel sits below the map — without this, tapping a
-  // country appears to do nothing (April 2026 mobile diagnosis, #3).
-  if (!comparisonViewOpen && window.matchMedia('(max-width: 768px)').matches) {
-    document.getElementById('country-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // On phones the panel is a bottom sheet layered over the map. Selecting
+  // a country slides it up (the transition lives in CSS); on desktop the
+  // class is inert. Skip while the full comparison view owns the screen.
+  if (!comparisonViewOpen) {
+    document.body.classList.add('sheet-open');
   }
 }
 
@@ -146,6 +147,8 @@ function clearPanel(): void {
   const fallback = document.getElementById('no-selection-message');
   if (fallback) fallback.hidden = false;
   document.getElementById('panel-content')!.style.display = 'none';
+  // Slide the mobile bottom sheet back down (inert on desktop).
+  document.body.classList.remove('sheet-open');
   clearHighlight();
   updateCompareButton();
   updateCiteButton();
@@ -165,6 +168,19 @@ export function initPanel(): void {
   if (closeBtn) {
     closeBtn.addEventListener('click', () => setState({ selectedCountry: null }));
   }
+
+  // The mobile bottom sheet's grab handle also dismisses the sheet.
+  const grabber = document.getElementById('sheet-grabber');
+  if (grabber) {
+    grabber.addEventListener('click', () => setState({ selectedCountry: null }));
+  }
+
+  // The scatter explorer takes over the map slot; drop the sheet out of
+  // the way when it opens so it doesn't sit on top of the plot. Tapping a
+  // dot re-selects a country, which re-opens the sheet over the scatter.
+  on('scatterOpen', (open) => {
+    if (open) document.body.classList.remove('sheet-open');
+  });
 
   // Copy the full source list as a numbered, paste-ready block —
   // analysts move these into footnotes and research notes.

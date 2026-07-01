@@ -603,6 +603,12 @@
   margin-top: 4px;
 }
 
+/* Grab handle for the mobile bottom sheet — hidden on desktop, where
+   the panel is a fixed side column. Styled + revealed in _responsive.css. */
+.sheet-grabber {
+  display: none;
+}
+
 /* Panel close — touch-equivalent of Esc; desktop keeps keyboard/click-away */
 .panel-close {
   display: none;

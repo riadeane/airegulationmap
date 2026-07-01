@@ -14,28 +14,80 @@
 }
 
 @media (max-width: 768px) {
+  /* The map fills this whole area now; the detail panel is a sheet
+     layered on top (below) rather than a second row. position:relative
+     anchors that sheet to the map area, and overflow:hidden clips it
+     while it's parked off the bottom edge. */
   #app-main {
     flex-direction: column;
-    overflow: auto;
+    position: relative;
+    overflow: hidden;
   }
 
-  /* dvh tracks the visible viewport as the mobile URL bar shows/hides,
-     so the map doesn't jump or get clipped the way vh does. vh stays
-     as the fallback for engines without dvh. */
   #map-wrapper {
-    min-height: 50vh;
-    min-height: 50dvh;
+    min-height: 0;
   }
 
-  /* Once a country is open, the prose is what you're reading on a
-     phone — give the panel a little more room than the map. It still
-     scrolls internally past this cap. */
+  /* Country detail as a bottom sheet. It slides up over the map when a
+     country is selected and back down on close, instead of pushing the
+     map into a shared scroll. Anchored to #app-main (not the viewport)
+     so it never collides with the header or the timeline/footer. */
   #country-panel {
-    width: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: 88%;
+    max-height: none;
     border-left: none;
     border-top: 1px solid var(--border);
-    max-height: 50vh;
-    max-height: 60dvh;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -14px 44px -16px rgba(0, 0, 0, 0.45);
+    transform: translateY(100%);
+    transition: transform 0.34s var(--ease-out);
+    z-index: 400;
+  }
+
+  body.sheet-open #country-panel {
+    transform: translateY(0);
+  }
+
+  /* Sticky grab handle: a familiar "swipe / tap to dismiss" affordance
+     that stays put while the sheet scrolls, so closing is always one
+     tap away. The wide invisible ::after is the real touch target. */
+  .sheet-grabber {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: 22px;
+    background: var(--surface);
+    border-radius: 18px 18px 0 0;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .sheet-grabber::before {
+    content: '';
+    position: absolute;
+    top: 9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+  }
+
+  .sheet-grabber::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 96px;
+    height: 34px;
   }
 
   #timeline-inner {
@@ -52,16 +104,16 @@
     padding: 16px 18px;
   }
 
-  /* Header reflows on mobile. The brand line (title + last-updated +
-     badge) gets row 1. The search input gets row 2 (full-width so
-     users can type comfortably). Score + filter + theme toggle share
-     row 3, left-aligned. This keeps the freshness signal visible and
-     avoids the old right-edge overflow. */
+  /* Header reflows on mobile into calm rows instead of a cramped
+     cluster: the brand line up top, then the search paired with the
+     theme toggle, then the four view controls on their own roomy row.
+     Ordering is done with `order` (not DOM changes) so the popovers keep
+     anchoring to their buttons. */
   #app-header {
     flex-wrap: wrap;
     height: auto;
-    padding: 10px 12px;
-    gap: 8px 10px;
+    padding: 12px 14px;
+    gap: 10px;
   }
 
   .header-left {
@@ -71,41 +123,67 @@
   }
 
   .header-right {
-    gap: 6px;
+    gap: 10px;
     flex-wrap: wrap;
     width: 100%;
+    align-items: center;
     justify-content: flex-start;
   }
 
+  /* Row: search grows to fill, theme toggle rides along at the end so
+     it isn't wedged into the button group. */
   #search-container {
-    width: 100%;
-    flex: 1 1 100%;
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
   }
 
-  #country-search {
-    width: 100%;
-  }
-
+  #country-search,
   #country-search:focus {
     width: 100%;
+  }
+
+  .theme-toggle {
+    order: 2;
+  }
+
+  /* Row: the four view controls, evenly spaced with room to breathe. */
+  #score-btn-container,
+  #filter-btn-container,
+  #scatter-btn,
+  #export-btn-container {
+    order: 3;
+  }
+
+  #score-btn,
+  #filter-btn,
+  #export-btn,
+  #scatter-btn {
+    padding: 9px 14px;
   }
 
   h1 {
     font-size: 1.05rem;
   }
 
-  /* On mobile the score and filter buttons sit on the LEFT side of
-     the row, so the popovers need to open to the right of their
-     trigger, not the left. Otherwise they clip off-screen. */
-  #score-dropdown,
-  #filter-popover {
-    left: 0;
-    right: auto;
+  /* Anchor the toolbar popovers to the header itself rather than each
+     button, so they can't run off the right edge wherever a button
+     lands in the reflowed rows. They drop in as tidy full-width panels
+     just below the toolbar. */
+  #score-btn-container,
+  #filter-btn-container,
+  #export-btn-container {
+    position: static;
   }
 
+  #score-dropdown,
+  #filter-popover,
   #export-popover {
-    left: auto;
-    right: 0;
+    left: 14px;
+    right: 14px;
+    width: auto;
+    min-width: 0;
   }
 }
 
