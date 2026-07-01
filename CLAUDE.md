@@ -61,9 +61,12 @@ pip install -r requirements.txt
 
 ### Frontend (`src/`)
 
-Vanilla TypeScript + D3.js + TopoJSON, built with Vite. No framework.
+Vanilla TypeScript + D3.js + TopoJSON, built with Vite. No framework. Full
+pattern write-up (layering + mermaid diagrams: pub-sub store, the
+single-writer interactions orchestrator, the `mainView` FSM, selectors, the
+typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 
-**The frontend is fully TypeScript** (strict mode, `tsc --noEmit` in CI). Relative imports are extensionless. The state shape lives in the `AppState` interface in `src/state/store.ts`; data row shapes (`ScoreEntry`, `RegulationEntry`) in `src/data/loader.ts`; the score-dimension unions (`AttributeKey`, `DimensionKey`) in `src/constants.ts`.
+**The frontend is fully TypeScript** (strict mode, `tsc --noEmit` in CI). Relative imports are extensionless. The state shape lives in the `AppState` interface in `src/state/store.ts`; data row shapes (`ScoreEntry`, `RegulationEntry`) in `src/data/loader.ts`; the score-dimension unions (`AttributeKey`, `DimensionKey`) in `src/constants.ts`. All state writes go through intents in `src/state/interactions.ts`; derived reads through `src/state/selectors.ts`.
 
 **Module structure:**
 
