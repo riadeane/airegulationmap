@@ -103,7 +103,7 @@ h1 {
   font-size: 0.8rem;
   font-family: 'Geist', -apple-system, sans-serif;
   color: var(--text-primary);
-  width: 170px;
+  width: 200px;
   transition: border-color 0.2s var(--ease-out), width 0.3s var(--ease-out), box-shadow 0.2s var(--ease-out);
 }
 
@@ -114,7 +114,7 @@ h1 {
 
 #country-search:focus {
   border-color: var(--accent);
-  width: 220px;
+  width: 250px;
   box-shadow: 0 0 0 3px var(--accent-muted);
 }
 

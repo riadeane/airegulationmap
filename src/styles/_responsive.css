@@ -116,8 +116,10 @@
     gap: 10px;
   }
 
+  /* Bigger than desktop, not smaller: the wordmark is the brand anchor
+     and needs to hold its own against the 44px touch controls. */
   h1 {
-    font-size: 1.05rem;
+    font-size: 1.3rem;
   }
 
   .header-left {
@@ -166,8 +168,17 @@
     width: 100%;
   }
 
+  /* The score selector spans the row on its own line — it reads as a
+     deliberate "you are viewing …" control instead of a small button
+     stranded in empty space. Caret parks at the right like a select. */
   #score-btn-container {
     order: 2;
+    flex: 1 1 100%;
+  }
+
+  #score-btn {
+    width: 100%;
+    justify-content: space-between;
   }
 
   /* Secondary controls collapse behind the menu button. */
