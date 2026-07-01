@@ -51,10 +51,15 @@ public/           Static data files served as-is
 
 scripts/          Python data pipeline
   update_data.py    CLI entry point
-  regulation_pipeline/  Modules for API calls, parsing, staleness
+  regulation_pipeline/  Typed models, repository, strategies, service
+                        (see its README.md for architecture + diagrams)
 
 tests/            Vitest unit tests (frontend) + pytest (pipeline)
 ```
+
+The pipeline's architecture — layering, the run sequence, the domain model, and
+the strategy/repository patterns — is documented with diagrams in
+[`scripts/regulation_pipeline/README.md`](scripts/regulation_pipeline/README.md).
 
 ## Development
 
