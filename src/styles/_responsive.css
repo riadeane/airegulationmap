@@ -205,19 +205,24 @@
     justify-content: space-between;
   }
 
-  /* Secondary controls collapse behind the menu button. */
+  /* The theme toggle stays out on the search row — light/dark is the most
+     re-toggled control and the brand mandates a persistent toggle, so it
+     must not hide behind the menu. */
+  .theme-toggle {
+    order: 1;
+  }
+
+  /* Only the genuinely-secondary view controls collapse behind ☰. The
+     freshness metadata (a trust signal for this audience) stays visible. */
   #filter-btn-container,
   #scatter-btn,
-  #export-btn-container,
-  .theme-toggle {
+  #export-btn-container {
     order: 3;
   }
 
-  body:not(.controls-open) .header-meta,
   body:not(.controls-open) #filter-btn-container,
   body:not(.controls-open) #scatter-btn,
-  body:not(.controls-open) #export-btn-container,
-  body:not(.controls-open) .theme-toggle {
+  body:not(.controls-open) #export-btn-container {
     display: none;
   }
 
