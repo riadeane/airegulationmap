@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildSearchIndex, searchRegulationText } from '../src/data/searchIndex';
+import { buildSearchIndex, searchRegulationText, searchAllMatches } from '../src/data/searchIndex';
 import { matchCountryNames } from '../src/data/countryMatch';
 
 const regulationData = {
@@ -66,6 +66,19 @@ describe('searchRegulationText', () => {
     );
     const idx = buildSearchIndex(many);
     expect(searchRegulationText(idx, 'common phrase', 5)).toHaveLength(5);
+  });
+
+  it('searchAllMatches is the uncapped variant, still one row per country', () => {
+    const many = Object.fromEntries(
+      Array.from({ length: 30 }, (_, i) => [`C${i}`, {
+        regulationStatus: 'a common phrase appears here',
+        policyLever: 'the common phrase appears again in a second field',
+      }])
+    );
+    const idx = buildSearchIndex(many);
+    const all = searchAllMatches(idx, 'common phrase');
+    expect(all).toHaveLength(30);
+    expect(new Set(all.map(m => m.country)).size).toBe(30);
   });
 });
 

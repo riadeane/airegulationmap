@@ -19,6 +19,7 @@ function appState(overrides = {}) {
     selectedBloc: null,
     blocsData: null,
     subscores: null,
+    searchQuery: '',
     mainView: 'map',
     scatterX: 'enforcementLevel',
     scatterY: 'regulationStatus',
@@ -93,5 +94,15 @@ describe('buildQueryString', () => {
   it('appends the theme only when supplied', () => {
     expect(buildQueryString(appState(), 'dark')).toBe('theme=dark');
     expect(buildQueryString(appState(), null)).toBe('');
+  });
+
+  it('round-trips a committed search query', () => {
+    const qs = buildQueryString(appState({ searchQuery: 'facial recognition' }));
+    expect(parseUrl('?' + qs)).toEqual({ q: 'facial recognition' });
+  });
+
+  it('caps an oversized q param instead of dropping it', () => {
+    const long = 'x'.repeat(300);
+    expect(parseUrl(`?q=${long}`).q).toHaveLength(100);
   });
 });

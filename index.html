@@ -145,7 +145,18 @@
           <button type="button" data-format="json" data-scope="filtered">JSON — filtered view</button>
           <button type="button" data-format="csv" data-scope="all">CSV — all countries</button>
           <button type="button" data-format="json" data-scope="all">JSON — all countries</button>
+          <button type="button" data-format="csv" data-scope="comparison">CSV — comparison</button>
+          <button type="button" data-format="json" data-scope="comparison">JSON — comparison</button>
         </div>
+      </div>
+      <div id="share-btn-container">
+        <button
+          id="share-btn"
+          aria-haspopup="true"
+          aria-expanded="false"
+          title="Copy a link or citation for the current view"
+        >Share</button>
+        <div id="share-popover" aria-label="Share this view"></div>
       </div>
       <button
         id="theme-toggle"
@@ -217,6 +228,8 @@
         <a class="panel-intro-methodology" href="/methodology.html">Read the methodology &rarr;</a>
       </div>
       <p id="no-selection-message" class="no-selection-message" hidden>Select a country to see details.</p>
+      <div id="search-results" class="search-results" hidden></div>
+      <div id="search-back-bar" class="search-back-bar" hidden></div>
       <div id="panel-content" style="display:none">
         <div class="panel-country-header">
           <div class="panel-name-row">

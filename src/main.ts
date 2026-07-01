@@ -1,7 +1,7 @@
 import './styles/main.css';
 
 import { setState } from './state/store';
-import { restoreComparison, selectCountry, openScatter } from './state/interactions';
+import { restoreComparison, selectCountry, openScatter, commitSearch } from './state/interactions';
 import { loadScores, loadRegulation } from './data/loader';
 import { loadHistory } from './data/history';
 import { loadBlocs } from './data/blocs';
@@ -17,6 +17,8 @@ import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelecto
 import { initFilter } from './controls/filter';
 import { initExport } from './controls/export';
 import { initSearch, initKeyboardNav } from './controls/search';
+import { initSearchResults } from './panel/searchResults';
+import { initShare } from './controls/share';
 import { initTimeline } from './controls/timeline';
 import { initTheme } from './controls/theme';
 import { parseUrl, initUrlSync } from './controls/url';
@@ -48,11 +50,12 @@ function updateCountryCount(scoreData: ScoreData): void {
 }
 
 function closeAllDropdowns(e: MouseEvent): void {
-  if ((e.target as Element).closest('#score-dropdown, #score-btn, #filter-popover, #filter-btn, #export-popover, #export-btn')) return;
+  if ((e.target as Element).closest('#score-dropdown, #score-btn, #filter-popover, #filter-btn, #export-popover, #export-btn, #share-popover, #share-btn')) return;
   for (const [popoverId, btnId] of [
     ['score-dropdown', 'score-btn'],
     ['filter-popover', 'filter-btn'],
     ['export-popover', 'export-btn'],
+    ['share-popover', 'share-btn'],
   ]) {
     document.getElementById(popoverId)!.classList.remove('open');
     const btn = document.getElementById(btnId)!;
@@ -102,6 +105,8 @@ async function main(): Promise<void> {
   initCitePopover();
   initComparison();
   initSearch();
+  initSearchResults();
+  initShare();
   initKeyboardNav();
   initMapSubscriptions();
   initScatter();
@@ -125,6 +130,9 @@ async function main(): Promise<void> {
   // Country / comparison selection needs the map to exist so the
   // highlight fires correctly. Unknown country names (typo, deleted
   // from data) are dropped silently.
+  // Committed search first: it deselects to reveal the results list, so a
+  // country/compare in the same URL takes precedence by applying after.
+  if (urlState.q) commitSearch(urlState.q);
   if (urlState.compare && urlState.compare.length >= 2) {
     const valid = urlState.compare.filter(name => scoreData[name]);
     // A shared compare link opens the full comparison view directly.

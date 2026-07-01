@@ -235,19 +235,22 @@
      freshness metadata (a trust signal for this audience) stays visible. */
   #filter-btn-container,
   #scatter-btn,
-  #export-btn-container {
+  #export-btn-container,
+  #share-btn-container {
     order: 3;
   }
 
   body:not(.controls-open) #filter-btn-container,
   body:not(.controls-open) #scatter-btn,
-  body:not(.controls-open) #export-btn-container {
+  body:not(.controls-open) #export-btn-container,
+  body:not(.controls-open) #share-btn-container {
     display: none;
   }
 
   #score-btn,
   #filter-btn,
   #export-btn,
+  #share-btn,
   #scatter-btn {
     padding: 0 14px;
   }
@@ -258,13 +261,15 @@
      just below the toolbar. */
   #score-btn-container,
   #filter-btn-container,
-  #export-btn-container {
+  #export-btn-container,
+  #share-btn-container {
     position: static;
   }
 
   #score-dropdown,
   #filter-popover,
-  #export-popover {
+  #export-popover,
+  #share-popover {
     left: 14px;
     right: 14px;
     width: auto;

@@ -33,6 +33,26 @@ export function stepCountry(delta: 1 | -1): void {
   selectCountry(sortedCountryNames[next]);
 }
 
+// -- committed search ----------------------------------------------------------
+
+/** Longest query the URL / results header will carry. */
+export const MAX_SEARCH_QUERY = 100;
+
+/**
+ * Commit a full-text search: the results list replaces the empty panel and
+ * the map stays dimmed to matches until the search is cleared. Deselects the
+ * country so the list is actually visible — the selection is one Esc away.
+ */
+export function commitSearch(query: string): void {
+  const q = query.trim().slice(0, MAX_SEARCH_QUERY);
+  if (!q) return;
+  setState({ searchQuery: q, selectedCountry: null });
+}
+
+export function clearSearch(): void {
+  setState({ searchQuery: '' });
+}
+
 // -- comparison membership ---------------------------------------------------
 
 // The single writer for the comparison set. Assigns colour slots *before*

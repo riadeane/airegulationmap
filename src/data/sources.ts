@@ -15,6 +15,19 @@ export interface ClassifiedSource {
   kind: SourceKind;
 }
 
+/**
+ * Optional per-URL display metadata (page title, richer source type).
+ * Today the CSV carries bare URLs so this is usually absent; the sources
+ * database can supply it, and the panel upgrades from hostnames to titles
+ * whenever an entry exists.
+ */
+export interface SourceMetaEntry {
+  title?: string | null;
+  sourceType?: string | null;
+}
+
+export type SourceMeta = Record<string, SourceMetaEntry>;
+
 // Government hostname patterns. Country-specific conventions vary:
 // .gov / .gov.xx (US, UK, BR…), .gouv.xx (FR…), .gob.xx (ES, MX…),
 // .go.xx (JP, KR, ID…), .gc.ca (Canada), .bund.de (Germany),

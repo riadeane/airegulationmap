@@ -234,13 +234,15 @@ h1 {
 /* Score dropdown + filter + export buttons */
 #score-btn-container,
 #filter-btn-container,
-#export-btn-container {
+#export-btn-container,
+#share-btn-container {
   position: relative;
 }
 
 #score-btn,
 #filter-btn,
 #export-btn,
+#share-btn,
 #scatter-btn {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -261,6 +263,7 @@ h1 {
 #score-btn:hover,
 #filter-btn:hover,
 #export-btn:hover,
+#share-btn:hover,
 #scatter-btn:hover {
   border-color: var(--accent);
   color: var(--text-primary);
@@ -270,6 +273,7 @@ h1 {
 #score-btn.active,
 #filter-btn.active,
 #export-btn.active,
+#share-btn.active,
 #scatter-btn.active {
   border-color: var(--accent);
   background: var(--accent-muted);
@@ -550,4 +554,108 @@ input[type="range"] {
    is only a layout handle for the mobile menu. */
 .header-meta {
   display: contents;
+}
+
+/* Share popover — permalink + formatted citations for the current view */
+#share-popover {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  z-index: 300;
+  min-width: 300px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+#share-popover.open {
+  display: block;
+  animation: fadeUp 0.2s var(--ease-out);
+}
+
+.share-heading {
+  margin: 0 0 8px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.share-cite-heading {
+  margin-top: 14px;
+}
+
+.share-link-row {
+  display: flex;
+  gap: 6px;
+}
+
+#share-link-input {
+  flex: 1;
+  min-width: 0;
+  height: var(--control-h);
+  padding: 0 10px;
+  font-size: 0.75rem;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  color: var(--text-primary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.share-copy-btn,
+.share-cite-copy {
+  height: var(--control-h);
+  padding: 0 12px;
+  font-size: 0.75rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+.share-copy-btn:hover,
+.share-cite-copy:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.share-cite-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.share-cite-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.share-cite-format {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* "See all N results" — the dropdown row that commits the search */
+#search-suggestions li.search-see-all {
+  font-size: 0.75rem;
+  color: var(--accent);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Comparison export rows disable until a set is staged */
+#export-popover button:disabled {
+  color: var(--text-tertiary);
+  cursor: default;
+  background: none;
 }

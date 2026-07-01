@@ -792,3 +792,133 @@
 .changelog-note a {
   color: var(--text-secondary);
 }
+
+/* Committed-search results list — the persistent full-text search surface.
+   Reads like the panel it lives in: a count header, quiet actions, and
+   result rows that echo the dropdown's country/field/snippet anatomy. */
+.search-results {
+  padding: 18px 22px 24px;
+}
+
+.results-header {
+  margin-bottom: 12px;
+}
+
+.results-count {
+  margin: 0 0 8px;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.results-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.results-action {
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+.results-action:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.results-section-label {
+  margin: 14px 0 4px;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-tertiary);
+}
+
+.result-row {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  margin: 0 -10px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.result-row:hover,
+.result-row:focus-visible {
+  background: var(--accent-muted);
+}
+
+.result-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.result-country {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.result-field {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.result-row .match-snippet {
+  display: block;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.result-row .match-snippet mark,
+.panel-field-mark {
+  background: var(--accent-muted);
+  color: var(--text-primary);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* Slim bar above an open country that returns to the results list */
+.search-back-bar {
+  padding: 10px 22px 0;
+}
+
+.search-back-btn {
+  padding: 6px 10px;
+  font-size: 0.74rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-out);
+}
+
+.search-back-btn:hover {
+  border-color: var(--accent);
+}
+
+/* Secondary hostname line when a source shows its page title */
+.source-hostname {
+  margin-left: 6px;
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+}

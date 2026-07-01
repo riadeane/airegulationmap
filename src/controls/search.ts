@@ -1,10 +1,18 @@
 import { getState } from '../state/store';
 import { el, maybeEl } from '../dom';
-import { selectCountry, stepCountry, escapeMainView } from '../state/interactions';
+import { selectCountry, stepCountry, escapeMainView, commitSearch, clearSearch } from '../state/interactions';
 import { updateSearchHighlight } from '../map/index';
 import { matchCountryNames } from '../data/countryMatch';
-import { buildSearchIndex, searchRegulationText, FIELD_LABELS } from '../data/searchIndex';
-import type { IndexEntry, SearchMatch } from '../data/searchIndex';
+import { buildSearchIndex, searchRegulationText, searchAllMatches, FIELD_LABELS } from '../data/searchIndex';
+import type { IndexEntry } from '../data/searchIndex';
+import { snippetNode } from './snippet';
+import { applyCommittedDimming } from '../panel/searchResults';
+
+// Clear the transient typing highlight — unless a committed search owns the
+// dimming, in which case re-assert its match set instead.
+function releaseTypingHighlight(): void {
+  if (!applyCommittedDimming()) updateSearchHighlight(null);
+}
 
 const COUNTRY_LIMIT = 4;
 const TEXT_LIMIT = 6;
@@ -31,19 +39,6 @@ function sectionLabel(text: string): HTMLLIElement {
   return li;
 }
 
-// Snippet with the matched term wrapped in <mark>, built from index
-// offsets via textContent — no innerHTML with data-derived strings.
-function snippetNode(match: SearchMatch): HTMLSpanElement {
-  const span = document.createElement('span');
-  span.className = 'match-snippet';
-  span.appendChild(document.createTextNode(match.snippet.slice(0, match.matchStart)));
-  const mark = document.createElement('mark');
-  mark.textContent = match.snippet.slice(match.matchStart, match.matchStart + match.matchLength);
-  span.appendChild(mark);
-  span.appendChild(document.createTextNode(match.snippet.slice(match.matchStart + match.matchLength)));
-  return span;
-}
-
 export function initSearch(): void {
   const searchInput = el<HTMLInputElement>('country-search');
   const suggestions = document.getElementById('search-suggestions')!;
@@ -58,14 +53,14 @@ export function initSearch(): void {
     searchInput.value = name;
     suggestions.replaceChildren();
     announce('');
-    updateSearchHighlight(null);
+    releaseTypingHighlight();
     selectCountry(name);
   };
 
   const updateSuggestions = (query: string) => {
     suggestions.replaceChildren();
     if (query.length < 2) {
-      updateSearchHighlight(null);
+      releaseTypingHighlight();
       announce('');
       return;
     }
@@ -85,7 +80,7 @@ export function initSearch(): void {
     // which would mark every country "dimmed" and fade the whole map to
     // 8% — and show an explicit empty state instead of a vanished box.
     if (countryMatches.length === 0 && textMatches.length === 0) {
-      updateSearchHighlight(null);
+      releaseTypingHighlight();
       const empty = document.createElement('li');
       empty.className = 'search-empty';
       empty.setAttribute('role', 'presentation');
@@ -138,6 +133,27 @@ export function initSearch(): void {
       li.addEventListener('click', () => pickSuggestion(match.country));
       suggestions.appendChild(li);
     }
+
+    // The dropdown is a capped preview; committing opens the full results
+    // list in the panel (persistent, exportable, dimming that survives
+    // browsing). Count the union the same way the results list will.
+    if (query.length >= 3) {
+      const allText = searchAllMatches(textIndex, query)
+        .filter(m => !countryMatches.includes(m.country));
+      const totalCountries = new Set([...countryMatches, ...allText.map(m => m.country)]).size;
+      if (totalCountries > 0) {
+        const li = document.createElement('li');
+        li.className = 'search-see-all';
+        li.setAttribute('role', 'option');
+        li.textContent = `See all ${totalCountries} ${totalCountries === 1 ? 'result' : 'results'} →`;
+        li.addEventListener('click', () => {
+          suggestions.replaceChildren();
+          announce(`Showing all ${totalCountries} results for ${query}`);
+          commitSearch(query);
+        });
+        suggestions.appendChild(li);
+      }
+    }
   };
 
   const debouncedUpdate = debounce(updateSuggestions, 120);
@@ -149,7 +165,7 @@ export function initSearch(): void {
   document.addEventListener('click', e => {
     if (!(e.target as Element).closest('#search-container')) {
       suggestions.replaceChildren();
-      updateSearchHighlight(null);
+      releaseTypingHighlight();
       searchInput.value = '';
     }
   });
@@ -178,7 +194,7 @@ export function initSearch(): void {
       return;
     } else if (e.key === 'Escape') {
       suggestions.replaceChildren();
-      updateSearchHighlight(null);
+      releaseTypingHighlight();
       return;
     } else {
       return;
@@ -196,7 +212,7 @@ export function initKeyboardNav(): void {
       if (e.key === 'Escape') {
         target.blur();
         document.getElementById('search-suggestions')!.replaceChildren();
-        updateSearchHighlight(null);
+        releaseTypingHighlight();
       }
       return;
     }
@@ -223,6 +239,12 @@ export function initKeyboardNav(): void {
       const citePopover = document.getElementById('cite-popover');
       if (citePopover && !citePopover.hidden) return;
       if (escapeMainView()) return;
+      // With nothing selected, Esc peels the committed search next — so
+      // country → results list → clean map, one layer per press.
+      if (!getState().selectedCountry && getState().searchQuery) {
+        clearSearch();
+        return;
+      }
       selectCountry(null);
       document.getElementById('score-dropdown')!.classList.remove('open');
       document.getElementById('score-btn')!.classList.remove('active');

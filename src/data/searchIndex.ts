@@ -101,3 +101,13 @@ export function searchRegulationText(
 
   return results;
 }
+
+/**
+ * The uncapped variant for the committed-search results list: every country
+ * with a match (still one result per country — the first matching field
+ * wins), in index order. The dropdown keeps its capped preview; this feeds
+ * the full list, the count, and the exportable match set.
+ */
+export function searchAllMatches(index: IndexEntry[], query: string): SearchMatch[] {
+  return searchRegulationText(index, query, Number.MAX_SAFE_INTEGER);
+}

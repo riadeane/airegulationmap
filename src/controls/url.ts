@@ -11,7 +11,10 @@
 
 import { getState, setState, on } from '../state/store';
 import type { AppState } from '../state/store';
-import { restoreComparison, selectCountry, openScatter } from '../state/interactions';
+import {
+  restoreComparison, selectCountry, openScatter,
+  commitSearch, clearSearch, MAX_SEARCH_QUERY,
+} from '../state/interactions';
 import { SCORE_OPTIONS, MAX_COMPARISON } from '../constants';
 import type { AttributeKey } from '../constants';
 
@@ -26,6 +29,7 @@ export interface UrlState {
   scatter?: { x: AttributeKey; y: AttributeKey };
   filterMin?: number;
   filterMax?: number;
+  q?: string;
 }
 
 const VALID_MODES = new Set<string>(SCORE_OPTIONS.map(o => o.value));
@@ -92,6 +96,10 @@ export function parseUrl(search: string = window.location.search): UrlState {
   const bloc = params.get('bloc');
   if (bloc && /^[A-Z0-9]{2,8}$/i.test(bloc)) out.bloc = bloc.toUpperCase();
 
+  // Committed full-text search.
+  const q = params.get('q');
+  if (q && q.trim()) out.q = q.trim().slice(0, MAX_SEARCH_QUERY);
+
   // Score-range filter. An inverted pair (min > max) is dropped entirely
   // rather than guessing which bound the author meant.
   const min = parseScoreBound(params.get('min'));
@@ -148,6 +156,8 @@ export function buildQueryString(s: Readonly<AppState>, theme: 'light' | 'dark' 
 
   if (s.filterMin !== 1) params.set('min', String(s.filterMin));
   if (s.filterMax !== 5) params.set('max', String(s.filterMax));
+
+  if (s.searchQuery) params.set('q', s.searchQuery);
 
   if (s.mainView === 'scatter') {
     const isDefault = s.scatterX === DEFAULT_SCATTER_X && s.scatterY === DEFAULT_SCATTER_Y;
@@ -216,6 +226,11 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
     setState({ filterMin: 1, filterMax: 5 });
   }
 
+  // Committed search BEFORE country/compare: commitSearch deselects to show
+  // the results list, so a country in the same URL wins by applying later.
+  if (urlState.q) commitSearch(urlState.q);
+  else if (!initial) clearSearch();
+
   const { blocsData } = getState();
   if (urlState.bloc && blocsData && blocsData[urlState.bloc]) {
     setState({ selectedBloc: urlState.bloc });
@@ -258,6 +273,7 @@ export function initUrlSync(): void {
   on('selectedBloc', writeReplace);
   on('filterMin', writeReplace);
   on('filterMax', writeReplace);
+  on('searchQuery', writeReplace);
   on('scatterX', writeReplace);
   on('scatterY', writeReplace);
 

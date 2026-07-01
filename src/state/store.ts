@@ -33,6 +33,11 @@ export interface AppState {
   // Parsed subscores.json (methodology v2 sub-indicator audit trail) —
   // loaded async; null until then / on failure.
   subscores: SubscoresData | null;
+  // A COMMITTED full-text search ('' = none). Typing in the search box is
+  // ephemeral (dropdown-local); committing ("See all results" / Enter on the
+  // row / ?q= deep link) persists the query here, which drives the results
+  // list in the panel and keeps the map dimmed to matches while browsing.
+  searchQuery: string;
   // Which surface owns the main area: the map, the scatter explorer, or the
   // full comparison view. Exactly one at a time (see MainView).
   mainView: MainView;
@@ -56,6 +61,7 @@ const state: AppState = {
   selectedBloc: null,
   blocsData: null,
   subscores: null,
+  searchQuery: '',
   mainView: 'map',
   scatterX: 'enforcementLevel',
   scatterY: 'regulationStatus',
