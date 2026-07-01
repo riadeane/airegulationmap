@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, ClassVar, Literal
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict
+from pydantic import BaseModel, BeforeValidator, ConfigDict, model_validator
 
 
 def _reject_bool(value: Any) -> Any:
@@ -164,9 +164,21 @@ class ResearchResult(BaseModel):
         scores = [dim.score for dim in self.dimensions().values() if dim.normative]
         return round(sum(scores) / len(scores), 2)
 
+    @model_validator(mode="after")
+    def _cap_unsourced_confidence(self) -> "ResearchResult":
+        """Keep the model self-consistent with :meth:`effective_confidence`.
+        An unsourced claim is not citable, so it cannot carry more than "low"
+        confidence — enforce that at validation time, not only on write, so an
+        in-memory result never advertises a confidence its sources don't
+        support. (Using ``object.__setattr__`` to avoid re-triggering validation.)"""
+        if self.confidence != "low" and not self.sources.strip():
+            object.__setattr__(self, "confidence", "low")
+        return self
+
     def effective_confidence(self) -> Confidence:
         """Unsourced claims are not citable — cap confidence at "low" so the UI
-        flags them and staleness re-researches them."""
+        flags them and staleness re-researches them. The model validator above
+        already applies this, so this is now a stable, idempotent accessor."""
         return self.confidence if self.sources.strip() else "low"
 
     @classmethod

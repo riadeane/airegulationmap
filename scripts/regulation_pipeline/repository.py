@@ -12,6 +12,8 @@ from __future__ import annotations
 import csv
 import io
 import json
+import logging
+import os
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -20,6 +22,8 @@ from . import history as history_mod
 from .config import REGULATION_FIELDS, SCORES_FIELDS, Settings
 from .models import ResearchResult
 from .names import CountryNames
+
+logger = logging.getLogger(__name__)
 
 _SCORE_COLUMNS = (
     "Regulation Status", "Policy Lever", "Governance Type",
@@ -82,6 +86,17 @@ class Dataset:
     def apply(self, country: str, result: ResearchResult, today: date) -> ApplyOutcome:
         """Fold one validated research result into all four stores."""
         version = int((self._scores.get(country, {}).get("Data Version", 1)) or 1)
+
+        # Audit trail: apply() overwrites in place, and history.json only
+        # captures dimension-score changes — a sources/confidence-only change
+        # would otherwise leave no record of what was replaced. Log the prior
+        # snapshot so an operator can reconstruct it from the run log.
+        prior = self._regulation.get(country)
+        if prior is not None:
+            logger.debug(
+                "overwriting %s (was: confidence=%s, sources=%r, last_updated=%s)",
+                country, prior.get("Confidence"), prior.get("Sources"), prior.get("Last Updated"),
+            )
 
         self._scores[country] = _scores_row(country, result, version + 1, today)
         self._regulation[country] = _regulation_row(country, result, today)
@@ -203,6 +218,15 @@ def _load_csv(path: Path, names: CountryNames) -> dict[str, dict]:
             canonical = names.canonical(row["Country"])
             row = dict(row)
             row["Country"] = canonical
+            # Normalize the one numeric column on load so the in-memory store
+            # doesn't mix a string version (fresh load) with the int apply()
+            # writes. Round-trips byte-identically (DictWriter renders both the
+            # same). Malformed/missing → 1.
+            if "Data Version" in row:
+                try:
+                    row["Data Version"] = int(row["Data Version"])
+                except (TypeError, ValueError):
+                    row["Data Version"] = 1
             rows[canonical] = row
     return rows
 
@@ -223,9 +247,29 @@ def _csv_text(rows_by_country: dict[str, dict], fieldnames: list[str]) -> str:
 
 
 def _write_text(path: Path, text: str) -> None:
-    """Atomically write ``text`` to ``path`` (tmp file + ``os.replace``) so an
-    interrupted write can never leave a half-written data file."""
+    """Atomically and durably write ``text`` to ``path`` (tmp file + fsync +
+    ``os.replace``) so an interrupted write can never leave a half-written data
+    file, and a power loss right after the run can't lose a committed month.
+
+    ``os.replace`` is atomic for the rename, but without fsync the bytes may
+    still be in the page cache when a CI/cloud runner is yanked. We fsync the
+    temp file before the swap, then fsync the containing directory so the
+    rename itself is on stable storage."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(text, encoding="utf-8", newline="")
+    # Write + flush + fsync the data before we swap it into place.
+    with tmp.open("w", encoding="utf-8", newline="") as f:
+        f.write(text)
+        f.flush()
+        os.fsync(f.fileno())
     tmp.replace(path)
+    # Persist the directory entry (the rename) too. Best-effort: some
+    # platforms/filesystems don't allow opening a directory for fsync.
+    try:
+        dir_fd = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(dir_fd)
+        finally:
+            os.close(dir_fd)
+    except OSError:
+        pass

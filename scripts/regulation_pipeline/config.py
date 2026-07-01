@@ -69,6 +69,14 @@ class Settings:
     search_model: str = SEARCH_MODEL
     priority_countries: frozenset[str] = PRIORITY_COUNTRIES
 
+    def validate(self) -> Settings:
+        """Fail fast if ``root`` is misconfigured. Without this the error is
+        deferred to the first write deep inside :meth:`Dataset.save`, far from
+        the misconfiguration. Call once, right after construction."""
+        if not self.root.is_dir():
+            raise NotADirectoryError(f"Settings.root is not a directory: {self.root}")
+        return self
+
     @property
     def scores_csv(self) -> Path:
         return self.root / "public" / "scores.csv"

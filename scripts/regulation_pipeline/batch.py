@@ -54,11 +54,13 @@ class BatchRunner:
         *,
         poll_interval: int = POLL_INTERVAL_SECONDS,
         max_wait: int = MAX_WAIT_SECONDS,
+        cancel_grace_seconds: int = CANCEL_GRACE_SECONDS,
         sleep: Callable[[float], None] = time.sleep,
     ):
         self._client = client
         self._poll_interval = poll_interval
         self._max_wait = max_wait
+        self._cancel_grace_seconds = cancel_grace_seconds
         self._sleep = sleep
 
     def research(self, params_by_country: dict[str, dict]) -> tuple[dict, list[str]]:
@@ -119,9 +121,10 @@ class BatchRunner:
 
     def _drain_after_cancel(self, batch):
         """Poll a canceled batch until it ends, so succeeded results are
-        collectable. Bounded by :data:`CANCEL_GRACE_SECONDS`."""
+        collectable. Bounded by ``cancel_grace_seconds`` (default
+        :data:`CANCEL_GRACE_SECONDS`)."""
         grace = 0
-        while batch.processing_status != "ended" and grace < CANCEL_GRACE_SECONDS:
+        while batch.processing_status != "ended" and grace < self._cancel_grace_seconds:
             self._sleep(self._poll_interval)
             grace += self._poll_interval
             batch = self._client.messages.batches.retrieve(batch.id)

@@ -55,15 +55,31 @@ class SyncStrategy(ResearchStrategy):
         *,
         sleep: Callable[[float], None] = time.sleep,
         max_consecutive_failures: int = 5,
+        max_wall_seconds: float | None = None,
+        clock: Callable[[], float] = time.monotonic,
     ):
         self._client = client
         self._use_search_for = use_search_for
         self._sleep = sleep
         self._max_consecutive_failures = max_consecutive_failures
+        # Upper bound on total run time. The consecutive-failure breaker misses
+        # a "slow but not failing" degradation (every country succeeds after
+        # several retries), which can silently blow past the CI job budget.
+        # None disables the bound (default; the CLI sets a real ceiling).
+        self._max_wall_seconds = max_wall_seconds
+        self._clock = clock
 
     def research(self, countries: list[str], reg_rows: dict[str, dict]) -> Iterator[Answer]:
         consecutive = 0
+        started = self._clock()
         for i, country in enumerate(countries, 1):
+            if self._max_wall_seconds is not None:
+                elapsed = self._clock() - started
+                if elapsed > self._max_wall_seconds:
+                    raise FatalAPIError(
+                        f"run exceeded {self._max_wall_seconds:.0f}s wall-clock budget "
+                        f"after {i - 1}/{len(countries)} countries — aborting"
+                    )
             logger.info("[%d/%d] Researching %s...", i, len(countries), country)
             raw = self._client.research(
                 country, reg_rows.get(country), use_search=self._use_search_for(country)

@@ -10,7 +10,13 @@ class StalenessPolicy:
     empty/NA, its confidence is ``low``, or its ``Last Updated`` stamp is
     missing, unparseable, or older than ``staleness_days``. The reference date
     is injected so a run has one consistent "today" and the logic is testable
-    without patching the clock."""
+    without patching the clock.
+
+    Date-format contract: ``Last Updated`` is always a UTC date-only string
+    (``YYYY-MM-DD``), never a timestamp. Both ``today`` and the parsed
+    ``last_date`` are therefore timezone-naive ``date`` objects and the day
+    subtraction is unambiguous. If a timestamp with timezone is ever introduced
+    into the CSV, this parser must move to timezone-aware datetimes."""
 
     def __init__(self, staleness_days: int, today: date):
         self.staleness_days = staleness_days

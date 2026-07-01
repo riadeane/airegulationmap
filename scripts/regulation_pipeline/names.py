@@ -4,17 +4,21 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import MappingProxyType
+from typing import Mapping
 
 
 class CountryNames:
     """Maps aliases (``"Czech Republic"``) to canonical names (``"Czechia"``).
 
     Load once from ``country_names.json`` and reuse; unknown names pass through
-    unchanged after stripping whitespace.
+    unchanged after stripping whitespace. The alias table is copied into a
+    read-only mapping so a caller can't accidentally mutate a shared lookup and
+    corrupt every subsequent ``canonical()`` call.
     """
 
-    def __init__(self, aliases: dict[str, str]):
-        self._aliases = aliases
+    def __init__(self, aliases: Mapping[str, str]):
+        self._aliases: Mapping[str, str] = MappingProxyType(dict(aliases))
 
     @classmethod
     def load(cls, path: Path) -> CountryNames:
