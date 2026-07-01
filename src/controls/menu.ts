@@ -35,6 +35,5 @@ export function initMenu(): void {
   // Selecting a country (sheet) or opening a full view takes over the
   // screen, so collapse the menu rather than leave it hanging.
   on('selectedCountry', (name) => { if (name) setOpen(false); });
-  on('scatterOpen', (open) => { if (open) setOpen(false); });
-  on('comparisonViewOpen', (open) => { if (open) setOpen(false); });
+  on('mainView', (view) => { if (view !== 'map') setOpen(false); });
 }

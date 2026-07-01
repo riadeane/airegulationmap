@@ -17,6 +17,7 @@ import { format } from 'd3-format';
 import 'd3-transition';
 
 import { getState, setState, on } from '../state/store';
+import { toggleScatter, showMap } from '../state/interactions';
 import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants';
 import type { AttributeKey } from '../constants';
 import { makeColorScale } from '../map/legend';
@@ -110,7 +111,7 @@ function createChart(): void {
   // window-resize listener both miss the header-height changes).
   if (typeof ResizeObserver === 'function') {
     const ro = new ResizeObserver(() => {
-      if (getState().scatterOpen) { layout(); updateChart(); }
+      if (getState().mainView === 'scatter') { layout(); updateChart(); }
     });
     ro.observe(document.getElementById('scatter-chart')!);
   }
@@ -268,24 +269,22 @@ export function initScatter(): void {
   populateAxisSelects();
 
   btn.addEventListener('click', () => {
-    const opening = !getState().scatterOpen;
-    // Explorer and the comparison view are mutually exclusive — both
-    // own the main area.
-    if (opening && getState().comparisonViewOpen) setState({ comparisonViewOpen: false });
-    setState({ scatterOpen: opening });
-    // Move focus into the explorer so keyboard users land in the new
-    // view (and back to the trigger when it closes). Only on explicit
-    // toggles — not on load / URL restore, which call setVisible directly.
-    if (opening) closeBtn.focus();
+    // The FSM makes scatter and comparison mutually exclusive for free —
+    // switching to scatter simply leaves whatever view was active.
+    toggleScatter();
+    // Move focus into the explorer so keyboard users land in the new view
+    // (and back to the trigger when it closes). Only on explicit toggles —
+    // not on load / URL restore, which call setVisible directly.
+    if (getState().mainView === 'scatter') closeBtn.focus();
   });
   closeBtn.addEventListener('click', () => {
-    setState({ scatterOpen: false });
+    showMap();
     btn.focus();
   });
 
-  on('scatterOpen', setVisible);
+  on('mainView', (view) => setVisible(view === 'scatter'));
 
-  const refreshIfOpen = () => { if (getState().scatterOpen) updateChart(); };
+  const refreshIfOpen = () => { if (getState().mainView === 'scatter') updateChart(); };
   on('scatterX', () => {
     const sel = document.getElementById('scatter-x') as HTMLSelectElement;
     sel.value = getState().scatterX;
@@ -304,5 +303,5 @@ export function initScatter(): void {
   on('selectedBloc', refreshIfOpen);
   onThemeChange(refreshIfOpen);
 
-  setVisible(getState().scatterOpen);
+  setVisible(getState().mainView === 'scatter');
 }

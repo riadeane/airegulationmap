@@ -11,9 +11,9 @@
 
 import { getState, setState, on } from '../state/store';
 import type { AppState } from '../state/store';
-import { SCORE_OPTIONS } from '../constants';
+import { restoreComparison, selectCountry, openScatter } from '../state/interactions';
+import { SCORE_OPTIONS, MAX_COMPARISON } from '../constants';
 import type { AttributeKey } from '../constants';
-import { MAX_COMPARISON } from '../comparison/index';
 
 /** State parsed from the URL — only keys present in the query appear. */
 export interface UrlState {
@@ -114,7 +114,7 @@ export function buildPermalink(
   // open). A staged-but-not-yet-viewed set is in-app ephemeral state,
   // so the URL keeps tracking the selected country until the user
   // actually opens the comparison.
-  if (s.comparisonViewOpen && s.comparisonCountries && s.comparisonCountries.length >= 2) {
+  if (s.mainView === 'comparison' && s.comparisonCountries && s.comparisonCountries.length >= 2) {
     params.set('compare', s.comparisonCountries.join(','));
   } else if (s.selectedCountry) {
     params.set('country', s.selectedCountry);
@@ -132,7 +132,7 @@ export function buildPermalink(
     params.set('bloc', s.selectedBloc);
   }
 
-  if (s.scatterOpen) {
+  if (s.mainView === 'scatter') {
     const isDefault = s.scatterX === DEFAULT_SCATTER_X && s.scatterY === DEFAULT_SCATTER_Y;
     params.set('scatter', isDefault ? '1' : `${s.scatterX},${s.scatterY}`);
   }
@@ -187,32 +187,27 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
     setState({ selectedBloc: null });
   }
 
+  // Scatter axes are independent of which view is showing; apply them first.
   if (urlState.scatter) {
-    setState({
-      scatterOpen: true,
-      scatterX: urlState.scatter.x,
-      scatterY: urlState.scatter.y,
-    });
-  } else if (!initial) {
-    setState({ scatterOpen: false });
+    setState({ scatterX: urlState.scatter.x, scatterY: urlState.scatter.y });
   }
 
-  // Comparison wins over country — the comparison panel takes the
-  // right-hand slot either way.
+  // The main view is a single slot, so precedence is explicit:
+  // comparison (a shared compare link opens it directly) > scatter > map.
   const { scoreData } = getState();
   const validCountry = (name: string) => !!scoreData[name];
+  const compareValid = (urlState.compare || []).filter(validCountry);
 
-  if (urlState.compare && urlState.compare.length >= 2) {
-    const valid = urlState.compare.filter(validCountry);
-    // A shared compare link opens the full view directly.
-    setState({ comparisonCountries: valid, comparisonViewOpen: valid.length >= 2 });
+  if (compareValid.length >= 2) {
+    restoreComparison(compareValid);
   } else {
-    setState({ comparisonCountries: [], comparisonViewOpen: false });
+    restoreComparison([]); // clears the set and returns to the map view
     if (urlState.country && validCountry(urlState.country)) {
-      setState({ selectedCountry: urlState.country });
+      selectCountry(urlState.country);
     } else if (!initial) {
-      setState({ selectedCountry: null });
+      selectCountry(null);
     }
+    if (urlState.scatter) openScatter();
   }
 }
 
@@ -221,11 +216,10 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
 export function initUrlSync(): void {
   on('selectedCountry', writeReplace);
   on('comparisonCountries', writeReplace);
-  on('comparisonViewOpen', writeReplace);
+  on('mainView', writeReplace);
   on('currentAttribute', writeReplace);
   on('timelineDate', writeReplace);
   on('selectedBloc', writeReplace);
-  on('scatterOpen', writeReplace);
   on('scatterX', writeReplace);
   on('scatterY', writeReplace);
 

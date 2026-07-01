@@ -1,4 +1,5 @@
-import { getState, setState } from '../state/store';
+import { getState } from '../state/store';
+import { selectCountry, stepCountry, escapeMainView } from '../state/interactions';
 import { updateSearchHighlight } from '../map/index';
 import { matchCountryNames } from '../data/countryMatch';
 import { buildSearchIndex, searchRegulationText, FIELD_LABELS } from '../data/searchIndex';
@@ -52,12 +53,12 @@ export function initSearch(): void {
   const statusRegion = document.getElementById('search-status');
   const announce = (msg: string) => { if (statusRegion) statusRegion.textContent = msg; };
 
-  const selectCountry = (name: string) => {
+  const pickSuggestion = (name: string) => {
     searchInput.value = name;
     suggestions.replaceChildren();
     announce('');
     updateSearchHighlight(null);
-    setState({ selectedCountry: name });
+    selectCountry(name);
   };
 
   const updateSuggestions = (query: string) => {
@@ -108,7 +109,7 @@ export function initSearch(): void {
       const li = document.createElement('li');
       li.textContent = name;
       li.setAttribute('role', 'option');
-      li.addEventListener('click', () => selectCountry(name));
+      li.addEventListener('click', () => pickSuggestion(name));
       suggestions.appendChild(li);
     }
 
@@ -133,7 +134,7 @@ export function initSearch(): void {
       head.append(country, field);
 
       li.append(head, snippetNode(match));
-      li.addEventListener('click', () => selectCountry(match.country));
+      li.addEventListener('click', () => pickSuggestion(match.country));
       suggestions.appendChild(li);
     }
   };
@@ -215,22 +216,13 @@ export function initKeyboardNav(): void {
     }
 
     if (e.key === 'Escape') {
-      // Esc backs out one layer at a time: full views first (explorer,
-      // then comparison), then selection/dropdowns on later presses.
-      // The cite popover is the innermost layer and owns its own Esc
-      // (it closes and restores focus to the Cite button) — bail here so
-      // we don't also deselect the country and hide the button underneath.
+      // Esc backs out one layer at a time: the cite popover owns its own Esc
+      // (closes + restores focus), then an overlay view (scatter/comparison)
+      // via the orchestrator, then selection/dropdowns on later presses.
       const citePopover = document.getElementById('cite-popover');
       if (citePopover && !citePopover.hidden) return;
-      if (getState().scatterOpen) {
-        setState({ scatterOpen: false });
-        return;
-      }
-      if (getState().comparisonViewOpen) {
-        setState({ comparisonViewOpen: false });
-        return;
-      }
-      setState({ selectedCountry: null });
+      if (escapeMainView()) return;
+      selectCountry(null);
       document.getElementById('score-dropdown')!.classList.remove('open');
       document.getElementById('score-btn')!.classList.remove('active');
       document.getElementById('filter-popover')!.classList.remove('open');
@@ -240,16 +232,9 @@ export function initKeyboardNav(): void {
       return;
     }
 
-    const { sortedCountryNames, selectedCountry } = getState();
-    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && sortedCountryNames.length > 0) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       e.preventDefault();
-      let idx = selectedCountry ? sortedCountryNames.indexOf(selectedCountry) : -1;
-      if (e.key === 'ArrowRight') {
-        idx = idx < sortedCountryNames.length - 1 ? idx + 1 : 0;
-      } else {
-        idx = idx > 0 ? idx - 1 : sortedCountryNames.length - 1;
-      }
-      setState({ selectedCountry: sortedCountryNames[idx] });
+      stepCountry(e.key === 'ArrowRight' ? 1 : -1);
     }
   });
 }

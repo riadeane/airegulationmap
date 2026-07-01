@@ -1,5 +1,5 @@
 import { on, getState } from '../state/store';
-import { generateMap, updateMap } from './renderer';
+import { generateMap, updateMap, markComparisonCountries } from './renderer';
 import { updateLegendLabels } from './legend';
 import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../constants';
 
@@ -66,4 +66,9 @@ export function initMapSubscriptions() {
   on('filterMin', scheduleUpdateMap);
   on('filterMax', scheduleUpdateMap);
   on('selectedBloc', scheduleUpdateMap);
+
+  // The map paints its own comparison markers. Colour slots are assigned by
+  // the interactions orchestrator before this fires, so the indices are ready.
+  // (Owning this here is what lets comparison/ stop importing the renderer.)
+  on('comparisonCountries', markComparisonCountries);
 }

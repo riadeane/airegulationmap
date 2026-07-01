@@ -4,7 +4,9 @@ import type { DimensionKey } from '../constants';
 import { matchCountryNames } from '../data/countryMatch';
 import { cleanRegulationText } from '../panel/sections';
 import { renderRadar } from './radar';
-import { addToComparison, removeFromComparison, getColorFor, MAX_COMPARISON } from './index';
+import { addToComparison, removeFromComparison } from '../state/interactions';
+import { getColorFor } from './colorSlots';
+import { MAX_COMPARISON } from '../constants';
 
 const DETAIL_DIMENSIONS: DimensionKey[] = [
   'regulationStatus',

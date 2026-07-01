@@ -3,7 +3,8 @@ import { renderScoreBar, renderAllDots } from './scores';
 import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
 import { highlightCountry, clearHighlight } from '../map/index';
-import { toggleComparison, MAX_COMPARISON } from '../comparison/index';
+import { toggleComparison } from '../state/interactions';
+import { MAX_COMPARISON } from '../constants';
 import { classifySources, formatSourcesForCopy } from '../data/sources';
 import { writeClipboard } from '../controls/clipboard';
 
@@ -161,14 +162,15 @@ function renderRank(countryName: string): void {
 }
 
 function renderPanel(countryName: string): void {
-  const { scoreData, regulationData, comparisonViewOpen } = getState();
+  const { scoreData, regulationData, mainView } = getState();
   const score = scoreData[countryName];
   const reg = regulationData[countryName];
+  const comparisonOpen = mainView === 'comparison';
 
   // The full comparison view owns the main area; don't reveal the
   // single-country panel underneath it. While merely staging a set
   // (view closed), the panel stays usable so the user keeps browsing.
-  if (!comparisonViewOpen) {
+  if (!comparisonOpen) {
     const fallback = document.getElementById('no-selection-message');
     if (fallback) fallback.hidden = true;
     document.getElementById('panel-content')!.style.display = '';
@@ -217,7 +219,7 @@ function renderPanel(countryName: string): void {
   // On phones the panel is a bottom sheet layered over the map. Selecting
   // a country slides it up (the transition lives in CSS); on desktop the
   // class is inert. Skip while the full comparison view owns the screen.
-  if (!comparisonViewOpen) {
+  if (!comparisonOpen) {
     // Reset to the top for every fresh country — otherwise, after
     // scrolling one country's sheet/panel, the next selection opens
     // mid-content with the name and score off-screen. renderPanel only
@@ -277,11 +279,11 @@ export function initPanel(): void {
   }
   initSheetDrag();
 
-  // The scatter explorer takes over the map slot; drop the sheet out of
-  // the way when it opens so it doesn't sit on top of the plot. Tapping a
-  // dot re-selects a country, which re-opens the sheet over the scatter.
-  on('scatterOpen', (open) => {
-    if (open) document.body.classList.remove('sheet-open');
+  // An overlay view (scatter or comparison) takes over the map slot; drop the
+  // mobile sheet out of the way when one opens so it doesn't sit on top.
+  // Tapping a dot re-selects a country, which re-opens the sheet over scatter.
+  on('mainView', (view) => {
+    if (view !== 'map') document.body.classList.remove('sheet-open');
   });
 
   // Copy the full source list as a numbered, paste-ready block —

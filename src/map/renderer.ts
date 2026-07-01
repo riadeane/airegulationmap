@@ -10,7 +10,7 @@ import 'd3-transition';
 
 import { ATTRIBUTE_LABELS } from '../constants';
 import type { AttributeKey } from '../constants';
-import { getState, setState } from '../state/store';
+import { getState } from '../state/store';
 import type { ScoreData, ScoreEntry } from '../data/loader';
 import type { HistorySnapshot } from '../data/history';
 import { makeColorScale, addLegend } from './legend';
@@ -18,7 +18,8 @@ import type { ColorScale } from './legend';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip';
 import { setupZoom } from './zoom';
 import type { ZoomHandle } from './zoom';
-import { toggleComparison, getColorIndex } from '../comparison/index';
+import { toggleComparison, selectCountry } from '../state/interactions';
+import { getColorIndex } from '../comparison/colorSlots';
 import { cssVar, onThemeChange } from './cssColors';
 
 /** A world-atlas country geometry with its bound name property. */
@@ -244,7 +245,7 @@ export async function generateMap(): Promise<void> {
         toggleComparison(name);
         event.preventDefault();
       } else {
-        setState({ selectedCountry: name });
+        selectCountry(name);
       }
     });
 
@@ -266,7 +267,7 @@ export async function generateMap(): Promise<void> {
     if (Math.hypot(event.clientX - downX, event.clientY - downY) > 6) return;
     const target = event.target as Element | null;
     if (target?.classList?.contains('country')) return;
-    if (getState().selectedCountry) setState({ selectedCountry: null });
+    if (getState().selectedCountry) selectCountry(null);
   });
 
   onThemeChange(() => {

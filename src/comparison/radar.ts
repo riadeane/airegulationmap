@@ -4,7 +4,7 @@ import { lineRadial, curveLinearClosed } from 'd3-shape';
 import { ATTRIBUTE_LABELS } from '../constants';
 import type { AttributeKey } from '../constants';
 import type { ScoreData, ScoreEntry } from '../data/loader';
-import { getColorFor } from './index';
+import { getColorFor } from './colorSlots';
 
 // Axis order for the radar (6 axes). Keep averageScore first so the most
 // prominent axis is the composite score.

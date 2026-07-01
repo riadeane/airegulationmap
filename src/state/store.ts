@@ -1,4 +1,4 @@
-import type { AttributeKey } from '../constants';
+import type { AttributeKey, MainView } from '../constants';
 import type { ScoreData, RegulationData } from '../data/loader';
 import type { HistoryData } from '../data/history';
 import type { BlocsData } from '../data/blocs';
@@ -15,11 +15,10 @@ export interface AppState {
   // setState (always with a fresh array), never mutate in place. The
   // `readonly` modifier makes an accidental `.push()` a compile error.
   sortedCountryNames: readonly string[];
-  // The staged comparison set (0-4). Membership is separate from
-  // whether the full comparison VIEW is open (comparisonViewOpen) —
-  // the user builds a set, then opens the comparison deliberately.
+  // The staged comparison set (0-4). Membership is separate from whether the
+  // full comparison VIEW is showing (mainView === 'comparison') — the user
+  // builds a set, then opens the comparison deliberately.
   comparisonCountries: readonly string[];
-  comparisonViewOpen: boolean;
   // null = "latest" (use current scoreData as-is); otherwise an ISO date
   // string (YYYY-MM-DD) present in history.json. The timeline slider
   // writes this; the map subscribes and re-renders historic scores.
@@ -34,8 +33,11 @@ export interface AppState {
   // Parsed subscores.json (methodology v2 sub-indicator audit trail) —
   // loaded async; null until then / on failure.
   subscores: SubscoresData | null;
-  // Scatter plot ("dimension explorer") panel state.
-  scatterOpen: boolean;
+  // Which surface owns the main area: the map, the scatter explorer, or the
+  // full comparison view. Exactly one at a time (see MainView).
+  mainView: MainView;
+  // Scatter plot ("dimension explorer") axis selection. Persist across
+  // open/close so reopening restores the last pairing.
   scatterX: AttributeKey;
   scatterY: AttributeKey;
 }
@@ -49,13 +51,12 @@ const state: AppState = {
   selectedCountry: null,
   sortedCountryNames: [],
   comparisonCountries: [],
-  comparisonViewOpen: false,
   timelineDate: null,
   history: null,
   selectedBloc: null,
   blocsData: null,
   subscores: null,
-  scatterOpen: false,
+  mainView: 'map',
   scatterX: 'enforcementLevel',
   scatterY: 'regulationStatus',
 };
