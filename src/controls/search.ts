@@ -71,6 +71,19 @@ export function initSearch(): void {
         .slice(0, TEXT_LIMIT)
       : [];
 
+    // Nothing matched: clear the highlight to null — NOT an empty set,
+    // which would mark every country "dimmed" and fade the whole map to
+    // 8% — and show an explicit empty state instead of a vanished box.
+    if (countryMatches.length === 0 && textMatches.length === 0) {
+      updateSearchHighlight(null);
+      const empty = document.createElement('li');
+      empty.className = 'search-empty';
+      empty.setAttribute('role', 'presentation');
+      empty.textContent = `No countries or policies match “${query}”`;
+      suggestions.appendChild(empty);
+      return;
+    }
+
     updateSearchHighlight(new Set([
       ...countryMatches,
       ...textMatches.map(m => m.country),

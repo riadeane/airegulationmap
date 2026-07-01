@@ -144,6 +144,12 @@ circle.scatter-dot:hover {
   pointer-events: none;
 }
 
+/* First-tap preview label (touch): tinted so it reads as "tap again to
+   open", distinct from the committed selection label. */
+.scatter-dot-label.is-preview {
+  fill: var(--accent);
+}
+
 @media (max-width: 768px) {
   .scatter-container {
     padding: 12px 14px 8px;

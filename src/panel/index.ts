@@ -139,6 +139,12 @@ function renderPanel(countryName: string): void {
   // a country slides it up (the transition lives in CSS); on desktop the
   // class is inert. Skip while the full comparison view owns the screen.
   if (!comparisonViewOpen) {
+    // Reset to the top for every fresh country — otherwise, after
+    // scrolling one country's sheet/panel, the next selection opens
+    // mid-content with the name and score off-screen. renderPanel only
+    // runs on a selection change, so this never clobbers a deliberate
+    // scroll mid-read.
+    document.getElementById('country-panel')?.scrollTo({ top: 0 });
     document.body.classList.add('sheet-open');
   }
 }

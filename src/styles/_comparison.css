@@ -504,6 +504,27 @@ body.view-compare .radar-chart svg {
     border-top: 1px solid var(--border);
   }
 
+  /* Full comparison view: let the PAGE own the scroll. Without this the
+     panel keeps its 70vh cap, so the whole score/description table — the
+     actual point of Compare — sits below an unmarked internal-scroll fold
+     while the footer paints right under the radar and reads as
+     "end of page". Grow the panel to its content and let #app-main
+     (normally overflow:hidden for the sheet) grow with it. */
+  body.view-compare #app-main {
+    overflow: visible;
+  }
+
+  body.view-compare #comparison-panel {
+    max-height: none;
+    overflow: visible;
+    flex: none;
+  }
+
+  /* Cap the radar so the numbers aren't pushed a full screen down. */
+  body.view-compare .radar-chart svg {
+    max-width: 300px;
+  }
+
   .comp-chip {
     padding: 6px 10px 6px 12px;
   }

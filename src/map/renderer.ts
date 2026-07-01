@@ -137,7 +137,7 @@ export async function generateMap(): Promise<void> {
   const svg = select('#map')
     .append<SVGSVGElement>('svg')
     .attr('role', 'img')
-    .attr('aria-label', 'World map showing AI regulation scores by country. Click a country for details; Shift+click to compare.')
+    .attr('aria-label', 'World map showing AI regulation scores by country. Select a country for its profile.')
     .attr('width', size.w)
     .attr('height', size.h)
     .attr('viewBox', [0, 0, size.w, size.h])
