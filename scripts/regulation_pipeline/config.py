@@ -96,3 +96,7 @@ class Settings:
     @property
     def subscores_json(self) -> Path:
         return self.root / "public" / "data" / "subscores.json"
+
+    @property
+    def country_iso_json(self) -> Path:
+        return self.root / "public" / "data" / "country_iso.json"
