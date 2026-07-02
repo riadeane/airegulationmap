@@ -1,0 +1,340 @@
+{
+ "data": [
+  {
+   "id": 900001,
+   "englishName": "Coordinated Plan on Artificial Intelligence",
+   "originalName": null,
+   "slug": "joint-ai-plan-for-the-safe-and-effective-use-of-ai-in-the-norwegian-health-and-care-services-2024-2025",
+   "description": "The Joint AI plan for the safe and effective use of AI in the Norwegian health and care services (2024–2025) aims to increase the use of safe and effective AI systems to maintain o",
+   "website": "https://digital-strategy.ec.europa.eu/en/policies/plan-ai",
+   "status": "Active",
+   "responsibleOrganisation": null,
+   "responsibleOrganisationSI": null,
+   "responsibleOrganisationSILocation": null,
+   "responsibleOrganisationSDLocation": null,
+   "category": "AI policy initiatives, programmes and projects",
+   "extentBinding": "Non-binding",
+   "joint": null,
+   "startYear": 2021,
+   "endYear": null,
+   "overview": "<p>The Joint AI plan for 2024–2025 is described as a holistic plan aimed at ensuring the safe and effective use of artificial intelligence in the health and care services. The National Health and Coordination Plan 2024–2",
+   "actionPlan": null,
+   "budget": null,
+   "budgetAvailable": null,
+   "isEvaluated": null,
+   "evaluationBy": null,
+   "otherEvaluationBy": null,
+   "evaluationUrls": [],
+   "evaluationDescription": null,
+   "isEvaluationResultsPubliclyAvailable": true,
+   "relevantUrls": [],
+   "engagementDescription": null,
+   "hasMonitoringMechanism": null,
+   "monitoringMechanismDescription": null,
+   "videoUrl": null,
+   "moreInfos": null,
+   "trustworthyAIRelation": null,
+   "intergovernmentalCoordination": null,
+   "trustworthyAIMechanismDescription": null,
+   "otherEngagementMechanism": null,
+   "otherInitiativeType": null,
+   "createdByEmail": "clemence.descubes@oecd.org",
+   "createdByName": "Сlemence Descubes",
+   "updatedByEmail": "clemence.descubes@oecd.org",
+   "updatedByName": "Сlemence Descubes",
+   "publishedByEmail": "guillermo.hernandez@oecd.org",
+   "publishedByName": "Guillermo Hernandez",
+   "editorialStatus": "Published",
+   "createdAt": "2026-06-29T09:00:37.313Z",
+   "updatedAt": "2026-05-01T00:00:00.000Z",
+   "gaiinCountry": null,
+   "intergovernmentalOrganisation": {
+    "id": 5,
+    "name": "European Union"
+   },
+   "images": [],
+   "sourceFiles": [
+    {
+     "id": 1094,
+     "name": "Joint AI plan for the safe and effective use of AI in the Norwegian health and care services 2024 - 2025",
+     "year": null,
+     "path": "policy-initiatives/Jun2026/117ojp24a81mqyzq4s2-Joint AI plan for the safe and effective.pdf",
+     "policyInitiativeWhereSourceId": 2427,
+     "policyInitiativeWhereEvaluationId": null,
+     "policyInitiativeWhereRelevantId": null
+    }
+   ],
+   "evaluationFiles": [],
+   "relevantFiles": [],
+   "targetSectors": [
+    {
+     "id": 5,
+     "name": "Public governance",
+     "description": "",
+     "order": 0,
+     "deletedAt": null
+    },
+    {
+     "id": 9,
+     "name": "Health",
+     "description": "",
+     "order": 0,
+     "deletedAt": null
+    }
+   ],
+   "initiativeType": {
+    "id": 123,
+    "name": "AI use cases/projects in the public sector",
+    "order": 750,
+    "category": "AI policy initiatives, programmes and projects",
+    "isLinkedToAIPrinciple": false,
+    "displayGroup": "Cross-cutting",
+    "deletedAt": null
+   },
+   "principles": [
+    {
+     "id": 1,
+     "name": "1.1 Inclusive growth, sustainable development and well-being",
+     "type": "Values-based principles",
+     "order": 10,
+     "deletedAt": null
+    },
+    {
+     "id": 2,
+     "name": "1.2 Respect for the rule of law, human rights and democratic values, including fairness and privacy",
+     "type": "Values-based principles",
+     "order": 9,
+     "deletedAt": null
+    },
+    {
+     "id": 4,
+     "name": "1.4 Robustness, security and safety",
+     "type": "Values-based principles",
+     "order": 7,
+     "deletedAt": null
+    },
+    {
+     "id": 7,
+     "name": "2.2 Fostering an inclusive AI-enabling ecosystem",
+     "type": "Recommendations for policymakers",
+     "order": 4,
+     "deletedAt": null
+    },
+    {
+     "id": 8,
+     "name": "2.3 Shaping an enabling interoperable governance and policy environment for AI",
+     "type": "Recommendations for policymakers",
+     "order": 3,
+     "deletedAt": null
+    },
+    {
+     "id": 9,
+     "name": "2.4 Building human capacity and preparing for labour market transformation",
+     "type": "Recommendations for policymakers",
+     "order": 2,
+     "deletedAt": null
+    }
+   ],
+   "tags": [
+    {
+     "id": 7,
+     "name": "AI Governance & Policy",
+     "order": 60,
+     "deletedAt": null
+    },
+    {
+     "id": 30,
+     "name": "Trustworthy AI",
+     "order": 300,
+     "deletedAt": null
+    }
+   ],
+   "gaiinCountryId": null,
+   "intergovernmentalOrganisationId": null,
+   "isWarningHighlight": false,
+   "isDisabledHighlight": false,
+   "isInfoHighlight": false,
+   "isEditable": false,
+   "isDeletable": false,
+   "isEditorialStatusUpdatable": false
+  },
+  {
+   "id": 900002,
+   "englishName": "AI Charter of Atlantis",
+   "originalName": null,
+   "slug": "joint-ai-plan-for-the-safe-and-effective-use-of-ai-in-the-norwegian-health-and-care-services-2024-2025",
+   "description": "The Joint AI plan for the safe and effective use of AI in the Norwegian health and care services (2024–2025) aims to increase the use of safe and effective AI systems to maintain o",
+   "website": "https://www.helsedirektoratet.no/rapporter/joint-ai-plan-for-the-safe-and-effective-use-of-ai-in-the-norwegian-health-and-care-services-2024-2025",
+   "status": "Active",
+   "responsibleOrganisation": null,
+   "responsibleOrganisationSI": null,
+   "responsibleOrganisationSILocation": null,
+   "responsibleOrganisationSDLocation": null,
+   "category": "AI policy initiatives, programmes and projects",
+   "extentBinding": null,
+   "joint": null,
+   "startYear": 2024,
+   "endYear": null,
+   "overview": "<p>The Joint AI plan for 2024–2025 is described as a holistic plan aimed at ensuring the safe and effective use of artificial intelligence in the health and care services. The National Health and Coordination Plan 2024–2",
+   "actionPlan": null,
+   "budget": null,
+   "budgetAvailable": null,
+   "isEvaluated": null,
+   "evaluationBy": null,
+   "otherEvaluationBy": null,
+   "evaluationUrls": [],
+   "evaluationDescription": null,
+   "isEvaluationResultsPubliclyAvailable": true,
+   "relevantUrls": [],
+   "engagementDescription": null,
+   "hasMonitoringMechanism": null,
+   "monitoringMechanismDescription": null,
+   "videoUrl": null,
+   "moreInfos": null,
+   "trustworthyAIRelation": null,
+   "intergovernmentalCoordination": null,
+   "trustworthyAIMechanismDescription": null,
+   "otherEngagementMechanism": null,
+   "otherInitiativeType": null,
+   "createdByEmail": "clemence.descubes@oecd.org",
+   "createdByName": "Сlemence Descubes",
+   "updatedByEmail": "clemence.descubes@oecd.org",
+   "updatedByName": "Сlemence Descubes",
+   "publishedByEmail": "guillermo.hernandez@oecd.org",
+   "publishedByName": "Guillermo Hernandez",
+   "editorialStatus": "Published",
+   "createdAt": "2026-06-29T09:00:37.313Z",
+   "updatedAt": "2026-05-02T00:00:00.000Z",
+   "gaiinCountry": {
+    "id": 999,
+    "name": "Atlantis",
+    "slug": "atlantis",
+    "code": "ATL",
+    "sortName": "Atlantis",
+    "order": null,
+    "language": "x",
+    "region": "x",
+    "incomeGroup": "x",
+    "populationIn2023": 1,
+    "gdp": 1,
+    "deletedAt": null
+   },
+   "intergovernmentalOrganisation": null,
+   "images": [],
+   "sourceFiles": [
+    {
+     "id": 1094,
+     "name": "Joint AI plan for the safe and effective use of AI in the Norwegian health and care services 2024 - 2025",
+     "year": null,
+     "path": "policy-initiatives/Jun2026/117ojp24a81mqyzq4s2-Joint AI plan for the safe and effective.pdf",
+     "policyInitiativeWhereSourceId": 2427,
+     "policyInitiativeWhereEvaluationId": null,
+     "policyInitiativeWhereRelevantId": null
+    }
+   ],
+   "evaluationFiles": [],
+   "relevantFiles": [],
+   "targetSectors": [
+    {
+     "id": 5,
+     "name": "Public governance",
+     "description": "",
+     "order": 0,
+     "deletedAt": null
+    },
+    {
+     "id": 9,
+     "name": "Health",
+     "description": "",
+     "order": 0,
+     "deletedAt": null
+    }
+   ],
+   "initiativeType": {
+    "id": 123,
+    "name": "AI use cases/projects in the public sector",
+    "order": 750,
+    "category": "AI policy initiatives, programmes and projects",
+    "isLinkedToAIPrinciple": false,
+    "displayGroup": "Cross-cutting",
+    "deletedAt": null
+   },
+   "principles": [
+    {
+     "id": 1,
+     "name": "1.1 Inclusive growth, sustainable development and well-being",
+     "type": "Values-based principles",
+     "order": 10,
+     "deletedAt": null
+    },
+    {
+     "id": 2,
+     "name": "1.2 Respect for the rule of law, human rights and democratic values, including fairness and privacy",
+     "type": "Values-based principles",
+     "order": 9,
+     "deletedAt": null
+    },
+    {
+     "id": 4,
+     "name": "1.4 Robustness, security and safety",
+     "type": "Values-based principles",
+     "order": 7,
+     "deletedAt": null
+    },
+    {
+     "id": 7,
+     "name": "2.2 Fostering an inclusive AI-enabling ecosystem",
+     "type": "Recommendations for policymakers",
+     "order": 4,
+     "deletedAt": null
+    },
+    {
+     "id": 8,
+     "name": "2.3 Shaping an enabling interoperable governance and policy environment for AI",
+     "type": "Recommendations for policymakers",
+     "order": 3,
+     "deletedAt": null
+    },
+    {
+     "id": 9,
+     "name": "2.4 Building human capacity and preparing for labour market transformation",
+     "type": "Recommendations for policymakers",
+     "order": 2,
+     "deletedAt": null
+    }
+   ],
+   "tags": [
+    {
+     "id": 7,
+     "name": "AI Governance & Policy",
+     "order": 60,
+     "deletedAt": null
+    },
+    {
+     "id": 30,
+     "name": "Trustworthy AI",
+     "order": 300,
+     "deletedAt": null
+    }
+   ],
+   "gaiinCountryId": 131,
+   "intergovernmentalOrganisationId": null,
+   "isWarningHighlight": false,
+   "isDisabledHighlight": false,
+   "isInfoHighlight": false,
+   "isEditable": false,
+   "isDeletable": false,
+   "isEditorialStatusUpdatable": false
+  },
+  {
+   "id": 900003,
+   "gaiinCountry": null
+  }
+ ],
+ "currentPage": 2,
+ "lastPage": 2,
+ "from": 3,
+ "to": 5,
+ "total": 4,
+ "perPage": 2
+}

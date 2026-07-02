@@ -1,0 +1,70 @@
+name: Evidence Sync (OECD)
+
+# Manual-dispatch evidence tooling:
+#   probe      — no credentials; fetch page 1 from each candidate endpoint and
+#                upload the dumps as an artifact (inspect before trusting a
+#                shape change).
+#   sync-delta — upsert initiatives whose updatedAt moved (plus new ones).
+#   sync-full  — upsert every record.
+# The monthly update-data workflow runs a delta sync automatically once the
+# repository variable EVIDENCE_SYNC_ENABLED is "true".
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: What to run
+        type: choice
+        options: [probe, sync-delta, sync-full]
+        default: probe
+      endpoint:
+        description: Optional endpoint override (blank = official, wrapper fallback)
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evidence-sync
+  cancel-in-progress: false
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Probe endpoints
+        if: inputs.mode == 'probe'
+        run: python -m regulation_pipeline.evidence probe --out probe-output
+        env:
+          PYTHONPATH: scripts
+
+      - name: Upload probe artifact
+        if: inputs.mode == 'probe'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oecd-probe
+          path: probe-output/
+          retention-days: 30
+
+      - name: Sync initiatives
+        if: inputs.mode != 'probe'
+        run: >
+          python -m regulation_pipeline.evidence sync --source oecd
+          ${{ inputs.mode == 'sync-full' && '--full' || '' }}
+          ${{ inputs.endpoint != '' && format('--endpoint {0}', inputs.endpoint) || '' }}
+        env:
+          PYTHONPATH: scripts
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}

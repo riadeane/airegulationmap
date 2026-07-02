@@ -14,6 +14,16 @@ from datetime import date
 # the prompt that produced it. Bump when the rubric or structure changes.
 PROMPT_VERSION = "v2-2026-06"
 
+# The evidence-grounded variant (same rubric + output schema, plus a
+# verified-records block). Grounded prompts are LONGER than plain ones —
+# pair grounded runs with --batch for the 50% token pricing.
+GROUNDED_PROMPT_VERSION = "v3-grounded-2026-07"
+
+# Caps keeping the evidence block bounded: the most recent initiatives
+# carry the signal, and full overviews would dwarf the rubric.
+MAX_GROUNDED_INITIATIVES = 15
+MAX_OVERVIEW_CHARS = 400
+
 RESEARCH_PROMPT = """You are a researcher specializing in AI policy and regulation worldwide.
 
 Country: {country}
@@ -119,3 +129,85 @@ def render_prompt(country: str, today: date, existing_reg: dict | None) -> str:
         existing_governance=existing.get("Governance Type", "Unknown"),
         existing_actors=existing.get("Actor Involvement", "Unknown"),
     )
+
+
+# -- grounded mode --------------------------------------------------------------
+
+_EVIDENCE_HEADER = """
+VERIFIED POLICY INITIATIVES for {country} ({count} shown, most recent first).
+These are records from the OECD.AI Policy Observatory (GAIIN) — treat them as
+verified facts:
+"""
+
+_EVIDENCE_INSTRUCTIONS = """
+Grounding rules:
+- Base your sub-scores and text PRIMARILY on the verified initiatives above.
+- You may additionally draw on well-known instruments they omit (major national
+  laws, court rulings), but NEVER contradict a verified record.
+- Where the evidence and your prior knowledge disagree, the evidence wins.
+- Include the source URLs of the initiatives you actually relied on in the
+  "sources" field, alongside any other primary sources.
+- The confidence field still follows its own definition; strong verified
+  coverage of binding instruments supports higher confidence, thin or
+  non-binding-only coverage does not.
+"""
+
+
+def _initiative_lines(initiatives: list[dict], overview_chars: int) -> str:
+    lines = []
+    for i, init in enumerate(initiatives, start=1):
+        year = init.get("start_year") or "n.d."
+        meta = " | ".join(
+            str(part) for part in (init.get("initiative_type"), init.get("binding"), init.get("status")) if part
+        )
+        lines.append(f"{i}. {init.get('name')} ({year})" + (f" — {meta}" if meta else ""))
+        overview = (init.get("overview") or "").strip()
+        if overview:
+            if len(overview) > overview_chars:
+                overview = overview[:overview_chars].rstrip() + "…"
+            lines.append(f"   {overview}")
+        if init.get("source_url"):
+            lines.append(f"   Source: {init['source_url']}")
+    return "\n".join(lines)
+
+
+def render_grounded_prompt(
+    country: str,
+    today: date,
+    existing_reg: dict | None,
+    initiatives: list[dict],
+    *,
+    max_initiatives: int = MAX_GROUNDED_INITIATIVES,
+    overview_chars: int = MAX_OVERVIEW_CHARS,
+) -> str:
+    """The research prompt with a verified-evidence block injected. The rubric
+    and the output schema are IDENTICAL to the plain prompt — grounding changes
+    what the model reads, never what it returns — so models.py, the repository,
+    and all downstream validation are untouched.
+
+    ``initiatives`` are dicts with (at least) name / start_year /
+    initiative_type / binding / status / overview / source_url, e.g. rows from
+    the policy_initiatives table. Empty list → the plain prompt (callers should
+    prefer render_prompt directly in that case)."""
+    base = render_prompt(country, today, existing_reg)
+    if not initiatives:
+        return base
+
+    chosen = sorted(
+        initiatives, key=lambda i: (i.get("start_year") or 0), reverse=True
+    )[:max_initiatives]
+
+    evidence_block = (
+        _EVIDENCE_HEADER.format(country=country, count=len(chosen))
+        + _initiative_lines(chosen, overview_chars)
+        + "\n"
+        + _EVIDENCE_INSTRUCTIONS
+    )
+
+    # Inject the evidence between the context (existing data) and the task
+    # instructions — the anchor line starts the task section.
+    anchor = f"Research the current state of AI regulation in {country}"
+    idx = base.find(anchor)
+    if idx == -1:  # template drift — append rather than lose the evidence
+        return base + "\n" + evidence_block
+    return base[:idx] + evidence_block + "\n" + base[idx:]

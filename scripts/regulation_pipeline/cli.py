@@ -8,10 +8,13 @@ argument parsing, logging setup, credentials, and dependency construction.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sys
+from collections.abc import Callable
 from datetime import date
+from pathlib import Path
 
 import anthropic
 import typer
@@ -20,7 +23,7 @@ from .api import ResearchClient
 from .batch import BatchRunner
 from .config import DEFAULT_MODEL, Settings
 from .names import CountryNames
-from .prompt import PROMPT_VERSION
+from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
 from .repository import Dataset
 from .service import PipelineService
 from .staleness import StalenessPolicy
@@ -60,6 +63,16 @@ def _run(
         "summaries, history, sources). Default: on when SUPABASE_URL and "
         "SUPABASE_SERVICE_KEY are set. Mirror failures never fail the run.",
     ),
+    grounded: bool = typer.Option(
+        False, "--grounded",
+        help="Ground research in verified policy initiatives (from Supabase, or "
+        "--evidence-file). Countries without evidence fall back to the plain "
+        "prompt. Grounded prompts are longer — pair with --batch.",
+    ),
+    evidence_file: str = typer.Option(
+        "", "--evidence-file",
+        help='Offline evidence for --grounded: JSON {"<country>": [initiative, ...]}.',
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose (DEBUG) logging"),
 ) -> None:
     """Update AI regulation data using the Claude API."""
@@ -78,8 +91,18 @@ def _run(
     client = anthropic.Anthropic(api_key=api_key, max_retries=0)
     names = CountryNames.load(settings.country_names_json)
 
+    evidence_provider = None
+    if grounded:
+        evidence_provider = _build_evidence_provider(evidence_file)
+        if evidence_provider is None:
+            logger.error(
+                "--grounded needs either SUPABASE_URL + SUPABASE_SERVICE_KEY or --evidence-file"
+            )
+            raise typer.Exit(code=1)
+
     research_client = ResearchClient(
-        client, default_model=model, search_model=settings.search_model, today=today
+        client, default_model=model, search_model=settings.search_model, today=today,
+        evidence_provider=evidence_provider,
     )
     priority = settings.priority_countries
 
@@ -100,8 +123,8 @@ def _run(
     logger.info("Loading existing data...")
     dataset = Dataset.load(settings, names)
     supabase_mirror = _build_mirror(
-        mirror, settings, model=model, batch=batch, research_client=research_client,
-        batch_runner=batch_runner,
+        mirror, settings, model=model, batch=batch, grounded=grounded,
+        research_client=research_client, batch_runner=batch_runner,
     )
     service = PipelineService(
         dataset, StalenessPolicy(settings.staleness_days, today), today,
@@ -136,12 +159,46 @@ def _run(
         raise typer.Exit(code=1)
 
 
+def _build_evidence_provider(evidence_file: str) -> Callable[[str], list[dict]] | None:
+    """Evidence for --grounded: an offline JSON file, or lazy per-country
+    PostgREST reads from the policy_initiatives table."""
+    if evidence_file:
+        data = json.loads(Path(evidence_file).read_text(encoding="utf-8"))
+        return lambda country: data.get(country, [])
+
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_KEY")
+    if not (url and key):
+        return None
+
+    from .db.client import SupabaseClient
+
+    client = SupabaseClient(url, key)
+    country_ids: dict[str, str] = {
+        r["name"]: r["id"] for r in client.select("countries", {"select": "id,name", "limit": "1000"})
+    }
+
+    def provider(country: str) -> list[dict]:
+        cid = country_ids.get(country)
+        if not cid:
+            return []
+        return client.select("policy_initiatives", {
+            "select": "name,start_year,initiative_type,binding,status,overview,source_url",
+            "country_id": f"eq.{cid}",
+            "order": "start_year.desc.nullslast",
+            "limit": "30",
+        })
+
+    return provider
+
+
 def _build_mirror(
     flag: bool | None,
     settings: Settings,
     *,
     model: str,
     batch: bool,
+    grounded: bool,
     research_client: ResearchClient,
     batch_runner: BatchRunner | None,
 ):
@@ -178,7 +235,8 @@ def _build_mirror(
         trigger="schedule" if os.environ.get("GITHUB_EVENT_NAME") == "schedule" else "manual",
         model=model,
         strategy="batch" if batch else "sync",
-        prompt_version=PROMPT_VERSION,
+        prompt_version=GROUNDED_PROMPT_VERSION if grounded else PROMPT_VERSION,
+        grounded=grounded,
         git_sha=os.environ.get("GITHUB_SHA"),
     )
     logger.info("Supabase mirror enabled (%s run)", meta.trigger)
