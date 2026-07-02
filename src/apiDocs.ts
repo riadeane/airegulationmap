@@ -32,6 +32,24 @@ interface PostgrestSpec {
   definitions?: Record<string, { properties?: Record<string, { format?: string; type?: string }> }>;
 }
 
+function wireThemeToggle(): void {
+  const toggle = document.getElementById('theme-toggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', () => {
+    const root = document.documentElement;
+    const current =
+      root.getAttribute('data-theme') ??
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = current === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try {
+      localStorage.setItem('theme', next);
+    } catch {
+      // storage blocked; the toggle still works for this page view
+    }
+  });
+}
+
 async function boot(): Promise<void> {
   let spec: PostgrestSpec;
   try {
@@ -98,4 +116,5 @@ async function boot(): Promise<void> {
   });
 }
 
+wireThemeToggle();
 void boot();

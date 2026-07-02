@@ -7,33 +7,115 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="canonical" href="https://airegulationmap.org/api-docs.html">
   <meta name="description" content="Interactive OpenAPI reference for the AI Regulation Map public read-only API: every endpoint, column, and filter, generated from the database schema.">
+
+  <!-- Resolve theme before paint. URL > localStorage > prefers-color-scheme.
+       Same behavior as the app and the Data & API page. -->
+  <script>
+    (function () {
+      try {
+        var urlTheme = new URLSearchParams(location.search).get('theme');
+        if (urlTheme === 'light' || urlTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', urlTheme);
+          return;
+        }
+        var t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      } catch (e) { /* storage blocked */ }
+    })();
+  </script>
+
   <style>
-    /* Minimal shell around Swagger UI: our header, its body. */
-    body { margin: 0; font-family: -apple-system, sans-serif; }
+    /* Tokens: mirror of the main app's _tokens.css, trimmed to the page shell. */
+    :root {
+      --radius-sm: 5px;
+      --bg:             oklch(15% 0.008 75);
+      --border:         oklch(30% 0.013 75);
+      --text-primary:   oklch(92% 0.012 75);
+      --text-secondary: oklch(72% 0.014 75);
+      --accent:         oklch(76% 0.13 75);
+      color-scheme: dark;
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme]) {
+        --bg:             oklch(98% 0.003 80);
+        --border:         oklch(88% 0.008 80);
+        --text-primary:   oklch(20% 0.013 80);
+        --text-secondary: oklch(42% 0.014 80);
+        --accent:         oklch(48% 0.16 60);
+        color-scheme: light;
+      }
+    }
+    :root[data-theme='light'] {
+      --bg:             oklch(98% 0.003 80);
+      --border:         oklch(88% 0.008 80);
+      --text-primary:   oklch(20% 0.013 80);
+      --text-secondary: oklch(42% 0.014 80);
+      --accent:         oklch(48% 0.16 60);
+      color-scheme: light;
+    }
+
+    body { margin: 0; font-family: 'Geist', -apple-system, sans-serif; background: var(--bg); }
     .site-header {
       display: flex;
       align-items: baseline;
       gap: 14px;
       padding: 16px 24px;
-      border-bottom: 1px solid #d8d5cf;
-      background: #fdfcfa;
+      border-bottom: 1px solid var(--border);
     }
     .site-title {
-      font-family: Georgia, serif;
+      font-family: 'Literata', Georgia, serif;
       font-size: 1.05rem;
-      color: #2b2925;
+      color: var(--text-primary);
       text-decoration: none;
     }
-    .site-header nav { font-size: 0.8rem; color: #6d685f; }
-    .site-header a.back { margin-left: auto; font-size: 0.8rem; color: #6d685f; }
-    #swagger-ui { max-width: 1080px; margin: 0 auto; }
+    .site-header nav { font-size: 0.8rem; color: var(--text-secondary); }
+    .header-links {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.8rem;
+    }
+    .header-links a { color: var(--text-secondary); }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px 6px;
+      line-height: 0;
+      align-self: center;
+    }
+    .theme-toggle:hover { color: var(--text-primary); border-color: var(--accent); }
+    .theme-icon { width: 15px; height: 15px; }
+    .theme-icon-sun { display: none; }
+    :root[data-theme='dark'] .theme-icon-sun { display: inline; }
+    :root[data-theme='dark'] .theme-icon-moon { display: none; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) .theme-icon-sun { display: inline; }
+      :root:not([data-theme]) .theme-icon-moon { display: none; }
+    }
+
     .api-note {
       max-width: 1080px;
       margin: 18px auto 0;
       padding: 0 20px;
       font-size: 0.85rem;
-      color: #55514a;
+      color: var(--text-secondary);
       line-height: 1.6;
+    }
+    .api-note a { color: var(--accent); }
+
+    /* Swagger UI ships light-only. Give it an explicit white canvas, then in
+       dark theme invert that canvas (hue-rotate keeps method badges and links
+       on their intended side of the wheel). */
+    #swagger-ui { max-width: 1080px; margin: 0 auto; background: #fff; }
+    :root[data-theme='dark'] #swagger-ui { filter: invert(0.92) hue-rotate(180deg); }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) #swagger-ui { filter: invert(0.92) hue-rotate(180deg); }
     }
   </style>
 </head>
@@ -41,13 +123,23 @@
   <header class="site-header">
     <a class="site-title" href="/">AI Regulation Map</a>
     <nav aria-label="breadcrumb"><span>API Reference</span></nav>
-    <a class="back" href="/data.html">← Data &amp; API overview</a>
+    <div class="header-links">
+      <a href="/data.html">Data &amp; API overview</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme" title="Switch theme">
+        <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/>
+        </svg>
+        <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
   </header>
   <p class="api-note">
     Generated from the database schema (PostgREST OpenAPI) and refreshed with
     every schema change. Every request is read-only; "Try it out" runs against
-    the real API with the public access token. Recipes and dataset downloads
-    are on the <a href="/data.html">Data &amp; API</a> page.
+    the real API with the public access token. Dataset downloads and worked
+    examples are on the <a href="/data.html">Data &amp; API</a> page.
   </p>
   <div id="swagger-ui"></div>
   <script type="module" src="/src/apiDocs.ts"></script>

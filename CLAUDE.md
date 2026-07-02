@@ -180,9 +180,11 @@ hydration when the DB is strictly newer, source titles, and the per-country
 Policy Initiatives panel section - all of which degrade to today's behavior
 when unconfigured or unreachable. Schema migrations live in
 `supabase/migrations/`; RLS is public-SELECT everywhere, writes via the
-service role only. Researcher-facing docs live at `public/data.html` (live
-query explorer, recipes, CSV export) and `api-docs.html` (Swagger UI over the
-committed `public/openapi.json` snapshot).
+service role only. Researcher-facing docs live at `public/data.html` (static
+overview: downloads, endpoint table, recipe links) and `api-docs.html`
+(Swagger UI over the committed `public/openapi.json` snapshot; interactive
+"Try it out" querying lives here). Both docs pages share the app's theme
+token (`localStorage.theme`) and have their own toggle.
 
 Environment variables: frontend builds take optional `VITE_SUPABASE_URL` +
 `VITE_SUPABASE_ANON_KEY` (see `.env.example`; anon key is RLS-read-only and

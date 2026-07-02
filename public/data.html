@@ -8,7 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="canonical" href="https://airegulationmap.org/data.html">
 
-  <meta name="description" content="Download the AI Regulation Map dataset: static CSV/JSON files, plus a public read-only REST API with a live query explorer: scores, score history, the sources database, and verified policy-initiative records.">
+  <meta name="description" content="Download the AI Regulation Map dataset: static CSV/JSON files, plus a public read-only REST API with interactive reference docs: scores, score history, the sources database, and verified policy-initiative records.">
 
   <!-- Resolve theme before paint. URL > localStorage > prefers-color-scheme. -->
   <script>
@@ -100,6 +100,33 @@
       text-decoration: none;
     }
     .site-header nav { font-size: 0.8rem; color: var(--text-secondary); }
+    .header-links {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.8rem;
+    }
+    .header-links a { color: var(--text-secondary); }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px 6px;
+      line-height: 0;
+      align-self: center;
+    }
+    .theme-toggle:hover { color: var(--text-primary); border-color: var(--accent); }
+    .theme-icon { width: 15px; height: 15px; }
+    .theme-icon-sun { display: none; }
+    :root[data-theme='dark'] .theme-icon-sun { display: inline; }
+    :root[data-theme='dark'] .theme-icon-moon { display: none; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) .theme-icon-sun { display: inline; }
+      :root:not([data-theme]) .theme-icon-moon { display: none; }
+    }
 
     .doc { max-width: 820px; margin: 0 auto; padding: 44px 28px 80px; }
     .doc h1 {
@@ -143,83 +170,33 @@
       color: var(--text-primary);
     }
 
-    /* ── Query explorer ─────────────────────────────────────────── */
-    .explorer {
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--surface);
-      overflow: hidden;
-      margin: 16px 0 8px;
-    }
-    .explorer-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 12px;
-      border-bottom: 1px solid var(--border-subtle);
-      align-items: center;
-    }
-    .explorer-controls select,
-    .explorer-controls input[type="text"] {
-      font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 0.76rem;
-      color: var(--text-primary);
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 7px 10px;
-    }
-    .explorer-controls select { flex: 0 0 auto; }
-    .explorer-controls input[type="text"] { flex: 1 1 240px; min-width: 0; }
-
     .btn {
+      display: inline-block;
       font-family: 'Geist', -apple-system, sans-serif;
-      font-size: 0.76rem;
-      padding: 7px 14px;
-      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      padding: 8px 16px;
+      border: 1px solid var(--accent);
       border-radius: var(--radius-sm);
-      background: var(--bg);
+      background: var(--accent-muted);
       color: var(--text-primary);
-      cursor: pointer;
+      text-decoration: none;
       white-space: nowrap;
       transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out);
     }
-    .btn:hover { border-color: var(--accent); }
-    .btn-primary { background: var(--accent-muted); border-color: var(--accent); }
+    .btn:hover { background: var(--surface-raised); }
 
-    .explorer-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px 14px;
-      align-items: center;
-      padding: 8px 12px;
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    .explorer-meta .btn { padding: 4px 10px; font-size: 0.7rem; }
-    #ex-status { font-variant-numeric: tabular-nums; }
-
-    #ex-output {
-      margin: 0;
+    pre.code-block {
+      margin: 12px 0 6px;
       padding: 14px;
-      max-height: 420px;
-      overflow: auto;
+      overflow-x: auto;
       font-family: 'Geist Mono', ui-monospace, monospace;
       font-size: 0.72rem;
       line-height: 1.55;
       color: var(--text-primary);
       background: var(--surface-raised);
-      white-space: pre;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
     }
-    #ex-output:empty::before {
-      content: "Run a query to see the live response here.";
-      color: var(--text-secondary);
-      font-family: 'Geist', -apple-system, sans-serif;
-      font-style: italic;
-    }
-
-    .endpoint-note { font-size: 0.76rem; color: var(--text-secondary); padding: 0 2px; }
 
     /* Recipes */
     .recipes { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 6px; }
@@ -234,6 +211,7 @@
       background: var(--surface);
     }
     .recipe-title { font-size: 0.82rem; color: var(--text-primary); flex: 1 1 260px; }
+    .recipe-open { font-size: 0.76rem; white-space: nowrap; }
     .recipe-query {
       flex: 1 1 100%;
       font-family: 'Geist Mono', ui-monospace, monospace;
@@ -257,6 +235,18 @@
   <header class="site-header">
     <a class="site-title" href="/">AI Regulation Map</a>
     <nav aria-label="breadcrumb"><span>Data &amp; API</span></nav>
+    <div class="header-links">
+      <a href="/api-docs.html">API reference</a>
+      <a href="/methodology.html">Methodology</a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme" title="Switch theme">
+        <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/>
+        </svg>
+        <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
   </header>
 
   <main class="doc">
@@ -289,54 +279,80 @@
       </tbody>
     </table>
 
-    <h2 id="explorer">Query the live database</h2>
+    <h2 id="api">The read-only API</h2>
     <p>
       The database behind the site is publicly queryable through
       <a href="https://docs.postgrest.org/en/stable/references/api/tables_views.html" rel="noopener noreferrer">PostgREST</a>.
-      Try it here: pick an endpoint, edit the query, and run it. Every query you build
-      can be copied as a <code>curl</code> command or downloaded as CSV. For the complete
-      schema-level reference (every column and filter, generated from the database schema),
-      see the <a href="/api-docs.html">interactive API reference</a>.
+      The <a href="/api-docs.html">interactive API reference</a> documents every endpoint,
+      column, and filter (generated from the database schema itself), and runs queries
+      against the live API from the browser.
     </p>
-
-    <div class="explorer">
-      <div class="explorer-controls">
-        <label for="ex-endpoint" class="endpoint-note">Endpoint</label>
-        <select id="ex-endpoint" aria-label="API endpoint"></select>
-        <input id="ex-query" type="text" aria-label="PostgREST query string" spellcheck="false">
-        <button id="ex-run" class="btn btn-primary" type="button">Run</button>
-      </div>
-      <div class="explorer-meta">
-        <span id="ex-desc" class="endpoint-note"></span>
-        <span id="ex-status" role="status" aria-live="polite"></span>
-        <button id="ex-copy-curl" class="btn" type="button">Copy as curl</button>
-        <button id="ex-copy-url" class="btn" type="button">Copy URL</button>
-        <button id="ex-csv" class="btn" type="button">Download CSV</button>
-      </div>
-      <pre id="ex-output" tabindex="0" aria-label="API response"></pre>
-    </div>
-
-    <h2 id="recipes">Recipes</h2>
-    <div class="recipes" id="recipes"></div>
-
-    <h2 id="endpoints">Endpoints</h2>
+    <p><a class="btn" href="/api-docs.html">Open the API reference →</a></p>
     <table>
       <thead><tr><th>Endpoint</th><th>Contents</th></tr></thead>
-      <tbody id="endpoint-table"></tbody>
+      <tbody>
+        <tr><td><a href="/api-docs.html#/public_export">/public_export</a></td>
+            <td>The whole dataset flat: countries × scores × summaries.</td></tr>
+        <tr><td><a href="/api-docs.html#/countries">/countries</a></td>
+            <td>Canonical names, ISO codes, and name aliases.</td></tr>
+        <tr><td><a href="/api-docs.html#/country_scores">/country_scores</a></td>
+            <td>Current scores, incl. the sub-indicator breakdown (subscores).</td></tr>
+        <tr><td><a href="/api-docs.html#/country_summaries">/country_summaries</a></td>
+            <td>Per-dimension prose, key legislation, raw source list.</td></tr>
+        <tr><td><a href="/api-docs.html#/score_history">/score_history</a></td>
+            <td>Every score a country has ever carried, with dates.</td></tr>
+        <tr><td><a href="/api-docs.html#/sources_export">/sources_export</a></td>
+            <td>The accumulating sources database, with citing countries.</td></tr>
+        <tr><td><a href="/api-docs.html#/policy_initiatives">/policy_initiatives</a></td>
+            <td>Verified policy-initiative records (OECD.AI / GAIIN).</td></tr>
+        <tr><td><a href="/api-docs.html#/research_runs">/research_runs</a></td>
+            <td>Provenance: every research run, its model and prompt version.</td></tr>
+      </tbody>
     </table>
+    <p>
+      From your own scripts, authenticate with the public read-only token, in a header
+      or as an <code>apikey</code> query parameter. Add <code>Accept: text/csv</code>
+      for CSV instead of JSON:
+    </p>
+    <pre class="code-block" tabindex="0" aria-label="Example curl command">curl "https://wlakioilvvuuizxdhsdf.supabase.co/rest/v1/public_export?select=country,iso3,avg_score&amp;order=avg_score.desc.nullslast&amp;limit=10" \
+  -H "apikey: sb_publishable_mANlk3lYBOM8DWDKUjvhRg_yq0TyTEM"</pre>
     <p>
       Standard <a href="https://docs.postgrest.org/en/stable/references/api/tables_views.html#horizontal-filtering" rel="noopener noreferrer">PostgREST
       filter syntax</a> works everywhere: <code>column=eq.value</code>, <code>gte.</code>/<code>lte.</code>,
       <code>order=</code>, <code>limit=</code>/<code>offset=</code>, and embedded joins like
       <code>countries!inner(name)</code>. Responses are capped at 1,000 rows per request;
-      page with <code>limit</code>/<code>offset</code>. Requests are authenticated with the
-      read-only access token this page uses; the same token works from your own scripts
-      (it appears in the copied <code>curl</code> commands).
+      page with <code>limit</code>/<code>offset</code>.
     </p>
     <p>
       The API is infrastructure for research convenience. For archival reproducibility,
       cite the static files above or keep a copy of your extract.
     </p>
+
+    <h2 id="recipes">Recipes</h2>
+    <p>Worked queries that answer real research questions. Open runs the query live
+       in a new tab; the path works as-is in the reference, curl, or your own code.</p>
+    <div class="recipes">
+      <div class="recipe">
+        <span class="recipe-title">Germany's full score history</span>
+        <a class="recipe-open" href="https://wlakioilvvuuizxdhsdf.supabase.co/rest/v1/score_history?select=snapshot_date,scores,countries!inner(name)&amp;countries.name=eq.Germany&amp;order=snapshot_date&amp;apikey=sb_publishable_mANlk3lYBOM8DWDKUjvhRg_yq0TyTEM" target="_blank" rel="noopener noreferrer">Open ↗</a>
+        <span class="recipe-query">/score_history?select=snapshot_date,scores,countries!inner(name)&amp;countries.name=eq.Germany&amp;order=snapshot_date</span>
+      </div>
+      <div class="recipe">
+        <span class="recipe-title">Binding initiatives since 2024, most recent first</span>
+        <a class="recipe-open" href="https://wlakioilvvuuizxdhsdf.supabase.co/rest/v1/policy_initiatives?select=name,start_year,source_url,countries(name)&amp;binding=eq.Binding&amp;start_year=gte.2024&amp;order=start_year.desc&amp;apikey=sb_publishable_mANlk3lYBOM8DWDKUjvhRg_yq0TyTEM" target="_blank" rel="noopener noreferrer">Open ↗</a>
+        <span class="recipe-query">/policy_initiatives?select=name,start_year,source_url,countries(name)&amp;binding=eq.Binding&amp;start_year=gte.2024&amp;order=start_year.desc</span>
+      </div>
+      <div class="recipe">
+        <span class="recipe-title">High-confidence countries, ranked by maturity</span>
+        <a class="recipe-open" href="https://wlakioilvvuuizxdhsdf.supabase.co/rest/v1/public_export?select=country,iso3,avg_score&amp;confidence=eq.high&amp;order=avg_score.desc&amp;limit=25&amp;apikey=sb_publishable_mANlk3lYBOM8DWDKUjvhRg_yq0TyTEM" target="_blank" rel="noopener noreferrer">Open ↗</a>
+        <span class="recipe-query">/public_export?select=country,iso3,avg_score&amp;confidence=eq.high&amp;order=avg_score.desc&amp;limit=25</span>
+      </div>
+      <div class="recipe">
+        <span class="recipe-title">Which countries cite the EU AI Act (EUR-Lex)?</span>
+        <a class="recipe-open" href="https://wlakioilvvuuizxdhsdf.supabase.co/rest/v1/sources_export?select=url,countries&amp;url=like.*eur-lex*&amp;apikey=sb_publishable_mANlk3lYBOM8DWDKUjvhRg_yq0TyTEM" target="_blank" rel="noopener noreferrer">Open ↗</a>
+        <span class="recipe-query">/sources_export?select=url,countries&amp;url=like.*eur-lex*</span>
+      </div>
+    </div>
 
     <h2 id="citation">Attribution &amp; citation</h2>
     <p>
@@ -355,189 +371,21 @@
   </main>
 
   <footer>
-    <p><a href="/">← Back to the map</a> &nbsp;·&nbsp; <a href="/methodology.html">Methodology</a></p>
+    <p><a href="/">← Back to the map</a> &nbsp;·&nbsp; <a href="/api-docs.html">API reference</a> &nbsp;·&nbsp; <a href="/methodology.html">Methodology</a></p>
   </footer>
 
   <script>
     (function () {
-      var BASE = 'https://wlakioilvvuuizxdhsdf.supabase.co/rest/v1';
-      // Read-only public access token (row-level security enforces SELECT).
-      var TOKEN = 'sb_publishable_mANlk3lYBOM8DWDKUjvhRg_yq0TyTEM';
-
-      var ENDPOINTS = [
-        { name: 'public_export', desc: 'The whole dataset flat: countries × scores × summaries.',
-          query: 'select=country,iso3,avg_score,confidence,scored_at&order=avg_score.desc.nullslast&limit=10' },
-        { name: 'countries', desc: 'Canonical names, ISO codes, and name aliases.',
-          query: 'select=name,iso2,iso3,aliases&order=name&limit=10' },
-        { name: 'country_scores', desc: 'Current scores, incl. the sub-indicator breakdown (subscores).',
-          query: 'select=regulation_status,policy_lever,enforcement_level,avg_score,confidence,subscores&limit=3' },
-        { name: 'country_summaries', desc: 'Per-dimension prose, key legislation, raw source list.',
-          query: 'select=regulation_status_text,specific_laws&limit=3' },
-        { name: 'score_history', desc: 'Every score a country has ever carried, with dates.',
-          query: 'select=snapshot_date,scores,countries!inner(name)&countries.name=eq.Germany&order=snapshot_date' },
-        { name: 'sources_export', desc: 'The accumulating sources database, with citing countries.',
-          query: 'select=url,source_type,countries&source_type=eq.intergovernmental&limit=10' },
-        { name: 'policy_initiatives', desc: 'Verified policy-initiative records (OECD.AI / GAIIN).',
-          query: 'select=name,start_year,binding,status,countries(name)&order=start_year.desc.nullslast&limit=10' },
-        { name: 'research_runs', desc: 'Provenance: every research run, its model and prompt version.',
-          query: 'select=started_at,trigger,model,prompt_version,grounded,countries_succeeded&order=started_at.desc&limit=10' }
-      ];
-
-      var RECIPES = [
-        { title: "Germany's full score history",
-          endpoint: 'score_history',
-          query: 'select=snapshot_date,scores,countries!inner(name)&countries.name=eq.Germany&order=snapshot_date' },
-        { title: 'Binding initiatives since 2024, most recent first',
-          endpoint: 'policy_initiatives',
-          query: 'select=name,start_year,source_url,countries(name)&binding=eq.Binding&start_year=gte.2024&order=start_year.desc' },
-        { title: 'High-confidence countries, ranked by maturity',
-          endpoint: 'public_export',
-          query: 'select=country,iso3,avg_score&confidence=eq.high&order=avg_score.desc&limit=25' },
-        { title: 'Which countries cite the EU AI Act (EUR-Lex)?',
-          endpoint: 'sources_export',
-          query: 'select=url,countries&url=like.*eur-lex*' }
-      ];
-
-      var endpointSel = document.getElementById('ex-endpoint');
-      var queryInput = document.getElementById('ex-query');
-      var descEl = document.getElementById('ex-desc');
-      var statusEl = document.getElementById('ex-status');
-      var output = document.getElementById('ex-output');
-
-      ENDPOINTS.forEach(function (e) {
-        var opt = document.createElement('option');
-        opt.value = e.name;
-        opt.textContent = '/' + e.name;
-        endpointSel.appendChild(opt);
-
-        var row = document.createElement('tr');
-        var name = document.createElement('td');
-        var code = document.createElement('code');
-        code.textContent = '/' + e.name;
-        name.appendChild(code);
-        var desc = document.createElement('td');
-        desc.textContent = e.desc;
-        row.append(name, desc);
-        document.getElementById('endpoint-table').appendChild(row);
+      var toggle = document.getElementById('theme-toggle');
+      if (!toggle) return;
+      toggle.addEventListener('click', function () {
+        var root = document.documentElement;
+        var current = root.getAttribute('data-theme')
+          || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        var next = current === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('theme', next); } catch (e) { /* storage blocked */ }
       });
-
-      function current() {
-        return ENDPOINTS.find(function (e) { return e.name === endpointSel.value; }) || ENDPOINTS[0];
-      }
-
-      function applyEndpoint() {
-        var e = current();
-        queryInput.value = e.query;
-        descEl.textContent = e.desc;
-      }
-
-      function url() {
-        var qs = queryInput.value.trim();
-        return BASE + '/' + endpointSel.value + (qs ? '?' + qs : '');
-      }
-
-      function curlCommand(csv) {
-        return 'curl "' + url() + '" \\\n'
-          + '  -H "apikey: ' + TOKEN + '" \\\n'
-          + '  -H "Authorization: Bearer ' + TOKEN + '"'
-          + (csv ? ' \\\n  -H "Accept: text/csv"' : '');
-      }
-
-      function headers(extra) {
-        var h = { apikey: TOKEN, Authorization: 'Bearer ' + TOKEN, Prefer: 'count=exact' };
-        if (extra) for (var k in extra) h[k] = extra[k];
-        return h;
-      }
-
-      function run() {
-        statusEl.textContent = 'Running…';
-        output.textContent = '';
-        fetch(url(), { headers: headers() }).then(function (resp) {
-          var range = resp.headers.get('content-range') || '';
-          var total = range.indexOf('/') >= 0 ? range.split('/')[1] : '';
-          return resp.json().then(function (body) {
-            if (!resp.ok) {
-              statusEl.textContent = 'HTTP ' + resp.status;
-              output.textContent = JSON.stringify(body, null, 2);
-              return;
-            }
-            var n = Array.isArray(body) ? body.length : 1;
-            statusEl.textContent = n + ' row' + (n === 1 ? '' : 's')
-              + (total && total !== '*' ? ' of ' + total + ' total' : '');
-            output.textContent = JSON.stringify(body, null, 2);
-          });
-        }).catch(function () {
-          statusEl.textContent = 'Unreachable';
-          output.textContent = 'The live API did not respond; it may be waking from idle.\n'
-            + 'The static files above always work; try again in a minute.';
-        });
-      }
-
-      function copy(button, text) {
-        var original = button.textContent;
-        (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
-          .then(function () { button.textContent = 'Copied ✓'; })
-          .catch(function () { button.textContent = 'Copy failed'; })
-          .then(function () { setTimeout(function () { button.textContent = original; }, 1500); });
-      }
-
-      function downloadCsv() {
-        statusEl.textContent = 'Fetching CSV…';
-        fetch(url(), { headers: headers({ Accept: 'text/csv' }) }).then(function (resp) {
-          if (!resp.ok) { statusEl.textContent = 'HTTP ' + resp.status; return null; }
-          return resp.blob();
-        }).then(function (blob) {
-          if (!blob) return;
-          var a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = 'airegulationmap-' + endpointSel.value + '.csv';
-          a.click();
-          URL.revokeObjectURL(a.href);
-          statusEl.textContent = 'CSV downloaded';
-        }).catch(function () { statusEl.textContent = 'Unreachable'; });
-      }
-
-      var recipes = document.getElementById('recipes');
-      RECIPES.forEach(function (r) {
-        var card = document.createElement('div');
-        card.className = 'recipe';
-
-        var title = document.createElement('span');
-        title.className = 'recipe-title';
-        title.textContent = r.title;
-
-        var tryBtn = document.createElement('button');
-        tryBtn.type = 'button';
-        tryBtn.className = 'btn';
-        tryBtn.textContent = 'Try it';
-        tryBtn.addEventListener('click', function () {
-          endpointSel.value = r.endpoint;
-          applyEndpoint();
-          queryInput.value = r.query;
-          run();
-          document.getElementById('explorer').scrollIntoView({ block: 'start' });
-        });
-
-        var q = document.createElement('span');
-        q.className = 'recipe-query';
-        q.textContent = '/' + r.endpoint + '?' + r.query;
-
-        card.append(title, tryBtn, q);
-        recipes.appendChild(card);
-      });
-
-      endpointSel.addEventListener('change', applyEndpoint);
-      document.getElementById('ex-run').addEventListener('click', run);
-      queryInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); });
-      document.getElementById('ex-copy-curl').addEventListener('click', function () {
-        copy(this, curlCommand(false));
-      });
-      document.getElementById('ex-copy-url').addEventListener('click', function () {
-        copy(this, url());
-      });
-      document.getElementById('ex-csv').addEventListener('click', downloadCsv);
-
-      applyEndpoint();
     })();
   </script>
 </body>

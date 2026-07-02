@@ -1,47 +1,52 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-// The researcher-facing docs: the Data & API page's live query explorer and
-// the self-hosted Swagger UI reference. Explorer API traffic is route-mocked
-// (hermetic in CI, failure copy covered); the Swagger page reads only the
-// committed spec snapshot, so it needs no mocks at all.
+// The researcher-facing docs: the static Data & API overview and the
+// self-hosted Swagger UI reference. Neither page needs route mocks: the
+// overview makes no requests on load, and the Swagger page reads only the
+// committed spec snapshot (public/openapi.json).
 
-test('data.html explorer runs a query and renders the live response', async ({ page }) => {
-  await page.route('**/rest/v1/**', route =>
-    route.fulfill({
-      json: [{ country: 'Testland', iso3: 'TST', avg_score: 3.75 }],
-      headers: {
-        'content-range': '0-0/196',
-        // Production Supabase exposes Content-Range (verified); the mock
-        // must too or the cross-origin page can't read it.
-        'access-control-expose-headers': 'Content-Range',
-      },
-    })
-  );
-
+test('data.html is a static overview that routes to the API reference', async ({ page }) => {
   await page.goto('/data.html');
-  await expect(page.locator('#ex-endpoint option')).toHaveCount(8);
 
-  await page.click('#ex-run');
-  await expect(page.locator('#ex-output')).toContainText('Testland');
-  await expect(page.locator('#ex-status')).toContainText('1 row of 196 total');
+  // Dataset downloads and the endpoint overview render statically.
+  await expect(page.locator('a[download]')).toHaveCount(5);
+  const endpointLinks = page.locator('a[href^="/api-docs.html#/"]');
+  await expect(endpointLinks).toHaveCount(8);
 
-  // Recipes load into the explorer and run.
-  await page.locator('.recipe .btn').first().click();
-  await expect(page.locator('#ex-endpoint')).toHaveValue('score_history');
-  await expect(page.locator('#ex-output')).toContainText('Testland');
+  // The API reference is one click away from header, body CTA, and footer.
+  await expect(page.locator('.header-links a[href="/api-docs.html"]')).toBeVisible();
+  await expect(page.locator('a.btn[href="/api-docs.html"]')).toBeVisible();
+  await expect(page.locator('footer a[href="/api-docs.html"]')).toBeVisible();
+
+  // Recipes are plain links that carry the read-only token, so they open
+  // live JSON in the browser with no JS on this page.
+  const recipes = page.locator('.recipe-open');
+  await expect(recipes).toHaveCount(4);
+  for (const href of await recipes.evaluateAll(list => list.map(a => (a as HTMLAnchorElement).href))) {
+    expect(href).toContain('/rest/v1/');
+    expect(href).toContain('apikey=');
+  }
 
   const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = results.violations.filter(v => v.impact === 'serious' || v.impact === 'critical');
   expect(serious, JSON.stringify(serious.map(v => v.id))).toEqual([]);
 });
 
-test('data.html explorer degrades calmly when the API is unreachable', async ({ page }) => {
-  await page.route('**/rest/v1/**', route => route.abort());
+test('docs pages have a working theme toggle', async ({ page }) => {
   await page.goto('/data.html');
-  await page.click('#ex-run');
-  await expect(page.locator('#ex-status')).toHaveText('Unreachable');
-  await expect(page.locator('#ex-output')).toContainText('static files above always work');
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.click('#theme-toggle');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.click('#theme-toggle');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+
+  // The choice persists to the API reference page (shared localStorage key).
+  await page.click('#theme-toggle');
+  await page.goto('/api-docs.html');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.click('#theme-toggle');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
 test('api-docs.html renders Swagger UI from the committed spec snapshot', async ({ page }) => {
