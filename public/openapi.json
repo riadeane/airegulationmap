@@ -139,6 +139,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Verified AI policy initiatives from the OECD.AI Policy Observatory (Policy Navigator / GAIIN). Jurisdictions outside the dataset (for example the EU and other IGOs) keep country_id null.",
         "tags": [
           "policy_initiatives"
         ]
@@ -160,6 +161,7 @@
             "description": "Created"
           }
         },
+        "summary": "Verified AI policy initiatives from the OECD.AI Policy Observatory (Policy Navigator / GAIIN). Jurisdictions outside the dataset (for example the EU and other IGOs) keep country_id null.",
         "tags": [
           "policy_initiatives"
         ]
@@ -235,6 +237,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Verified AI policy initiatives from the OECD.AI Policy Observatory (Policy Navigator / GAIIN). Jurisdictions outside the dataset (for example the EU and other IGOs) keep country_id null.",
         "tags": [
           "policy_initiatives"
         ]
@@ -313,6 +316,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Verified AI policy initiatives from the OECD.AI Policy Observatory (Policy Navigator / GAIIN). Jurisdictions outside the dataset (for example the EU and other IGOs) keep country_id null.",
         "tags": [
           "policy_initiatives"
         ]
@@ -399,6 +403,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators, and research confidence.",
         "tags": [
           "country_scores"
         ]
@@ -420,6 +425,7 @@
             "description": "Created"
           }
         },
+        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators, and research confidence.",
         "tags": [
           "country_scores"
         ]
@@ -477,6 +483,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators, and research confidence.",
         "tags": [
           "country_scores"
         ]
@@ -537,6 +544,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators, and research confidence.",
         "tags": [
           "country_scores"
         ]
@@ -605,6 +613,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Canonical country registry: one row per dataset country, with ISO 3166 codes and accepted name aliases.",
         "tags": [
           "countries"
         ]
@@ -626,6 +635,7 @@
             "description": "Created"
           }
         },
+        "summary": "Canonical country registry: one row per dataset country, with ISO 3166 codes and accepted name aliases.",
         "tags": [
           "countries"
         ]
@@ -665,6 +675,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Canonical country registry: one row per dataset country, with ISO 3166 codes and accepted name aliases.",
         "tags": [
           "countries"
         ]
@@ -707,6 +718,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Canonical country registry: one row per dataset country, with ISO 3166 codes and accepted name aliases.",
         "tags": [
           "countries"
         ]
@@ -772,6 +784,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Flat source export: every cited URL with its classification and the countries whose research cites it. Also serves as CSV via Accept: text/csv.",
         "tags": [
           "sources_export"
         ]
@@ -879,6 +892,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Flat research export: one row per country joining scores, sub-indicators, and prose. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
         "tags": [
           "public_export"
         ]
@@ -944,6 +958,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Citation links: which sources each country's research cited, by dimension.",
         "tags": [
           "country_sources"
         ]
@@ -965,6 +980,7 @@
             "description": "Created"
           }
         },
+        "summary": "Citation links: which sources each country's research cited, by dimension.",
         "tags": [
           "country_sources"
         ]
@@ -1001,6 +1017,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Citation links: which sources each country's research cited, by dimension.",
         "tags": [
           "country_sources"
         ]
@@ -1040,6 +1057,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Citation links: which sources each country's research cited, by dimension.",
         "tags": [
           "country_sources"
         ]
@@ -1099,6 +1117,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Change-point score snapshots per country; the timeline's raw data. One row per country per snapshot date.",
         "tags": [
           "score_history"
         ]
@@ -1120,6 +1139,7 @@
             "description": "Created"
           }
         },
+        "summary": "Change-point score snapshots per country; the timeline's raw data. One row per country per snapshot date.",
         "tags": [
           "score_history"
         ]
@@ -1150,6 +1170,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Change-point score snapshots per country; the timeline's raw data. One row per country per snapshot date.",
         "tags": [
           "score_history"
         ]
@@ -1183,6 +1204,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Change-point score snapshots per country; the timeline's raw data. One row per country per snapshot date.",
         "tags": [
           "score_history"
         ]
@@ -1272,6 +1294,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Provenance for every pipeline run: model, strategy, prompt version, counts, token usage, and estimated cost.",
         "tags": [
           "research_runs"
         ]
@@ -1293,6 +1316,7 @@
             "description": "Created"
           }
         },
+        "summary": "Provenance for every pipeline run: model, strategy, prompt version, counts, token usage, and estimated cost.",
         "tags": [
           "research_runs"
         ]
@@ -1353,6 +1377,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Provenance for every pipeline run: model, strategy, prompt version, counts, token usage, and estimated cost.",
         "tags": [
           "research_runs"
         ]
@@ -1416,6 +1441,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Provenance for every pipeline run: model, strategy, prompt version, counts, token usage, and estimated cost.",
         "tags": [
           "research_runs"
         ]
@@ -1496,6 +1522,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Latest research prose per country: per-dimension descriptions, key legislation, and the verbatim source list.",
         "tags": [
           "country_summaries"
         ]
@@ -1517,6 +1544,7 @@
             "description": "Created"
           }
         },
+        "summary": "Latest research prose per country: per-dimension descriptions, key legislation, and the verbatim source list.",
         "tags": [
           "country_summaries"
         ]
@@ -1568,6 +1596,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Latest research prose per country: per-dimension descriptions, key legislation, and the verbatim source list.",
         "tags": [
           "country_summaries"
         ]
@@ -1622,6 +1651,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Latest research prose per country: per-dimension descriptions, key legislation, and the verbatim source list.",
         "tags": [
           "country_summaries"
         ]
@@ -1678,6 +1708,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Evidence-sync bookkeeping, one row per external source.",
         "tags": [
           "sync_state"
         ]
@@ -1699,6 +1730,7 @@
             "description": "Created"
           }
         },
+        "summary": "Evidence-sync bookkeeping, one row per external source.",
         "tags": [
           "sync_state"
         ]
@@ -1726,6 +1758,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Evidence-sync bookkeeping, one row per external source.",
         "tags": [
           "sync_state"
         ]
@@ -1756,6 +1789,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Evidence-sync bookkeeping, one row per external source.",
         "tags": [
           "sync_state"
         ]
@@ -1821,6 +1855,7 @@
             "description": "Partial Content"
           }
         },
+        "summary": "Deep-research source registry: every URL cited by any research run, classified, accumulating over time.",
         "tags": [
           "sources"
         ]
@@ -1842,6 +1877,7 @@
             "description": "Created"
           }
         },
+        "summary": "Deep-research source registry: every URL cited by any research run, classified, accumulating over time.",
         "tags": [
           "sources"
         ]
@@ -1878,6 +1914,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Deep-research source registry: every URL cited by any research run, classified, accumulating over time.",
         "tags": [
           "sources"
         ]
@@ -1917,6 +1954,7 @@
             "description": "No Content"
           }
         },
+        "summary": "Deep-research source registry: every URL cited by any research run, classified, accumulating over time.",
         "tags": [
           "sources"
         ]
@@ -1925,6 +1963,7 @@
   },
   "definitions": {
     "policy_initiatives": {
+      "description": "Verified AI policy initiatives from the OECD.AI Policy Observatory (Policy Navigator / GAIIN). Jurisdictions outside the dataset (for example the EU and other IGOs) keep country_id null.",
       "required": [
         "id",
         "source",
@@ -1937,69 +1976,83 @@
       "properties": {
         "id": {
           "default": "gen_random_uuid()",
-          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "description": "Row UUID.\n\nNote:\nThis is a Primary Key.<pk/>",
           "format": "uuid",
           "type": "string"
         },
         "source": {
           "default": "oecd",
+          "description": "Evidence source identifier (currently oecd_gaiin).",
           "format": "text",
           "type": "string"
         },
         "external_id": {
+          "description": "Record id within the evidence source; unique per source.",
           "format": "text",
           "type": "string"
         },
         "country_id": {
-          "description": "Note:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
+          "description": "FK to countries.id; null when the jurisdiction is not a dataset country.\n\nNote:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "country_raw": {
+          "description": "Jurisdiction label exactly as the source provided it.",
           "format": "text",
           "type": "string"
         },
         "name": {
+          "description": "Initiative title (English).",
           "format": "text",
           "type": "string"
         },
         "category": {
+          "description": "Source taxonomy category, for example Regulations, guidelines and standards.",
           "format": "text",
           "type": "string"
         },
         "initiative_type": {
+          "description": "Instrument type from the source taxonomy.",
           "format": "text",
           "type": "string"
         },
         "binding": {
+          "description": "Legal force as stated by the source: Binding, Non-binding, or null when unstated.",
           "format": "text",
           "type": "string"
         },
         "status": {
+          "description": "Lifecycle status as stated by the source.",
           "format": "text",
           "type": "string"
         },
         "start_year": {
+          "description": "Year the initiative began, when stated.",
           "format": "integer",
           "type": "integer"
         },
         "end_year": {
+          "description": "Year the initiative ended, when stated.",
           "format": "integer",
           "type": "integer"
         },
         "description": {
+          "description": "Short description from the source.",
           "format": "text",
           "type": "string"
         },
         "overview": {
+          "description": "Long-form overview from the source, HTML stripped.",
           "format": "text",
           "type": "string"
         },
         "source_url": {
+          "description": "Official page or document URL for the initiative.",
           "format": "text",
           "type": "string"
         },
         "principles": {
+          "description": "OECD AI Principles the source tagged.",
           "format": "text[]",
           "items": {
             "type": "string"
@@ -2007,6 +2060,7 @@
           "type": "array"
         },
         "tags": {
+          "description": "Free-form tags from the source.",
           "format": "text[]",
           "items": {
             "type": "string"
@@ -2014,14 +2068,17 @@
           "type": "array"
         },
         "raw": {
+          "description": "Complete original record as fetched, kept for auditability.",
           "format": "jsonb"
         },
         "first_synced": {
           "default": "now()",
+          "description": "When the sync first stored this record.",
           "format": "timestamp with time zone",
           "type": "string"
         },
         "updated_at": {
+          "description": "Source-side last-update time, used for delta detection; null when the source omits it.",
           "format": "timestamp with time zone",
           "type": "string"
         }
@@ -2029,6 +2086,7 @@
       "type": "object"
     },
     "country_scores": {
+      "description": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators, and research confidence.",
       "required": [
         "id",
         "country_id",
@@ -2038,62 +2096,73 @@
       "properties": {
         "id": {
           "default": "gen_random_uuid()",
-          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "description": "Row UUID.\n\nNote:\nThis is a Primary Key.<pk/>",
           "format": "uuid",
           "type": "string"
         },
         "country_id": {
-          "description": "Note:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
+          "description": "FK to countries.id; unique, one row per country.\n\nNote:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "regulation_status": {
+          "description": "Existence and maturity of AI-specific regulation, 1 to 5 (normative).",
           "format": "numeric",
           "type": "number"
         },
         "policy_lever": {
+          "description": "Breadth of policy instruments in use, 1 to 5 (normative).",
           "format": "numeric",
           "type": "number"
         },
         "governance_type": {
+          "description": "Where regulatory authority sits, 1 centralized to 5 distributed (descriptive; excluded from avg_score).",
           "format": "numeric",
           "type": "number"
         },
         "actor_involvement": {
+          "description": "Who shapes policy, 1 narrow expert circles to 5 broad participation (descriptive; excluded from avg_score).",
           "format": "numeric",
           "type": "number"
         },
         "enforcement_level": {
+          "description": "Enforcement rigor, 1 to 5 (normative).",
           "format": "numeric",
           "type": "number"
         },
         "avg_score": {
+          "description": "Maturity index: mean of the three normative dimensions (regulation_status, policy_lever, enforcement_level).",
           "format": "numeric",
           "type": "number"
         },
         "subscores": {
+          "description": "Methodology v2 audit trail: four named integer sub-indicators per dimension, same shape as subscores.json.",
           "format": "jsonb"
         },
         "confidence": {
+          "description": "Research confidence: high, medium, or low.",
           "format": "text",
           "type": "string"
         },
         "data_version": {
           "default": 1,
+          "description": "Dataset schema version of the row.",
           "format": "integer",
           "type": "integer"
         },
         "run_id": {
-          "description": "Note:\nThis is a Foreign Key to `research_runs.id`.<fk table='research_runs' column='id'/>",
+          "description": "FK to research_runs.id: the run that produced this row.\n\nNote:\nThis is a Foreign Key to `research_runs.id`.<fk table='research_runs' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "scored_at": {
+          "description": "Date the country was last researched.",
           "format": "date",
           "type": "string"
         },
         "updated_at": {
           "default": "now()",
+          "description": "Last modification time.",
           "format": "timestamp with time zone",
           "type": "string"
         }
@@ -2101,6 +2170,7 @@
       "type": "object"
     },
     "countries": {
+      "description": "Canonical country registry: one row per dataset country, with ISO 3166 codes and accepted name aliases.",
       "required": [
         "id",
         "name",
@@ -2111,30 +2181,35 @@
       "properties": {
         "id": {
           "default": "gen_random_uuid()",
-          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "description": "Row UUID.\n\nNote:\nThis is a Primary Key.<pk/>",
           "format": "uuid",
           "type": "string"
         },
         "name": {
+          "description": "Canonical country name; exactly matches scores.csv and the map.",
           "format": "text",
           "type": "string"
         },
         "iso3": {
+          "description": "ISO 3166-1 alpha-3 code (XKX for Kosovo); null where none exists.",
           "format": "character",
           "maxLength": 3,
           "type": "string"
         },
         "iso2": {
+          "description": "ISO 3166-1 alpha-2 code; null where none exists.",
           "format": "character",
           "maxLength": 2,
           "type": "string"
         },
         "iso_numeric": {
+          "description": "ISO 3166-1 numeric code, zero-padded to three digits; matches the world-atlas TopoJSON geometry ids; null where none exists.",
           "format": "character",
           "maxLength": 3,
           "type": "string"
         },
         "aliases": {
+          "description": "Accepted alternate names, used for normalization.",
           "format": "text[]",
           "items": {
             "type": "string"
@@ -2143,11 +2218,13 @@
         },
         "created_at": {
           "default": "now()",
+          "description": "Row creation time.",
           "format": "timestamp with time zone",
           "type": "string"
         },
         "updated_at": {
           "default": "now()",
+          "description": "Last modification time.",
           "format": "timestamp with time zone",
           "type": "string"
         }
@@ -2155,32 +2232,40 @@
       "type": "object"
     },
     "sources_export": {
+      "description": "Flat source export: every cited URL with its classification and the countries whose research cites it. Also serves as CSV via Accept: text/csv.",
       "properties": {
         "url": {
+          "description": "Full source URL.",
           "format": "text",
           "type": "string"
         },
         "domain": {
+          "description": "Lowercased host of the URL.",
           "format": "text",
           "type": "string"
         },
         "source_type": {
+          "description": "Classification: official, intergovernmental, academic, news, industry, or other.",
           "format": "text",
           "type": "string"
         },
         "title": {
+          "description": "Human-readable page title; null until enriched.",
           "format": "text",
           "type": "string"
         },
         "first_seen": {
+          "description": "First time a research run cited this URL.",
           "format": "timestamp with time zone",
           "type": "string"
         },
         "last_seen": {
+          "description": "Most recent time a research run cited this URL.",
           "format": "timestamp with time zone",
           "type": "string"
         },
         "countries": {
+          "description": "Names of countries whose research cites this source.",
           "format": "text[]",
           "items": {
             "type": "string"
@@ -2191,89 +2276,111 @@
       "type": "object"
     },
     "public_export": {
+      "description": "Flat research export: one row per country joining scores, sub-indicators, and prose. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
       "properties": {
         "country": {
+          "description": "Canonical country name.",
           "format": "text",
           "type": "string"
         },
         "iso2": {
+          "description": "ISO 3166-1 alpha-2 code.",
           "format": "character",
           "maxLength": 2,
           "type": "string"
         },
         "iso3": {
+          "description": "ISO 3166-1 alpha-3 code.",
           "format": "character",
           "maxLength": 3,
           "type": "string"
         },
         "regulation_status": {
+          "description": "Existence and maturity of AI-specific regulation, 1 to 5 (normative).",
           "format": "numeric",
           "type": "number"
         },
         "policy_lever": {
+          "description": "Breadth of policy instruments in use, 1 to 5 (normative).",
           "format": "numeric",
           "type": "number"
         },
         "governance_type": {
+          "description": "Where regulatory authority sits, 1 centralized to 5 distributed (descriptive).",
           "format": "numeric",
           "type": "number"
         },
         "actor_involvement": {
+          "description": "Who shapes policy, 1 narrow to 5 broad (descriptive).",
           "format": "numeric",
           "type": "number"
         },
         "enforcement_level": {
+          "description": "Enforcement rigor, 1 to 5 (normative).",
           "format": "numeric",
           "type": "number"
         },
         "avg_score": {
+          "description": "Maturity index: mean of the three normative dimensions.",
           "format": "numeric",
           "type": "number"
         },
         "confidence": {
+          "description": "Research confidence: high, medium, or low.",
           "format": "text",
           "type": "string"
         },
         "subscores": {
+          "description": "Methodology v2 sub-indicators, same shape as subscores.json.",
           "format": "jsonb"
         },
         "data_version": {
+          "description": "Dataset schema version of the row.",
           "format": "integer",
           "type": "integer"
         },
         "scored_at": {
+          "description": "Date the scores were last researched.",
           "format": "date",
           "type": "string"
         },
         "regulation_status_text": {
+          "description": "Prose for the regulation status dimension.",
           "format": "text",
           "type": "string"
         },
         "policy_lever_text": {
+          "description": "Prose for the policy lever dimension.",
           "format": "text",
           "type": "string"
         },
         "governance_type_text": {
+          "description": "Prose for the governance type dimension.",
           "format": "text",
           "type": "string"
         },
         "actor_involvement_text": {
+          "description": "Prose for the actor involvement dimension.",
           "format": "text",
           "type": "string"
         },
         "enforcement_level_text": {
+          "description": "Prose for the enforcement level dimension.",
           "format": "text",
           "type": "string"
         },
         "specific_laws": {
+          "description": "Key laws, bills, and frameworks, cited by name.",
           "format": "text",
           "type": "string"
         },
         "sources_raw": {
+          "description": "Verbatim source URL list (newline separated).",
           "format": "text",
           "type": "string"
         },
         "summarized_at": {
+          "description": "Date the prose was last researched.",
           "format": "date",
           "type": "string"
         }
@@ -2281,6 +2388,7 @@
       "type": "object"
     },
     "country_sources": {
+      "description": "Citation links: which sources each country's research cited, by dimension.",
       "required": [
         "id",
         "country_id",
@@ -2292,37 +2400,40 @@
       "properties": {
         "id": {
           "default": "gen_random_uuid()",
-          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "description": "Row UUID.\n\nNote:\nThis is a Primary Key.<pk/>",
           "format": "uuid",
           "type": "string"
         },
         "country_id": {
-          "description": "Note:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
+          "description": "FK to countries.id.\n\nNote:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "source_id": {
-          "description": "Note:\nThis is a Foreign Key to `sources.id`.<fk table='sources' column='id'/>",
+          "description": "FK to sources.id.\n\nNote:\nThis is a Foreign Key to `sources.id`.<fk table='sources' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "dimension": {
           "default": "general",
+          "description": "Score dimension the citation supports; general when unattributed.",
           "format": "text",
           "type": "string"
         },
         "run_id": {
-          "description": "Note:\nThis is a Foreign Key to `research_runs.id`.<fk table='research_runs' column='id'/>",
+          "description": "FK to research_runs.id: the most recent run that cited it.\n\nNote:\nThis is a Foreign Key to `research_runs.id`.<fk table='research_runs' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "first_cited": {
           "default": "now()",
+          "description": "First citation time for this country and source.",
           "format": "timestamp with time zone",
           "type": "string"
         },
         "last_cited": {
           "default": "now()",
+          "description": "Most recent citation time for this country and source.",
           "format": "timestamp with time zone",
           "type": "string"
         }
@@ -2330,6 +2441,7 @@
       "type": "object"
     },
     "score_history": {
+      "description": "Change-point score snapshots per country; the timeline's raw data. One row per country per snapshot date.",
       "required": [
         "id",
         "country_id",
@@ -2339,24 +2451,26 @@
       "properties": {
         "id": {
           "default": "gen_random_uuid()",
-          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "description": "Row UUID.\n\nNote:\nThis is a Primary Key.<pk/>",
           "format": "uuid",
           "type": "string"
         },
         "country_id": {
-          "description": "Note:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
+          "description": "FK to countries.id.\n\nNote:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "snapshot_date": {
+          "description": "Date of the snapshot; a row exists only when scores changed.",
           "format": "date",
           "type": "string"
         },
         "scores": {
+          "description": "Score set at that date, same JSON shape as history.json entries.",
           "format": "jsonb"
         },
         "run_id": {
-          "description": "Note:\nThis is a Foreign Key to `research_runs.id`.<fk table='research_runs' column='id'/>",
+          "description": "FK to research_runs.id: the run that recorded the snapshot.\n\nNote:\nThis is a Foreign Key to `research_runs.id`.<fk table='research_runs' column='id'/>",
           "format": "uuid",
           "type": "string"
         }
@@ -2364,6 +2478,7 @@
       "type": "object"
     },
     "research_runs": {
+      "description": "Provenance for every pipeline run: model, strategy, prompt version, counts, token usage, and estimated cost.",
       "required": [
         "id",
         "started_at",
@@ -2373,65 +2488,79 @@
       "properties": {
         "id": {
           "default": "gen_random_uuid()",
-          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "description": "Run UUID; referenced by run_id columns elsewhere.\n\nNote:\nThis is a Primary Key.<pk/>",
           "format": "uuid",
           "type": "string"
         },
         "started_at": {
           "default": "now()",
+          "description": "Run start time.",
           "format": "timestamp with time zone",
           "type": "string"
         },
         "finished_at": {
+          "description": "Run end time; null if the run died before finishing.",
           "format": "timestamp with time zone",
           "type": "string"
         },
         "trigger": {
+          "description": "What started the run: schedule, manual, seed, or backfill.",
           "format": "text",
           "type": "string"
         },
         "model": {
+          "description": "Claude model id used for research.",
           "format": "text",
           "type": "string"
         },
         "strategy": {
+          "description": "Request strategy: sync (one request per country) or batch (Message Batches API).",
           "format": "text",
           "type": "string"
         },
         "prompt_version": {
+          "description": "Version tag of the research prompt template.",
           "format": "text",
           "type": "string"
         },
         "grounded": {
           "default": false,
+          "description": "True when prompts injected verified policy-initiative evidence.",
           "format": "boolean",
           "type": "boolean"
         },
         "countries_attempted": {
+          "description": "Countries the run tried to research.",
           "format": "integer",
           "type": "integer"
         },
         "countries_succeeded": {
+          "description": "Countries that produced a valid, persisted result.",
           "format": "integer",
           "type": "integer"
         },
         "input_tokens": {
+          "description": "Total input tokens across the run.",
           "format": "bigint",
           "type": "integer"
         },
         "output_tokens": {
+          "description": "Total output tokens across the run.",
           "format": "bigint",
           "type": "integer"
         },
         "est_cost_usd": {
+          "description": "Rough API cost estimate in USD.",
           "format": "numeric",
           "type": "number"
         },
         "git_sha": {
+          "description": "Pipeline code commit that produced the run.",
           "format": "text",
           "type": "string"
         },
         "notes": {
+          "description": "Free-form operator notes.",
           "format": "text",
           "type": "string"
         }
@@ -2439,6 +2568,7 @@
       "type": "object"
     },
     "country_summaries": {
+      "description": "Latest research prose per country: per-dimension descriptions, key legislation, and the verbatim source list.",
       "required": [
         "id",
         "country_id",
@@ -2447,54 +2577,63 @@
       "properties": {
         "id": {
           "default": "gen_random_uuid()",
-          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "description": "Row UUID.\n\nNote:\nThis is a Primary Key.<pk/>",
           "format": "uuid",
           "type": "string"
         },
         "country_id": {
-          "description": "Note:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
+          "description": "FK to countries.id; unique, one row per country.\n\nNote:\nThis is a Foreign Key to `countries.id`.<fk table='countries' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "regulation_status_text": {
+          "description": "Prose for the regulation status dimension.",
           "format": "text",
           "type": "string"
         },
         "policy_lever_text": {
+          "description": "Prose for the policy lever dimension.",
           "format": "text",
           "type": "string"
         },
         "governance_type_text": {
+          "description": "Prose for the governance type dimension.",
           "format": "text",
           "type": "string"
         },
         "actor_involvement_text": {
+          "description": "Prose for the actor involvement dimension.",
           "format": "text",
           "type": "string"
         },
         "enforcement_level_text": {
+          "description": "Prose for the enforcement level dimension.",
           "format": "text",
           "type": "string"
         },
         "specific_laws": {
+          "description": "Key laws, bills, and frameworks, cited by name.",
           "format": "text",
           "type": "string"
         },
         "sources_raw": {
+          "description": "Verbatim source URL list from the research response (newline separated).",
           "format": "text",
           "type": "string"
         },
         "run_id": {
-          "description": "Note:\nThis is a Foreign Key to `research_runs.id`.<fk table='research_runs' column='id'/>",
+          "description": "FK to research_runs.id: the run that produced this row.\n\nNote:\nThis is a Foreign Key to `research_runs.id`.<fk table='research_runs' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "summarized_at": {
+          "description": "Date the prose was last researched.",
           "format": "date",
           "type": "string"
         },
         "updated_at": {
           "default": "now()",
+          "description": "Last modification time.",
           "format": "timestamp with time zone",
           "type": "string"
         }
@@ -2502,30 +2641,35 @@
       "type": "object"
     },
     "sync_state": {
+      "description": "Evidence-sync bookkeeping, one row per external source.",
       "required": [
         "source"
       ],
       "properties": {
         "source": {
-          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "description": "Evidence source identifier (primary key).\n\nNote:\nThis is a Primary Key.<pk/>",
           "format": "text",
           "type": "string"
         },
         "last_synced_at": {
+          "description": "When the last successful sync finished.",
           "format": "timestamp with time zone",
           "type": "string"
         },
         "last_total": {
+          "description": "Record count the source reported at last sync.",
           "format": "integer",
           "type": "integer"
         },
         "cursor": {
+          "description": "Adapter-specific resume state.",
           "format": "jsonb"
         }
       },
       "type": "object"
     },
     "sources": {
+      "description": "Deep-research source registry: every URL cited by any research run, classified, accumulating over time.",
       "required": [
         "id",
         "url",
@@ -2537,34 +2681,40 @@
       "properties": {
         "id": {
           "default": "gen_random_uuid()",
-          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "description": "Row UUID.\n\nNote:\nThis is a Primary Key.<pk/>",
           "format": "uuid",
           "type": "string"
         },
         "url": {
+          "description": "Full source URL (unique).",
           "format": "text",
           "type": "string"
         },
         "domain": {
+          "description": "Lowercased host of the URL.",
           "format": "text",
           "type": "string"
         },
         "source_type": {
           "default": "other",
+          "description": "Classification: official, intergovernmental, academic, news, industry, or other.",
           "format": "text",
           "type": "string"
         },
         "title": {
+          "description": "Human-readable page title; null until enriched.",
           "format": "text",
           "type": "string"
         },
         "first_seen": {
           "default": "now()",
+          "description": "First time a research run cited this URL.",
           "format": "timestamp with time zone",
           "type": "string"
         },
         "last_seen": {
           "default": "now()",
+          "description": "Most recent time a research run cited this URL.",
           "format": "timestamp with time zone",
           "type": "string"
         }
@@ -2677,120 +2827,140 @@
     },
     "rowFilter.policy_initiatives.id": {
       "name": "id",
+      "description": "Row UUID.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.source": {
       "name": "source",
+      "description": "Evidence source identifier (currently oecd_gaiin).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.external_id": {
       "name": "external_id",
+      "description": "Record id within the evidence source; unique per source.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.country_id": {
       "name": "country_id",
+      "description": "FK to countries.id; null when the jurisdiction is not a dataset country.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.country_raw": {
       "name": "country_raw",
+      "description": "Jurisdiction label exactly as the source provided it.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.name": {
       "name": "name",
+      "description": "Initiative title (English).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.category": {
       "name": "category",
+      "description": "Source taxonomy category, for example Regulations, guidelines and standards.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.initiative_type": {
       "name": "initiative_type",
+      "description": "Instrument type from the source taxonomy.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.binding": {
       "name": "binding",
+      "description": "Legal force as stated by the source: Binding, Non-binding, or null when unstated.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.status": {
       "name": "status",
+      "description": "Lifecycle status as stated by the source.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.start_year": {
       "name": "start_year",
+      "description": "Year the initiative began, when stated.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.end_year": {
       "name": "end_year",
+      "description": "Year the initiative ended, when stated.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.description": {
       "name": "description",
+      "description": "Short description from the source.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.overview": {
       "name": "overview",
+      "description": "Long-form overview from the source, HTML stripped.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.source_url": {
       "name": "source_url",
+      "description": "Official page or document URL for the initiative.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.principles": {
       "name": "principles",
+      "description": "OECD AI Principles the source tagged.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.tags": {
       "name": "tags",
+      "description": "Free-form tags from the source.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.raw": {
       "name": "raw",
+      "description": "Complete original record as fetched, kept for auditability.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.first_synced": {
       "name": "first_synced",
+      "description": "When the sync first stored this record.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.policy_initiatives.updated_at": {
       "name": "updated_at",
+      "description": "Source-side last-update time, used for delta detection; null when the source omits it.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -2806,84 +2976,98 @@
     },
     "rowFilter.country_scores.id": {
       "name": "id",
+      "description": "Row UUID.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.country_id": {
       "name": "country_id",
+      "description": "FK to countries.id; unique, one row per country.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.regulation_status": {
       "name": "regulation_status",
+      "description": "Existence and maturity of AI-specific regulation, 1 to 5 (normative).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.policy_lever": {
       "name": "policy_lever",
+      "description": "Breadth of policy instruments in use, 1 to 5 (normative).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.governance_type": {
       "name": "governance_type",
+      "description": "Where regulatory authority sits, 1 centralized to 5 distributed (descriptive; excluded from avg_score).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.actor_involvement": {
       "name": "actor_involvement",
+      "description": "Who shapes policy, 1 narrow expert circles to 5 broad participation (descriptive; excluded from avg_score).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.enforcement_level": {
       "name": "enforcement_level",
+      "description": "Enforcement rigor, 1 to 5 (normative).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.avg_score": {
       "name": "avg_score",
+      "description": "Maturity index: mean of the three normative dimensions (regulation_status, policy_lever, enforcement_level).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.subscores": {
       "name": "subscores",
+      "description": "Methodology v2 audit trail: four named integer sub-indicators per dimension, same shape as subscores.json.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.confidence": {
       "name": "confidence",
+      "description": "Research confidence: high, medium, or low.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.data_version": {
       "name": "data_version",
+      "description": "Dataset schema version of the row.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.run_id": {
       "name": "run_id",
+      "description": "FK to research_runs.id: the run that produced this row.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.scored_at": {
       "name": "scored_at",
+      "description": "Date the country was last researched.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_scores.updated_at": {
       "name": "updated_at",
+      "description": "Last modification time.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -2899,48 +3083,56 @@
     },
     "rowFilter.countries.id": {
       "name": "id",
+      "description": "Row UUID.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.countries.name": {
       "name": "name",
+      "description": "Canonical country name; exactly matches scores.csv and the map.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.countries.iso3": {
       "name": "iso3",
+      "description": "ISO 3166-1 alpha-3 code (XKX for Kosovo); null where none exists.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.countries.iso2": {
       "name": "iso2",
+      "description": "ISO 3166-1 alpha-2 code; null where none exists.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.countries.iso_numeric": {
       "name": "iso_numeric",
+      "description": "ISO 3166-1 numeric code, zero-padded to three digits; matches the world-atlas TopoJSON geometry ids; null where none exists.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.countries.aliases": {
       "name": "aliases",
+      "description": "Accepted alternate names, used for normalization.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.countries.created_at": {
       "name": "created_at",
+      "description": "Row creation time.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.countries.updated_at": {
       "name": "updated_at",
+      "description": "Last modification time.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -2956,42 +3148,49 @@
     },
     "rowFilter.sources_export.url": {
       "name": "url",
+      "description": "Full source URL.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources_export.domain": {
       "name": "domain",
+      "description": "Lowercased host of the URL.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources_export.source_type": {
       "name": "source_type",
+      "description": "Classification: official, intergovernmental, academic, news, industry, or other.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources_export.title": {
       "name": "title",
+      "description": "Human-readable page title; null until enriched.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources_export.first_seen": {
       "name": "first_seen",
+      "description": "First time a research run cited this URL.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources_export.last_seen": {
       "name": "last_seen",
+      "description": "Most recent time a research run cited this URL.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources_export.countries": {
       "name": "countries",
+      "description": "Names of countries whose research cites this source.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3007,126 +3206,147 @@
     },
     "rowFilter.public_export.country": {
       "name": "country",
+      "description": "Canonical country name.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.iso2": {
       "name": "iso2",
+      "description": "ISO 3166-1 alpha-2 code.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.iso3": {
       "name": "iso3",
+      "description": "ISO 3166-1 alpha-3 code.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.regulation_status": {
       "name": "regulation_status",
+      "description": "Existence and maturity of AI-specific regulation, 1 to 5 (normative).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.policy_lever": {
       "name": "policy_lever",
+      "description": "Breadth of policy instruments in use, 1 to 5 (normative).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.governance_type": {
       "name": "governance_type",
+      "description": "Where regulatory authority sits, 1 centralized to 5 distributed (descriptive).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.actor_involvement": {
       "name": "actor_involvement",
+      "description": "Who shapes policy, 1 narrow to 5 broad (descriptive).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.enforcement_level": {
       "name": "enforcement_level",
+      "description": "Enforcement rigor, 1 to 5 (normative).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.avg_score": {
       "name": "avg_score",
+      "description": "Maturity index: mean of the three normative dimensions.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.confidence": {
       "name": "confidence",
+      "description": "Research confidence: high, medium, or low.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.subscores": {
       "name": "subscores",
+      "description": "Methodology v2 sub-indicators, same shape as subscores.json.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.data_version": {
       "name": "data_version",
+      "description": "Dataset schema version of the row.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.scored_at": {
       "name": "scored_at",
+      "description": "Date the scores were last researched.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.regulation_status_text": {
       "name": "regulation_status_text",
+      "description": "Prose for the regulation status dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.policy_lever_text": {
       "name": "policy_lever_text",
+      "description": "Prose for the policy lever dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.governance_type_text": {
       "name": "governance_type_text",
+      "description": "Prose for the governance type dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.actor_involvement_text": {
       "name": "actor_involvement_text",
+      "description": "Prose for the actor involvement dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.enforcement_level_text": {
       "name": "enforcement_level_text",
+      "description": "Prose for the enforcement level dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.specific_laws": {
       "name": "specific_laws",
+      "description": "Key laws, bills, and frameworks, cited by name.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.sources_raw": {
       "name": "sources_raw",
+      "description": "Verbatim source URL list (newline separated).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.public_export.summarized_at": {
       "name": "summarized_at",
+      "description": "Date the prose was last researched.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3142,42 +3362,49 @@
     },
     "rowFilter.country_sources.id": {
       "name": "id",
+      "description": "Row UUID.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_sources.country_id": {
       "name": "country_id",
+      "description": "FK to countries.id.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_sources.source_id": {
       "name": "source_id",
+      "description": "FK to sources.id.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_sources.dimension": {
       "name": "dimension",
+      "description": "Score dimension the citation supports; general when unattributed.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_sources.run_id": {
       "name": "run_id",
+      "description": "FK to research_runs.id: the most recent run that cited it.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_sources.first_cited": {
       "name": "first_cited",
+      "description": "First citation time for this country and source.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_sources.last_cited": {
       "name": "last_cited",
+      "description": "Most recent citation time for this country and source.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3193,30 +3420,35 @@
     },
     "rowFilter.score_history.id": {
       "name": "id",
+      "description": "Row UUID.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.score_history.country_id": {
       "name": "country_id",
+      "description": "FK to countries.id.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.score_history.snapshot_date": {
       "name": "snapshot_date",
+      "description": "Date of the snapshot; a row exists only when scores changed.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.score_history.scores": {
       "name": "scores",
+      "description": "Score set at that date, same JSON shape as history.json entries.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.score_history.run_id": {
       "name": "run_id",
+      "description": "FK to research_runs.id: the run that recorded the snapshot.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3232,90 +3464,105 @@
     },
     "rowFilter.research_runs.id": {
       "name": "id",
+      "description": "Run UUID; referenced by run_id columns elsewhere.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.started_at": {
       "name": "started_at",
+      "description": "Run start time.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.finished_at": {
       "name": "finished_at",
+      "description": "Run end time; null if the run died before finishing.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.trigger": {
       "name": "trigger",
+      "description": "What started the run: schedule, manual, seed, or backfill.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.model": {
       "name": "model",
+      "description": "Claude model id used for research.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.strategy": {
       "name": "strategy",
+      "description": "Request strategy: sync (one request per country) or batch (Message Batches API).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.prompt_version": {
       "name": "prompt_version",
+      "description": "Version tag of the research prompt template.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.grounded": {
       "name": "grounded",
+      "description": "True when prompts injected verified policy-initiative evidence.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.countries_attempted": {
       "name": "countries_attempted",
+      "description": "Countries the run tried to research.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.countries_succeeded": {
       "name": "countries_succeeded",
+      "description": "Countries that produced a valid, persisted result.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.input_tokens": {
       "name": "input_tokens",
+      "description": "Total input tokens across the run.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.output_tokens": {
       "name": "output_tokens",
+      "description": "Total output tokens across the run.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.est_cost_usd": {
       "name": "est_cost_usd",
+      "description": "Rough API cost estimate in USD.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.git_sha": {
       "name": "git_sha",
+      "description": "Pipeline code commit that produced the run.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.research_runs.notes": {
       "name": "notes",
+      "description": "Free-form operator notes.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3331,72 +3578,84 @@
     },
     "rowFilter.country_summaries.id": {
       "name": "id",
+      "description": "Row UUID.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.country_id": {
       "name": "country_id",
+      "description": "FK to countries.id; unique, one row per country.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.regulation_status_text": {
       "name": "regulation_status_text",
+      "description": "Prose for the regulation status dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.policy_lever_text": {
       "name": "policy_lever_text",
+      "description": "Prose for the policy lever dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.governance_type_text": {
       "name": "governance_type_text",
+      "description": "Prose for the governance type dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.actor_involvement_text": {
       "name": "actor_involvement_text",
+      "description": "Prose for the actor involvement dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.enforcement_level_text": {
       "name": "enforcement_level_text",
+      "description": "Prose for the enforcement level dimension.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.specific_laws": {
       "name": "specific_laws",
+      "description": "Key laws, bills, and frameworks, cited by name.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.sources_raw": {
       "name": "sources_raw",
+      "description": "Verbatim source URL list from the research response (newline separated).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.run_id": {
       "name": "run_id",
+      "description": "FK to research_runs.id: the run that produced this row.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.summarized_at": {
       "name": "summarized_at",
+      "description": "Date the prose was last researched.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.country_summaries.updated_at": {
       "name": "updated_at",
+      "description": "Last modification time.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3412,24 +3671,28 @@
     },
     "rowFilter.sync_state.source": {
       "name": "source",
+      "description": "Evidence source identifier (primary key).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sync_state.last_synced_at": {
       "name": "last_synced_at",
+      "description": "When the last successful sync finished.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sync_state.last_total": {
       "name": "last_total",
+      "description": "Record count the source reported at last sync.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sync_state.cursor": {
       "name": "cursor",
+      "description": "Adapter-specific resume state.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3445,42 +3708,49 @@
     },
     "rowFilter.sources.id": {
       "name": "id",
+      "description": "Row UUID.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources.url": {
       "name": "url",
+      "description": "Full source URL (unique).",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources.domain": {
       "name": "domain",
+      "description": "Lowercased host of the URL.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources.source_type": {
       "name": "source_type",
+      "description": "Classification: official, intergovernmental, academic, news, industry, or other.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources.title": {
       "name": "title",
+      "description": "Human-readable page title; null until enriched.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources.first_seen": {
       "name": "first_seen",
+      "description": "First time a research run cited this URL.",
       "required": false,
       "in": "query",
       "type": "string"
     },
     "rowFilter.sources.last_seen": {
       "name": "last_seen",
+      "description": "Most recent time a research run cited this URL.",
       "required": false,
       "in": "query",
       "type": "string"

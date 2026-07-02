@@ -58,4 +58,17 @@ test('api-docs.html renders Swagger UI from the committed spec snapshot', async 
   // advertises, and the secret-key-only root path.
   await expect(page.locator('#swagger-ui .opblock-post, #swagger-ui .opblock-patch, #swagger-ui .opblock-delete')).toHaveCount(0);
   expect(paths).not.toContain('/');
+
+  // SQL comments flow through as endpoint summaries, and expanding an
+  // endpoint shows each filter parameter prefixed with its real column type
+  // (the spec types every filter param "string" because its value is a
+  // filter expression).
+  const countriesBlock = page.locator('#swagger-ui .opblock', { hasText: '/countries' }).first();
+  await expect(countriesBlock).toContainText('Canonical country registry');
+  await countriesBlock.locator('.opblock-summary').click();
+  await expect(countriesBlock).toContainText('alpha-3');
+  await expect(countriesBlock.locator('.parameters-col_description').filter({ hasText: 'filter expression' }).first()).toBeVisible();
+
+  // The schemas section doubles as the column reference: present, collapsed.
+  await expect(page.locator('#swagger-ui section.models')).toBeVisible();
 });

@@ -15,12 +15,21 @@ const API_BASE_PATH = '/rest/v1';
 // Public read-only access token (row-level security enforces SELECT).
 const TOKEN = 'sb_publishable_mANlk3lYBOM8DWDKUjvhRg_yq0TyTEM';
 
+interface SpecParameter {
+  name: string;
+  description?: string;
+  type?: string;
+  format?: string;
+}
+
 interface PostgrestSpec {
   info: { title: string; description: string; version: string };
   host: string;
   basePath: string;
   schemes?: string[];
   paths: Record<string, Record<string, unknown>>;
+  parameters?: Record<string, SpecParameter>;
+  definitions?: Record<string, { properties?: Record<string, { format?: string; type?: string }> }>;
 }
 
 async function boot(): Promise<void> {
@@ -58,6 +67,19 @@ async function boot(): Promise<void> {
       if (verb !== 'get' && verb !== 'parameters') delete operations[verb];
     }
   }
+  // Column-filter query parameters are all type "string" in the spec because
+  // their value is a PostgREST filter expression (eq.4, gte.2020, is.null),
+  // not a bare value. Prefix each description with the column's actual
+  // Postgres type, pulled from the table's schema definition.
+  for (const [key, param] of Object.entries(spec.parameters ?? {})) {
+    const m = /^rowFilter\.([^.]+)\.(.+)$/.exec(key);
+    if (!m) continue;
+    const column = spec.definitions?.[m[1]]?.properties?.[m[2]];
+    const pgType = column?.format ?? column?.type;
+    if (!pgType) continue;
+    const doc = param.description ? ` ${param.description}` : '';
+    param.description = `\`${pgType}\` column.${doc} Value is a filter expression: \`eq.\`, \`gte.\`, \`lte.\`, \`like.\`, \`is.null\`, ...`;
+  }
 
   SwaggerUIBundle({
     spec,
@@ -65,7 +87,9 @@ async function boot(): Promise<void> {
     deepLinking: true,
     tryItOutEnabled: true,
     supportedSubmitMethods: ['get'],
-    defaultModelsExpandDepth: -1,
+    // The schemas section is the per-table column reference (real Postgres
+    // types plus the column comments): show it, collapsed.
+    defaultModelsExpandDepth: 0,
     requestInterceptor: (request: { headers: Record<string, string> }) => {
       request.headers['apikey'] = TOKEN;
       request.headers['Authorization'] = `Bearer ${TOKEN}`;
