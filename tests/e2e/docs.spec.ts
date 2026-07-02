@@ -2,8 +2,9 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 // The researcher-facing docs: the Data & API page's live query explorer and
-// the self-hosted Swagger UI reference. All API traffic is route-mocked —
-// hermetic in CI, and the explorer's failure copy is covered too.
+// the self-hosted Swagger UI reference. Explorer API traffic is route-mocked
+// (hermetic in CI, failure copy covered); the Swagger page reads only the
+// committed spec snapshot, so it needs no mocks at all.
 
 test('data.html explorer runs a query and renders the live response', async ({ page }) => {
   await page.route('**/rest/v1/**', route =>
@@ -43,24 +44,18 @@ test('data.html explorer degrades calmly when the API is unreachable', async ({ 
   await expect(page.locator('#ex-output')).toContainText('static files above always work');
 });
 
-test('api-docs.html renders Swagger UI from the live OpenAPI spec', async ({ page }) => {
-  await page.route('**/rest/v1/', route =>
-    route.fulfill({
-      json: {
-        swagger: '2.0',
-        info: { title: 'AI Regulation Map API', version: '1' },
-        host: 'wlakioilvvuuizxdhsdf.supabase.co',
-        basePath: '/rest/v1',
-        paths: {
-          '/countries': {
-            get: { summary: 'Canonical country registry', responses: { '200': { description: 'OK' } } },
-          },
-        },
-      },
-    })
-  );
-
+test('api-docs.html renders Swagger UI from the committed spec snapshot', async ({ page }) => {
+  // No route mocks: the spec is the real public/openapi.json snapshot,
+  // served like any other static asset. (Supabase gates the live spec
+  // endpoint behind secret keys, so the page must never fetch it.)
   await page.goto('/api-docs.html');
   await expect(page.locator('#swagger-ui .info .title')).toContainText('AI Regulation Map API');
-  await expect(page.locator('#swagger-ui .opblock-summary-path')).toContainText('/countries');
+  await expect(page.locator('#swagger-ui .opblock-summary-path').first()).toBeVisible();
+  const paths = await page.locator('#swagger-ui .opblock-summary-path').allInnerTexts();
+  expect(paths).toContain('/countries');
+  expect(paths).toContain('/public_export');
+  // Anon access is SELECT-only: the page strips the write verbs PostgREST
+  // advertises, and the secret-key-only root path.
+  await expect(page.locator('#swagger-ui .opblock-post, #swagger-ui .opblock-patch, #swagger-ui .opblock-delete')).toHaveCount(0);
+  expect(paths).not.toContain('/');
 });

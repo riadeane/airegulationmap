@@ -1,8 +1,9 @@
-// Minimal typings for the bundled Swagger UI entry point — the upstream
+// Minimal typings for the bundled Swagger UI entry point; the upstream
 // @types package pulls in more than this single-call usage needs.
 declare module 'swagger-ui-dist/swagger-ui-bundle' {
   interface SwaggerUIOptions {
-    url: string;
+    url?: string;
+    spec?: object;
     dom_id: string;
     deepLinking?: boolean;
     tryItOutEnabled?: boolean;
