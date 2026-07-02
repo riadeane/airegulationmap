@@ -1,4 +1,4 @@
-// Header "Share" popover — the citability affordance for ANY view, not
+// Header "Share" popover - the citability affordance for ANY view, not
 // just a selected country. The URL layer already serializes dimension,
 // bloc, filter range, timeline date, scatter axes, comparison set, and
 // committed search; this surfaces that permalink (plus formatted
@@ -66,7 +66,7 @@ function render(popover: HTMLElement): void {
   linkRow.append(input, copyBtn);
   popover.appendChild(linkRow);
 
-  // Formatted citations for the same view — the permalink inside them
+  // Formatted citations for the same view - the permalink inside them
   // omits the theme (a display preference has no place in a footnote).
   const citeHeading = document.createElement('p');
   citeHeading.className = 'share-heading share-cite-heading';
@@ -120,7 +120,7 @@ export function initShare(): void {
     btn.setAttribute('aria-expanded', String(open));
     if (open) {
       render(popover);
-      // Close the sibling header popovers — one open at a time.
+      // Close the sibling header popovers - one open at a time.
       for (const [pid, bid] of [
         ['score-dropdown', 'score-btn'],
         ['filter-popover', 'filter-btn'],
@@ -134,7 +134,7 @@ export function initShare(): void {
     }
   });
 
-  // The permalink must always reflect what's on screen — refresh while open.
+  // The permalink must always reflect what's on screen - refresh while open.
   const rerenderIfOpen = () => { if (isOpen(popover)) render(popover); };
   for (const key of [
     'selectedCountry', 'comparisonCountries', 'mainView', 'currentAttribute',

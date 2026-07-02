@@ -2,7 +2,7 @@
 
 The mapping was generated once (pycountry + explicit aliases) and is now a
 checked-in contract: every country in scores.csv must have an entry, iso3
-codes must be unique, and — the strong check — wherever a country exists in
+codes must be unique, and - the strong check - wherever a country exists in
 the world-atlas TopoJSON, the mapping's ISO numeric must equal the geometry
 id (world-atlas ids ARE ISO 3166-1 numeric). All offline.
 """

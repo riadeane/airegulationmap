@@ -39,7 +39,7 @@ function updateSiteLastUpdated(scoreData: ScoreData): void {
     .sort();
   const latest = dates[dates.length - 1];
   const el = document.getElementById('site-last-updated');
-  if (el) el.textContent = latest || '—';
+  if (el) el.textContent = latest || '–';
 }
 
 function updateCountryCount(scoreData: ScoreData): void {
@@ -159,7 +159,7 @@ async function main(): Promise<void> {
     initTimeline(history);
   });
 
-  // Sub-indicator audit trail (methodology v2) — non-blocking; the
+  // Sub-indicator audit trail (methodology v2) - non-blocking; the
   // dimension-row breakdown appears once it loads.
   loadSubscores().then(subscores => setState({ subscores }));
 
@@ -183,7 +183,7 @@ async function main(): Promise<void> {
   // Supabase progressive enhancement, off the critical path: hydrate the
   // dataset if the database is strictly newer than the static snapshot,
   // and fetch source titles for the panel. Both no-op when unconfigured
-  // or unreachable — the static files remain authoritative.
+  // or unreachable - the static files remain authoritative.
   //
   // A dataset replacement must actually repaint: the store emits
   // 'scoreData'/'regulationData', and these subscriptions carry the new

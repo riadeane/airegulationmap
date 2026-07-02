@@ -19,11 +19,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* Drop the grey/blue flash iOS and Android paint over tapped
-     elements — selection/active states already give feedback. */
+     elements - selection/active states already give feedback. */
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Subtle grain texture — dark theme only. On light theme the grain
+/* Subtle grain texture - dark theme only. On light theme the grain
    reads as dirt, so we suppress it to keep the page clean. */
 body::after {
   content: '';
@@ -41,7 +41,7 @@ body::after {
   opacity: 0;
 }
 
-/* Skip link — visually hidden until focused, then docks to top-left.
+/* Skip link - visually hidden until focused, then docks to top-left.
    Gives keyboard users a one-tap bypass around the header. */
 .skip-link {
   position: absolute;
@@ -63,7 +63,7 @@ body::after {
   transform: translateY(0);
 }
 
-/* Global keyboard focus ring — relies on :focus-visible so mouse
+/* Global keyboard focus ring - relies on :focus-visible so mouse
    clicks don't show a ring but Tab/arrow navigation does. */
 :focus-visible {
   outline: 2px solid var(--accent);

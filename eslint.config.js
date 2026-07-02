@@ -15,7 +15,7 @@ export default tseslint.config(
     },
     rules: {
       // The codebase deliberately uses `catch (e) { /* reason */ }` for
-      // storage/clipboard feature detection — don't flag the unused param.
+      // storage/clipboard feature detection - don't flag the unused param.
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { args: 'after-used', caughtErrors: 'none' }],
     },

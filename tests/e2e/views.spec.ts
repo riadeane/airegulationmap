@@ -25,7 +25,7 @@ test('scatter opens and Escape returns to the map', async ({ page }) => {
   await expect(page.locator('body')).not.toHaveClass(/view-scatter/);
 });
 
-test('opening comparison leaves scatter — never both at once', async ({ page }) => {
+test('opening comparison leaves scatter - never both at once', async ({ page }) => {
   await page.click('#scatter-btn');
   await expect(page.locator('body')).toHaveClass(/view-scatter/);
 
@@ -56,6 +56,6 @@ test('comparison colours are stable when a middle country is removed', async ({ 
   // Remove the middle country (France) via its chip.
   await page.locator('#comparison-chips').getByRole('button', { name: /France/ }).click();
   const japanAfter = await colOf('Japan');
-  // Japan keeps its colour slot — removal must not reshuffle the others.
+  // Japan keeps its colour slot - removal must not reshuffle the others.
   expect(japanAfter).toBe(japanBefore);
 });

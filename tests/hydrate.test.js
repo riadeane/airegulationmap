@@ -81,7 +81,7 @@ describe('isStrictlyNewer', () => {
 });
 
 describe('restGet (unconfigured)', () => {
-  it('is a null no-op without env vars — no fetch attempted', async () => {
+  it('is a null no-op without env vars - no fetch attempted', async () => {
     expect(isConfigured()).toBe(false);
     expect(await restGet('public_export?select=country')).toBeNull();
   });

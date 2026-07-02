@@ -28,7 +28,7 @@ describe('buildScoresAtDate', () => {
 
   it('carries the earliest snapshot backward before a country first appears', () => {
     // Algeria's first snapshot is 2026-04-01. Scrubbing earlier than that
-    // must not make it vanish from the map — we show its earliest known
+    // must not make it vanish from the map - we show its earliest known
     // state rather than dropping it (snapshots are change-points, so there
     // is no recorded change before the first one).
     const result = buildScoresAtDate(history, '2026-03-25');

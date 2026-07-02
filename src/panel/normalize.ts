@@ -2,7 +2,7 @@
 //
 // Three conservative passes, each opt-out on guard. If the normalizer
 // shrinks the text below 60% of its original length or produces an empty
-// string, return the original — better stiff than factually truncated.
+// string, return the original - better stiff than factually truncated.
 //
 // CSV data is never modified. Every call is scoped to one free-text field
 // at render time in src/panel/sections.js.
@@ -43,7 +43,7 @@ function stripLeadingTemporal(text: string): string {
 
 // Heuristic: a run of sentences all starting with "No " is redundant if
 // every sentence after the first shares ≥2 non-stopword tokens with the
-// first. Conservative — genuinely distinct claims fall through.
+// first. Conservative - genuinely distinct claims fall through.
 function sharesVocab(sentences: string[]): boolean {
   const firstTokens = new Set(tokens(sentences[0]));
   if (firstTokens.size < 2) return false;
@@ -99,7 +99,7 @@ export function normalizeRegulationText<T>(text: T): T | string {
   out = collapseCascadingNegations(out);
   out = trimLeadingHedges(out);
 
-  // Safety rail — never silently chew a claim into nothing.
+  // Safety rail - never silently chew a claim into nothing.
   if (!out || out.trim().length === 0) return original;
   if (out.length < original.length * 0.6) return original;
   return out;

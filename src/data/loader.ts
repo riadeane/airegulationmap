@@ -32,8 +32,8 @@ export type RegulationData = Record<string, RegulationEntry>;
 
 // Valid dimension scores live in [1, 5] (methodology v2 allows
 // quarter-point decimals). Parse defensively: the old `+(x) || null`
-// idiom let a non-numeric cell through as NaN — `NaN || null` is NaN,
-// not null — and NaN then flows into the color scale and filter math.
+// idiom let a non-numeric cell through as NaN - `NaN || null` is NaN,
+// not null - and NaN then flows into the color scale and filter math.
 // This returns a clean number-or-null so the boundary is trustworthy.
 const SCORE_MIN = 1;
 const SCORE_MAX = 5;
@@ -61,7 +61,7 @@ export async function loadScores(): Promise<ScoreData> {
       dataVersion: Number.isFinite(version) && version >= 1 ? version : 1,
     };
   });
-  // Drop rows with no country key — a blank/garbled line must not create
+  // Drop rows with no country key - a blank/garbled line must not create
   // an empty-string entry that later renders as a ghost country.
   return Object.fromEntries(
     rows.filter(d => d.country).map(d => [d.country, d])

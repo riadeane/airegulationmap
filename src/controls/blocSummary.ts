@@ -67,7 +67,7 @@ function render() {
   coverage.className = 'bloc-summary-coverage';
   coverage.textContent = stats
     ? `${stats.scoredCount} of ${stats.memberCount} members scored`
-    : `${bloc.members.length} members — no scores for this dimension`;
+    : `${bloc.members.length} members · no scores for this dimension`;
   card.appendChild(coverage);
 
   if (!stats) return;

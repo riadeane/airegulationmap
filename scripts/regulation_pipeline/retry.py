@@ -79,11 +79,11 @@ def call_with_retries(
         except _RETRYABLE as exc:
             kind = type(exc).__name__
             if last_attempt:
-                logger.warning("%s for %s — giving up after %d attempts", kind, label, MAX_ATTEMPTS)
+                logger.warning("%s for %s - giving up after %d attempts", kind, label, MAX_ATTEMPTS)
                 return None
             delay = _backoff(attempt, exc)
             logger.warning(
-                "%s for %s — retrying in %.1fs (attempt %d/%d)",
+                "%s for %s - retrying in %.1fs (attempt %d/%d)",
                 kind, label, delay, attempt + 1, MAX_ATTEMPTS,
             )
             sleep(delay)
@@ -92,13 +92,13 @@ def call_with_retries(
                 raise FatalAPIError(f"API error {exc.status_code}: {exc}") from exc
             if last_attempt:
                 logger.warning(
-                    "server error (%s) for %s — giving up after %d attempts",
+                    "server error (%s) for %s - giving up after %d attempts",
                     exc.status_code, label, MAX_ATTEMPTS,
                 )
                 return None
             delay = _backoff(attempt, exc)
             logger.warning(
-                "server error (%s) for %s — retrying in %.1fs (attempt %d/%d)",
+                "server error (%s) for %s - retrying in %.1fs (attempt %d/%d)",
                 exc.status_code, label, delay, attempt + 1, MAX_ATTEMPTS,
             )
             sleep(delay)

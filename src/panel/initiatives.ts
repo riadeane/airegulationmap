@@ -34,7 +34,7 @@ async function initiativesFor(country: string): Promise<Initiative[]> {
     + `countries!inner(name)&countries.name=eq.${encodeURIComponent(country)}`
     + '&order=start_year.desc.nullslast&limit=50'
   );
-  // A failed fetch (null) is NOT cached — a transient outage must not hide
+  // A failed fetch (null) is NOT cached - a transient outage must not hide
   // the section for the rest of the session; the next selection retries.
   if (!Array.isArray(rows)) return [];
   const initiatives = (rows as Initiative[]).filter(r => r.name);

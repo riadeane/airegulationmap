@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
 
-# A newer push to the same ref cancels the in-flight run — no point finishing
+# A newer push to the same ref cancels the in-flight run - no point finishing
 # CI for a commit that's already been superseded.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -64,7 +64,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Only Chromium — the smoke + axe suite is single-browser by design.
+      # Only Chromium - the smoke + axe suite is single-browser by design.
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 

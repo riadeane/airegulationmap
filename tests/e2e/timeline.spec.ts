@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // The panel must show the same score vintage the map is painting while the
-// timeline is scrubbed — and say so. Uses the real history.json served by
+// timeline is scrubbed - and say so. Uses the real history.json served by
 // the preview build, so we only assert vintage-agnostic facts (notice
 // visibility, rank hiding, expander locking), not specific score values.
 
@@ -30,7 +30,7 @@ test('scrubbing the timeline re-vintages the open panel and shows the notice', a
 
   await expect(page.locator('#panel-history-notice')).toBeVisible();
   await expect(page.locator('#panel-history-date')).not.toHaveText('');
-  // Rank is a latest-data derivation — it hides for historical vintages.
+  // Rank is a latest-data derivation - it hides for historical vintages.
   await expect(page.locator('#maturity-rank')).toHaveText('');
   // Sub-indicator disclosures lock (they cover the latest research only).
   const firstExpander = page.locator('.dim-expand').first();

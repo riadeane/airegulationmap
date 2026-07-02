@@ -26,7 +26,7 @@ class InitiativeRecord(BaseModel):
     source_url: str | None = None
     principles: tuple[str, ...] = ()
     tags: tuple[str, ...] = ()
-    # Country hints as received — resolution happens in matching.py.
+    # Country hints as received - resolution happens in matching.py.
     country_iso3: str | None = None
     country_name: str | None = None      # country OR IGO label
     updated_at: str | None = None

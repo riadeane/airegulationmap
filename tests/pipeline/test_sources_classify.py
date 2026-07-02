@@ -1,5 +1,5 @@
 """The Python source classifier must stay behaviourally aligned with the
-frontend's (src/data/sources.ts) on the official/other *kind* — these shared
+frontend's (src/data/sources.ts) on the official/other *kind* - these shared
 examples are the contract documented in both files."""
 
 from __future__ import annotations

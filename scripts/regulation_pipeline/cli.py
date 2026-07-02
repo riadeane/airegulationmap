@@ -67,7 +67,7 @@ def _run(
         False, "--grounded",
         help="Ground research in verified policy initiatives (from Supabase, or "
         "--evidence-file). Countries without evidence fall back to the plain "
-        "prompt. Grounded prompts are longer — pair with --batch.",
+        "prompt. Grounded prompts are longer - pair with --batch.",
     ),
     evidence_file: str = typer.Option(
         "", "--evidence-file",
@@ -86,7 +86,7 @@ def _run(
     settings = Settings(default_model=model).validate()
     today = date.today()
 
-    # SDK-level silent retries are disabled — retry.py does explicit, logged
+    # SDK-level silent retries are disabled - retry.py does explicit, logged
     # retries with backoff, and the two must not multiply.
     client = anthropic.Anthropic(api_key=api_key, max_retries=0)
     names = CountryNames.load(settings.country_names_json)
@@ -166,7 +166,7 @@ def _build_evidence_provider(evidence_file: str) -> Callable[[str], list[dict]] 
     Prefetching (rather than a per-country select at prompt-build time) is a
     correctness property, not an optimization: the provider runs inside
     request_params, deep in the research loop, where the service only knows
-    how to handle FatalAPIError — a transient Supabase error there would
+    how to handle FatalAPIError - a transient Supabase error there would
     crash the run AFTER countries were researched but BEFORE dataset.save(),
     losing paid-for results. Failing here, before any research starts, is
     cheap and loud."""

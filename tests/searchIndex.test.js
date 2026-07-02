@@ -7,7 +7,7 @@ const regulationData = {
     regulationStatus: 'The EU AI Act applies; a regulatory sandbox program launched in 2024.',
     policyLever: 'Binding legislation with risk-based obligations.',
     governanceType: null,
-    actorInvolvement: 'short', // < 10 chars — must be skipped
+    actorInvolvement: 'short', // < 10 chars - must be skipped
     enforcementLevel: 'CNIL enforces with administrative fines.',
     specificLaws: 'EU AI Act (2024)',
   },

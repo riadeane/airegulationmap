@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // The committed-search flow: dropdown preview → "See all N results" →
-// persistent results list → jump-to-matched-field → back — with map
+// persistent results list → jump-to-matched-field → back - with map
 // dimming surviving the whole journey. Plus the header Share popover,
 // which makes any view linkable without selecting a country.
 
@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('committing a search opens a persistent, navigable results list', async ({ page }) => {
-  // "regulation" appears in essentially every country's prose — a stable query.
+  // "regulation" appears in essentially every country's prose - a stable query.
   await page.fill('#country-search', 'regulation');
   await page.waitForSelector('#search-suggestions li.search-see-all');
   await page.click('#search-suggestions li.search-see-all');

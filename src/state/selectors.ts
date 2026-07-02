@@ -1,4 +1,4 @@
-// Derived state — computed views over the store, memoized so a derivation
+// Derived state - computed views over the store, memoized so a derivation
 // isn't rebuilt on every render. This is the read-side counterpart to the
 // interactions orchestrator (the write side): modules ask a selector for a
 // derived value instead of recomputing it inline (which the panel used to do
@@ -54,7 +54,7 @@ export function maturityRank(country: string): RankResult | null {
 }
 
 // ---------------------------------------------------------------------------
-// Visibility — the single definition of "which countries pass the active
+// Visibility - the single definition of "which countries pass the active
 // filters". Three surfaces used to duplicate this predicate (map opacity,
 // scatter dimming, export scope) and drifted: the export forgot the bloc
 // filter entirely. They all read it from here now.
@@ -77,7 +77,7 @@ function blocMemberSet(): ReadonlySet<string> | null {
   return set;
 }
 
-// Countries citing at least one official source — derived once per data
+// Countries citing at least one official source - derived once per data
 // load (classifySources over ~196 rows), reused by the official-only filter.
 let officialCache: { regulationData: RegulationData; set: ReadonlySet<string> } | null = null;
 
@@ -102,7 +102,7 @@ function confidenceOf(country: string): ConfidenceLevel | null {
 /**
  * Score-INDEPENDENT country filters: bloc membership, confidence level,
  * official-sources-only. Split from visibleCountrySet() because the map
- * filters historical snapshots during timeline playback — its score-range
+ * filters historical snapshots during timeline playback - its score-range
  * check runs against the snapshot, not live data, so only this half is
  * shareable there.
  */
@@ -174,7 +174,7 @@ export function visibleCountrySet(): ReadonlySet<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Timeline — historical scores for the scrubbed date.
+// Timeline - historical scores for the scrubbed date.
 
 let atDateCache: {
   history: HistoryData;
@@ -196,7 +196,7 @@ function knownSnapshotDates(history: HistoryData): ReadonlySet<string> {
  * timeline is at "Latest" (or history hasn't loaded). Lets the panel render
  * the same vintage the map is showing instead of silently disagreeing.
  *
- * Only dates that actually exist in the history are honored — the timeline
+ * Only dates that actually exist in the history are honored - the timeline
  * slider can only emit those, and an arbitrary ?date= from a URL must fall
  * back to Latest (the old timeline guard's behavior) rather than render a
  * misleading carried-back vintage for a date nobody recorded.

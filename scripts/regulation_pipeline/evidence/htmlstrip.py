@@ -1,4 +1,4 @@
-"""Minimal HTML-to-text for evidence ``overview`` fields — stdlib only
+"""Minimal HTML-to-text for evidence ``overview`` fields - stdlib only
 (no beautifulsoup4 dependency for one field)."""
 
 from __future__ import annotations

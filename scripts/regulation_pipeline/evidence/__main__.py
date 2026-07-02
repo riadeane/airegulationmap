@@ -4,7 +4,7 @@
 page to a directory (a GitHub Actions artifact in the probe workflow), so
 an API-shape change can be inspected before any sync runs. ``sync`` needs
 ``SUPABASE_URL`` + ``SUPABASE_SERVICE_KEY``; a network failure is a warned
-no-op (exit 0) — the monthly data run must never fail because an external
+no-op (exit 0) - the monthly data run must never fail because an external
 evidence API had a bad day.
 """
 
@@ -74,7 +74,7 @@ def sync(
     endpoint: str = typer.Option("", help="Override the API endpoint (default: official, wrapper fallback)."),
 ) -> None:
     """Sync policy initiatives into Supabase. Warns and exits 0 on network
-    failure — never deletes, never breaks the surrounding run."""
+    failure - never deletes, never breaks the surrounding run."""
     _configure_logging()
     if source != "oecd":
         raise typer.BadParameter(f"unknown evidence source: {source}")
@@ -106,7 +106,7 @@ def sync(
                 last_error = exc
                 logger.warning("evidence endpoint %s failed: %s", candidate, exc)
         logger.warning(
-            "evidence sync skipped — every endpoint failed (last: %s). "
+            "evidence sync skipped - every endpoint failed (last: %s). "
             "Existing evidence is untouched.", last_error,
         )
 

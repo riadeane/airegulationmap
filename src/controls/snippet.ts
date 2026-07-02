@@ -1,5 +1,5 @@
 // Snippet with the matched term wrapped in <mark>, built from index
-// offsets via textContent — no innerHTML with data-derived strings.
+// offsets via textContent - no innerHTML with data-derived strings.
 // Shared by the search dropdown and the committed-search results list.
 
 import type { SearchMatch } from '../data/searchIndex';

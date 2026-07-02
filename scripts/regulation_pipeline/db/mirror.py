@@ -3,11 +3,11 @@ to the static files into Supabase, with full run provenance.
 
 Design constraints (see the service for the call sites):
 
-* The mirror is an OPTIONAL collaborator of ``PipelineService`` — the file
+* The mirror is an OPTIONAL collaborator of ``PipelineService`` - the file
   ``Dataset`` and its byte contracts are untouched, and the service wraps
   every mirror call so a mirror failure can never fail (or even re-order)
   a run. The static files stay authoritative for the frontend's boot path.
-* ``record`` buffers; ``finish`` flushes in one burst — the network cost is
+* ``record`` buffers; ``finish`` flushes in one burst - the network cost is
   paid once, after ``dataset.save()`` has already secured the files.
 * ``score_history`` is replaced per recorded country rather than appended:
   ``history.py`` advances the last snapshot's date in place when scores are
@@ -41,7 +41,7 @@ class RunMeta:
 
 
 class Mirror(Protocol):
-    """What the service calls. Implementations may raise freely — the
+    """What the service calls. Implementations may raise freely - the
     service downgrades every failure to a warning."""
 
     def begin(self, attempted: int) -> None: ...
@@ -186,7 +186,7 @@ class SupabaseMirror:
             if source_id is None:
                 # Should be impossible after the upsert above; never let one
                 # missing id abort the whole flush.
-                logger.warning("mirror: source id missing for %s — link skipped", url)
+                logger.warning("mirror: source id missing for %s - link skipped", url)
                 continue
             link_rows.append({
                 "country_id": country_ids[country],

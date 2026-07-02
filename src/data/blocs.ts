@@ -36,7 +36,7 @@ export async function loadBlocs(knownCountries: string[] | null = null): Promise
     delete parsed._comment; // metadata key in blocs.json, not a bloc
     const data = parsed as unknown as BlocsData;
 
-    // Dev-time guard: bloc member names must exactly match scores.csv —
+    // Dev-time guard: bloc member names must exactly match scores.csv -
     // catches silent drift if the dataset ever renames a country.
     if (import.meta.env.DEV && knownCountries) {
       const known = new Set(knownCountries);

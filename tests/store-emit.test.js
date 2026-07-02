@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { setState, on } from '../src/state/store';
 
 // Focused coverage for the emit-on-change guard: a no-op write must not
-// notify listeners (it used to fan out redundant re-renders — a bare Esc
+// notify listeners (it used to fan out redundant re-renders - a bare Esc
 // re-writing selectedCountry:null, or writing both filter sliders when only
 // one moved).
 

@@ -29,7 +29,7 @@ function appState(overrides = {}) {
   };
 }
 
-describe('parseUrl — score-range filter', () => {
+describe('parseUrl - score-range filter', () => {
   it('parses valid min/max bounds', () => {
     expect(parseUrl('?min=2&max=4.5')).toEqual({ filterMin: 2, filterMax: 4.5 });
   });

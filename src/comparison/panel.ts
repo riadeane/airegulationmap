@@ -21,7 +21,7 @@ const DETAIL_DIMENSIONS: DimensionKey[] = [
 // comparison. Much faster than hunting for a country on the map.
 // Clicking a country on the map still works; that path hands the
 // most recent click to the "quick add" button alongside the search.
-// `listId` must be unique per instance — the full-view add-bar and the
+// `listId` must be unique per instance - the full-view add-bar and the
 // staging strip both mount one, and duplicate ids break aria-controls.
 export function buildSearchInput(atCap: boolean, listId = 'comp-search-suggestions'): HTMLDivElement {
   const wrap = document.createElement('div');
@@ -31,7 +31,7 @@ export function buildSearchInput(atCap: boolean, listId = 'comp-search-suggestio
   input.type = 'text';
   input.className = 'comp-search-input';
   input.placeholder = atCap
-    ? `Max ${MAX_COMPARISON} reached — remove one first`
+    ? `Max ${MAX_COMPARISON} reached; remove one first`
     : 'Add a country to compare…';
   input.autocomplete = 'off';
   input.setAttribute('aria-label', 'Search country to add to comparison');
@@ -165,7 +165,7 @@ function renderChips(names: readonly string[]): void {
   names.forEach(name => container.appendChild(buildChip(name)));
 }
 
-// The comparison set — a pinned footer in the country panel listing the
+// The comparison set - a pinned footer in the country panel listing the
 // staged countries. The "View comparison" button (enabled at 2+) opens
 // the full view.
 export function renderTray(names: readonly string[]): void {
@@ -188,7 +188,7 @@ export function renderTray(names: readonly string[]): void {
     if (input) {
       input.disabled = atCap;
       input.placeholder = atCap
-        ? `Max ${MAX_COMPARISON} reached — remove one first`
+        ? `Max ${MAX_COMPARISON} reached; remove one first`
         : 'Add a country to compare…';
     }
   }
@@ -234,9 +234,9 @@ function renderComparisonTable(names: readonly string[]): void {
   const tbody = document.createElement('tbody');
 
   const fmtScore = (v: number | null | undefined) =>
-    v == null ? '—' : (Number.isInteger(v) ? String(v) : v.toFixed(2));
+    v == null ? '–' : (Number.isInteger(v) ? String(v) : v.toFixed(2));
 
-  // Maturity index — score only (it is derived; no description).
+  // Maturity index - score only (it is derived; no description).
   const avgRow = document.createElement('tr');
   avgRow.className = 'ct-row ct-row-maturity';
   const avgLabel = document.createElement('th');
@@ -254,7 +254,7 @@ function renderComparisonTable(names: readonly string[]): void {
   });
   tbody.appendChild(avgRow);
 
-  // The five scored dimensions — score badge + description per country.
+  // The five scored dimensions - score badge + description per country.
   DETAIL_DIMENSIONS.forEach(dim => {
     const row = document.createElement('tr');
     row.className = 'ct-row';
@@ -286,7 +286,7 @@ function renderComparisonTable(names: readonly string[]): void {
     tbody.appendChild(row);
   });
 
-  // Key legislation — text only, useful side-by-side.
+  // Key legislation - text only, useful side-by-side.
   const lawsRow = document.createElement('tr');
   lawsRow.className = 'ct-row';
   const lawsLabel = document.createElement('th');
@@ -302,7 +302,7 @@ function renderComparisonTable(names: readonly string[]): void {
     if (text) {
       p.textContent = text;
     } else {
-      p.textContent = '—';
+      p.textContent = '–';
       p.classList.add('empty');
     }
     td.appendChild(p);

@@ -21,7 +21,7 @@ export function initComparison(): void {
   if (viewBtn) viewBtn.addEventListener('click', openComparison);
 
   // The comparison set lives as a pinned footer in the country panel while the
-  // user assembles it — visible the whole time you're picking countries, never
+  // user assembles it - visible the whole time you're picking countries, never
   // over the map. It hides once the full view opens or the set is empty.
   function updateStrip(): void {
     const { comparisonCountries, mainView } = getState();
@@ -34,12 +34,12 @@ export function initComparison(): void {
     renderTray(names);
     updateStrip();
 
-    // Can't compare fewer than two — drop out of the full view if the set
+    // Can't compare fewer than two - drop out of the full view if the set
     // falls below the threshold while it's open.
     if (getState().mainView === 'comparison' && names.length < 2) {
       showMap();
     } else if (getState().mainView === 'comparison') {
-      // Set changed while viewing — re-render the table/radar.
+      // Set changed while viewing - re-render the table/radar.
       renderComparisonPanel(names);
     }
   });
@@ -58,7 +58,7 @@ export function initComparison(): void {
       if (panelEl) panelEl.hidden = false;
       if (countryPanelEl) countryPanelEl.style.display = 'none';
       renderComparisonPanel(getState().comparisonCountries);
-      // The country panel may have just been hidden — move focus into the new
+      // The country panel may have just been hidden - move focus into the new
       // region so keyboard users aren't stranded.
       backBtn?.focus();
     } else {

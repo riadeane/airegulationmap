@@ -1,12 +1,12 @@
-// Interaction orchestrator — the single home for state transitions that carry
+// Interaction orchestrator - the single home for state transitions that carry
 // an invariant. This is the frontend analogue of the backend's PipelineService:
 // modules dispatch named intents instead of poking `setState` with rules baked
 // in at the call site, so cross-cutting behaviour ("opening scatter closes
 // comparison", "a comparison needs ≥2 countries", "Esc backs out one layer")
 // lives in exactly one place.
 //
-// It depends only on the store, the constants, and the colour-slot leaf — never
-// on a feature module — so it introduces no import cycles. Feature modules
+// It depends only on the store, the constants, and the colour-slot leaf - never
+// on a feature module - so it introduces no import cycles. Feature modules
 // subscribe to the resulting store changes as usual.
 
 import { getState, setState } from './store';
@@ -41,7 +41,7 @@ export const MAX_SEARCH_QUERY = 100;
 /**
  * Commit a full-text search: the results list replaces the empty panel and
  * the map stays dimmed to matches until the search is cleared. Deselects the
- * country so the list is actually visible — the selection is one Esc away.
+ * country so the list is actually visible - the selection is one Esc away.
  */
 export function commitSearch(query: string): void {
   const q = query.trim().slice(0, MAX_SEARCH_QUERY);
@@ -101,7 +101,7 @@ export function restoreComparison(names: readonly string[]): void {
 
 /**
  * The only place `mainView` is written. Because it's a single field, setting
- * one view implicitly leaves the others — no explicit "close the other overlay"
+ * one view implicitly leaves the others - no explicit "close the other overlay"
  * dance. Guards the one real invariant: the comparison view needs ≥2 countries.
  */
 export function setMainView(view: MainView): void {

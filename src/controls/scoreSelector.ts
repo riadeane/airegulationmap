@@ -50,7 +50,7 @@ export function initDimensionClicks(): void {
   // recolors the map by that dimension (this handler), and a separate
   // caret button discloses the sub-indicator breakdown (see
   // panel/subscores.ts). They were a single overloaded click target
-  // before — one click did both, with contradictory signifiers.
+  // before - one click did both, with contradictory signifiers.
   //
   // Clicking the main button colors the map by that dimension; clicking
   // the active dimension again toggles back to the maturity index
@@ -58,7 +58,7 @@ export function initDimensionClicks(): void {
   document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
     const main = row.querySelector<HTMLElement>('.dim-main');
     if (!main) return;
-    main.title = 'Color the map by this dimension — click again to return to the maturity index';
+    main.title = 'Color the map by this dimension; click again to return to the maturity index';
     main.addEventListener('click', () => {
       const dimension = row.dataset.dimension as AttributeKey;
       switchAttribute(getState().currentAttribute === dimension ? 'averageScore' : dimension);

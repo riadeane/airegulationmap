@@ -207,7 +207,7 @@ class TestGroundedPrompt:
         plain = render_prompt("Germany", TODAY, None)
         grounded = render_grounded_prompt("Germany", TODAY, None, self.INITIATIVES)
         assert "VERIFIED POLICY INITIATIVES for Germany" in grounded
-        assert "1. AI Act (2024) — Law | Binding | Active" in grounded
+        assert "1. AI Act (2024) - Law | Binding | Active" in grounded
         assert "Source: https://a.gov/act" in grounded
         # The rubric and output contract are untouched.
         assert grounded.endswith(plain[plain.find("Research the current state"):])

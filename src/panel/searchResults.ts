@@ -1,11 +1,11 @@
-// The committed-search results list — what makes full-text search a real
+// The committed-search results list - what makes full-text search a real
 // research surface instead of a transient dropdown. Lives in the panel
 // aside (where the reading happens): a persistent match list with count,
 // jump-to-matched-field on click, an exportable match set, and map dimming
 // that survives browsing into countries and back.
 //
 // State contract: `searchQuery` (committed via the commitSearch intent) is
-// the input; the match list itself is DERIVED and memoized module-locally —
+// the input; the match list itself is DERIVED and memoized module-locally -
 // it never enters the store.
 
 import { getState, on } from '../state/store';
@@ -136,7 +136,7 @@ function renderList(container: HTMLElement, query: string, results: ResultSet): 
     row.append(head, snippetNode(match));
     row.addEventListener('click', () => {
       // selectCountry emits synchronously, so the panel DOM is fully
-      // rendered when the call returns — the highlight lands on real nodes.
+      // rendered when the call returns - the highlight lands on real nodes.
       selectCountry(match.country);
       highlightPanelField(match.field, getState().searchQuery);
     });
@@ -169,7 +169,7 @@ export function initSearchResults(): void {
       backBar.replaceChildren();
       updateSearchHighlight(null);
       // Hand the empty slot back: the intro (if not yet consumed) or the
-      // usual no-selection fallback — same rule clearPanel applies.
+      // usual no-selection fallback - same rule clearPanel applies.
       if (!selectedCountry) {
         const intro = document.getElementById('panel-intro');
         if (intro) intro.hidden = false;
@@ -180,7 +180,7 @@ export function initSearchResults(): void {
     }
 
     const results = resultsFor(searchQuery);
-    // The committed query owns map dimming — it persists while a result is
+    // The committed query owns map dimming - it persists while a result is
     // open, so "which other countries mention this" never evaporates.
     updateSearchHighlight(new Set(results.countries));
 
@@ -205,6 +205,6 @@ export function initSearchResults(): void {
 
   on('searchQuery', render);
   on('selectedCountry', render);
-  // A fresh dataset (rare — e.g. hydration) invalidates the derived list.
+  // A fresh dataset (rare - e.g. hydration) invalidates the derived list.
   on('regulationData', () => { if (getState().searchQuery) render(); });
 }

@@ -2,7 +2,7 @@
 
 :class:`PipelineService` ties selection (staleness), research (a
 :class:`~regulation_pipeline.strategies.ResearchStrategy`), and persistence (the
-:class:`~regulation_pipeline.repository.Dataset`) together — the logic that used
+:class:`~regulation_pipeline.repository.Dataset`) together - the logic that used
 to live inside ``cli.main``. It has no argparse/exit-code/credential concerns, so
 it is unit-testable with a fake strategy and a temp dataset. Answers arrive
 already validated (as :class:`~regulation_pipeline.models.ResearchResult`), so the
@@ -49,7 +49,7 @@ class PipelineService:
         self._today = today
         # Optional Supabase dual-write. Deliberately OUTSIDE Dataset: the file
         # stores and their byte contracts stay untouched, and every mirror
-        # call below is downgraded to a warning — a mirror failure can never
+        # call below is downgraded to a warning - a mirror failure can never
         # fail a run or change its exit code.
         self._mirror = mirror
 
@@ -93,7 +93,7 @@ class PipelineService:
             if updated:
                 logger.info("Saving partial progress...")
                 self._dataset.save()
-            # Mirror AFTER the files are safe — same ordering as the happy path.
+            # Mirror AFTER the files are safe - same ordering as the happy path.
             self._mirror_call("finish", updated, len(set(failed)), True)
             return RunResult(updated=updated, failed=sorted(set(failed)), fatal=True)
 
@@ -131,7 +131,7 @@ class PipelineService:
                 history=self._dataset.history_for(country),
             )
         except Exception:
-            logger.warning("mirror: record(%s) failed — continuing", country, exc_info=True)
+            logger.warning("mirror: record(%s) failed - continuing", country, exc_info=True)
 
     def _mirror_call(self, method: str, *args) -> None:
         if self._mirror is None:
@@ -139,4 +139,4 @@ class PipelineService:
         try:
             getattr(self._mirror, method)(*args)
         except Exception:
-            logger.warning("mirror: %s failed — continuing", method, exc_info=True)
+            logger.warning("mirror: %s failed - continuing", method, exc_info=True)

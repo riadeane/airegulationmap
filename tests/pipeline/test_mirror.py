@@ -111,7 +111,7 @@ class TestSupabaseMirror:
         assert [r["snapshot_date"] for r in hist_rows] == ["2026-01-01", "2026-06-11"]
         assert "date" not in hist_rows[0]["scores"]
 
-        # Sources upserted (no first_seen — DB default must survive) + links.
+        # Sources upserted (no first_seen - DB default must survive) + links.
         source_rows = fake.of("POST", "sources")[0]
         assert {r["url"] for r in source_rows} == {"https://example.gov/ai", "https://example.gov/law"}
         assert all("first_seen" not in r for r in source_rows)
@@ -160,7 +160,7 @@ class ListStrategy:
 
 
 class ExplodingMirror:
-    """Raises on every call — the run must be entirely unaffected."""
+    """Raises on every call - the run must be entirely unaffected."""
 
     def __init__(self):
         self.calls: list[str] = []

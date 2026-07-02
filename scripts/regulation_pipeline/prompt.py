@@ -15,7 +15,7 @@ from datetime import date
 PROMPT_VERSION = "v2-2026-06"
 
 # The evidence-grounded variant (same rubric + output schema, plus a
-# verified-records block). Grounded prompts are LONGER than plain ones —
+# verified-records block). Grounded prompts are LONGER than plain ones -
 # pair grounded runs with --batch for the 50% token pricing.
 GROUNDED_PROMPT_VERSION = "v3-grounded-2026-07"
 
@@ -39,11 +39,11 @@ Research the current state of AI regulation in {country} as of {today}.
 Consider recent legislation, executive orders, national strategies, and international agreements.
 
 Each of the five dimensions is scored through FOUR concrete sub-indicators, each an
-integer 1-5. The dimension score is computed downstream as their mean — you never
+integer 1-5. The dimension score is computed downstream as their mean - you never
 report a dimension total. Score every sub-indicator strictly against its written
 definition.
 
-Calibration — read before scoring:
+Calibration - read before scoring:
 - A sub-indicator score of 5 means the GLOBAL FRONTIER TODAY: the standard set by the
   two or three most advanced jurisdictions for that specific aspect. It does not mean
   perfection. When torn between 4 and 5, give 4.
@@ -135,7 +135,7 @@ def render_prompt(country: str, today: date, existing_reg: dict | None) -> str:
 
 _EVIDENCE_HEADER = """
 VERIFIED POLICY INITIATIVES for {country} ({count} shown, most recent first).
-These are records from the OECD.AI Policy Observatory (GAIIN) — treat them as
+These are records from the OECD.AI Policy Observatory (GAIIN) - treat them as
 verified facts:
 """
 
@@ -160,7 +160,7 @@ def _initiative_lines(initiatives: list[dict], overview_chars: int) -> str:
         meta = " | ".join(
             str(part) for part in (init.get("initiative_type"), init.get("binding"), init.get("status")) if part
         )
-        lines.append(f"{i}. {init.get('name')} ({year})" + (f" — {meta}" if meta else ""))
+        lines.append(f"{i}. {init.get('name')} ({year})" + (f" - {meta}" if meta else ""))
         overview = (init.get("overview") or "").strip()
         if overview:
             if len(overview) > overview_chars:
@@ -181,8 +181,8 @@ def render_grounded_prompt(
     overview_chars: int = MAX_OVERVIEW_CHARS,
 ) -> str:
     """The research prompt with a verified-evidence block injected. The rubric
-    and the output schema are IDENTICAL to the plain prompt — grounding changes
-    what the model reads, never what it returns — so models.py, the repository,
+    and the output schema are IDENTICAL to the plain prompt - grounding changes
+    what the model reads, never what it returns - so models.py, the repository,
     and all downstream validation are untouched.
 
     ``initiatives`` are dicts with (at least) name / start_year /
@@ -205,9 +205,9 @@ def render_grounded_prompt(
     )
 
     # Inject the evidence between the context (existing data) and the task
-    # instructions — the anchor line starts the task section.
+    # instructions - the anchor line starts the task section.
     anchor = f"Research the current state of AI regulation in {country}"
     idx = base.find(anchor)
-    if idx == -1:  # template drift — append rather than lose the evidence
+    if idx == -1:  # template drift - append rather than lose the evidence
         return base + "\n" + evidence_block
     return base[:idx] + evidence_block + "\n" + base[idx:]

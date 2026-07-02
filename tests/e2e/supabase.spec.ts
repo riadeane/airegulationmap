@@ -3,7 +3,7 @@ import type { APIRequestContext } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 // The Supabase layer is progressive enhancement: these specs prove both
-// halves — (1) with every REST request failing, the app is byte-for-byte
+// halves - (1) with every REST request failing, the app is byte-for-byte
 // the static experience; (2) with mocked responses, the initiatives
 // section and source-title upgrades render. Requires the build to carry
 // VITE_SUPABASE_* (CI uses dummy values; requests never leave the browser
@@ -12,7 +12,7 @@ import AxeBuilder from '@axe-core/playwright';
 const REST = '**/rest/v1/**';
 
 /** First source URL in Germany's regulation_data.csv row (fetched from the
- * served static file) — used to mock a title for a URL the panel will
+ * served static file) - used to mock a title for a URL the panel will
  * actually render. */
 async function germanySourceUrl(request: APIRequestContext): Promise<string | null> {
   const csv = await (await request.get('/regulation_data.csv')).text();
@@ -50,7 +50,7 @@ test('mocked Supabase responses light up initiatives and source titles', async (
   await page.route('**/rest/v1/sources*', route =>
     route.fulfill({
       json: sourceUrl
-        ? [{ url: sourceUrl, title: 'Test Title — Official Gazette', source_type: 'official' }]
+        ? [{ url: sourceUrl, title: 'Test Title Official Gazette', source_type: 'official' }]
         : [],
     })
   );
@@ -89,7 +89,7 @@ test('mocked Supabase responses light up initiatives and source titles', async (
 
   // Source list upgraded from hostname to the supplied title.
   if (sourceUrl) {
-    await expect(page.locator('#sources-list')).toContainText('Test Title — Official Gazette');
+    await expect(page.locator('#sources-list')).toContainText('Test Title Official Gazette');
   }
 
   // The enriched panel stays accessible.

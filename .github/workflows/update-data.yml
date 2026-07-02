@@ -96,7 +96,7 @@ jobs:
           INPUT_BATCH: ${{ (github.event_name == 'schedule' || github.event.inputs.batch == 'true') && '--batch' || '' }}
           INPUT_GROUNDED: ${{ (vars.EVIDENCE_SYNC_ENABLED == 'true') && '--grounded' || '' }}
         run: |
-          # pipefail: tee must not mask the script's exit code — the
+          # pipefail: tee must not mask the script's exit code - the
           # partial-failure contract (exit 1) drives the step status.
           set -o pipefail
           python scripts/update_data.py \
@@ -132,7 +132,7 @@ jobs:
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push updated data
-        # Only ever push from the default branch — a manual dispatch on some
+        # Only ever push from the default branch - a manual dispatch on some
         # other ref must not write data commits there.
         if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' }}
         run: |

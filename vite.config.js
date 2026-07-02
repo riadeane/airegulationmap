@@ -10,7 +10,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         // The map app plus the self-hosted Swagger UI page (bundles
-        // swagger-ui-dist at build time — no CDN, no vendored blobs).
+        // swagger-ui-dist at build time - no CDN, no vendored blobs).
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         apiDocs: fileURLToPath(new URL('./api-docs.html', import.meta.url)),
       },

@@ -4,7 +4,7 @@ import 'd3-transition';
 
 let tooltipEl: Selection<HTMLDivElement, unknown, HTMLElement, unknown> | undefined;
 
-// Idempotent — the map and the scatter plot share one tooltip element.
+// Idempotent - the map and the scatter plot share one tooltip element.
 export function createTooltip(): void {
   if (tooltipEl && document.body.contains(tooltipEl.node())) return;
   select('body').selectAll('div.tooltip').remove();

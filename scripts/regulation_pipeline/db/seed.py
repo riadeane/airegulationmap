@@ -9,13 +9,13 @@ provenance row.
 
 Two output modes:
 
-* ``--emit-sql DIR`` — write chunked, **idempotent** SQL files
+* ``--emit-sql DIR`` - write chunked, **idempotent** SQL files
   (``insert … on conflict do update``; foreign keys resolved by
   name/url subselects, so no client-side UUIDs). This is the path used
   where only privileged SQL execution is available (e.g. the Supabase MCP
   ``execute_sql`` tool). Re-emitting from unchanged data produces
   byte-identical files.
-* ``--direct`` — apply through :class:`~regulation_pipeline.db.client.
+* ``--direct`` - apply through :class:`~regulation_pipeline.db.client.
   SupabaseClient` with ``SUPABASE_URL``/``SUPABASE_SERVICE_KEY`` env vars
   (two-phase: upsert parents, read back ids, upsert children).
 
@@ -281,7 +281,7 @@ def write_sql_chunks(stmts: list[str], out_dir: Path, max_chars: int = 90_000) -
 
 
 def apply_direct(seed: SeedData, client) -> None:
-    """Two-phase apply through PostgREST: upsert parents (no ids sent — see
+    """Two-phase apply through PostgREST: upsert parents (no ids sent - see
     SupabaseClient.upsert), read the generated ids back, then upsert children
     with resolved foreign keys."""
     client.upsert("research_runs", [seed.run], on_conflict="id")

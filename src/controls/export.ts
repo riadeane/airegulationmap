@@ -1,4 +1,4 @@
-// CSV / JSON export of the dataset — the whole thing or the current
+// CSV / JSON export of the dataset - the whole thing or the current
 // filtered view. Researchers feed this straight into R / Python / Excel.
 //
 // Exports always reflect the LATEST data, even while the timeline is
@@ -37,10 +37,10 @@ function buildExportRows(countries: string[]) {
   });
 }
 
-// Countries passing the active filters — the same visibility predicate the
+// Countries passing the active filters - the same visibility predicate the
 // map and scatter use (score range AND bloc), so "filtered view" exports
 // exactly what the user is looking at. Countries with no score for the
-// current attribute are excluded — they're dimmed on the map, and "all
+// current attribute are excluded - they're dimmed on the map, and "all
 // countries" covers them.
 function getFilteredCountries(): string[] {
   return [...visibleCountrySet()].sort();
@@ -58,7 +58,7 @@ function downloadFile(content: string, filename: string, mimeType: string): void
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
-// Transient confirmation so the download isn't silent — and so the
+// Transient confirmation so the download isn't silent - and so the
 // researcher can see which scope (filtered vs all) they actually got.
 // Doubles as an aria-live announcement for screen-reader users.
 function showToast(message: string): void {
@@ -141,7 +141,7 @@ export function initExport(): void {
     comparisonButtons.forEach(b => {
       b.disabled = n === 0;
       const fmt = b.dataset.format === 'csv' ? 'CSV' : 'JSON';
-      b.textContent = n > 0 ? `${fmt} — comparison (${n})` : `${fmt} — comparison`;
+      b.textContent = n > 0 ? `${fmt} · comparison (${n})` : `${fmt} · comparison`;
     });
   };
   on('comparisonCountries', syncComparisonButtons);

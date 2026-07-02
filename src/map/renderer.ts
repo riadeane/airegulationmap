@@ -26,7 +26,7 @@ import { cssVar, onThemeChange } from './cssColors';
 /** A world-atlas country geometry with its bound name property. */
 export type CountryFeature = Feature<Geometry, { name: string }>;
 
-/** Scores renderable on the map — live rows or historical snapshots. */
+/** Scores renderable on the map - live rows or historical snapshots. */
 type MapScores = ScoreData | Record<string, HistorySnapshot>;
 type MapScoreEntry = ScoreEntry | HistorySnapshot;
 
@@ -78,7 +78,7 @@ function readContainerSize(): Size {
 // dims #map via visibility, the comparison view drops #map-wrapper via
 // display:none. Both also toggle #timeline-strip, which changes the map
 // box. A ResizeObserver fire in that window would re-fit the projection
-// to a transient size the map never actually shows at — then the stale
+// to a transient size the map never actually shows at - then the stale
 // fit flashes ("zooms") the instant the view closes and the map repaints.
 // Skip those fits; closing the view changes the box again and re-fires
 // the observer, fitting to the real size.
@@ -254,7 +254,7 @@ export async function generateMap(): Promise<void> {
   addLegend(svg, colorScale, size);
 
   // Tap anywhere that ISN'T a country (ocean, sphere edge, graticule, bare
-  // svg) to deselect — the click-away that closes the mobile sheet and
+  // svg) to deselect - the click-away that closes the mobile sheet and
   // clears the selection on desktop. A country's own handler owns its
   // clicks. Guard against the click that fires at the end of a pan by
   // ignoring it when the pointer travelled since it went down.
@@ -303,16 +303,16 @@ export async function generateMap(): Promise<void> {
 }
 
 // Single opacity composition for the score-range filter and the
-// country-level filters (bloc — via the shared selector predicate).
+// country-level filters (bloc - via the shared selector predicate).
 // (Search dimming stays class-based in CSS and intentionally wins over
 // this inline value while the user is mid-search.)
 //
 // The range check runs against `entry`, which during timeline playback is
-// a historical snapshot — that's why it stays per-datum here instead of
+// a historical snapshot - that's why it stays per-datum here instead of
 // using visibleCountrySet(), which is defined over the latest data.
 //
 // `country` is the geometry's name, which is also the key `entry` was
-// looked up under — use it for the country-filter test rather than
+// looked up under - use it for the country-filter test rather than
 // entry.country, since historical snapshots carry no country field.
 function countryOpacity(
   country: string,

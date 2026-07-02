@@ -34,7 +34,7 @@ export function initTimeline(history: HistoryData | null): void {
 
   const dateLabel = document.getElementById('timeline-date-label')!;
 
-  // Position the slider based on initial state — URL may have supplied
+  // Position the slider based on initial state - URL may have supplied
   // a `date` param before we got here. If the URL's date isn't in the
   // snapshot list, fall back to latest rather than erroring.
   const { timelineDate: initialDate } = getState();
@@ -70,7 +70,7 @@ export function initTimeline(history: HistoryData | null): void {
 
   // Any change to `timelineDate` (slider, reset, popstate, URL load)
   // re-renders the map. The slider input handler itself doesn't need
-  // to call updateMap — this subscription is the single write seam.
+  // to call updateMap - this subscription is the single write seam.
   on('timelineDate', (date) => {
     updateMap(scoresForDate(date));
 

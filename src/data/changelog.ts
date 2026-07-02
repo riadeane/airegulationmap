@@ -1,5 +1,5 @@
 // Per-country score change history derived from history.json snapshots.
-// Pure — no DOM, unit-tested.
+// Pure - no DOM, unit-tested.
 
 import { ATTRIBUTE_LABELS } from '../constants';
 import type { DimensionKey } from '../constants';

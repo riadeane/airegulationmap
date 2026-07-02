@@ -2,7 +2,7 @@
 
 Not ``supabase-py``: the pipeline needs exactly four verbs against a known
 schema (select / insert / upsert / delete), and a hand-rolled wrapper keeps
-the dependency surface small and the tests honest — a fake
+the dependency surface small and the tests honest - a fake
 ``httpx.MockTransport`` asserts the *exact* request sequence the mirror and
 seed produce.
 
@@ -60,7 +60,7 @@ class SupabaseClient:
                    *, page_size: int = 1000) -> list[dict]:
         """Offset-paginated select. PostgREST caps responses at ~1,000 rows
         regardless of ``limit``, so any lookup that must be COMPLETE (id maps,
-        delta cursors) goes through here — a silently truncated id map turns
+        delta cursors) goes through here - a silently truncated id map turns
         into missing links or KeyErrors downstream."""
         rows: list[dict] = []
         offset = 0
@@ -91,7 +91,7 @@ class SupabaseClient:
         batch_size: int = 500,
     ) -> None:
         """Idempotent bulk upsert. Callers must NOT include generated columns
-        (like ``id``) in ``rows`` — merge-duplicates updates every supplied
+        (like ``id``) in ``rows`` - merge-duplicates updates every supplied
         column, and rewriting a primary key would break foreign keys."""
         for start in range(0, len(rows), batch_size):
             batch = rows[start:start + batch_size]
@@ -117,7 +117,7 @@ class SupabaseClient:
 
     def delete(self, table: str, filters: dict[str, str]) -> None:
         """``filters`` are PostgREST operators, e.g. ``{"country_id": "eq.<uuid>"}``.
-        Refuses to run unfiltered — a bare DELETE on a PostgREST table is a
+        Refuses to run unfiltered - a bare DELETE on a PostgREST table is a
         table wipe."""
         if not filters:
             raise ValueError("refusing to DELETE without filters")

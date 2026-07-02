@@ -32,8 +32,8 @@ export function buildScoresAtDate(
   const result: Record<string, HistorySnapshot> = {};
   for (const [country, snapshots] of Object.entries(history.countries)) {
     if (snapshots.length === 0) continue;
-    // Snapshots are change-points — the pipeline only appends a new one
-    // when a score actually changes (see history.py) — so they describe a
+    // Snapshots are change-points - the pipeline only appends a new one
+    // when a score actually changes (see history.py) - so they describe a
     // step function. The latest snapshot on or before targetDate holds.
     // Before a country's first snapshot there is no recorded change, so we
     // carry its earliest known state backward rather than dropping it;

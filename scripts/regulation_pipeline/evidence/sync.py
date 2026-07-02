@@ -3,7 +3,7 @@
 Client-side delta: the API has no server-side filtering, so every sync
 walks all pages (cheap: ~120 requests) and compares ``updated_at`` against
 what the database already holds. Rows are upserted on ``(source,
-external_id)`` — the sync NEVER deletes, so a source outage or a shrunken
+external_id)`` - the sync NEVER deletes, so a source outage or a shrunken
 API response can't destroy accumulated evidence.
 
 Matched initiatives also feed the sources database: each ``source_url``
@@ -140,7 +140,7 @@ def _sync_source_links(client, links: list[tuple[str, str]], country_ids: dict[s
         if url in source_ids and country in country_ids
     ]
     # One initiative URL may repeat across records; the unique constraint
-    # dedupes, but PostgREST rejects duplicate rows within one payload —
+    # dedupes, but PostgREST rejects duplicate rows within one payload -
     # dedupe locally first.
     unique_rows = list({(r["country_id"], r["source_id"]): r for r in link_rows}.values())
     if unique_rows:

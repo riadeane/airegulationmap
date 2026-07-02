@@ -24,7 +24,7 @@
   border-color: var(--accent);
 }
 
-/* Bloc summary card — floats top-left over the map; legend owns
+/* Bloc summary card - floats top-left over the map; legend owns
    bottom-right, zoom owns bottom-left. */
 
 .bloc-summary {

@@ -2,11 +2,11 @@
 
 Two kinds of thing live here:
 
-* **Constants that are contracts** — the CSV column order/headers the frontend
+* **Constants that are contracts** - the CSV column order/headers the frontend
   loader depends on, the staleness threshold, the priority-country set, and the
   default model. These are module-level so they read as the fixed contract they
   are.
-* **:class:`Settings`** — the injectable bundle of *where things live* and
+* **:class:`Settings`** - the injectable bundle of *where things live* and
   *which model/thresholds to use*. Paths are anchored to the repository root via
   :data:`REPO_ROOT` rather than the process CWD, so the pipeline works from any
   working directory. Tests construct a ``Settings(root=tmp_path)`` to redirect
@@ -39,7 +39,7 @@ REGULATION_FIELDS = [
 # Countries stale after this many days without a fresh, confident answer.
 STALENESS_DAYS = 90
 
-# Default research model. Deliberately Sonnet 4.6, not an Opus tier — a full
+# Default research model. Deliberately Sonnet 4.6, not an Opus tier - a full
 # ~196-country monthly run is cost-sensitive and this is the chosen tradeoff.
 DEFAULT_MODEL = "claude-sonnet-4-6"
 
@@ -50,7 +50,7 @@ SEARCH_MODEL = "claude-sonnet-4-6"
 
 # Countries that get web search under --search (the two-tier priority system).
 # Note: "European Union" is not a row in scores.csv, so its entry here is
-# currently inert — kept in case an EU-level row is ever added.
+# currently inert - kept in case an EU-level row is ever added.
 PRIORITY_COUNTRIES = frozenset({
     "United States of America", "United Kingdom", "China", "European Union",
     "Germany", "France", "Brazil", "India", "Japan", "Canada", "Australia",

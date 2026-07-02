@@ -8,6 +8,6 @@ the grounded prompt mode (``prompt.render_grounded_prompt``) then feeds a
 country's verified records to Claude at scoring time.
 
 Country matching is deliberately conservative: ISO3 exact, then canonical
-name — never fuzzy. Unmatched records are stored unlinked with the raw
+name - never fuzzy. Unmatched records are stored unlinked with the raw
 country label preserved, so nothing is lost and nothing is guessed.
 """

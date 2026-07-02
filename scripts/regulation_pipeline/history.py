@@ -11,7 +11,7 @@ from __future__ import annotations
 from .models import ResearchResult
 
 # The five dimension keys in the history JSON (camelCase). averageScore and date
-# are intentionally excluded from change detection — a snapshot exists to record
+# are intentionally excluded from change detection - a snapshot exists to record
 # a change in the underlying dimension scores.
 DIMENSION_KEYS = tuple(dim.history_key for dim in ResearchResult.DIMENSIONS)
 

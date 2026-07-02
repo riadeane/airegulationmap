@@ -1,18 +1,18 @@
 """Source-URL classification for the sources database.
 
-Python port of the frontend classifier in ``src/data/sources.ts`` — the
+Python port of the frontend classifier in ``src/data/sources.ts`` - the
 ``official``/``other`` *kind* must stay behaviourally identical in both
 languages (the shared examples below are asserted by
 ``tests/pipeline/test_sources_classify.py``; mirror any pattern change in
 both files). On top of the kind, this module refines a ``source_type`` for
 the ``sources`` table taxonomy:
 
-* ``intergovernmental`` — IGO domains (EU institutions, OECD, UN system, …).
+* ``intergovernmental`` - IGO domains (EU institutions, OECD, UN system, …).
   Note: the frontend still *tags* e.g. ``europa.eu`` as official (it is the
   primary source for EU law); the DB taxonomy separates the IGO layer.
-* ``official`` — national government / legislature / regulator hosts.
-* ``academic`` — universities (``.edu``, ``.ac.<cc>``).
-* ``other`` — everything else. (``news``/``industry`` exist in the DB check
+* ``official`` - national government / legislature / regulator hosts.
+* ``academic`` - universities (``.edu``, ``.ac.<cc>``).
+* ``other`` - everything else. (``news``/``industry`` exist in the DB check
   constraint for future refinement but are not auto-assigned yet.)
 
 Shared classification examples (keep in sync with src/data/sources.ts):
@@ -58,7 +58,7 @@ _INTERGOV_SUFFIXES = (
 
 _ACADEMIC_RE = re.compile(r"(^|\.)(edu|ac\.[a-z]{2,3})$", re.IGNORECASE)
 
-# Mirrors PLACEHOLDER_RE in src/constants.ts — research results occasionally
+# Mirrors PLACEHOLDER_RE in src/constants.ts - research results occasionally
 # emit filler like "N/A" instead of a URL.
 _PLACEHOLDER_RE = re.compile(r"^(na|n/a|idem|unknown|none|\s*[-–—]\s*|\.\s*)$", re.IGNORECASE)
 
@@ -67,7 +67,7 @@ _PLACEHOLDER_RE = re.compile(r"^(na|n/a|idem|unknown|none|\s*[-–—]\s*|\.\s*)
 class ClassifiedSource:
     url: str
     domain: str
-    kind: str          # 'official' | 'other' — identical to the frontend
+    kind: str          # 'official' | 'other' - identical to the frontend
     source_type: str   # sources.source_type taxonomy
 
 
@@ -103,7 +103,7 @@ def classify_source(url: str) -> ClassifiedSource:
 
 def classify_sources(raw: str | None) -> list[ClassifiedSource]:
     """Split the pipe-separated CSV ``Sources`` field into classified,
-    de-duplicated sources — same splitting rules as the frontend."""
+    de-duplicated sources - same splitting rules as the frontend."""
     if not raw:
         return []
     seen: set[str] = set()

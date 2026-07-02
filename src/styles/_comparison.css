@@ -1,4 +1,4 @@
-/* Comparison panel — sibling to #country-panel inside <main> */
+/* Comparison panel - sibling to #country-panel inside <main> */
 #comparison-panel {
   width: min(640px, 52vw);
   min-width: 380px;
@@ -89,7 +89,7 @@
   position: relative;
 }
 
-/* Type-to-search input — the primary way to add countries. */
+/* Type-to-search input - the primary way to add countries. */
 .comp-search {
   position: relative;
   flex: 1 1 240px;
@@ -163,7 +163,7 @@
   color: var(--accent);
 }
 
-/* Quick-add ghost button — appears when you've also clicked a
+/* Quick-add ghost button - appears when you've also clicked a
    country on the map. Flat styling so it reads as secondary. */
 .comp-add-quick {
   background: transparent !important;
@@ -222,7 +222,7 @@
   color: var(--accent);
 }
 
-/* Chips — identity is encoded with a leading color dot, NOT a
+/* Chips - identity is encoded with a leading color dot, NOT a
    left-stripe. Stripe-as-accent is a recognizable AI-design tell
    and is explicitly avoided here. */
 .comparison-chips {
@@ -396,7 +396,7 @@ body.view-compare .radar-chart svg {
   padding-top: 6px;
 }
 
-/* Label column (dimension names) — fixed, quiet. */
+/* Label column (dimension names) - fixed, quiet. */
 .ct-label {
   width: 150px;
   font-size: 0.62rem;
@@ -407,7 +407,7 @@ body.view-compare .radar-chart svg {
   font-family: 'Geist', -apple-system, sans-serif;
 }
 
-/* Country column headers — the only place names appear in the table. */
+/* Country column headers - the only place names appear in the table. */
 .ct-country {
   font-family: 'Literata', Georgia, serif;
   font-size: 1.05rem;
@@ -505,8 +505,8 @@ body.view-compare .radar-chart svg {
   }
 
   /* Full comparison view: let the PAGE own the scroll. Without this the
-     panel keeps its 70vh cap, so the whole score/description table — the
-     actual point of Compare — sits below an unmarked internal-scroll fold
+     panel keeps its 70vh cap, so the whole score/description table - the
+     actual point of Compare - sits below an unmarked internal-scroll fold
      while the footer paints right under the radar and reads as
      "end of page". Grow the panel to its content and let #app-main
      (normally overflow:hidden for the sheet) grow with it. */
@@ -536,7 +536,7 @@ body.view-compare .radar-chart svg {
 
   /* Narrower columns let two or three countries fit without horizontal
      scroll on a phone; prose wraps rather than the table crushing it.
-     Four countries still scroll — acknowledged in renderComparisonTable. */
+     Four countries still scroll - acknowledged in renderComparisonTable. */
   .comparison-table td {
     min-width: 148px;
   }
@@ -557,7 +557,7 @@ body.view-compare .radar-chart svg {
     background: var(--surface);
   }
 
-  /* The radar's axis labels are ~10 units in a downscaled viewBox — ~7px
+  /* The radar's axis labels are ~10 units in a downscaled viewBox - ~7px
      on a phone. Bump them so the dimension names are legible. */
   .radar-axis-label {
     font-size: 14px;

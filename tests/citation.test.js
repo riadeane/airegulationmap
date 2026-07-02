@@ -7,16 +7,16 @@ describe('citationsFor', () => {
   it('cites a single-country view in all three styles', () => {
     const { apa, chicago, mla } = citationsFor({ ...base, country: 'Germany', mode: 'averageScore' });
     expect(apa).toBe(
-      'Deane, R. (2026). AI Regulation Map — Germany [Data visualization]. Retrieved 2026-06-11, from https://airegulationmap.org/?country=Germany'
+      'Deane, R. (2026). AI Regulation Map: Germany [Data visualization]. Retrieved 2026-06-11, from https://airegulationmap.org/?country=Germany'
     );
-    expect(chicago).toContain('Deane, Ria. 2026. "AI Regulation Map — Germany."');
+    expect(chicago).toContain('Deane, Ria. 2026. "AI Regulation Map: Germany."');
     expect(chicago).toContain('Accessed 11 June 2026');
-    expect(mla).toContain('"AI Regulation Map — Germany." AI Regulation Map, 2026');
+    expect(mla).toContain('"AI Regulation Map: Germany." AI Regulation Map, 2026');
   });
 
   it('titles a comparison view with the country list', () => {
     const { apa } = citationsFor({ ...base, compareCountries: ['France', 'Japan'] });
-    expect(apa).toContain('AI Regulation Map — France, Japan comparison');
+    expect(apa).toContain('AI Regulation Map: France, Japan comparison');
   });
 
   it('appends the dimension label for non-default score modes', () => {

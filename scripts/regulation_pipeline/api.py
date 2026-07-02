@@ -4,7 +4,7 @@ This layer is deliberately thin and domain-light: it builds request parameters
 (shared verbatim by the synchronous and Batches paths), calls the API with the
 shared retry policy, and extracts the JSON answer. It does *not* know about
 :class:`~regulation_pipeline.models.ResearchResult` beyond the schema it hands to
-the API — validating the raw JSON into a typed result is the service's job.
+the API - validating the raw JSON into a typed result is the service's job.
 """
 
 from __future__ import annotations
@@ -50,9 +50,9 @@ class ResearchClient:
         # Grounded mode: returns a country's verified policy initiatives
         # (policy_initiatives rows). When it yields records, the prompt
         # embeds them as facts; when empty, the plain research prompt is
-        # used — so evidence-poor countries degrade gracefully.
+        # used - so evidence-poor countries degrade gracefully.
         self._evidence_provider = evidence_provider
-        # Cumulative token usage across the run — best-effort provenance for
+        # Cumulative token usage across the run - best-effort provenance for
         # the research_runs audit row (the batch path tracks its own).
         self._usage = {"input": 0, "output": 0}
 
@@ -111,7 +111,7 @@ def parse_message(message, label: str) -> dict | None:
     ``None``.
 
     With web search enabled, responses interleave text and ``server_tool_use``
-    blocks — the constrained JSON answer is the LAST text block, not the first.
+    blocks - the constrained JSON answer is the LAST text block, not the first.
     """
     text = next(
         (block.text for block in reversed(message.content) if block.type == "text"),

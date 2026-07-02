@@ -3,7 +3,7 @@
 The monthly run is the textbook batch workload: ~196 independent requests, no
 latency requirement. Batches bill all token usage at 50% of standard prices,
 support every Messages API feature (web search, structured outputs), and return
-per-request results — a transient failure costs one country, not the run.
+per-request results - a transient failure costs one country, not the run.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ def build_batch_requests(params_by_country: dict[str, dict]):
     """Map countries to batch requests with safe ``custom_id``s.
 
     ``custom_id`` allows a limited character set, and country names contain
-    spaces, dots, and non-ASCII ("Bosnia and Herz.", "Côte d'Ivoire") — so use
+    spaces, dots, and non-ASCII ("Bosnia and Herz.", "Côte d'Ivoire") - so use
     positional ids and return the reverse mapping.
     """
     requests = []
@@ -108,7 +108,7 @@ class BatchRunner:
                 # completed. Requests still in flight come back as "canceled" and
                 # are retried/reported by the caller.
                 logger.warning(
-                    "Batch %s still processing after %ds — canceling and collecting "
+                    "Batch %s still processing after %ds - canceling and collecting "
                     "partial results", batch.id, self._max_wait,
                 )
                 self._client.messages.batches.cancel(batch.id)
@@ -140,7 +140,7 @@ class BatchRunner:
         messages: dict = {}
         errors: dict = {}
         if batch.processing_status != "ended":
-            # Couldn't reach a terminal state to read results — treat everything
+            # Couldn't reach a terminal state to read results - treat everything
             # not already collected as retryable rather than losing the run.
             logger.warning("Batch %s did not end; treating all requests as retryable", batch.id)
             return messages, {country: "retryable" for country in id_map.values()}
@@ -156,7 +156,7 @@ class BatchRunner:
                     self._usage["output"] += getattr(usage, "output_tokens", 0) or 0
             elif kind == "errored":
                 error_type = result.result.error.type
-                # invalid_request means the request itself is malformed —
+                # invalid_request means the request itself is malformed -
                 # resubmitting the same thing can't succeed.
                 errors[country] = "fatal" if error_type == "invalid_request" else "retryable"
                 logger.warning("batch request for %s errored (%s)", country, error_type)

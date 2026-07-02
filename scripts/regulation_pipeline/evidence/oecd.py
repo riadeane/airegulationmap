@@ -6,7 +6,7 @@ perPage}``; the API supports NO server-side filtering or sorting (unknown
 query params are silently ignored), so a sync always walks every page and
 delta-detection happens client-side against ``updated_at``. Field notes:
 
-* ``extentBinding`` — "Binding" | "Non-binding" | null (NOT ``binding``).
+* ``extentBinding`` - "Binding" | "Non-binding" | null (NOT ``binding``).
 * ``gaiinCountry.code`` is ISO3; the rest of ``gaiinCountry``'s metadata
   (income group, population, language) is unreliable and never ingested.
 * IGO-level records carry ``intergovernmentalOrganisation`` instead of a

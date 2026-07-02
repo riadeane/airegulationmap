@@ -4,7 +4,7 @@
 // hides the map layer); the country panel stays alongside, so clicking
 // a dot reads exactly like clicking a country on the map.
 //
-// Shows LATEST scores only — the timeline scrubber drives the map, not
+// Shows LATEST scores only - the timeline scrubber drives the map, not
 // this view (history snapshots are score-only and axis pairs would
 // silently mix vintages).
 
@@ -48,7 +48,7 @@ function isCoarse(): boolean {
 // on the same dot commits the selection.
 let previewedName: string | null = null;
 
-// Trend overlay toggle — module-local, not AppState: it's a cosmetic
+// Trend overlay toggle - module-local, not AppState: it's a cosmetic
 // reading aid, not a shareable view axis (promote to the store + URL if
 // that ever changes).
 let showTrend = false;
@@ -113,7 +113,7 @@ function createChart(): void {
 
   layout();
 
-  // Re-fit whenever the chart box changes size — the container settles
+  // Re-fit whenever the chart box changes size - the container settles
   // after open, the menu collapsing lengthens it, and rotation resizes
   // it. A ResizeObserver catches all of these (a one-time measure and a
   // window-resize listener both miss the header-height changes).
@@ -165,7 +165,7 @@ function updateChart(): void {
   svg.select('#scatter-x-label').text(ATTRIBUTE_LABELS[scatterX]);
   svg.select('#scatter-y-label').text(ATTRIBUTE_LABELS[scatterY]);
 
-  // The shared visibility predicate (score range + bloc) — identical to the
+  // The shared visibility predicate (score range + bloc) - identical to the
   // map's dimming and the export's "filtered view" scope.
   const visibleSet = visibleCountrySet();
 
@@ -212,7 +212,7 @@ function updateChart(): void {
   renderTrend(countries);
 
   // Name labels pinned to the selected dot AND (on touch) the previewed
-  // dot — in a 196-dot field the highlight ring alone is easy to lose,
+  // dot - in a 196-dot field the highlight ring alone is easy to lose,
   // and the preview needs to say which country you're about to open.
   const labelled = countries.filter(d => isMarked(d.name));
   svg.selectAll<SVGTextElement, PlottedDot>('text.scatter-dot-label')
@@ -255,7 +255,7 @@ function renderTrend(countries: PlottedDot[]): void {
 }
 
 // Touch: first tap previews (names) the dot, second tap on the same dot
-// selects it. Mouse (fine pointer): tap selects immediately — hover
+// selects it. Mouse (fine pointer): tap selects immediately - hover
 // already reveals identity.
 function onDotClick(name: string): void {
   if (isCoarse() && previewedName !== name) {
@@ -307,11 +307,11 @@ export function initScatter(): void {
   }
 
   btn.addEventListener('click', () => {
-    // The FSM makes scatter and comparison mutually exclusive for free —
+    // The FSM makes scatter and comparison mutually exclusive for free -
     // switching to scatter simply leaves whatever view was active.
     toggleScatter();
     // Move focus into the explorer so keyboard users land in the new view
-    // (and back to the trigger when it closes). Only on explicit toggles —
+    // (and back to the trigger when it closes). Only on explicit toggles -
     // not on load / URL restore, which call setVisible directly.
     if (getState().mainView === 'scatter') closeBtn.focus();
   });

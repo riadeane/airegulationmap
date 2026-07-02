@@ -1,7 +1,7 @@
-/* Tablet tier — compact the panel and search without collapsing
+/* Tablet tier - compact the panel and search without collapsing
    the layout. Covers the gap between mobile (768px) and full
    desktop (1041px+). The min-height guard keeps landscape phones
-   (short + wide) out of this cramped-sidebar tier — they get the
+   (short + wide) out of this cramped-sidebar tier - they get the
    mobile sheet instead. */
 @media (max-width: 1040px) and (min-width: 769px) and (min-height: 501px) {
   #country-panel {
@@ -147,7 +147,7 @@
     padding: 16px 18px;
   }
 
-  /* Mobile header: a compact two-row bar — wordmark + a menu toggle on
+  /* Mobile header: a compact two-row bar - wordmark + a menu toggle on
      top, then search paired with the score selector. The secondary
      controls (filter, scatter, export, theme) and the freshness
      metadata fold behind the ☰ toggle so the map keeps the screen.
@@ -179,7 +179,7 @@
     margin-left: auto;
   }
 
-  /* Freshness metadata gets its own line, revealed with the menu — a
+  /* Freshness metadata gets its own line, revealed with the menu - a
      trust signal, not a permanent fixture eating vertical space. */
   .header-meta {
     order: 2;
@@ -211,7 +211,7 @@
     width: 100%;
   }
 
-  /* The score selector spans the row on its own line — it reads as a
+  /* The score selector spans the row on its own line - it reads as a
      deliberate "you are viewing …" control instead of a small button
      stranded in empty space. Caret parks at the right like a select. */
   #score-btn-container {
@@ -224,7 +224,7 @@
     justify-content: space-between;
   }
 
-  /* The theme toggle stays out on the search row — light/dark is the most
+  /* The theme toggle stays out on the search row - light/dark is the most
      re-toggled control and the brand mandates a persistent toggle, so it
      must not hide behind the menu. */
   .theme-toggle {
@@ -310,7 +310,7 @@
   }
 
   /* Range inputs (filter Min/Max, timeline scrubber) get a real 24px
-     thumb and a taller grab zone — the default thin native thumb is
+     thumb and a taller grab zone - the default thin native thumb is
      almost unhittable with a fingertip. Custom track drops the accent
      progress fill, but every slider here shows its value in a readout. */
   input[type="range"] {
@@ -376,7 +376,7 @@
   }
 
   /* Citation + panel controls to the 44px standard. Source chips are the
-     core "citeable by default" interaction — a fat-finger minefield at
+     core "citeable by default" interaction - a fat-finger minefield at
      the default ~19px, and opening the wrong source mid-research is
      exactly the friction the product promises to remove. */
   #sources-list {
@@ -415,7 +415,7 @@
   }
 }
 
-/* Landscape phones are very short — reclaim vertical space so the map and
+/* Landscape phones are very short - reclaim vertical space so the map and
    the open sheet aren't crushed. The mobile tier above already gives
    these the collapsed header + sheet; this just tightens the fit. */
 @media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {

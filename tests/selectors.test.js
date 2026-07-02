@@ -64,7 +64,7 @@ describe('visibleCountrySet selector', () => {
     expect([...visibleCountrySet()]).toEqual(['B']);
   });
 
-  it('applies the bloc filter — the bug the export path had', () => {
+  it('applies the bloc filter - the bug the export path had', () => {
     setState({
       ...base(),
       blocsData: { EU: { name: 'European Union', members: ['A', 'C'] } },
@@ -92,7 +92,7 @@ describe('visibleCountrySet selector', () => {
       regulationData: {
         A: { confidence: 'high' },
         B: { confidence: 'Low' },   // case-insensitive
-        C: {},                       // unknown — never passes a filter
+        C: {},                       // unknown - never passes a filter
       },
       filterConfidence: ['high', 'low'],
     });
@@ -117,7 +117,7 @@ describe('visibleCountrySet selector', () => {
 
 describe('passesCountryFilters selector', () => {
   it('is true for everyone without a bloc, and membership-gated with one', () => {
-    // Reset every country-level filter — the store persists across tests
+    // Reset every country-level filter - the store persists across tests
     // in this file, and earlier cases set confidence filters.
     setState({
       selectedBloc: null, blocsData: null, regulationData: {},
@@ -160,7 +160,7 @@ describe('scoresAtDate selector', () => {
 
   it('falls back to null for a date the history never recorded', () => {
     // A hand-edited ?date= must not render a misleading carried-back
-    // vintage — the map and panel both treat it as Latest.
+    // vintage - the map and panel both treat it as Latest.
     setState({ history, timelineDate: '2026-03-01' });
     expect(scoresAtDate()).toBeNull();
   });

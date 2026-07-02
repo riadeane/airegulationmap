@@ -59,7 +59,7 @@ describe('formatSourcesForCopy', () => {
     const sources = classifySources('https://gov.uk/a|https://oecd.ai/b');
     const text = formatSourcesForCopy(sources, 'United Kingdom', '2026-06-13');
     expect(text).toBe(
-      'Sources for United Kingdom — AI Regulation Map, accessed 2026-06-13:\n' +
+      'Sources for United Kingdom (AI Regulation Map, accessed 2026-06-13):\n' +
       '1. https://gov.uk/a (official)\n' +
       '2. https://oecd.ai/b'
     );

@@ -26,25 +26,25 @@ export interface AppState {
   // `readonly` modifier makes an accidental `.push()` a compile error.
   sortedCountryNames: readonly string[];
   // The staged comparison set (0-4). Membership is separate from whether the
-  // full comparison VIEW is showing (mainView === 'comparison') — the user
+  // full comparison VIEW is showing (mainView === 'comparison') - the user
   // builds a set, then opens the comparison deliberately.
   comparisonCountries: readonly string[];
   // null = "latest" (use current scoreData as-is); otherwise an ISO date
   // string (YYYY-MM-DD) present in history.json. The timeline slider
   // writes this; the map subscribes and re-renders historic scores.
   timelineDate: string | null;
-  // Parsed history.json — loaded async after first paint; null until
+  // Parsed history.json - loaded async after first paint; null until
   // then (and stays null if the fetch fails).
   history: HistoryData | null;
   // Bloc filter: key into blocsData ("EU", "G20", …) or null for all.
   selectedBloc: string | null;
-  // Parsed blocs.json — loaded async; null until then / on failure.
+  // Parsed blocs.json - loaded async; null until then / on failure.
   blocsData: BlocsData | null;
-  // Parsed subscores.json (methodology v2 sub-indicator audit trail) —
+  // Parsed subscores.json (methodology v2 sub-indicator audit trail) -
   // loaded async; null until then / on failure.
   subscores: SubscoresData | null;
   // Per-URL source metadata (titles, refined types) from the sources
-  // database — loaded async from Supabase; null when absent/unreachable.
+  // database - loaded async from Supabase; null when absent/unreachable.
   // The panel upgrades bare hostnames to titles when this exists.
   sourceMeta: SourceMeta | null;
   // A COMMITTED full-text search ('' = none). Typing in the search box is
@@ -87,15 +87,15 @@ const state: AppState = {
 /** A listener for one state key `K`, receiving that key's value type. */
 type Listener<K extends keyof AppState> = (value: AppState[K]) => void;
 
-// The Set erases `K` — a heterogeneous "key → Set<Listener<that key>>" map
-// isn't expressible in TS — but on()/emit() reassert it at the boundary, so
+// The Set erases `K` - a heterogeneous "key → Set<Listener<that key>>" map
+// isn't expressible in TS - but on()/emit() reassert it at the boundary, so
 // every public caller stays fully typed.
 const listeners = new Map<keyof AppState, Set<Listener<keyof AppState>>>();
 
 /**
  * The state is exposed to consumers as deeply read-only. All mutation
  * flows through setState(); getState() is a window, not a handle. This
- * is a compile-time contract (zero runtime cost) — it turns an
+ * is a compile-time contract (zero runtime cost) - it turns an
  * accidental `getState().comparisonCountries.push(...)`, which would
  * silently bypass every listener, into a type error.
  */
@@ -104,13 +104,13 @@ export function getState(): Readonly<AppState> {
 }
 
 /**
- * Merge a patch into the state and notify listeners — but only for keys
+ * Merge a patch into the state and notify listeners - but only for keys
  * whose value actually changed. Skipping no-op writes prevents redundant
  * re-renders: several call sites write multiple keys at once (e.g. both
  * filter sliders) even when only one moved, and a bare deselect (Esc)
  * writes selectedCountry:null when it is already null. Comparison is by
  * reference, which is correct here because the store never mutates a
- * non-primitive in place — a changed array/object is always a new one.
+ * non-primitive in place - a changed array/object is always a new one.
  */
 export function setState(patch: Partial<AppState>): void {
   const changed: (keyof AppState)[] = [];

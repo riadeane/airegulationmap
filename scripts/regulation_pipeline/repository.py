@@ -82,7 +82,7 @@ class Dataset:
         return self._regulation.get(country)
 
     def history_for(self, country: str) -> list[dict]:
-        """A country's history snapshots (file shape), as copies — read-only
+        """A country's history snapshots (file shape), as copies - read-only
         access for the Supabase mirror's replace-per-country sync."""
         return [dict(s) for s in self._history.get("countries", {}).get(country, [])]
 
@@ -93,7 +93,7 @@ class Dataset:
         version = int((self._scores.get(country, {}).get("Data Version", 1)) or 1)
 
         # Audit trail: apply() overwrites in place, and history.json only
-        # captures dimension-score changes — a sources/confidence-only change
+        # captures dimension-score changes - a sources/confidence-only change
         # would otherwise leave no record of what was replaced. Log the prior
         # snapshot so an operator can reconstruct it from the run log.
         prior = self._regulation.get(country)
@@ -147,7 +147,7 @@ class Dataset:
     def save(self) -> None:
         _write_text(self._settings.scores_csv, _csv_text(self._scores, SCORES_FIELDS))
         _write_text(self._settings.regulation_csv, _csv_text(self._regulation, REGULATION_FIELDS))
-        # No trailing newline on the JSON files — matches the byte layout the
+        # No trailing newline on the JSON files - matches the byte layout the
         # existing files already have, so an unchanged run produces no diff.
         _write_text(
             self._settings.history_json,
@@ -201,7 +201,7 @@ def _subscores_entry(result: ResearchResult, today: date) -> dict:
 
 
 def _history_snapshot(result: ResearchResult, today: date) -> dict:
-    # Key order matters — history.json is written without sort_keys, and the
+    # Key order matters - history.json is written without sort_keys, and the
     # frontend reads snapshots positionally-agnostic but the file diff should
     # stay stable: date, five dimensions in canonical order, then averageScore.
     snapshot: dict = {"date": today.isoformat()}

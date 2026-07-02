@@ -1,4 +1,4 @@
-# `regulation_pipeline` — backend architecture
+# `regulation_pipeline` - backend architecture
 
 The pipeline researches AI-regulation status for every country via the Claude API
 and writes the four data files the frontend renders. It runs monthly from GitHub
@@ -11,8 +11,8 @@ python scripts/update_data.py --dry-run --force    # preview, no writes
 python -m regulation_pipeline --help               # (or: update-regulation-data, after pip install -e .)
 ```
 
-The package is layered around a few classic patterns — **domain model**,
-**repository**, **strategy**, and a **service** orchestrator — so each concern has
+The package is layered around a few classic patterns - **domain model**,
+**repository**, **strategy**, and a **service** orchestrator - so each concern has
 one home and is testable in isolation. Everything below reflects the code in this
 directory.
 
@@ -25,18 +25,18 @@ shared foundation. Nothing in the foundation imports upward.
 
 ```mermaid
 flowchart TD
-    CLI["cli.py<br/>Typer CLI — flags, logging, wiring, exit codes"]
+    CLI["cli.py<br/>Typer CLI - flags, logging, wiring, exit codes"]
 
-    CLI --> SVC["service.py<br/>PipelineService — orchestration"]
+    CLI --> SVC["service.py<br/>PipelineService - orchestration"]
     CLI --> STRAT
     CLI --> REPO
 
     SVC --> STRAT["strategies.py<br/>ResearchStrategy (Sync / Batch)"]
-    SVC --> REPO["repository.py<br/>Dataset — the four data stores"]
+    SVC --> REPO["repository.py<br/>Dataset - the four data stores"]
     SVC --> STALE["staleness.py<br/>StalenessPolicy"]
 
-    STRAT --> API["api.py<br/>ResearchClient — request + parse"]
-    STRAT --> BATCH["batch.py<br/>BatchRunner — submit / poll / classify"]
+    STRAT --> API["api.py<br/>ResearchClient - request + parse"]
+    STRAT --> BATCH["batch.py<br/>BatchRunner - submit / poll / classify"]
 
     API --> RETRY["retry.py<br/>call_with_retries"]
     API --> PROMPT["prompt.py<br/>RESEARCH_PROMPT"]
@@ -65,17 +65,17 @@ flowchart TD
 | Module | Responsibility |
 |--------|----------------|
 | `cli.py` | Typer command: flags, logging setup, dependency wiring, exit codes |
-| `service.py` | `PipelineService` — select → research → validate → persist |
+| `service.py` | `PipelineService` - select → research → validate → persist |
 | `strategies.py` | `ResearchStrategy` ABC + `SyncStrategy` / `BatchStrategy` |
-| `api.py` | `ResearchClient` — build request params, parse the response |
-| `batch.py` | `BatchRunner` — Message Batches submit/poll/classify + salvage |
+| `api.py` | `ResearchClient` - build request params, parse the response |
+| `batch.py` | `BatchRunner` - Message Batches submit/poll/classify + salvage |
 | `retry.py` | Reusable transient-error retry policy |
 | `prompt.py` | The research prompt template + rendering |
-| `models.py` | `ResearchResult` pydantic model — schema, validation, projections |
-| `repository.py` | `Dataset` — load/apply/validate/atomic-save the four stores |
+| `models.py` | `ResearchResult` pydantic model - schema, validation, projections |
+| `repository.py` | `Dataset` - load/apply/validate/atomic-save the four stores |
 | `history.py` | History snapshot append + change detection |
-| `staleness.py` | `StalenessPolicy` — which countries need re-research |
-| `names.py` | `CountryNames` — country-name normalization |
+| `staleness.py` | `StalenessPolicy` - which countries need re-research |
+| `names.py` | `CountryNames` - country-name normalization |
 | `config.py` | `Settings` (repo-root paths) + field/threshold/priority constants |
 | `errors.py` | `FatalAPIError` |
 
@@ -84,7 +84,7 @@ flowchart TD
 ## End-to-end run
 
 A single run, from invocation to written files. The strategy is a **generator**,
-so each answer is validated and committed as it arrives — which is what lets a
+so each answer is validated and committed as it arrives - which is what lets a
 fatal abort still save the countries completed so far.
 
 ```mermaid
@@ -118,11 +118,11 @@ sequenceDiagram
     end
 
     SVC->>DS: validate()
-    SVC->>DS: save() — atomic temp + os.replace
+    SVC->>DS: save() - atomic temp + os.replace
     DS-->>U: scores.csv, regulation_data.csv, history.json, subscores.json
 ```
 
-Exit codes: `0` success, `1` some countries failed, `2` fatal (systemic) — with
+Exit codes: `0` success, `1` some countries failed, `2` fatal (systemic) - with
 partial progress saved.
 
 ---
@@ -173,7 +173,7 @@ classDiagram
 
 Scores are typed `Literal[1..5]` (rendered as an `enum` in the schema, since
 structured outputs don't support `minimum`/`maximum`) with a `BeforeValidator` that
-rejects booleans — so a malformed response raises instead of landing an empty CSV
+rejects booleans - so a malformed response raises instead of landing an empty CSV
 cell.
 
 ---
@@ -181,7 +181,7 @@ cell.
 ## Strategy pattern
 
 Two interchangeable research backends behind one generator interface. The service
-never branches on sync-vs-batch — it just consumes `(country, result | None)`.
+never branches on sync-vs-batch - it just consumes `(country, result | None)`.
 
 ```mermaid
 classDiagram
@@ -207,10 +207,10 @@ classDiagram
     BatchStrategy --> BatchRunner
 ```
 
-- **`SyncStrategy`** — one call per country; aborts the run (`FatalAPIError`) after
+- **`SyncStrategy`** - one call per country; aborts the run (`FatalAPIError`) after
   N consecutive failures of *any* kind (transient, unparseable, or schema-invalid).
-- **`BatchStrategy`** — submits all countries at once (50% token pricing); per-request
-  results mean a bad country costs one country, not the run — so there is no
+- **`BatchStrategy`** - submits all countries at once (50% token pricing); per-request
+  results mean a bad country costs one country, not the run - so there is no
   consecutive-failure abort.
 
 ---
@@ -255,7 +255,7 @@ flowchart LR
 ## Staleness selection
 
 `PipelineService.select` filters the target countries through `StalenessPolicy`
-before any API call — the reference date is injected so a run has one consistent
+before any API call - the reference date is injected so a run has one consistent
 "today".
 
 ```mermaid
@@ -327,15 +327,15 @@ flowchart TD
 
 The static files stay the persistence contract (everything above is
 unchanged); Supabase is the system of record's queryable twin plus what files
-can't hold — evidence records, an accumulating sources database, and per-run
+can't hold - evidence records, an accumulating sources database, and per-run
 provenance.
 
-- **Mirror (`db/mirror.py`)** — an optional collaborator of
+- **Mirror (`db/mirror.py`)** - an optional collaborator of
   `PipelineService` (`mirror=` constructor arg), deliberately OUTSIDE
   `Dataset` so the byte contracts and the idempotency test are untouched.
   The service calls `begin(attempted)` before researching, `record(...)`
   after each successful apply, and `finish(...)` after `dataset.save()`
-  (including the fatal-error partial-save path) — every call wrapped so a
+  (including the fatal-error partial-save path) - every call wrapped so a
   mirror failure downgrades to a warning and can never change a run's
   outcome or exit code. The flush upserts `country_scores` /
   `country_summaries`, REPLACES `score_history` per recorded country
@@ -344,22 +344,22 @@ provenance.
   `country_sources` with the run id. `research_runs` records trigger,
   model, strategy, prompt version, grounded flag, git SHA, counts, and
   cumulative token usage.
-- **Client (`db/client.py`)** — a thin httpx PostgREST wrapper (select /
+- **Client (`db/client.py`)** - a thin httpx PostgREST wrapper (select /
   insert / upsert / update / delete), testable with `httpx.MockTransport`.
-  Upserts must never include generated columns like `id` —
+  Upserts must never include generated columns like `id` -
   merge-duplicates updates every supplied column.
-- **Seed (`db/seed.py`)** — one-shot bootstrap from the static files:
+- **Seed (`db/seed.py`)** - one-shot bootstrap from the static files:
   `--emit-sql DIR` writes chunked idempotent SQL (FKs resolved by
   name/url subselects), `--direct` applies via PostgREST.
-- **Evidence (`evidence/`)** — `OecdGaiinAdapter` walks the OECD.AI Policy
+- **Evidence (`evidence/`)** - `OecdGaiinAdapter` walks the OECD.AI Policy
   Navigator API (no server-side filtering exists; delta detection is
   client-side against `updated_at`), `CountryResolver` matches ISO3 →
   canonical name → None (never fuzzy; unmatched records are stored
   unlinked with the raw label), and `sync.py` upserts on
-  `(source, external_id)` — never deleting. CLI:
+  `(source, external_id)` - never deleting. CLI:
   `python -m regulation_pipeline.evidence probe|sync`. A network failure
   is a warned no-op so the surrounding data run survives an OECD outage.
-- **Grounded mode** — `prompt.render_grounded_prompt` injects a capped
+- **Grounded mode** - `prompt.render_grounded_prompt` injects a capped
   verified-evidence block (≤15 most recent initiatives, overviews ≤400
   chars); the rubric and structured-output schema are identical to the
   plain prompt, so `models.py` and everything downstream are untouched.
@@ -369,7 +369,7 @@ provenance.
 ## Testing & tooling
 
 ```bash
-python -m pytest        # tests/pipeline/ — 90+ tests, no network (fakes throughout)
+python -m pytest        # tests/pipeline/ - 90+ tests, no network (fakes throughout)
 ruff check scripts/regulation_pipeline
 pip install -e .        # installs the package + update-regulation-data console script
 ```

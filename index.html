@@ -45,7 +45,7 @@
         if (t === 'light' || t === 'dark') {
           document.documentElement.setAttribute('data-theme', t);
         }
-      } catch (e) { /* storage blocked — fall back to prefers-color-scheme */ }
+      } catch (e) { /* storage blocked; fall back to prefers-color-scheme */ }
     })();
   </script>
 
@@ -65,8 +65,8 @@
       <ul>
         <li>read the <a href="/methodology.html">methodology page</a> (plain HTML, works offline)</li>
         <li>browse the raw data on
-          <a href="https://github.com/riadeane/airegulationmap/tree/main/public" rel="noopener noreferrer">GitHub</a>
-          — `scores.csv`, `regulation_data.csv`, and monthly `history.json` snapshots.</li>
+          <a href="https://github.com/riadeane/airegulationmap/tree/main/public" rel="noopener noreferrer">GitHub</a>:
+          `scores.csv`, `regulation_data.csv`, and monthly `history.json` snapshots.</li>
       </ul>
     </div>
   </noscript>
@@ -93,7 +93,7 @@
         </svg>
       </button>
       <div class="header-meta">
-        <span class="header-subtitle">Last updated: <span id="site-last-updated">—</span></span>
+        <span class="header-subtitle">Last updated: <span id="site-last-updated">–</span></span>
         <span class="country-count-badge" id="country-count"></span>
       </div>
     </div>
@@ -145,18 +145,18 @@
           </label>
         </div>
       </div>
-      <button id="scatter-btn" aria-pressed="false" title="Dimension explorer — plot every country across two score dimensions">Scatter</button>
+      <button id="scatter-btn" aria-pressed="false" title="Dimension explorer: plot every country across two score dimensions">Scatter</button>
       <div id="export-btn-container">
         <button id="export-btn" aria-haspopup="true" aria-expanded="false">
           Export <span class="caret">▾</span>
         </button>
         <div id="export-popover" aria-label="Export data">
-          <button type="button" data-format="csv" data-scope="filtered">CSV — filtered view</button>
-          <button type="button" data-format="json" data-scope="filtered">JSON — filtered view</button>
-          <button type="button" data-format="csv" data-scope="all">CSV — all countries</button>
-          <button type="button" data-format="json" data-scope="all">JSON — all countries</button>
-          <button type="button" data-format="csv" data-scope="comparison">CSV — comparison</button>
-          <button type="button" data-format="json" data-scope="comparison">JSON — comparison</button>
+          <button type="button" data-format="csv" data-scope="filtered">CSV · filtered view</button>
+          <button type="button" data-format="json" data-scope="filtered">JSON · filtered view</button>
+          <button type="button" data-format="csv" data-scope="all">CSV · all countries</button>
+          <button type="button" data-format="json" data-scope="all">JSON · all countries</button>
+          <button type="button" data-format="csv" data-scope="comparison">CSV · comparison</button>
+          <button type="button" data-format="json" data-scope="comparison">JSON · comparison</button>
           <a class="export-docs-link" href="/data.html">Data &amp; API docs →</a>
         </div>
       </div>

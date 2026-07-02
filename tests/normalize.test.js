@@ -39,7 +39,7 @@ describe('normalizeRegulationText', () => {
 
   it('returns the original when normalization shrinks the text below 60%', () => {
     // A bare cascade with no surrounding context collapses to far less
-    // than 60% of the original — the safety rail must kick in.
+    // than 60% of the original - the safety rail must kick in.
     const cascade =
       'No AI-specific legislation or regulatory framework exists. ' +
       'No regulatory framework for AI has been formally established. ' +

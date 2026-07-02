@@ -39,7 +39,7 @@ h1 {
   text-transform: uppercase;
 }
 
-/* "?" help button next to the site title — opens the shortcuts overlay. */
+/* "?" help button next to the site title - opens the shortcuts overlay. */
 .header-help-btn {
   display: inline-flex;
   align-items: center;
@@ -136,7 +136,7 @@ h1 {
 
 /* The list is emptied (not detached) when there are no matches; without
    this it collapses to a thin bordered strip floating under the search.
-   Most visible on mobile where the input — and so the strip — is full
+   Most visible on mobile where the input - and so the strip - is full
    width. */
 #search-suggestions:empty {
   display: none;
@@ -280,7 +280,7 @@ h1 {
   color: var(--accent);
 }
 
-/* Persistent "a filter is applied" signal — visible even when the
+/* Persistent "a filter is applied" signal - visible even when the
    popover is closed. A leading accent dot + accent border, but no
    filled background, so it reads as "active" without mimicking the
    open (.active) state. */
@@ -485,7 +485,7 @@ input[type="range"] {
   font-weight: 500;
 }
 
-/* Theme toggle — sun on dark, moon on light */
+/* Theme toggle - sun on dark, moon on light */
 .theme-toggle {
   background: transparent;
   border: 1px solid var(--border);
@@ -518,7 +518,7 @@ input[type="range"] {
 .theme-toggle[data-theme='light'] .theme-icon-sun { display: none; }
 .theme-toggle[data-theme='light'] .theme-icon-moon { display: block; }
 
-/* Menu (☰) toggle — only appears on mobile (see _responsive.css), where
+/* Menu (☰) toggle - only appears on mobile (see _responsive.css), where
    it folds the secondary controls away so the map keeps the screen.
    Hidden on desktop, which shows the full toolbar inline. */
 .menu-toggle {
@@ -556,7 +556,7 @@ input[type="range"] {
   display: contents;
 }
 
-/* Share popover — permalink + formatted citations for the current view */
+/* Share popover - permalink + formatted citations for the current view */
 #share-popover {
   display: none;
   position: absolute;
@@ -646,7 +646,7 @@ input[type="range"] {
   color: var(--text-secondary);
 }
 
-/* "See all N results" — the dropdown row that commits the search */
+/* "See all N results" - the dropdown row that commits the search */
 #search-suggestions li.search-see-all {
   font-size: 0.75rem;
   color: var(--accent);
@@ -661,7 +661,7 @@ input[type="range"] {
 }
 
 /* Confidence + official-source filter rows in the filter popover.
-   (A fieldset is a poor flex container — legends escape flex layout —
+   (A fieldset is a poor flex container - legends escape flex layout -
    so this row lays out with floats/inline instead.) */
 .filter-conf-row {
   border: none;

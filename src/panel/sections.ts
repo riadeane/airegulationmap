@@ -32,7 +32,7 @@ const SECTION_MAP: { key: DimensionKey; sectionId: string; detailId: string }[] 
 /**
  * Render a classified source list. When `meta` carries an entry for a URL
  * the link shows the page title instead of the bare hostname (the hostname
- * moves into the secondary line) — the display upgrades automatically as
+ * moves into the secondary line) - the display upgrades automatically as
  * source metadata becomes available.
  */
 export function renderSources(
@@ -101,7 +101,7 @@ export function renderTextSections(
     hasAny = true;
   }
 
-  // Sources — official (government/legislature/regulator) sources get
+  // Sources - official (government/legislature/regulator) sources get
   // a tag so analysts can spot primary-source coverage at a glance.
   const sourcesContainer = document.getElementById('sources-list')!;
   const sources = classifySources(regData.sources);
@@ -137,7 +137,7 @@ const FIELD_TARGETS: Record<string, { sectionId: string; detailId: string }> = {
  * Scroll the panel to the section a search match came from and wrap the
  * first occurrence of the query in <mark>, so the reader lands on the
  * sentence that matched instead of eyeballing six prose blocks. The mark is
- * a text-node splice (detail elements hold plain text set via textContent —
+ * a text-node splice (detail elements hold plain text set via textContent -
  * never innerHTML with data) and is transient: the next render clears it.
  */
 export function highlightPanelField(field: string, query: string): void {

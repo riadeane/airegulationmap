@@ -52,7 +52,7 @@ export function initFilter(): void {
     setState({ filterOfficialOnly: officialBox.checked });
   });
 
-  // Reset affordance — a narrowed map greys most countries, and there
+  // Reset affordance - a narrowed map greys most countries, and there
   // was no one-click way back. Appended last so the async-loaded bloc
   // row (blocSelector.ts) can insert itself above it.
   const resetRow = document.createElement('div');
@@ -98,7 +98,7 @@ export function initFilter(): void {
   }
 
   // Keep the sliders and labels in sync when the range changes from
-  // elsewhere (URL load, popstate, reset) — the input handler only covers
+  // elsewhere (URL load, popstate, reset) - the input handler only covers
   // the user dragging the sliders themselves.
   function syncFromState() {
     const { filterMin, filterMax, filterConfidence, filterOfficialOnly } = getState();

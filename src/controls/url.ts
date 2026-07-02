@@ -19,7 +19,7 @@ import { SCORE_OPTIONS, MAX_COMPARISON } from '../constants';
 import type { AttributeKey } from '../constants';
 import type { ConfidenceLevel } from '../state/store';
 
-/** State parsed from the URL — only keys present in the query appear. */
+/** State parsed from the URL - only keys present in the query appear. */
 export interface UrlState {
   country?: string;
   mode?: AttributeKey;
@@ -72,7 +72,7 @@ function splitCompare(raw: string): string[] {
 }
 
 // Parse the current window URL into a partial state object. Only keys
-// actually present in the URL appear in the returned object — callers
+// actually present in the URL appear in the returned object - callers
 // decide which defaults to apply.
 export function parseUrl(search: string = window.location.search): UrlState {
   const params = new URLSearchParams(search);
@@ -96,7 +96,7 @@ export function parseUrl(search: string = window.location.search): UrlState {
   const theme = params.get('theme');
   if (theme === 'light' || theme === 'dark') out.theme = theme;
 
-  // Validated against blocsData when applied — blocs.json may not have
+  // Validated against blocsData when applied - blocs.json may not have
   // loaded yet at parse time.
   const bloc = params.get('bloc');
   if (bloc && /^[A-Z0-9]{2,8}$/i.test(bloc)) out.bloc = bloc.toUpperCase();
@@ -105,7 +105,7 @@ export function parseUrl(search: string = window.location.search): UrlState {
   const q = params.get('q');
   if (q && q.trim()) out.q = q.trim().slice(0, MAX_SEARCH_QUERY);
 
-  // Confidence filter — a strict subset of the three levels (all three is
+  // Confidence filter - a strict subset of the three levels (all three is
   // no filter at all, so it normalizes away).
   const conf = params.get('conf');
   if (conf) {
@@ -188,7 +188,7 @@ export function buildQueryString(s: Readonly<AppState>, theme: 'light' | 'dark' 
 
   // URLSearchParams percent-encodes commas (%2C). We want readable
   // permalinks, so swap those back to literal commas in the final
-  // string — browsers accept both on parse.
+  // string - browsers accept both on parse.
   return params.toString().replace(/%2C/g, ',');
 }
 
@@ -217,9 +217,9 @@ function currentQueryString(): string {
 
 // Replace the URL without adding a history entry. Used for hovers and
 // click-style navigation inside the app (Back should not undo a country
-// selection or score-mode flip — too chatty). rAF-coalesced: slider drags
+// selection or score-mode flip - too chatty). rAF-coalesced: slider drags
 // (filter range, timeline) emit per input event, and browsers rate-limit
-// replaceState — one write per frame reflects the same final state.
+// replaceState - one write per frame reflects the same final state.
 let urlWritePending = false;
 function writeReplace(): void {
   if (urlWritePending) return;

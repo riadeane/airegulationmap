@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data &amp; API — AI Regulation Map</title>
+  <title>Data &amp; API · AI Regulation Map</title>
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="canonical" href="https://airegulationmap.org/data.html">
 
-  <meta name="description" content="Download the AI Regulation Map dataset — static CSV/JSON files, and a public read-only REST API with a live query explorer: scores, score history, the sources database, and verified policy-initiative records.">
+  <meta name="description" content="Download the AI Regulation Map dataset: static CSV/JSON files, plus a public read-only REST API with a live query explorer: scores, score history, the sources database, and verified policy-initiative records.">
 
   <!-- Resolve theme before paint. URL > localStorage > prefers-color-scheme. -->
   <script>
@@ -28,7 +28,7 @@
   </script>
 
   <style>
-    /* Tokens — mirror of the main app's _tokens.css, trimmed to what this
+    /* Tokens: mirror of the main app's _tokens.css, trimmed to what this
        page uses. Inline so the page renders without the main bundle. */
     :root {
       --brand-hue: 75;
@@ -262,7 +262,7 @@
   <main class="doc">
     <h1>Data &amp; API</h1>
     <p class="lede">
-      Every score, description, and source on this site is available for research use —
+      Every score, description, and source on this site is available for research use:
       as plain files you can load into pandas or R, and as a queryable read-only API
       covering score history, the sources database, verified policy-initiative records,
       and per-run provenance. How the scores are constructed is documented in the
@@ -281,7 +281,7 @@
         <tr><td><a href="/regulation_data.csv" download>regulation_data.csv</a></td>
             <td>Per-country prose for the five dimensions, key legislation, source URLs, confidence.</td></tr>
         <tr><td><a href="/history.json" download>history.json</a></td>
-            <td>Change-point score snapshots per country — the timeline's raw data.</td></tr>
+            <td>Change-point score snapshots per country; the timeline's raw data.</td></tr>
         <tr><td><a href="/data/subscores.json" download>subscores.json</a></td>
             <td>The four named sub-indicators (integers 1–5) behind each dimension score.</td></tr>
         <tr><td><a href="/data/country_iso.json" download>country_iso.json</a></td>
@@ -293,9 +293,9 @@
     <p>
       The database behind the site is publicly queryable through
       <a href="https://docs.postgrest.org/en/stable/references/api/tables_views.html" rel="noopener noreferrer">PostgREST</a>.
-      Try it here — pick an endpoint, edit the query, and run it. Every query you build
+      Try it here: pick an endpoint, edit the query, and run it. Every query you build
       can be copied as a <code>curl</code> command or downloaded as CSV. For the complete
-      schema-level reference (every column and filter, generated live from the database),
+      schema-level reference (every column and filter, generated from the database schema),
       see the <a href="/api-docs.html">interactive API reference</a>.
     </p>
 
@@ -328,7 +328,7 @@
       Standard <a href="https://docs.postgrest.org/en/stable/references/api/tables_views.html#horizontal-filtering" rel="noopener noreferrer">PostgREST
       filter syntax</a> works everywhere: <code>column=eq.value</code>, <code>gte.</code>/<code>lte.</code>,
       <code>order=</code>, <code>limit=</code>/<code>offset=</code>, and embedded joins like
-      <code>countries!inner(name)</code>. Responses are capped at 1,000 rows per request —
+      <code>countries!inner(name)</code>. Responses are capped at 1,000 rows per request;
       page with <code>limit</code>/<code>offset</code>. Requests are authenticated with the
       read-only access token this page uses; the same token works from your own scripts
       (it appears in the copied <code>curl</code> commands).
@@ -348,7 +348,7 @@
     <p>
       To cite the map itself, use the <strong>Share</strong> button in the app for a
       formatted APA/Chicago/MLA citation of the exact view you're referencing. Scores are
-      model-assigned — the <a href="/methodology.html">methodology</a> and the
+      model-assigned; the <a href="/methodology.html">methodology</a> and the
       <code>research_runs</code> endpoint record how each one was produced. Cite them as
       estimates, and verify claims against the primary sources each entry links.
     </p>
@@ -468,7 +468,7 @@
           });
         }).catch(function () {
           statusEl.textContent = 'Unreachable';
-          output.textContent = 'The live API did not respond — it may be waking from idle.\n'
+          output.textContent = 'The live API did not respond; it may be waking from idle.\n'
             + 'The static files above always work; try again in a minute.';
         });
       }

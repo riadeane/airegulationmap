@@ -72,7 +72,7 @@
   background: var(--accent-muted);
 }
 
-/* First-run hint for touch users — the desktop intro panel lives in the
+/* First-run hint for touch users - the desktop intro panel lives in the
    sheet, off-screen until a country is selected (the one thing it teaches).
    Shown by src/controls/onboarding.ts only on the sheet layout and only
    once; retired on the first selection. */
@@ -149,7 +149,7 @@
   font-weight: 500;
 }
 
-/* Country path interaction — hover is a stroke change (cheap) rather
+/* Country path interaction - hover is a stroke change (cheap) rather
    than a filter (repaints). filter: brightness/saturate on SVG paths
    is measurably slower on large countries. */
 .country {
@@ -183,7 +183,7 @@
   pointer-events: none;
 }
 
-/* Map skeleton — shown before TopoJSON + CSV resolve. Muted rectangle
+/* Map skeleton - shown before TopoJSON + CSV resolve. Muted rectangle
    with a slow shimmer pass to signal activity without pretending to
    be a map. Sized to fill the same area the SVG will occupy. */
 #map-skeleton {
@@ -222,7 +222,7 @@
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
 }
 
-/* Data-load error state — replaces the map area with an actionable
+/* Data-load error state - replaces the map area with an actionable
    message when CSV / TopoJSON fetches fail. */
 .map-error {
   position: absolute;
@@ -286,7 +286,7 @@
   border: 1px solid var(--border);
 }
 
-/* sr-only — screen reader only. Reuses the standard recipe. */
+/* sr-only - screen reader only. Reuses the standard recipe. */
 .sr-only {
   position: absolute;
   width: 1px;

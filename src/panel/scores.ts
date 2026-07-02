@@ -20,7 +20,7 @@ export function renderDots(elId: string, score: number | null, colorFor?: ColorF
   el.replaceChildren();
   // Scores carry quarter-point decimals since methodology v2. Fill whole
   // dots up to the integer part, then partially fill the next dot for the
-  // fraction — rounding (e.g. 1.75 → two full dots) overstated the score.
+  // fraction - rounding (e.g. 1.75 → two full dots) overstated the score.
   const s = score ?? 0;
   const whole = Math.floor(s);
   const frac = s - whole;
@@ -54,7 +54,7 @@ export function renderScoreBar(avg: number | null): void {
   const fill = document.getElementById('overall-bar-fill')!;
   fill.style.width = avg != null ? `${((avg - 1) / 4) * 100}%` : '0%';
   // Colour the fill by where the score lands on the ramp, so it reads the
-  // same as the country on the map — instead of the old gradient that
+  // same as the country on the map - instead of the old gradient that
   // always ended in "high/blue" no matter the score.
   fill.style.setProperty('--fill-color', avg != null ? makeColorScale()(avg) : 'transparent');
 }

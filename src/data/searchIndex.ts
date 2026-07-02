@@ -1,5 +1,5 @@
 // Full-text search over the regulation text fields. ~196 countries ×
-// 6 fields ≈ 1000 short entries — plain substring scan is plenty fast,
+// 6 fields ≈ 1000 short entries - plain substring scan is plenty fast,
 // no tokenization or library needed. Pure module, unit-tested.
 
 export const SEARCHABLE_FIELDS = [
@@ -22,7 +22,7 @@ export const FIELD_LABELS: Record<SearchableField, string> = {
   specificLaws: 'Key Legislation',
 };
 
-/** Anything with the searchable text fields — RegulationEntry qualifies. */
+/** Anything with the searchable text fields - RegulationEntry qualifies. */
 type SearchableText = { [K in SearchableField]?: string | null };
 
 export interface IndexEntry {
@@ -104,7 +104,7 @@ export function searchRegulationText(
 
 /**
  * The uncapped variant for the committed-search results list: every country
- * with a match (still one result per country — the first matching field
+ * with a match (still one result per country - the first matching field
  * wins), in index order. The dropdown keeps its capped preview; this feeds
  * the full list, the count, and the exportable match set.
  */

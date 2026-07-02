@@ -1,7 +1,7 @@
 // Source metadata from the sources database: page titles and refined
 // source types, keyed by URL. The panel renders bare hostnames until this
 // arrives, then upgrades to titles (see panel/sections.renderSources).
-// Only rows that actually carry a title are fetched — most don't until
+// Only rows that actually carry a title are fetched - most don't until
 // the enrichment job runs, and hostnames need no help.
 
 import { setState } from '../state/store';

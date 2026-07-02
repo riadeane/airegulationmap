@@ -204,7 +204,7 @@
   height: 100%;
   /* Solid fill coloured by the score's position on the choropleth ramp
      (set in renderScoreBar), so a given value reads the same colour here
-     as the country does on the map — the old gradient always ended in
+     as the country does on the map - the old gradient always ended in
      "high/blue" regardless of the score. */
   background: var(--fill-color, var(--score-high));
   border-radius: 2px;
@@ -261,7 +261,7 @@
   font-weight: 500;
 }
 
-/* Primary target — color the map by this dimension. */
+/* Primary target - color the map by this dimension. */
 .dim-main {
   appearance: none;
   -webkit-appearance: none;
@@ -285,7 +285,7 @@
   background: var(--accent-muted);
 }
 
-/* Secondary target — disclose the sub-indicator audit trail. */
+/* Secondary target - disclose the sub-indicator audit trail. */
 .dim-expand {
   appearance: none;
   -webkit-appearance: none;
@@ -357,13 +357,13 @@
   background: var(--dot-color, var(--accent));
 }
 
-/* Fractional dot — the quarter-point part of a v2 score, filled
+/* Fractional dot - the quarter-point part of a v2 score, filled
    left-to-right so a 1.75 reads as one full dot plus a three-quarter dot. */
 .dim-dot.partial {
   background: linear-gradient(90deg, var(--dot-color, var(--accent)) var(--fill, 50%), var(--border) var(--fill, 50%));
 }
 
-/* Confidence badge — always visible at high/medium/low, but visual
+/* Confidence badge - always visible at high/medium/low, but visual
    weight scales with how much the reader should worry. High is a
    quiet tertiary-tone dot (nothing to see); low is the loudest. */
 .confidence-badge {
@@ -393,19 +393,19 @@
 }
 
 .confidence-badge[data-level='high'] {
-  /* Understated, but still legible — this is the "trust me" signal, so a
+  /* Understated, but still legible - this is the "trust me" signal, so a
      0.65 opacity on tertiary text was too faint to actually read. */
   color: var(--text-secondary);
 }
 
 .confidence-badge[data-level='medium'] {
-  color: oklch(72% 0.15 70); /* amber — tinted toward warning */
+  color: oklch(72% 0.15 70); /* amber - tinted toward warning */
   background: oklch(72% 0.15 70 / 0.10);
   border-color: oklch(72% 0.15 70 / 0.25);
 }
 
 .confidence-badge[data-level='low'] {
-  /* A caution hue distinct from the brand accent — accent means
+  /* A caution hue distinct from the brand accent - accent means
      "interactive / selected" everywhere else, so a warning shouldn't
      borrow it. Red-leaning so low confidence reads louder than medium. */
   color: oklch(64% 0.19 28);
@@ -416,7 +416,7 @@
 /* The mid/high-lightness hues above are tuned for the dark surface; on the
    cream light theme they don't clear AA at this small size. Darken the
    text (keep the tint fill) so the caveat stays readable where it matters
-   most — the citation-friendly daylight default. */
+   most - the citation-friendly daylight default. */
 :root[data-theme='light'] .confidence-badge[data-level='medium'] {
   color: oklch(52% 0.14 62);
 }
@@ -435,7 +435,7 @@
   }
 }
 
-/* Panel header actions row — Compare + Cite sit side by side. */
+/* Panel header actions row - Compare + Cite sit side by side. */
 .panel-header-actions {
   display: flex;
   gap: 8px;
@@ -478,7 +478,7 @@
   color: var(--text-tertiary);
 }
 
-/* Cite popover — dropped inline below the header actions. Not a
+/* Cite popover - dropped inline below the header actions. Not a
    modal; just a contextual box that dismisses on outside click. */
 .cite-popover {
   margin-top: 12px;
@@ -654,13 +654,13 @@
   margin-top: 4px;
 }
 
-/* Grab handle for the mobile bottom sheet — hidden on desktop, where
+/* Grab handle for the mobile bottom sheet - hidden on desktop, where
    the panel is a fixed side column. Styled + revealed in _responsive.css. */
 .sheet-grabber {
   display: none;
 }
 
-/* Panel close — touch-equivalent of Esc; desktop keeps keyboard/click-away */
+/* Panel close - touch-equivalent of Esc; desktop keeps keyboard/click-away */
 .panel-close {
   display: none;
   margin-left: auto;
@@ -793,7 +793,7 @@
   color: var(--text-secondary);
 }
 
-/* Committed-search results list — the persistent full-text search surface.
+/* Committed-search results list - the persistent full-text search surface.
    Reads like the panel it lives in: a count header, quiet actions, and
    result rows that echo the dropdown's country/field/snippet anatomy. */
 .search-results {
@@ -947,7 +947,7 @@
   font-style: normal;
 }
 
-/* Policy initiatives — the verified evidence records behind the scores */
+/* Policy initiatives - the verified evidence records behind the scores */
 .initiatives-list {
   list-style: none;
   padding: 0;

@@ -1,4 +1,4 @@
-// Bloc filter — a third row inside the existing filter popover. Blocs
+// Bloc filter - a third row inside the existing filter popover. Blocs
 // are semantically a filter, and the header is already at capacity.
 
 import { getState, setState, on } from '../state/store';

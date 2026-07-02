@@ -1,7 +1,7 @@
 // Post-boot hydration from the Supabase public_export view.
 //
 // The pipeline dual-writes, so the static files are normally exactly as
-// fresh as the database — this fetch usually confirms that and does
+// fresh as the database - this fetch usually confirms that and does
 // nothing. It exists for the cases where they diverge (a mirror-only
 // hotfix, a paused deploy) and, as a side effect, keeps the free-tier
 // project warm and the live read path continuously exercised. State is
@@ -12,7 +12,7 @@ import { parseScore } from './loader';
 import type { ScoreData, RegulationData, ScoreEntry, RegulationEntry } from './loader';
 import { restGet } from './supabase';
 
-/** Columns fetched from public_export — prose included, subscores excluded
+/** Columns fetched from public_export - prose included, subscores excluded
  * (the sub-indicator panel reads the static subscores.json). */
 export const EXPORT_COLUMNS =
   'country,regulation_status,policy_lever,governance_type,actor_involvement,'
@@ -42,7 +42,7 @@ interface ExportRow {
 }
 
 /** Map one public_export row into the exact shapes the CSV loader
- * produces — scores through the same parseScore validation boundary. */
+ * produces - scores through the same parseScore validation boundary. */
 export function mapExportRow(row: ExportRow): { score: ScoreEntry; reg: RegulationEntry } | null {
   if (!row.country) return null;
   const score: ScoreEntry = {
@@ -92,7 +92,7 @@ export function isStrictlyNewer(candidate: ScoreData, current: ScoreData): boole
  *
  * Two-phase: a one-row freshness probe first (the dual-write mirror keeps
  * the database and the static snapshot in lockstep, so the normal outcome
- * is "not newer" — no reason to download half a megabyte of prose to
+ * is "not newer" - no reason to download half a megabyte of prose to
  * discard it), then the full fetch only when the probe says newer. */
 export async function hydrateFromSupabase(): Promise<boolean> {
   const probe = await restGet(
@@ -118,7 +118,7 @@ export async function hydrateFromSupabase(): Promise<boolean> {
 
   if (!isStrictlyNewer(scoreData, getState().scoreData)) return false;
 
-  console.info('supabase: database is newer than the static snapshot — hydrating.');
+  console.info('supabase: database is newer than the static snapshot; hydrating.');
   setState({
     scoreData,
     regulationData,

@@ -1,6 +1,6 @@
 """Conservative country resolution for evidence records.
 
-ISO3 exact match first, canonical-name match second, **never fuzzy** — a
+ISO3 exact match first, canonical-name match second, **never fuzzy** - a
 wrong link would silently ground a country's scores in another country's
 laws, which is worse than no link. Unresolved records stay unlinked
 (``country_id`` null) with the raw label preserved for later re-matching.
