@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Reference — AI Regulation Map</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="canonical" href="https://airegulationmap.org/api-docs.html">
+  <meta name="description" content="Interactive OpenAPI reference for the AI Regulation Map public read-only API — every endpoint, column, and filter, generated live from the database schema.">
+  <style>
+    /* Minimal shell around Swagger UI: our header, its body. */
+    body { margin: 0; font-family: -apple-system, sans-serif; }
+    .site-header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      padding: 16px 24px;
+      border-bottom: 1px solid #d8d5cf;
+      background: #fdfcfa;
+    }
+    .site-title {
+      font-family: Georgia, serif;
+      font-size: 1.05rem;
+      color: #2b2925;
+      text-decoration: none;
+    }
+    .site-header nav { font-size: 0.8rem; color: #6d685f; }
+    .site-header a.back { margin-left: auto; font-size: 0.8rem; color: #6d685f; }
+    #swagger-ui { max-width: 1080px; margin: 0 auto; }
+    .api-note {
+      max-width: 1080px;
+      margin: 18px auto 0;
+      padding: 0 20px;
+      font-size: 0.85rem;
+      color: #55514a;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-title" href="/">AI Regulation Map</a>
+    <nav aria-label="breadcrumb"><span>API Reference</span></nav>
+    <a class="back" href="/data.html">← Data &amp; API overview</a>
+  </header>
+  <p class="api-note">
+    Generated live from the database schema (PostgREST OpenAPI), so it is always
+    current. Every request is read-only; "Try it out" runs against the real API
+    with the public access token. Recipes and dataset downloads are on the
+    <a href="/data.html">Data &amp; API</a> page.
+  </p>
+  <div id="swagger-ui"></div>
+  <script type="module" src="/src/apiDocs.ts"></script>
+</body>
+</html>

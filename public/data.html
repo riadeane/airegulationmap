@@ -8,7 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="canonical" href="https://airegulationmap.org/data.html">
 
-  <meta name="description" content="Download the AI Regulation Map dataset: static CSV/JSON files, a public REST API with CSV export, the accumulating sources database, and verified policy-initiative records.">
+  <meta name="description" content="Download the AI Regulation Map dataset — static CSV/JSON files, and a public read-only REST API with a live query explorer: scores, score history, the sources database, and verified policy-initiative records.">
 
   <!-- Resolve theme before paint. URL > localStorage > prefers-color-scheme. -->
   <script>
@@ -99,13 +99,9 @@
       color: var(--text-primary);
       text-decoration: none;
     }
-    .site-header nav { font-size: 0.8rem; color: var(--text-tertiary); }
+    .site-header nav { font-size: 0.8rem; color: var(--text-secondary); }
 
-    .doc {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 44px 28px 80px;
-    }
+    .doc { max-width: 820px; margin: 0 auto; padding: 44px 28px 80px; }
     .doc h1 {
       font-family: 'Literata', Georgia, serif;
       font-size: 1.9rem;
@@ -113,67 +109,137 @@
       letter-spacing: -0.01em;
       margin-bottom: 10px;
     }
-    .doc .lede { color: var(--text-secondary); margin-bottom: 36px; max-width: 60ch; }
+    .doc .lede { color: var(--text-secondary); margin-bottom: 36px; max-width: 62ch; }
     .doc h2 {
       font-family: 'Literata', Georgia, serif;
       font-size: 1.25rem;
       font-weight: 500;
-      margin: 42px 0 12px;
-      padding-top: 22px;
+      margin: 44px 0 12px;
+      padding-top: 24px;
       border-top: 1px solid var(--border-subtle);
     }
-    .doc h3 { font-size: 0.95rem; margin: 22px 0 8px; }
-    .doc p { color: var(--text-secondary); margin-bottom: 12px; max-width: 68ch; }
+    .doc p { color: var(--text-secondary); margin-bottom: 12px; max-width: 70ch; }
     .doc a { color: var(--accent); }
-    .doc ul { margin: 0 0 14px 20px; color: var(--text-secondary); }
-    .doc li { margin-bottom: 5px; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-      margin: 12px 0 18px;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin: 12px 0 6px; }
     th, td {
       text-align: left;
-      padding: 7px 10px;
+      padding: 8px 10px;
       border-bottom: 1px solid var(--border-subtle);
       vertical-align: top;
     }
-    th { color: var(--text-tertiary); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    th { color: var(--text-secondary); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
     td { color: var(--text-secondary); }
-    td code, li code, p code {
+    td:first-child a, td code {
       font-family: 'Geist Mono', ui-monospace, monospace;
       font-size: 0.86em;
+      overflow-wrap: anywhere;
+    }
+    td code, p code {
       background: var(--surface-raised);
       border: 1px solid var(--border-subtle);
       border-radius: 3px;
       padding: 0 4px;
       color: var(--text-primary);
-      overflow-wrap: anywhere;
     }
 
-    pre {
-      background: var(--surface-raised);
+    /* ── Query explorer ─────────────────────────────────────────── */
+    .explorer {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      overflow: hidden;
+      margin: 16px 0 8px;
+    }
+    .explorer-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      align-items: center;
+    }
+    .explorer-controls select,
+    .explorer-controls input[type="text"] {
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: 0.76rem;
+      color: var(--text-primary);
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      margin: 10px 0 18px;
-      overflow-x: auto;
+      padding: 7px 10px;
+    }
+    .explorer-controls select { flex: 0 0 auto; }
+    .explorer-controls input[type="text"] { flex: 1 1 240px; min-width: 0; }
+
+    .btn {
+      font-family: 'Geist', -apple-system, sans-serif;
+      font-size: 0.76rem;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--text-primary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn-primary { background: var(--accent-muted); border-color: var(--accent); }
+
+    .explorer-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      align-items: center;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .explorer-meta .btn { padding: 4px 10px; font-size: 0.7rem; }
+    #ex-status { font-variant-numeric: tabular-nums; }
+
+    #ex-output {
+      margin: 0;
+      padding: 14px;
+      max-height: 420px;
+      overflow: auto;
       font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       line-height: 1.55;
       color: var(--text-primary);
+      background: var(--surface-raised);
+      white-space: pre;
+    }
+    #ex-output:empty::before {
+      content: "Run a query to see the live response here.";
+      color: var(--text-secondary);
+      font-family: 'Geist', -apple-system, sans-serif;
+      font-style: italic;
     }
 
-    .note {
-      background: var(--accent-muted);
-      border: 1px solid var(--border);
+    .endpoint-note { font-size: 0.76rem; color: var(--text-secondary); padding: 0 2px; }
+
+    /* Recipes */
+    .recipes { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 6px; }
+    .recipe {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      font-size: 0.8rem;
+      background: var(--surface);
+    }
+    .recipe-title { font-size: 0.82rem; color: var(--text-primary); flex: 1 1 260px; }
+    .recipe-query {
+      flex: 1 1 100%;
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: 0.68rem;
       color: var(--text-secondary);
-      margin: 14px 0;
+      overflow-wrap: anywhere;
     }
 
     footer {
@@ -181,7 +247,7 @@
       margin-top: 40px;
       padding: 20px 28px;
       font-size: 0.75rem;
-      color: var(--text-tertiary);
+      color: var(--text-secondary);
       text-align: center;
     }
     footer a { color: var(--text-secondary); }
@@ -197,106 +263,282 @@
     <h1>Data &amp; API</h1>
     <p class="lede">
       Every score, description, and source on this site is available for research use —
-      as plain static files, and as a public read-only REST API with CSV export,
-      queryable score history, an accumulating sources database, and the verified
-      policy-initiative records that ground the scores.
-      See the <a href="/methodology.html">methodology</a> for how scores are constructed.
+      as plain files you can load into pandas or R, and as a queryable read-only API
+      covering score history, the sources database, verified policy-initiative records,
+      and per-run provenance. How the scores are constructed is documented in the
+      <a href="/methodology.html">methodology</a>.
     </p>
 
-    <h2>Static files</h2>
-    <p>The simplest way to get the full dataset — one HTTP GET, no key, CDN-served.
-       These files are the published snapshot of the database and update together, monthly.</p>
+    <h2 id="files">Download the dataset</h2>
+    <p>One HTTP GET each, no key, CDN-served. These files update together, monthly,
+       and their <a href="https://github.com/riadeane/airegulationmap/commits/main/public" rel="noopener noreferrer">git history</a>
+       makes any past state retrievable by commit hash.</p>
     <table>
       <thead><tr><th>File</th><th>Contents</th></tr></thead>
       <tbody>
-        <tr><td><code>/scores.csv</code></td>
-            <td>196 countries × 6 score columns (1–5, quarter-point decimals), last-updated date, data version. Columns: <code>Country, Regulation Status, Policy Lever, Governance Type, Actor Involvement, Average Score, Enforcement Level, Last Updated, Data Version</code>.</td></tr>
-        <tr><td><code>/regulation_data.csv</code></td>
-            <td>Per-country prose for the five dimensions, key legislation, pipe-separated source URLs, confidence (high/medium/low), last-updated.</td></tr>
-        <tr><td><code>/history.json</code></td>
-            <td>Change-point score snapshots per country (a snapshot is appended only when a score changes), powering the timeline.</td></tr>
-        <tr><td><code>/data/subscores.json</code></td>
-            <td>Methodology-v2 audit trail: the four named sub-indicators (integers 1–5) behind each dimension score.</td></tr>
-        <tr><td><code>/data/country_iso.json</code></td>
-            <td>ISO 3166-1 alpha-2/alpha-3/numeric codes for every dataset country name.</td></tr>
+        <tr><td><a href="/scores.csv" download>scores.csv</a></td>
+            <td>196 countries × six 1–5 scores (quarter-point decimals), last-updated date, data version.</td></tr>
+        <tr><td><a href="/regulation_data.csv" download>regulation_data.csv</a></td>
+            <td>Per-country prose for the five dimensions, key legislation, source URLs, confidence.</td></tr>
+        <tr><td><a href="/history.json" download>history.json</a></td>
+            <td>Change-point score snapshots per country — the timeline's raw data.</td></tr>
+        <tr><td><a href="/data/subscores.json" download>subscores.json</a></td>
+            <td>The four named sub-indicators (integers 1–5) behind each dimension score.</td></tr>
+        <tr><td><a href="/data/country_iso.json" download>country_iso.json</a></td>
+            <td>ISO 3166 alpha-2 / alpha-3 / numeric codes for every dataset country name.</td></tr>
       </tbody>
     </table>
 
-    <h2>REST API</h2>
+    <h2 id="explorer">Query the live database</h2>
     <p>
-      The database behind the site is public-readable through
-      <a href="https://postgrest.org" target="_blank" rel="noopener noreferrer">PostgREST</a>.
-      Requests need the publishable <em>anon key</em> below (safe to embed — row-level
-      security allows reads only).
+      The database behind the site is publicly queryable through
+      <a href="https://docs.postgrest.org/en/stable/references/api/tables_views.html" rel="noopener noreferrer">PostgREST</a>.
+      Try it here — pick an endpoint, edit the query, and run it. Every query you build
+      can be copied as a <code>curl</code> command or downloaded as CSV. For the complete
+      schema-level reference (every column and filter, generated live from the database),
+      see the <a href="/api-docs.html">interactive API reference</a>.
     </p>
-    <pre>export BASE="https://wlakioilvvuuizxdhsdf.supabase.co/rest/v1"
-export KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsYWtpb2lsdnZ1dWl6eGRoc2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NDA1ODcsImV4cCI6MjA5ODUxNjU4N30.tD_2Z2ziTPeNMpmWpdd4zbF_Af9FqjxGNwenAZWYR1E"</pre>
 
-    <h3>The full dataset, one call</h3>
-    <pre>curl "$BASE/public_export?select=*" \
-  -H "apikey: $KEY" -H "Authorization: Bearer $KEY"</pre>
-    <p>Add <code>Accept: text/csv</code> for a CSV download instead of JSON:</p>
-    <pre>curl "$BASE/public_export?select=country,iso3,avg_score,confidence" \
-  -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
-  -H "Accept: text/csv" -o ai-regulation.csv</pre>
-
-    <h3>Queryable tables</h3>
-    <table>
-      <thead><tr><th>Endpoint</th><th>Contents</th></tr></thead>
-      <tbody>
-        <tr><td><code>/public_export</code></td><td>View joining countries × scores × summaries — the whole dataset flat.</td></tr>
-        <tr><td><code>/countries</code></td><td>Canonical names, ISO codes, and name aliases.</td></tr>
-        <tr><td><code>/country_scores</code></td><td>Current scores incl. the sub-indicator breakdown as JSON (<code>subscores</code>).</td></tr>
-        <tr><td><code>/country_summaries</code></td><td>Current per-dimension prose, key legislation, raw source list.</td></tr>
-        <tr><td><code>/score_history</code></td><td>Change-point snapshots — every score a country has ever carried, with dates.</td></tr>
-        <tr><td><code>/sources</code> · <code>/sources_export</code></td><td>The accumulating sources database: every cited URL, classified (official / intergovernmental / academic / …), with first/last-seen dates; the export view adds which countries cite it.</td></tr>
-        <tr><td><code>/policy_initiatives</code></td><td>Verified policy-initiative records (OECD.AI Policy Navigator) that ground the scoring — name, type, binding status, years, overview, source link.</td></tr>
-        <tr><td><code>/research_runs</code></td><td>Provenance: every research run with model, prompt version, whether it was evidence-grounded, and counts.</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Example queries</h3>
-    <p>PostgREST filter syntax works on every endpoint:</p>
-    <pre># Germany's full score history
-curl "$BASE/score_history?select=snapshot_date,scores,countries!inner(name)&countries.name=eq.Germany&order=snapshot_date" \
-  -H "apikey: $KEY" -H "Authorization: Bearer $KEY"
-
-# Binding initiatives since 2024, most recent first
-curl "$BASE/policy_initiatives?select=name,start_year,binding,source_url,countries(name)&binding=eq.Binding&start_year=gte.2024&order=start_year.desc" \
-  -H "apikey: $KEY" -H "Authorization: Bearer $KEY"
-
-# Countries citing a given source
-curl "$BASE/sources_export?url=eq.https://eur-lex.europa.eu/eli/reg/2024/1689/oj" \
-  -H "apikey: $KEY" -H "Authorization: Bearer $KEY"</pre>
-
-    <div class="note">
-      Practical notes: responses are capped at 1,000 rows per request — page with
-      <code>Range</code> headers or <code>limit</code>/<code>offset</code>.
-      The API is best-effort infrastructure for research convenience; for archival
-      reproducibility, cite the static files (versioned in the
-      <a href="https://github.com/riadeane/airegulationmap" target="_blank" rel="noopener noreferrer">git repository</a>)
-      or keep a copy of your extract.
+    <div class="explorer">
+      <div class="explorer-controls">
+        <label for="ex-endpoint" class="endpoint-note">Endpoint</label>
+        <select id="ex-endpoint" aria-label="API endpoint"></select>
+        <input id="ex-query" type="text" aria-label="PostgREST query string" spellcheck="false">
+        <button id="ex-run" class="btn btn-primary" type="button">Run</button>
+      </div>
+      <div class="explorer-meta">
+        <span id="ex-desc" class="endpoint-note"></span>
+        <span id="ex-status" role="status" aria-live="polite"></span>
+        <button id="ex-copy-curl" class="btn" type="button">Copy as curl</button>
+        <button id="ex-copy-url" class="btn" type="button">Copy URL</button>
+        <button id="ex-csv" class="btn" type="button">Download CSV</button>
+      </div>
+      <pre id="ex-output" tabindex="0" aria-label="API response"></pre>
     </div>
 
-    <h2>Attribution &amp; citation</h2>
+    <h2 id="recipes">Recipes</h2>
+    <div class="recipes" id="recipes"></div>
+
+    <h2 id="endpoints">Endpoints</h2>
+    <table>
+      <thead><tr><th>Endpoint</th><th>Contents</th></tr></thead>
+      <tbody id="endpoint-table"></tbody>
+    </table>
+    <p>
+      Standard <a href="https://docs.postgrest.org/en/stable/references/api/tables_views.html#horizontal-filtering" rel="noopener noreferrer">PostgREST
+      filter syntax</a> works everywhere: <code>column=eq.value</code>, <code>gte.</code>/<code>lte.</code>,
+      <code>order=</code>, <code>limit=</code>/<code>offset=</code>, and embedded joins like
+      <code>countries!inner(name)</code>. Responses are capped at 1,000 rows per request —
+      page with <code>limit</code>/<code>offset</code>. Requests are authenticated with the
+      read-only access token this page uses; the same token works from your own scripts
+      (it appears in the copied <code>curl</code> commands).
+    </p>
+    <p>
+      The API is infrastructure for research convenience. For archival reproducibility,
+      cite the static files above or keep a copy of your extract.
+    </p>
+
+    <h2 id="citation">Attribution &amp; citation</h2>
     <p>
       Policy-initiative records include data from the
-      <a href="https://oecd.ai" target="_blank" rel="noopener noreferrer">OECD.AI Policy Observatory</a>
-      (Policy Navigator / GAIIN), used with attribution per OECD terms:
-      <em>OECD.AI Policy Observatory, oecd.ai, accessed on the date shown per record.</em>
+      <a href="https://oecd.ai" rel="noopener noreferrer">OECD.AI Policy Observatory</a>
+      (Policy Navigator / GAIIN): <em>OECD.AI Policy Observatory, oecd.ai, accessed on the
+      date shown per record.</em>
     </p>
     <p>
       To cite the map itself, use the <strong>Share</strong> button in the app for a
-      formatted APA/Chicago/MLA citation of the exact view you're referencing, or the
-      per-country <strong>Cite</strong> button. Scores are model-assigned (see the
-      <a href="/methodology.html">methodology</a> and per-run provenance in
-      <code>/research_runs</code>) — cite them as estimates, and verify claims against
-      the primary sources each entry links.
+      formatted APA/Chicago/MLA citation of the exact view you're referencing. Scores are
+      model-assigned — the <a href="/methodology.html">methodology</a> and the
+      <code>research_runs</code> endpoint record how each one was produced. Cite them as
+      estimates, and verify claims against the primary sources each entry links.
     </p>
   </main>
 
   <footer>
     <p><a href="/">← Back to the map</a> &nbsp;·&nbsp; <a href="/methodology.html">Methodology</a></p>
   </footer>
+
+  <script>
+    (function () {
+      var BASE = 'https://wlakioilvvuuizxdhsdf.supabase.co/rest/v1';
+      // Read-only public access token (row-level security enforces SELECT).
+      var TOKEN = 'sb_publishable_mANlk3lYBOM8DWDKUjvhRg_yq0TyTEM';
+
+      var ENDPOINTS = [
+        { name: 'public_export', desc: 'The whole dataset flat: countries × scores × summaries.',
+          query: 'select=country,iso3,avg_score,confidence,scored_at&order=avg_score.desc.nullslast&limit=10' },
+        { name: 'countries', desc: 'Canonical names, ISO codes, and name aliases.',
+          query: 'select=name,iso2,iso3,aliases&order=name&limit=10' },
+        { name: 'country_scores', desc: 'Current scores, incl. the sub-indicator breakdown (subscores).',
+          query: 'select=regulation_status,policy_lever,enforcement_level,avg_score,confidence,subscores&limit=3' },
+        { name: 'country_summaries', desc: 'Per-dimension prose, key legislation, raw source list.',
+          query: 'select=regulation_status_text,specific_laws&limit=3' },
+        { name: 'score_history', desc: 'Every score a country has ever carried, with dates.',
+          query: 'select=snapshot_date,scores,countries!inner(name)&countries.name=eq.Germany&order=snapshot_date' },
+        { name: 'sources_export', desc: 'The accumulating sources database, with citing countries.',
+          query: 'select=url,source_type,countries&source_type=eq.intergovernmental&limit=10' },
+        { name: 'policy_initiatives', desc: 'Verified policy-initiative records (OECD.AI / GAIIN).',
+          query: 'select=name,start_year,binding,status,countries(name)&order=start_year.desc.nullslast&limit=10' },
+        { name: 'research_runs', desc: 'Provenance: every research run, its model and prompt version.',
+          query: 'select=started_at,trigger,model,prompt_version,grounded,countries_succeeded&order=started_at.desc&limit=10' }
+      ];
+
+      var RECIPES = [
+        { title: "Germany's full score history",
+          endpoint: 'score_history',
+          query: 'select=snapshot_date,scores,countries!inner(name)&countries.name=eq.Germany&order=snapshot_date' },
+        { title: 'Binding initiatives since 2024, most recent first',
+          endpoint: 'policy_initiatives',
+          query: 'select=name,start_year,source_url,countries(name)&binding=eq.Binding&start_year=gte.2024&order=start_year.desc' },
+        { title: 'High-confidence countries, ranked by maturity',
+          endpoint: 'public_export',
+          query: 'select=country,iso3,avg_score&confidence=eq.high&order=avg_score.desc&limit=25' },
+        { title: 'Which countries cite the EU AI Act (EUR-Lex)?',
+          endpoint: 'sources_export',
+          query: 'select=url,countries&url=like.*eur-lex*' }
+      ];
+
+      var endpointSel = document.getElementById('ex-endpoint');
+      var queryInput = document.getElementById('ex-query');
+      var descEl = document.getElementById('ex-desc');
+      var statusEl = document.getElementById('ex-status');
+      var output = document.getElementById('ex-output');
+
+      ENDPOINTS.forEach(function (e) {
+        var opt = document.createElement('option');
+        opt.value = e.name;
+        opt.textContent = '/' + e.name;
+        endpointSel.appendChild(opt);
+
+        var row = document.createElement('tr');
+        var name = document.createElement('td');
+        var code = document.createElement('code');
+        code.textContent = '/' + e.name;
+        name.appendChild(code);
+        var desc = document.createElement('td');
+        desc.textContent = e.desc;
+        row.append(name, desc);
+        document.getElementById('endpoint-table').appendChild(row);
+      });
+
+      function current() {
+        return ENDPOINTS.find(function (e) { return e.name === endpointSel.value; }) || ENDPOINTS[0];
+      }
+
+      function applyEndpoint() {
+        var e = current();
+        queryInput.value = e.query;
+        descEl.textContent = e.desc;
+      }
+
+      function url() {
+        var qs = queryInput.value.trim();
+        return BASE + '/' + endpointSel.value + (qs ? '?' + qs : '');
+      }
+
+      function curlCommand(csv) {
+        return 'curl "' + url() + '" \\\n'
+          + '  -H "apikey: ' + TOKEN + '" \\\n'
+          + '  -H "Authorization: Bearer ' + TOKEN + '"'
+          + (csv ? ' \\\n  -H "Accept: text/csv"' : '');
+      }
+
+      function headers(extra) {
+        var h = { apikey: TOKEN, Authorization: 'Bearer ' + TOKEN, Prefer: 'count=exact' };
+        if (extra) for (var k in extra) h[k] = extra[k];
+        return h;
+      }
+
+      function run() {
+        statusEl.textContent = 'Running…';
+        output.textContent = '';
+        fetch(url(), { headers: headers() }).then(function (resp) {
+          var range = resp.headers.get('content-range') || '';
+          var total = range.indexOf('/') >= 0 ? range.split('/')[1] : '';
+          return resp.json().then(function (body) {
+            if (!resp.ok) {
+              statusEl.textContent = 'HTTP ' + resp.status;
+              output.textContent = JSON.stringify(body, null, 2);
+              return;
+            }
+            var n = Array.isArray(body) ? body.length : 1;
+            statusEl.textContent = n + ' row' + (n === 1 ? '' : 's')
+              + (total && total !== '*' ? ' of ' + total + ' total' : '');
+            output.textContent = JSON.stringify(body, null, 2);
+          });
+        }).catch(function () {
+          statusEl.textContent = 'Unreachable';
+          output.textContent = 'The live API did not respond — it may be waking from idle.\n'
+            + 'The static files above always work; try again in a minute.';
+        });
+      }
+
+      function copy(button, text) {
+        var original = button.textContent;
+        (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+          .then(function () { button.textContent = 'Copied ✓'; })
+          .catch(function () { button.textContent = 'Copy failed'; })
+          .then(function () { setTimeout(function () { button.textContent = original; }, 1500); });
+      }
+
+      function downloadCsv() {
+        statusEl.textContent = 'Fetching CSV…';
+        fetch(url(), { headers: headers({ Accept: 'text/csv' }) }).then(function (resp) {
+          if (!resp.ok) { statusEl.textContent = 'HTTP ' + resp.status; return null; }
+          return resp.blob();
+        }).then(function (blob) {
+          if (!blob) return;
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'airegulationmap-' + endpointSel.value + '.csv';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          statusEl.textContent = 'CSV downloaded';
+        }).catch(function () { statusEl.textContent = 'Unreachable'; });
+      }
+
+      var recipes = document.getElementById('recipes');
+      RECIPES.forEach(function (r) {
+        var card = document.createElement('div');
+        card.className = 'recipe';
+
+        var title = document.createElement('span');
+        title.className = 'recipe-title';
+        title.textContent = r.title;
+
+        var tryBtn = document.createElement('button');
+        tryBtn.type = 'button';
+        tryBtn.className = 'btn';
+        tryBtn.textContent = 'Try it';
+        tryBtn.addEventListener('click', function () {
+          endpointSel.value = r.endpoint;
+          applyEndpoint();
+          queryInput.value = r.query;
+          run();
+          document.getElementById('explorer').scrollIntoView({ block: 'start' });
+        });
+
+        var q = document.createElement('span');
+        q.className = 'recipe-query';
+        q.textContent = '/' + r.endpoint + '?' + r.query;
+
+        card.append(title, tryBtn, q);
+        recipes.appendChild(card);
+      });
+
+      endpointSel.addEventListener('change', applyEndpoint);
+      document.getElementById('ex-run').addEventListener('click', run);
+      queryInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); });
+      document.getElementById('ex-copy-curl').addEventListener('click', function () {
+        copy(this, curlCommand(false));
+      });
+      document.getElementById('ex-copy-url').addEventListener('click', function () {
+        copy(this, url());
+      });
+      document.getElementById('ex-csv').addEventListener('click', downloadCsv);
+
+      applyEndpoint();
+    })();
+  </script>
 </body>
 </html>
