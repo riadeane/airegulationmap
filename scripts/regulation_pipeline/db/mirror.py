@@ -149,14 +149,14 @@ class SupabaseMirror:
         self._sync_sources(country_ids)
 
     def _resolve_country_ids(self, names: list[str]) -> dict[str, str]:
-        rows = self._client.select("countries", {"select": "id,name", "limit": "1000"})
+        rows = self._client.select_all("countries", {"select": "id,name"})
         ids = {r["name"]: r["id"] for r in rows}
         missing = [n for n in names if n not in ids]
         if missing:
             self._client.upsert("countries", [
                 {"name": n, **_iso_columns(self._iso.get(n))} for n in missing
             ], on_conflict="name")
-            rows = self._client.select("countries", {"select": "id,name", "limit": "1000"})
+            rows = self._client.select_all("countries", {"select": "id,name"})
             ids = {r["name"]: r["id"] for r in rows}
         return ids
 
@@ -178,18 +178,27 @@ class SupabaseMirror:
         self._client.upsert("sources", list(by_url.values()), on_conflict="url")
         source_ids = {
             r["url"]: r["id"]
-            for r in self._client.select("sources", {"select": "id,url", "limit": "100000"})
+            for r in self._client.select_all("sources", {"select": "id,url"})
         }
-        self._client.upsert("country_sources", [
-            {
+        link_rows = []
+        for country, url in links:
+            source_id = source_ids.get(url)
+            if source_id is None:
+                # Should be impossible after the upsert above; never let one
+                # missing id abort the whole flush.
+                logger.warning("mirror: source id missing for %s — link skipped", url)
+                continue
+            link_rows.append({
                 "country_id": country_ids[country],
-                "source_id": source_ids[url],
+                "source_id": source_id,
                 "dimension": "general",
                 "run_id": self._run_id,
                 "last_cited": now,
-            }
-            for country, url in links
-        ], on_conflict="country_id,source_id,dimension")
+            })
+        if link_rows:
+            self._client.upsert(
+                "country_sources", link_rows, on_conflict="country_id,source_id,dimension"
+            )
 
 
 # -- row projections (DB shape; the CSV shape lives in repository.py) ----------

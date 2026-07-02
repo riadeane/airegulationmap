@@ -114,12 +114,15 @@ export function initSubscores(): void {
   // Sub-indicators exist for the latest research only. While the timeline
   // shows a historical date the disclosures would pair old dimension scores
   // with current sub-scores, so they lock until the scrubber returns to
-  // Latest (the panel notice says why).
-  on('timelineDate', (date) => {
+  // Latest (the panel notice says why). Applied once at init too — a ?date=
+  // deep link sets timelineDate before this subscription exists.
+  const syncHistoricalLock = (date: string | null) => {
     const historical = date != null;
     document.querySelectorAll<HTMLButtonElement>('.dim-expand').forEach(b => {
       b.disabled = historical;
     });
     if (historical) collapseAll();
-  });
+  };
+  on('timelineDate', syncHistoricalLock);
+  syncHistoricalLock(getState().timelineDate);
 }

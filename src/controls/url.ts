@@ -217,13 +217,21 @@ function currentQueryString(): string {
 
 // Replace the URL without adding a history entry. Used for hovers and
 // click-style navigation inside the app (Back should not undo a country
-// selection or score-mode flip — too chatty).
+// selection or score-mode flip — too chatty). rAF-coalesced: slider drags
+// (filter range, timeline) emit per input event, and browsers rate-limit
+// replaceState — one write per frame reflects the same final state.
+let urlWritePending = false;
 function writeReplace(): void {
-  const qs = currentQueryString();
-  const next = window.location.pathname + qs;
-  const current = window.location.pathname + window.location.search;
-  if (next === current) return;
-  window.history.replaceState(null, '', next);
+  if (urlWritePending) return;
+  urlWritePending = true;
+  requestAnimationFrame(() => {
+    urlWritePending = false;
+    const qs = currentQueryString();
+    const next = window.location.pathname + qs;
+    const current = window.location.pathname + window.location.search;
+    if (next === current) return;
+    window.history.replaceState(null, '', next);
+  });
 }
 
 function applyUrlState(urlState: UrlState, { initial = false }: { initial?: boolean } = {}): void {

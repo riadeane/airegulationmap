@@ -288,8 +288,8 @@ def apply_direct(seed: SeedData, client) -> None:
     client.upsert("countries", seed.countries, on_conflict="name")
     client.upsert("sources", seed.sources, on_conflict="url")
 
-    country_ids = {r["name"]: r["id"] for r in client.select("countries", {"select": "id,name"})}
-    source_ids = {r["url"]: r["id"] for r in client.select("sources", {"select": "id,url", "limit": "100000"})}
+    country_ids = {r["name"]: r["id"] for r in client.select_all("countries", {"select": "id,name"})}
+    source_ids = {r["url"]: r["id"] for r in client.select_all("sources", {"select": "id,url"})}
 
     def with_country(rows: list[dict]) -> list[dict]:
         out = []

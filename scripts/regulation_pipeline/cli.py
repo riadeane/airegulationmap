@@ -160,8 +160,16 @@ def _run(
 
 
 def _build_evidence_provider(evidence_file: str) -> Callable[[str], list[dict]] | None:
-    """Evidence for --grounded: an offline JSON file, or lazy per-country
-    PostgREST reads from the policy_initiatives table."""
+    """Evidence for --grounded: an offline JSON file, or ONE up-front
+    PostgREST fetch of every linked initiative, grouped by country.
+
+    Prefetching (rather than a per-country select at prompt-build time) is a
+    correctness property, not an optimization: the provider runs inside
+    request_params, deep in the research loop, where the service only knows
+    how to handle FatalAPIError — a transient Supabase error there would
+    crash the run AFTER countries were researched but BEFORE dataset.save(),
+    losing paid-for results. Failing here, before any research starts, is
+    cheap and loud."""
     if evidence_file:
         data = json.loads(Path(evidence_file).read_text(encoding="utf-8"))
         return lambda country: data.get(country, [])
@@ -173,23 +181,27 @@ def _build_evidence_provider(evidence_file: str) -> Callable[[str], list[dict]] 
 
     from .db.client import SupabaseClient
 
-    client = SupabaseClient(url, key)
-    country_ids: dict[str, str] = {
-        r["name"]: r["id"] for r in client.select("countries", {"select": "id,name", "limit": "1000"})
-    }
-
-    def provider(country: str) -> list[dict]:
-        cid = country_ids.get(country)
-        if not cid:
-            return []
-        return client.select("policy_initiatives", {
-            "select": "name,start_year,initiative_type,binding,status,overview,source_url",
-            "country_id": f"eq.{cid}",
+    with SupabaseClient(url, key) as client:
+        names_by_id = {
+            r["id"]: r["name"]
+            for r in client.select_all("countries", {"select": "id,name"})
+        }
+        by_country: dict[str, list[dict]] = {}
+        rows = client.select_all("policy_initiatives", {
+            "select": "country_id,name,start_year,initiative_type,binding,status,overview,source_url",
+            "country_id": "not.is.null",
             "order": "start_year.desc.nullslast",
-            "limit": "30",
         })
+        for row in rows:
+            country = names_by_id.get(row.pop("country_id"))
+            if country:
+                by_country.setdefault(country, []).append(row)
 
-    return provider
+    logger.info(
+        "grounded: evidence loaded for %d countries (%d initiatives)",
+        len(by_country), sum(len(v) for v in by_country.values()),
+    )
+    return lambda country: by_country.get(country, [])
 
 
 def _build_mirror(

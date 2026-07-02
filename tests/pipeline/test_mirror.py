@@ -231,3 +231,26 @@ class TestServiceMirrorSeam:
         result = svc.run(ListStrategy([("A", model())]), ["A"])
         assert result.updated == 1
         assert ds.scores_row("A") is not None
+
+
+class TestSelectAllPagination:
+    def test_paginates_past_the_postgrest_row_cap(self):
+        # PostgREST caps responses at ~1,000 rows regardless of limit;
+        # select_all must keep paging until a short page.
+        pages: list[dict] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            offset = int(request.url.params["offset"])
+            limit = int(request.url.params["limit"])
+            pages.append({"offset": offset, "limit": limit})
+            total = 2500
+            n = max(0, min(limit, total - offset))
+            rows = [{"id": f"r-{offset + i}"} for i in range(n)]
+            return httpx.Response(200, json=rows)
+
+        client = SupabaseClient("https://x.supabase.co", "key",
+                                transport=httpx.MockTransport(handler))
+        rows = client.select_all("sources", {"select": "id"})
+        assert len(rows) == 2500
+        assert [p["offset"] for p in pages] == [0, 1000, 2000]
+        assert rows[0]["id"] == "r-0" and rows[-1]["id"] == "r-2499"

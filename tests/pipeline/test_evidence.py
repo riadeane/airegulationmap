@@ -112,6 +112,11 @@ class FakeDb:
             return [{"id": f"s-{i}", "url": r["url"]} for i, r in enumerate(self._rows_for("sources"))]
         return []
 
+    # Real code uses the paginating variant for complete lookups; the fake's
+    # tables are tiny, so one page is the whole answer.
+    def select_all(self, table, params=None, *, page_size=1000):
+        return self.select(table, params)
+
     def upsert(self, table, rows, *, on_conflict, batch_size=500):
         self.upserts.append((table, rows))
 
@@ -173,6 +178,21 @@ class TestSyncEvidence:
         db = FakeDb()
         sync_evidence(db, make_adapter(), make_resolver(), full=True)
         assert not hasattr(db, "deletes")   # FakeDb has no delete; sync must never call one
+
+    def test_duplicate_records_across_pages_are_deduped_in_the_payload(self):
+        # The unsorted page walk can return the same record twice while data
+        # shifts underneath; duplicate conflict keys in one upsert payload
+        # would be a PostgREST 400.
+        both = {"data": PAGE1["data"] + PAGE1["data"], "currentPage": 1,
+                "lastPage": 1, "total": 4, "perPage": 4}
+        transport = httpx.MockTransport(lambda req: httpx.Response(200, json=both))
+        adapter = OecdGaiinAdapter(httpx.Client(transport=transport), endpoint="https://api.example/pi")
+        db = FakeDb()
+        report = sync_evidence(db, adapter, make_resolver(), full=True)
+        assert report.fetched == 4          # counted as fetched twice
+        rows = db._rows_for("policy_initiatives")
+        keys = [(r["source"], r["external_id"]) for r in rows]
+        assert len(keys) == len(set(keys))  # payload has no duplicate conflict keys
 
 
 class TestGroundedPrompt:

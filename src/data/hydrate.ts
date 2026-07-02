@@ -88,8 +88,21 @@ export function isStrictlyNewer(candidate: ScoreData, current: ScoreData): boole
 }
 
 /** Fetch, compare, and (only if strictly newer) replace the score and
- * regulation data in the store. Returns true when a replacement happened. */
+ * regulation data in the store. Returns true when a replacement happened.
+ *
+ * Two-phase: a one-row freshness probe first (the dual-write mirror keeps
+ * the database and the static snapshot in lockstep, so the normal outcome
+ * is "not newer" — no reason to download half a megabyte of prose to
+ * discard it), then the full fetch only when the probe says newer. */
 export async function hydrateFromSupabase(): Promise<boolean> {
+  const probe = await restGet(
+    'public_export?select=scored_at&order=scored_at.desc.nullslast&limit=1'
+  );
+  if (!Array.isArray(probe) || probe.length === 0) return false;
+  const dbLatest = (probe[0] as { scored_at?: string | null }).scored_at || '';
+  const staticLatest = maxLastUpdated(getState().scoreData);
+  if (!dbLatest || dbLatest <= staticLatest) return false;
+
   const rows = await restGet(`public_export?select=${EXPORT_COLUMNS}&limit=1000`);
   if (!Array.isArray(rows) || rows.length === 0) return false;
 

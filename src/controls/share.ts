@@ -139,6 +139,7 @@ export function initShare(): void {
   for (const key of [
     'selectedCountry', 'comparisonCountries', 'mainView', 'currentAttribute',
     'timelineDate', 'selectedBloc', 'filterMin', 'filterMax',
+    'filterConfidence', 'filterOfficialOnly',
     'scatterX', 'scatterY', 'searchQuery',
   ] as const) {
     on(key, rerenderIfOpen);

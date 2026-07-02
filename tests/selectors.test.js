@@ -149,12 +149,19 @@ describe('scoresAtDate selector', () => {
     expect(scoresAtDate()).toBeNull();
   });
 
-  it('resolves the step function for the scrubbed date and memoizes', () => {
-    setState({ history, timelineDate: '2026-03-01' });
+  it('resolves known snapshot dates and memoizes', () => {
+    setState({ history, timelineDate: '2026-01-01' });
     const at = scoresAtDate();
     expect(at.A.averageScore).toBe(2);
     expect(scoresAtDate()).toBe(at); // cached
-    setState({ timelineDate: '2026-06-01' });
+    setState({ timelineDate: '2026-05-01' });
     expect(scoresAtDate().A.averageScore).toBe(4);
+  });
+
+  it('falls back to null for a date the history never recorded', () => {
+    // A hand-edited ?date= must not render a misleading carried-back
+    // vintage — the map and panel both treat it as Latest.
+    setState({ history, timelineDate: '2026-03-01' });
+    expect(scoresAtDate()).toBeNull();
   });
 });

@@ -163,9 +163,13 @@ function renderRank(countryName: string): void {
 // the reader is looking at; rank is a latest-data derivation and hides.
 function renderScores(countryName: string): void {
   const { scoreData, timelineDate } = getState();
-  const historical = timelineDate != null;
+  // scoresAtDate() is null for "Latest" AND for dates the history doesn't
+  // know (a hand-edited ?date=); in both cases the map paints latest data,
+  // so the panel must too — historical mode only when a vintage resolved.
+  const snapshots = timelineDate ? scoresAtDate() : null;
+  const historical = snapshots != null;
   const entry = historical
-    ? scoresAtDate()?.[countryName] ?? null
+    ? snapshots[countryName] ?? null
     : scoreData[countryName] ?? null;
 
   renderScoreBar(entry ? entry.averageScore : null);
@@ -356,6 +360,13 @@ export function initPanel(): void {
   on('sourceMeta', (meta) => {
     const { selectedCountry, regulationData } = getState();
     if (selectedCountry) renderTextSections(regulationData[selectedCountry], meta);
+  });
+
+  // A dataset replacement (Supabase hydration) re-renders the open entry
+  // with the fresh prose, sources, and confidence.
+  on('regulationData', () => {
+    const { selectedCountry } = getState();
+    if (selectedCountry) renderPanel(selectedCountry);
   });
   updateCiteButton();
 

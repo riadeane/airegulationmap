@@ -13,7 +13,7 @@ import type { ConfidenceLevel } from './store';
 import type { ScoreData, RegulationData } from '../data/loader';
 import type { BlocsData } from '../data/blocs';
 import type { HistoryData, HistorySnapshot } from '../data/history';
-import { buildScoresAtDate } from '../data/history';
+import { buildScoresAtDate, extractSortedDates } from '../data/history';
 import { classifySources } from '../data/sources';
 import type { AttributeKey } from '../constants';
 
@@ -182,14 +182,29 @@ let atDateCache: {
   result: Record<string, HistorySnapshot>;
 } | null = null;
 
+let knownDatesCache: { history: HistoryData; dates: ReadonlySet<string> } | null = null;
+
+function knownSnapshotDates(history: HistoryData): ReadonlySet<string> {
+  if (knownDatesCache && knownDatesCache.history === history) return knownDatesCache.dates;
+  const dates = new Set(extractSortedDates(history));
+  knownDatesCache = { history, dates };
+  return dates;
+}
+
 /**
  * Score snapshots as of the scrubbed timeline date, or null when the
  * timeline is at "Latest" (or history hasn't loaded). Lets the panel render
  * the same vintage the map is showing instead of silently disagreeing.
+ *
+ * Only dates that actually exist in the history are honored — the timeline
+ * slider can only emit those, and an arbitrary ?date= from a URL must fall
+ * back to Latest (the old timeline guard's behavior) rather than render a
+ * misleading carried-back vintage for a date nobody recorded.
  */
 export function scoresAtDate(): Record<string, HistorySnapshot> | null {
   const { history, timelineDate } = getState();
   if (!history || !timelineDate) return null;
+  if (!knownSnapshotDates(history).has(timelineDate)) return null;
   if (atDateCache && atDateCache.history === history && atDateCache.date === timelineDate) {
     return atDateCache.result;
   }

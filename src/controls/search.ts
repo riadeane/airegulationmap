@@ -3,7 +3,7 @@ import { el, maybeEl } from '../dom';
 import { selectCountry, stepCountry, escapeMainView, commitSearch, clearSearch } from '../state/interactions';
 import { updateSearchHighlight } from '../map/index';
 import { matchCountryNames } from '../data/countryMatch';
-import { buildSearchIndex, searchRegulationText, searchAllMatches, FIELD_LABELS } from '../data/searchIndex';
+import { buildSearchIndex, searchAllMatches, FIELD_LABELS } from '../data/searchIndex';
 import type { IndexEntry } from '../data/searchIndex';
 import { snippetNode } from './snippet';
 import { applyCommittedDimming } from '../panel/searchResults';
@@ -29,6 +29,13 @@ function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: number): (.
 }
 
 let textIndex: IndexEntry[] | null = null;
+
+// The full-text index derives from regulationData — a dataset replacement
+// (Supabase hydration) must invalidate it or searches keep hitting the old
+// prose. Rebuilt lazily on the next keystroke.
+export function invalidateSearchIndex(): void {
+  textIndex = null;
+}
 
 function sectionLabel(text: string): HTMLLIElement {
   const li = document.createElement('li');
@@ -68,13 +75,21 @@ export function initSearch(): void {
     const { sortedCountryNames } = getState();
     if (!textIndex) textIndex = buildSearchIndex(getState().regulationData);
 
-    const countryMatches = matchCountryNames(sortedCountryNames, query, { limit: COUNTRY_LIMIT });
-    const textMatches = query.length >= 3
-      ? searchRegulationText(textIndex, query, TEXT_LIMIT + COUNTRY_LIMIT)
-        // A country already listed by name doesn't need a second row.
-        .filter(m => !countryMatches.includes(m.country))
-        .slice(0, TEXT_LIMIT)
+    // One uncapped pass each; the dropdown shows capped slices but the
+    // "See all N results" count is computed from the SAME uncapped union
+    // the committed results panel will report — the two must agree.
+    const allNameMatches = matchCountryNames(sortedCountryNames, query, {
+      limit: sortedCountryNames.length,
+    });
+    const allTextMatches = query.length >= 3
+      ? searchAllMatches(textIndex, query).filter(m => !allNameMatches.includes(m.country))
       : [];
+
+    const countryMatches = allNameMatches.slice(0, COUNTRY_LIMIT);
+    const textMatches = allTextMatches
+      // A country already listed by name doesn't need a second row.
+      .filter(m => !countryMatches.includes(m.country))
+      .slice(0, TEXT_LIMIT);
 
     // Nothing matched: clear the highlight to null — NOT an empty set,
     // which would mark every country "dimmed" and fade the whole map to
@@ -136,11 +151,9 @@ export function initSearch(): void {
 
     // The dropdown is a capped preview; committing opens the full results
     // list in the panel (persistent, exportable, dimming that survives
-    // browsing). Count the union the same way the results list will.
+    // browsing).
     if (query.length >= 3) {
-      const allText = searchAllMatches(textIndex, query)
-        .filter(m => !countryMatches.includes(m.country));
-      const totalCountries = new Set([...countryMatches, ...allText.map(m => m.country)]).size;
+      const totalCountries = new Set([...allNameMatches, ...allTextMatches.map(m => m.country)]).size;
       if (totalCountries > 0) {
         const li = document.createElement('li');
         li.className = 'search-see-all';
@@ -239,6 +252,19 @@ export function initKeyboardNav(): void {
       const citePopover = document.getElementById('cite-popover');
       if (citePopover && !citePopover.hidden) return;
       if (escapeMainView()) return;
+      // Header popovers close on every remaining Esc layer — they're
+      // transient chrome, not part of the back-out stack.
+      for (const [popoverId, btnId] of [
+        ['score-dropdown', 'score-btn'],
+        ['filter-popover', 'filter-btn'],
+        ['export-popover', 'export-btn'],
+        ['share-popover', 'share-btn'],
+      ]) {
+        document.getElementById(popoverId)?.classList.remove('open');
+        const btn = document.getElementById(btnId);
+        btn?.classList.remove('active');
+        btn?.setAttribute('aria-expanded', 'false');
+      }
       // With nothing selected, Esc peels the committed search next — so
       // country → results list → clean map, one layer per press.
       if (!getState().selectedCountry && getState().searchQuery) {
@@ -246,12 +272,6 @@ export function initKeyboardNav(): void {
         return;
       }
       selectCountry(null);
-      document.getElementById('score-dropdown')!.classList.remove('open');
-      document.getElementById('score-btn')!.classList.remove('active');
-      document.getElementById('filter-popover')!.classList.remove('open');
-      document.getElementById('filter-btn')!.classList.remove('active');
-      document.getElementById('export-popover')!.classList.remove('open');
-      document.getElementById('export-btn')!.classList.remove('active');
       return;
     }
 

@@ -1,6 +1,6 @@
 import './styles/main.css';
 
-import { setState } from './state/store';
+import { getState, on, setState } from './state/store';
 import { restoreComparison, selectCountry, openScatter, commitSearch } from './state/interactions';
 import { loadScores, loadRegulation } from './data/loader';
 import { loadHistory } from './data/history';
@@ -9,14 +9,14 @@ import { loadSubscores } from './data/subscores';
 import { initBlocSelector } from './controls/blocSelector';
 import { initBlocSummary } from './controls/blocSummary';
 import { initSubscores } from './panel/subscores';
-import { generateMap, initMapSubscriptions } from './map/index';
+import { generateMap, initMapSubscriptions, updateMap } from './map/index';
 import { initPanel } from './panel/index';
 import { initComparison } from './comparison/index';
 import { initScatter } from './scatter/index';
 import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelector';
 import { initFilter } from './controls/filter';
 import { initExport } from './controls/export';
-import { initSearch, initKeyboardNav } from './controls/search';
+import { initSearch, initKeyboardNav, invalidateSearchIndex } from './controls/search';
 import { initSearchResults } from './panel/searchResults';
 import { initShare } from './controls/share';
 import { initTimeline } from './controls/timeline';
@@ -184,6 +184,20 @@ async function main(): Promise<void> {
   // dataset if the database is strictly newer than the static snapshot,
   // and fetch source titles for the panel. Both no-op when unconfigured
   // or unreachable — the static files remain authoritative.
+  //
+  // A dataset replacement must actually repaint: the store emits
+  // 'scoreData'/'regulationData', and these subscriptions carry the new
+  // data into the surfaces that render from it.
+  on('scoreData', () => {
+    const { scoreData: fresh } = getState();
+    updateMap();
+    updateSiteLastUpdated(fresh);
+    updateCountryCount(fresh);
+  });
+  // The full-text index caches off regulationData; the open panel
+  // re-renders itself (panel/index.ts subscribes to the same key).
+  on('regulationData', invalidateSearchIndex);
+
   const idle = typeof requestIdleCallback === 'function'
     ? requestIdleCallback
     : (fn: () => void) => setTimeout(fn, 1500);

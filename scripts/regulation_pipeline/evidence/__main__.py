@@ -85,7 +85,7 @@ def sync(
         logger.error("sync requires SUPABASE_URL and SUPABASE_SERVICE_KEY")
         raise typer.Exit(code=1)
 
-    from ..db.client import SupabaseClient
+    from ..db.client import SupabaseClient, SupabaseError
     from .sync import sync_evidence
 
     settings = Settings().validate()
@@ -102,7 +102,7 @@ def sync(
                 report = sync_evidence(client, adapter, resolver, full=full)
                 typer.echo(report.summary())
                 return
-            except httpx.HTTPError as exc:
+            except (httpx.HTTPError, SupabaseError) as exc:
                 last_error = exc
                 logger.warning("evidence endpoint %s failed: %s", candidate, exc)
         logger.warning(

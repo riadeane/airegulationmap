@@ -56,6 +56,24 @@ class SupabaseClient:
         resp = self._http.get(f"/{table}", params=params or {})
         return self._json(resp)
 
+    def select_all(self, table: str, params: dict[str, str] | None = None,
+                   *, page_size: int = 1000) -> list[dict]:
+        """Offset-paginated select. PostgREST caps responses at ~1,000 rows
+        regardless of ``limit``, so any lookup that must be COMPLETE (id maps,
+        delta cursors) goes through here — a silently truncated id map turns
+        into missing links or KeyErrors downstream."""
+        rows: list[dict] = []
+        offset = 0
+        while True:
+            page_params = dict(params or {})
+            page_params["limit"] = str(page_size)
+            page_params["offset"] = str(offset)
+            page = self.select(table, page_params)
+            rows.extend(page)
+            if len(page) < page_size:
+                return rows
+            offset += page_size
+
     def insert(self, table: str, rows: list[dict], *, returning: bool = False) -> list[dict]:
         resp = self._http.post(
             f"/{table}",

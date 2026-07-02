@@ -49,15 +49,14 @@ def sync_evidence(client, adapter, resolver: CountryResolver, *, full: bool = Fa
 
     existing = {
         row["external_id"]: row["updated_at"]
-        for row in client.select("policy_initiatives", {
+        for row in client.select_all("policy_initiatives", {
             "select": "external_id,updated_at",
             "source": f"eq.{adapter.name}",
-            "limit": "100000",
         })
     }
     country_ids = {
         row["name"]: row["id"]
-        for row in client.select("countries", {"select": "id,name", "limit": "1000"})
+        for row in client.select_all("countries", {"select": "id,name"})
     }
 
     rows: list[dict] = []
@@ -96,6 +95,11 @@ def sync_evidence(client, adapter, resolver: CountryResolver, *, full: bool = Fa
         )
 
     if rows:
+        # The API's unsorted page walk can hand back the same record on two
+        # pages while data shifts underneath; duplicate conflict targets in
+        # one payload are a PostgREST 400 ("cannot affect row a second
+        # time"), so dedupe by the conflict key (last one wins).
+        rows = list({(r["source"], r["external_id"]): r for r in rows}.values())
         client.upsert("policy_initiatives", rows, on_conflict="source,external_id", batch_size=100)
     _sync_source_links(client, links, country_ids)
 
@@ -123,7 +127,7 @@ def _sync_source_links(client, links: list[tuple[str, str]], country_ids: dict[s
     client.upsert("sources", list(by_url.values()), on_conflict="url", batch_size=200)
     source_ids = {
         row["url"]: row["id"]
-        for row in client.select("sources", {"select": "id,url", "limit": "100000"})
+        for row in client.select_all("sources", {"select": "id,url"})
     }
     link_rows = [
         {
