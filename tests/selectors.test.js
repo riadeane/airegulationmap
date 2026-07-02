@@ -44,11 +44,14 @@ describe('maturityRank selector', () => {
 describe('visibleCountrySet selector', () => {
   const base = () => ({
     scoreData: scores({ A: 5, B: 3, C: 1, NoScore: null }),
+    regulationData: {},
     currentAttribute: 'averageScore',
     filterMin: 1,
     filterMax: 5,
     selectedBloc: null,
     blocsData: null,
+    filterConfidence: null,
+    filterOfficialOnly: false,
   });
 
   it('includes every scored country when no filter is active', () => {
@@ -82,11 +85,44 @@ describe('visibleCountrySet selector', () => {
     expect(second).not.toBe(first);
     expect([...second].sort()).toEqual(['B', 'C']);
   });
+
+  it('applies the confidence filter, excluding unknown confidence', () => {
+    setState({
+      ...base(),
+      regulationData: {
+        A: { confidence: 'high' },
+        B: { confidence: 'Low' },   // case-insensitive
+        C: {},                       // unknown — never passes a filter
+      },
+      filterConfidence: ['high', 'low'],
+    });
+    expect([...visibleCountrySet()].sort()).toEqual(['A', 'B']);
+    setState({ filterConfidence: ['medium'] });
+    expect([...visibleCountrySet()]).toEqual([]);
+  });
+
+  it('applies the official-sources-only filter', () => {
+    setState({
+      ...base(),
+      regulationData: {
+        A: { sources: 'https://legislation.gov.uk/act | https://example.com/blog' },
+        B: { sources: 'https://example.com/commentary' },
+        C: { sources: null },
+      },
+      filterOfficialOnly: true,
+    });
+    expect([...visibleCountrySet()]).toEqual(['A']);
+  });
 });
 
 describe('passesCountryFilters selector', () => {
   it('is true for everyone without a bloc, and membership-gated with one', () => {
-    setState({ selectedBloc: null, blocsData: null });
+    // Reset every country-level filter — the store persists across tests
+    // in this file, and earlier cases set confidence filters.
+    setState({
+      selectedBloc: null, blocsData: null, regulationData: {},
+      filterConfidence: null, filterOfficialOnly: false,
+    });
     expect(passesCountryFilters('Anywhere')).toBe(true);
     setState({
       blocsData: { G2: { name: 'Pair', members: ['A', 'B'] } },

@@ -191,3 +191,29 @@ circle.scatter-dot:hover {
     gap: 8px;
   }
 }
+
+/* Trend overlay — least-squares line + Pearson's r over visible dots */
+.scatter-trend-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.scatter-trend-toggle input {
+  accent-color: var(--accent);
+}
+
+line.scatter-trend {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+text.scatter-trend-stats {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  fill: var(--text-secondary);
+}

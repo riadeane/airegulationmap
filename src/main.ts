@@ -93,6 +93,8 @@ async function main(): Promise<void> {
   if (urlState.filterMin !== undefined || urlState.filterMax !== undefined) {
     setState({ filterMin: urlState.filterMin ?? 1, filterMax: urlState.filterMax ?? 5 });
   }
+  if (urlState.filterConfidence) setState({ filterConfidence: urlState.filterConfidence });
+  if (urlState.filterOfficialOnly) setState({ filterOfficialOnly: true });
 
   // Wire up UI controls
   initTheme();

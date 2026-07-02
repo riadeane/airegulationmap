@@ -66,6 +66,8 @@ export function initMapSubscriptions() {
   on('filterMin', scheduleUpdateMap);
   on('filterMax', scheduleUpdateMap);
   on('selectedBloc', scheduleUpdateMap);
+  on('filterConfidence', scheduleUpdateMap);
+  on('filterOfficialOnly', scheduleUpdateMap);
 
   // The map paints its own comparison markers. Colour slots are assigned by
   // the interactions orchestrator before this fires, so the indices are ready.

@@ -659,3 +659,42 @@ input[type="range"] {
   cursor: default;
   background: none;
 }
+
+/* Confidence + official-source filter rows in the filter popover.
+   (A fieldset is a poor flex container — legends escape flex layout —
+   so this row lays out with floats/inline instead.) */
+.filter-conf-row {
+  border: none;
+  margin: 2px 0 10px;
+  padding: 0;
+}
+
+.filter-conf-row legend {
+  float: left;
+  padding: 0;
+  margin-right: 10px;
+}
+
+.filter-conf-row label {
+  margin-right: 8px;
+}
+
+.filter-conf-row label,
+.filter-official-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.filter-official-row {
+  display: flex;
+  margin-bottom: 4px;
+}
+
+.filter-conf-row input,
+.filter-official-row input {
+  accent-color: var(--accent);
+}

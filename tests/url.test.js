@@ -20,6 +20,8 @@ function appState(overrides = {}) {
     blocsData: null,
     subscores: null,
     searchQuery: '',
+    filterConfidence: null,
+    filterOfficialOnly: false,
     mainView: 'map',
     scatterX: 'enforcementLevel',
     scatterY: 'regulationStatus',
@@ -104,5 +106,23 @@ describe('buildQueryString', () => {
   it('caps an oversized q param instead of dropping it', () => {
     const long = 'x'.repeat(300);
     expect(parseUrl(`?q=${long}`).q).toHaveLength(100);
+  });
+
+  it('round-trips the confidence and official-only filters', () => {
+    const qs = buildQueryString(appState({
+      filterConfidence: ['high', 'medium'],
+      filterOfficialOnly: true,
+    }));
+    expect(parseUrl('?' + qs)).toEqual({
+      filterConfidence: ['high', 'medium'],
+      filterOfficialOnly: true,
+    });
+  });
+
+  it('normalizes an all-levels conf param to no filter and drops junk levels', () => {
+    expect(parseUrl('?conf=high,medium,low')).toEqual({});
+    expect(parseUrl('?conf=bogus')).toEqual({});
+    expect(parseUrl('?conf=HIGH,bogus')).toEqual({ filterConfidence: ['high'] });
+    expect(parseUrl('?official=yes')).toEqual({});
   });
 });

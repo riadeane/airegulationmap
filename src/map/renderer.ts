@@ -19,7 +19,7 @@ import { createTooltip, showTooltip, hideTooltip } from './tooltip';
 import { setupZoom } from './zoom';
 import type { ZoomHandle } from './zoom';
 import { toggleComparison, selectCountry } from '../state/interactions';
-import { passesCountryFilters } from '../state/selectors';
+import { passesCountryFilters, scoresAtDate } from '../state/selectors';
 import { getColorIndex } from '../comparison/colorSlots';
 import { cssVar, onThemeChange } from './cssColors';
 
@@ -317,17 +317,18 @@ export async function generateMap(): Promise<void> {
 function countryOpacity(
   country: string,
   entry: MapScoreEntry | undefined,
-  { currentAttribute, filterMin, filterMax, blocActive }: {
+  { currentAttribute, filterMin, filterMax, countryFiltersActive }: {
     currentAttribute: AttributeKey;
     filterMin: number;
     filterMax: number;
-    blocActive: boolean;
+    countryFiltersActive: boolean;
   }
 ): number {
   if (!entry || entry[currentAttribute] == null) {
     // No data: keep the usual soft presence, but recede fully while a
-    // bloc is highlighted so the bloc reads cleanly.
-    return blocActive ? 0.15 : 0.4;
+    // country-level filter (bloc/confidence/official) is highlighting a
+    // subset, so that subset reads cleanly.
+    return countryFiltersActive ? 0.15 : 0.4;
   }
   const score = entry[currentAttribute]!;
   const inRange = score >= filterMin && score <= filterMax;
@@ -335,10 +336,18 @@ function countryOpacity(
 }
 
 export function updateMap(overrideScoreData?: MapScores): void {
-  const { currentAttribute, filterMin, filterMax, scoreData, selectedBloc, blocsData } = getState();
-  const data = overrideScoreData || scoreData;
+  const {
+    currentAttribute, filterMin, filterMax, scoreData, selectedBloc, blocsData,
+    filterConfidence, filterOfficialOnly,
+  } = getState();
+  // No explicit override: resolve the timeline vintage ourselves, so a
+  // filter change mid-scrub repaints the SAME historical date instead of
+  // silently snapping the map back to the latest data.
+  const data = overrideScoreData || scoresAtDate() || scoreData;
   const colorScale = makeColorScale();
-  const blocActive = !!(selectedBloc && blocsData?.[selectedBloc]);
+  const countryFiltersActive = !!(selectedBloc && blocsData?.[selectedBloc])
+    || filterConfidence != null
+    || filterOfficialOnly;
 
   select('#map')
     .selectAll<SVGPathElement, CountryFeature>('.country')
@@ -350,7 +359,7 @@ export function updateMap(overrideScoreData?: MapScores): void {
     .duration(500)
     .attr('fill', d => fillFor(data[d.properties.name], currentAttribute, colorScale))
     .style('opacity', d => countryOpacity(d.properties.name, data[d.properties.name], {
-      currentAttribute, filterMin, filterMax, blocActive,
+      currentAttribute, filterMin, filterMax, countryFiltersActive,
     }));
 }
 

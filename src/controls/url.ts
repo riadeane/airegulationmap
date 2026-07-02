@@ -17,6 +17,7 @@ import {
 } from '../state/interactions';
 import { SCORE_OPTIONS, MAX_COMPARISON } from '../constants';
 import type { AttributeKey } from '../constants';
+import type { ConfidenceLevel } from '../state/store';
 
 /** State parsed from the URL — only keys present in the query appear. */
 export interface UrlState {
@@ -29,8 +30,12 @@ export interface UrlState {
   scatter?: { x: AttributeKey; y: AttributeKey };
   filterMin?: number;
   filterMax?: number;
+  filterConfidence?: ConfidenceLevel[];
+  filterOfficialOnly?: boolean;
   q?: string;
 }
+
+const CONFIDENCE_LEVELS = new Set(['high', 'medium', 'low']);
 
 const VALID_MODES = new Set<string>(SCORE_OPTIONS.map(o => o.value));
 const DEFAULT_MODE = 'averageScore';
@@ -100,6 +105,17 @@ export function parseUrl(search: string = window.location.search): UrlState {
   const q = params.get('q');
   if (q && q.trim()) out.q = q.trim().slice(0, MAX_SEARCH_QUERY);
 
+  // Confidence filter — a strict subset of the three levels (all three is
+  // no filter at all, so it normalizes away).
+  const conf = params.get('conf');
+  if (conf) {
+    const levels = [...new Set(
+      conf.split(',').map(s => s.trim().toLowerCase()).filter(s => CONFIDENCE_LEVELS.has(s))
+    )] as ConfidenceLevel[];
+    if (levels.length > 0 && levels.length < CONFIDENCE_LEVELS.size) out.filterConfidence = levels;
+  }
+  if (params.get('official') === '1') out.filterOfficialOnly = true;
+
   // Score-range filter. An inverted pair (min > max) is dropped entirely
   // rather than guessing which bound the author meant.
   const min = parseScoreBound(params.get('min'));
@@ -156,6 +172,8 @@ export function buildQueryString(s: Readonly<AppState>, theme: 'light' | 'dark' 
 
   if (s.filterMin !== 1) params.set('min', String(s.filterMin));
   if (s.filterMax !== 5) params.set('max', String(s.filterMax));
+  if (s.filterConfidence) params.set('conf', s.filterConfidence.join(','));
+  if (s.filterOfficialOnly) params.set('official', '1');
 
   if (s.searchQuery) params.set('q', s.searchQuery);
 
@@ -226,6 +244,12 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
     setState({ filterMin: 1, filterMax: 5 });
   }
 
+  if (urlState.filterConfidence) setState({ filterConfidence: urlState.filterConfidence });
+  else if (!initial) setState({ filterConfidence: null });
+
+  if (urlState.filterOfficialOnly) setState({ filterOfficialOnly: true });
+  else if (!initial) setState({ filterOfficialOnly: false });
+
   // Committed search BEFORE country/compare: commitSearch deselects to show
   // the results list, so a country in the same URL wins by applying later.
   if (urlState.q) commitSearch(urlState.q);
@@ -273,6 +297,8 @@ export function initUrlSync(): void {
   on('selectedBloc', writeReplace);
   on('filterMin', writeReplace);
   on('filterMax', writeReplace);
+  on('filterConfidence', writeReplace);
+  on('filterOfficialOnly', writeReplace);
   on('searchQuery', writeReplace);
   on('scatterX', writeReplace);
   on('scatterY', writeReplace);

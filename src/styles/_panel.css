@@ -922,3 +922,27 @@
   font-size: 0.68rem;
   color: var(--text-tertiary);
 }
+
+/* Quiet, always-present methodology on-ramp in the panel header (the
+   removable intro card was the only in-panel link before). */
+.panel-methodology-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+.panel-methodology-link:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.no-selection-message .panel-methodology-link {
+  display: block;
+  margin-top: 10px;
+  width: fit-content;
+  font-style: normal;
+}

@@ -9,10 +9,12 @@
 // this), so reference identity is a sound cache key.
 
 import { getState } from './store';
-import type { ScoreData } from '../data/loader';
+import type { ConfidenceLevel } from './store';
+import type { ScoreData, RegulationData } from '../data/loader';
 import type { BlocsData } from '../data/blocs';
 import type { HistoryData, HistorySnapshot } from '../data/history';
 import { buildScoresAtDate } from '../data/history';
+import { classifySources } from '../data/sources';
 import type { AttributeKey } from '../constants';
 
 export interface RankResult {
@@ -75,23 +77,58 @@ function blocMemberSet(): ReadonlySet<string> | null {
   return set;
 }
 
+// Countries citing at least one official source — derived once per data
+// load (classifySources over ~196 rows), reused by the official-only filter.
+let officialCache: { regulationData: RegulationData; set: ReadonlySet<string> } | null = null;
+
+export function officialSourceCountries(): ReadonlySet<string> {
+  const { regulationData } = getState();
+  if (officialCache && officialCache.regulationData === regulationData) return officialCache.set;
+  const set = new Set<string>();
+  for (const [name, entry] of Object.entries(regulationData)) {
+    if (classifySources(entry.sources).some(s => s.kind === 'official')) set.add(name);
+  }
+  officialCache = { regulationData, set };
+  return set;
+}
+
+function confidenceOf(country: string): ConfidenceLevel | null {
+  const raw = getState().regulationData[country]?.confidence;
+  if (!raw) return null;
+  const v = raw.trim().toLowerCase();
+  return v === 'high' || v === 'medium' || v === 'low' ? v : null;
+}
+
 /**
- * Score-INDEPENDENT country filters (currently bloc membership). Split from
- * visibleCountrySet() because the map filters historical snapshots during
- * timeline playback — its score-range check runs against the snapshot, not
- * live data, so only this half is shareable there.
+ * Score-INDEPENDENT country filters: bloc membership, confidence level,
+ * official-sources-only. Split from visibleCountrySet() because the map
+ * filters historical snapshots during timeline playback — its score-range
+ * check runs against the snapshot, not live data, so only this half is
+ * shareable there.
  */
 export function passesCountryFilters(country: string): boolean {
   const blocSet = blocMemberSet();
-  return !blocSet || blocSet.has(country);
+  if (blocSet && !blocSet.has(country)) return false;
+
+  const { filterConfidence, filterOfficialOnly } = getState();
+  if (filterConfidence) {
+    const level = confidenceOf(country);
+    // Unknown confidence can't satisfy a confidence filter.
+    if (!level || !filterConfidence.includes(level)) return false;
+  }
+  if (filterOfficialOnly && !officialSourceCountries().has(country)) return false;
+  return true;
 }
 
 let visibleCache: {
   scoreData: ScoreData;
+  regulationData: RegulationData;
   attr: AttributeKey;
   min: number;
   max: number;
   blocSet: ReadonlySet<string> | null;
+  confidence: readonly ConfidenceLevel[] | null;
+  officialOnly: boolean;
   set: ReadonlySet<string>;
 } | null = null;
 
@@ -103,15 +140,21 @@ let visibleCache: {
  * per-datum range check instead (see above).
  */
 export function visibleCountrySet(): ReadonlySet<string> {
-  const { scoreData, currentAttribute, filterMin, filterMax } = getState();
+  const {
+    scoreData, regulationData, currentAttribute, filterMin, filterMax,
+    filterConfidence, filterOfficialOnly,
+  } = getState();
   const blocSet = blocMemberSet();
   if (
     visibleCache
     && visibleCache.scoreData === scoreData
+    && visibleCache.regulationData === regulationData
     && visibleCache.attr === currentAttribute
     && visibleCache.min === filterMin
     && visibleCache.max === filterMax
     && visibleCache.blocSet === blocSet
+    && visibleCache.confidence === filterConfidence
+    && visibleCache.officialOnly === filterOfficialOnly
   ) {
     return visibleCache.set;
   }
@@ -120,10 +163,13 @@ export function visibleCountrySet(): ReadonlySet<string> {
   for (const [name, entry] of Object.entries(scoreData)) {
     const score = entry[currentAttribute];
     if (score == null || score < filterMin || score > filterMax) continue;
-    if (blocSet && !blocSet.has(name)) continue;
+    if (!passesCountryFilters(name)) continue;
     set.add(name);
   }
-  visibleCache = { scoreData, attr: currentAttribute, min: filterMin, max: filterMax, blocSet, set };
+  visibleCache = {
+    scoreData, regulationData, attr: currentAttribute, min: filterMin, max: filterMax,
+    blocSet, confidence: filterConfidence, officialOnly: filterOfficialOnly, set,
+  };
   return set;
 }
 

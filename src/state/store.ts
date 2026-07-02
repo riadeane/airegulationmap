@@ -4,12 +4,21 @@ import type { HistoryData } from '../data/history';
 import type { BlocsData } from '../data/blocs';
 import type { SubscoresData } from '../data/subscores';
 
+/** Research-confidence levels as recorded per country in regulation data. */
+export type ConfidenceLevel = 'high' | 'medium' | 'low';
+
 export interface AppState {
   currentAttribute: AttributeKey;
   scoreData: ScoreData;
   regulationData: RegulationData;
   filterMin: number;
   filterMax: number;
+  // Confidence filter: null = all levels; otherwise only countries whose
+  // record carries one of the listed levels (unknown confidence excluded).
+  filterConfidence: readonly ConfidenceLevel[] | null;
+  // Restrict to countries citing at least one official (government/
+  // legislature/regulator) source.
+  filterOfficialOnly: boolean;
   selectedCountry: string | null;
   // Read-only arrays: the store owns these; consumers replace them via
   // setState (always with a fresh array), never mutate in place. The
@@ -53,6 +62,8 @@ const state: AppState = {
   regulationData: {},
   filterMin: 1,
   filterMax: 5,
+  filterConfidence: null,
+  filterOfficialOnly: false,
   selectedCountry: null,
   sortedCountryNames: [],
   comparisonCountries: [],
