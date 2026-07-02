@@ -45,6 +45,16 @@ python scripts/update_data.py --force --batch
 # Web search for every country (not just priority) — always uses
 # Sonnet 4.6; pair with --batch. ~$10-12 for a full 196-country run.
 python scripts/update_data.py --force --batch --search-all
+
+# Evidence-grounded research: inject each country's verified policy
+# initiatives (OECD/GAIIN, from Supabase) into the prompt. Countries
+# without evidence fall back to the plain prompt. Grounded prompts are
+# longer — pair with --batch.
+python scripts/update_data.py --force --batch --grounded
+
+# Supabase dual-write mirror: auto-on when SUPABASE_URL and
+# SUPABASE_SERVICE_KEY are set; force with --mirror / disable with
+# --no-mirror. Mirror failures never fail a run.
 ```
 
 Requests use structured outputs (`output_config.format`, schema generated from
@@ -81,13 +91,16 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/data/searchIndex.ts` | Full-text index + substring search over regulation text |
 | `src/data/countryMatch.ts` | Shared country-name autocomplete matcher |
 | `src/data/blocs.ts` | Bloc membership loading + aggregate stats (`computeBlocStats`) |
-| `src/data/sources.ts` | Source URL classification (official vs other) + copy formatting |
+| `src/data/sources.ts` | Source URL classification (official vs other) + copy formatting + `SourceMeta` |
 | `src/data/subscores.ts` | subscores.json loading + sub-indicator labels (methodology v2) |
+| `src/data/supabase.ts` | Thin PostgREST reader (env-gated; null on any failure) |
+| `src/data/hydrate.ts` | Post-boot dataset hydration when the database is strictly newer |
+| `src/data/sourceMeta.ts` | Source titles/types from the sources database |
 | `src/map/` | Map rendering (renderer, legend, zoom, tooltip) |
-| `src/panel/` | Country detail panel (scores, text sections, changelog) |
+| `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
-| `src/scatter/` | Cross-dimension scatter plot with deterministic jitter |
-| `src/controls/` | UI controls (search, score selector, filter, blocs, export, timeline, URL sync, citations) |
+| `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
+| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations) |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
 **State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
@@ -123,6 +136,9 @@ Python package that calls the Claude API to research regulation status per count
 | `staleness.py` | `StalenessPolicy` — which countries need re-research |
 | `history.py` | History snapshot append/change-detection |
 | `names.py` | `CountryNames` — country-name normalization via alias map |
+| `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
+| `db/` | Supabase layer: `client.py` (httpx PostgREST wrapper), `mirror.py` (dual-write with run provenance), `seed.py` (one-shot bootstrap CLI) |
+| `evidence/` | Evidence layer: OECD/GAIIN adapter, conservative country matching, sync CLI (`python -m regulation_pipeline.evidence`), HTML stripping |
 | `errors.py` | `FatalAPIError` |
 
 `scripts/update_data.py` is a thin shim that calls `regulation_pipeline.cli.main()`; after `pip install -e .` the `update-regulation-data` console command is equivalent, and `python -m regulation_pipeline` also works. All logging goes through the stdlib `logging` module. Pipeline logic is covered by `tests/pipeline/` (run `python -m pytest`).
@@ -137,8 +153,30 @@ Python package that calls the Claude API to research regulation status per count
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
 | `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2) |
+| `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 
 These files are served as static assets by Vite (via `publicDir`) and copied unchanged to `dist/` on build.
+
+### Supabase (system of record + researcher API)
+
+Supabase Postgres holds the same data plus what static files can't: the
+`policy_initiatives` evidence records (OECD.AI Policy Navigator / GAIIN), the
+accumulating `sources` database, per-run provenance in `research_runs`, and
+queryable `score_history`. **The static files remain the frontend's boot path**
+— they are the database's published snapshot, refreshed by the pipeline's
+dual-write mirror on every run (`db/mirror.py`; failures never fail a run).
+The frontend reads Supabase only as progressive enhancement: post-boot
+hydration when the DB is strictly newer, source titles, and the per-country
+Policy Initiatives panel section — all of which degrade to today's behavior
+when unconfigured or unreachable. Schema migrations live in
+`supabase/migrations/`; RLS is public-SELECT everywhere, writes via the
+service role only. Researcher-facing docs (REST + CSV export examples) are in
+`public/data.html`.
+
+Environment variables: frontend builds take optional `VITE_SUPABASE_URL` +
+`VITE_SUPABASE_ANON_KEY` (see `.env.example`; anon key is RLS-read-only and
+safe to expose). The pipeline/mirror/evidence sync take `SUPABASE_URL` +
+`SUPABASE_SERVICE_KEY` (GitHub Actions secrets — never in the frontend).
 
 ### Scoring Dimensions
 
@@ -154,7 +192,7 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 
 ### Automated Updates
 
-`.github/workflows/update-data.yml` runs `update_data.py` on the 1st of each month (6am UTC) and auto-commits any changed CSV/JSON files in `public/`. It can also be triggered manually with optional country list, force flag, and model selection inputs. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret.
+`.github/workflows/update-data.yml` runs `update_data.py` on the 1st of each month (6am UTC) and auto-commits any changed CSV/JSON files in `public/`; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be triggered manually with optional country list, force flag, and model selection inputs. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
 
 ### Deployment
 

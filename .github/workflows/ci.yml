@@ -38,6 +38,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Standalone npx install (not a devDependency): madge's optional
+      # typescript peer conflicts with the repo's TS 6 under npm ci.
+      - name: No circular imports
+        run: npx --yes madge --circular src/
+
       - name: Test
         run: npm test
 
@@ -63,8 +68,14 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
+      # Dummy Supabase env so the progressive-enhancement code path is IN the
+      # bundle: supabase.spec.ts intercepts every rest/v1 route (nothing
+      # leaves the runner), and the other specs exercise graceful failure.
       - name: Build
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://test-project.supabase.co
+          VITE_SUPABASE_ANON_KEY: test-anon-key
 
       - name: Run e2e smoke + accessibility checks
         run: npm run test:e2e

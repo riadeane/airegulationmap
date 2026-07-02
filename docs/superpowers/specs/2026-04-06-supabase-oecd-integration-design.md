@@ -1,7 +1,14 @@
 # Supabase + OECD Integration Design
 
 **Date:** 2026-04-06
-**Status:** Approved
+**Status:** Superseded (2026-07) — implemented in revised form; see
+[docs/plans/2026-07-supabase-evidence-and-ux.md](../../plans/2026-07-supabase-evidence-and-ux.md).
+Key differences from this spec: methodology v2 sub-indicators are modeled
+(jsonb on `country_scores`); the existing `regulation_pipeline` was EXTENDED
+(mirror/evidence modules) rather than replaced by a new `sync_pipeline`; the
+static CSVs were kept as the frontend's boot path (published snapshots via
+dual-write) rather than removed; the OECD source is the official
+`api.oecdai.org` GAIIN endpoint with the wrapper as fallback.
 **Scope:** Replace static CSVs with Supabase, ingest OECD AI Policy Observatory data as structured policy initiatives, use Claude to score and summarize from verified facts rather than open-ended research.
 
 ---

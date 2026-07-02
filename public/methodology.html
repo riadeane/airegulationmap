@@ -437,6 +437,7 @@
     <h2 id="update-cadence">Data update cadence</h2>
     <p>A <a href="https://github.com/riadeane/airegulationmap/blob/main/.github/workflows/update-data.yml" rel="noopener noreferrer">GitHub Action</a> runs on the 1st of each month and researches any country whose record is older than a staleness threshold or flagged as low confidence. Manual overrides (single-country re-research, forced refresh of the whole dataset) are possible via <code>scripts/update_data.py</code>.</p>
     <p>Every month's run is preserved as a snapshot in <code>public/history.json</code>, which drives the timeline slider on the main page — so the "score at date X" view is always reproducible from the raw data.</p>
+    <p><strong>Evidence grounding (July 2026).</strong> Research runs can be grounded in verified policy-initiative records from the <a href="https://oecd.ai" rel="noopener noreferrer">OECD.AI Policy Observatory</a> (Policy Navigator/GAIIN): for covered countries, the model scores against those records as stated facts rather than open-ended recall, and the records themselves are shown in each country's <em>Policy initiatives</em> panel section. Every run — grounded or not — is recorded with its model, prompt version, and token counts in a public <code>research_runs</code> provenance table (see <a href="/data.html">Data &amp; API</a>).</p>
 
     <h2 id="limitations">Known limitations</h2>
     <ul>
@@ -465,6 +466,12 @@
       so any past state of the dataset is retrievable and citeable by
       commit hash. The in-app Export button produces the same data merged
       into a single CSV/JSON.
+    </p>
+    <p>
+      For queryable access — filtered extracts, score history, the sources
+      database, policy-initiative records, and run provenance — the same data
+      is served by a public read-only REST API with CSV export. Endpoints and
+      copy-paste examples live on the <a href="/data.html">Data &amp; API</a> page.
     </p>
 
     <h2 id="citing">Citing this site</h2>

@@ -323,6 +323,49 @@ flowchart TD
 
 ---
 
+## Supabase layer (`db/`) and the evidence layer (`evidence/`)
+
+The static files stay the persistence contract (everything above is
+unchanged); Supabase is the system of record's queryable twin plus what files
+can't hold — evidence records, an accumulating sources database, and per-run
+provenance.
+
+- **Mirror (`db/mirror.py`)** — an optional collaborator of
+  `PipelineService` (`mirror=` constructor arg), deliberately OUTSIDE
+  `Dataset` so the byte contracts and the idempotency test are untouched.
+  The service calls `begin(attempted)` before researching, `record(...)`
+  after each successful apply, and `finish(...)` after `dataset.save()`
+  (including the fatal-error partial-save path) — every call wrapped so a
+  mirror failure downgrades to a warning and can never change a run's
+  outcome or exit code. The flush upserts `country_scores` /
+  `country_summaries`, REPLACES `score_history` per recorded country
+  (`history.py` mutates the last snapshot's date in place, so append-only
+  would drift), and feeds every cited URL into `sources` /
+  `country_sources` with the run id. `research_runs` records trigger,
+  model, strategy, prompt version, grounded flag, git SHA, counts, and
+  cumulative token usage.
+- **Client (`db/client.py`)** — a thin httpx PostgREST wrapper (select /
+  insert / upsert / update / delete), testable with `httpx.MockTransport`.
+  Upserts must never include generated columns like `id` —
+  merge-duplicates updates every supplied column.
+- **Seed (`db/seed.py`)** — one-shot bootstrap from the static files:
+  `--emit-sql DIR` writes chunked idempotent SQL (FKs resolved by
+  name/url subselects), `--direct` applies via PostgREST.
+- **Evidence (`evidence/`)** — `OecdGaiinAdapter` walks the OECD.AI Policy
+  Navigator API (no server-side filtering exists; delta detection is
+  client-side against `updated_at`), `CountryResolver` matches ISO3 →
+  canonical name → None (never fuzzy; unmatched records are stored
+  unlinked with the raw label), and `sync.py` upserts on
+  `(source, external_id)` — never deleting. CLI:
+  `python -m regulation_pipeline.evidence probe|sync`. A network failure
+  is a warned no-op so the surrounding data run survives an OECD outage.
+- **Grounded mode** — `prompt.render_grounded_prompt` injects a capped
+  verified-evidence block (≤15 most recent initiatives, overviews ≤400
+  chars); the rubric and structured-output schema are identical to the
+  plain prompt, so `models.py` and everything downstream are untouched.
+  `ResearchClient` takes an `evidence_provider`; countries without
+  evidence fall back to the plain prompt. Enable with `--grounded`.
+
 ## Testing & tooling
 
 ```bash

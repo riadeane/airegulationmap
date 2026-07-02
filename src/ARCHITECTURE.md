@@ -92,6 +92,15 @@ the whole ranking once per data load (memoized on the `scoreData` reference)
 instead of the panel rebuilding an O(n²) scan on every selection. New
 derivations used in more than one place belong here.
 
+`visibleCountrySet()` is the single definition of "which countries pass the
+active filters" (score range + bloc + confidence + official-sources) — the
+export scope, scatter dimming, and map opacity all read it, after three
+diverging copies let the export forget the bloc filter entirely.
+`passesCountryFilters()` is its score-independent half (the map range-checks
+per-datum because timeline playback filters historical snapshots), and
+`scoresAtDate()` memoizes the snapshot resolution the map and the panel share
+while the timeline is scrubbed.
+
 ### Mapper / repository — `data/*`
 `loader.ts` maps CSV rows to typed domain objects (`ScoreEntry`,
 `RegulationEntry`) and validates at the boundary (non-numeric/out-of-range →
@@ -113,6 +122,29 @@ place to reason about the element contract.
 State ⇄ URL query string, so any view is a shareable link. `buildPermalink`
 omits defaults (and the theme, for citations); `applyUrlState` restores through
 the same intents, with an explicit precedence (comparison > scatter > country).
+Params: `country`, `compare`, `mode`, `date`, `bloc`, `min`/`max` (score
+range), `conf`/`official` (country filters), `q` (committed search),
+`scatter`, `theme`. The header Share popover (`controls/share.ts`) surfaces
+the permalink + formatted citations for ANY view, no selection required.
+
+### Static-first + Supabase hydration — `data/supabase.ts`, `data/hydrate.ts`
+The app boots from the static files, always. Supabase is progressive
+enhancement behind `restGet()` (null on any failure): post-boot hydration
+replaces store data only when the database is STRICTLY newer than the static
+snapshot; source titles (`data/sourceMeta.ts`) and the per-country Policy
+Initiatives section (`panel/initiatives.ts`) render only when their fetches
+succeed. Unconfigured builds skip the network entirely — which is what keeps
+CI hermetic (`tests/e2e/supabase.spec.ts` proves both halves with route
+mocks).
+
+### Committed search — `searchQuery` + `panel/searchResults.ts`
+Typing in the search box is dropdown-local; committing ("See all N results" /
+`?q=`) writes `searchQuery` via the `commitSearch`/`clearSearch` intents. The
+results module owns the map dimming while a query is committed (the dropdown's
+transient highlight defers to it), renders the full match list with export,
+and jumps to the matched panel field via `sections.highlightPanelField`. The
+derived match list is memoized module-locally — derived data stays out of the
+store.
 
 ## Data flow
 

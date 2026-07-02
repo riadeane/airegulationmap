@@ -65,9 +65,28 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Refresh the verified policy-initiative records before researching, so
+      # a grounded run reads current evidence. Gated on the repo variable
+      # EVIDENCE_SYNC_ENABLED (flip to 'true' after the first successful
+      # manual sync via evidence-sync.yml). continue-on-error + the module's
+      # own warn-and-exit-0 network handling mean an OECD outage can never
+      # break the data run.
+      - name: Sync evidence (OECD)
+        if: ${{ vars.EVIDENCE_SYNC_ENABLED == 'true' }}
+        continue-on-error: true
+        env:
+          PYTHONPATH: scripts
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python -m regulation_pipeline.evidence sync --source oecd
+
       - name: Run data update script
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Supabase dual-write mirror (auto-activates when both are set;
+          # mirror failures never fail the run).
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           IS_SCHEDULED: ${{ github.event_name == 'schedule' }}
           INPUT_COUNTRIES: ${{ github.event.inputs.countries || '' }}
           INPUT_MODEL: ${{ github.event.inputs.model || 'claude-sonnet-4-6' }}
@@ -75,14 +94,29 @@ jobs:
           INPUT_SEARCH: ${{ (github.event_name == 'schedule' || github.event.inputs.search == 'true') && '--search' || '' }}
           INPUT_SEARCH_ALL: ${{ (github.event.inputs.search_all == 'true') && '--search-all' || '' }}
           INPUT_BATCH: ${{ (github.event_name == 'schedule' || github.event.inputs.batch == 'true') && '--batch' || '' }}
+          INPUT_GROUNDED: ${{ (vars.EVIDENCE_SYNC_ENABLED == 'true') && '--grounded' || '' }}
         run: |
+          # pipefail: tee must not mask the script's exit code — the
+          # partial-failure contract (exit 1) drives the step status.
+          set -o pipefail
           python scripts/update_data.py \
             --countries "$INPUT_COUNTRIES" \
             --model "$INPUT_MODEL" \
             $INPUT_FORCE \
             $INPUT_SEARCH \
             $INPUT_SEARCH_ALL \
-            $INPUT_BATCH
+            $INPUT_BATCH \
+            $INPUT_GROUNDED 2>&1 | tee run.log
+
+      - name: Run summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "## Data update"
+            echo '```'
+            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence" run.log | tail -20 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check for changes
         id: changes

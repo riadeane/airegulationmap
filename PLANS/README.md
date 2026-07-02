@@ -12,13 +12,14 @@ Self-contained implementation plans for the AI Regulation Map. Each plan can be 
 | 04 | [Changelog View](04-changelog-view.md) | ✅ Shipped 2026-06 | Per-country score change history from history.json |
 | 05 | [Bloc Aggregation](05-bloc-aggregation.md) | ✅ Shipped 2026-06 | Group/filter by EU, G20, ASEAN, etc. with aggregate stats |
 | 06 | [Scatter Plot](06-scatter-plot.md) | ✅ Shipped 2026-06 | Cross-dimension scatter plot revealing governance clusters |
-| 07 | [Kaggle Integration](07-kaggle-integration.md) | Backlog | Cross-reference external Kaggle dataset for enrichment |
+| 07 | [Kaggle Integration](07-kaggle-integration.md) | Superseded 2026-07 | Superseded by the evidence layer (`scripts/regulation_pipeline/evidence/` — OECD/GAIIN adapter into Supabase `policy_initiatives`). Kaggle remains possible as a second `EvidenceSource` adapter; the plan's `processor.py`/`data_io.py` targets no longer exist. |
 | 08 | [Embeddable Widget](08-embeddable-widget.md) | Backlog | iframe embed mode with URL parameter configuration |
 
 ## Remaining Order
 
-1. **08-embeddable-widget** — medium effort, other features are now stable
-2. **07-kaggle-integration** — medium effort, requires dataset inspection first, backend-only
+1. **08-embeddable-widget** — medium effort; NOTE the plan predates the TypeScript
+   migration and the `controls/url.ts` serialization seam — build embed mode on
+   top of `url.ts` + the intents layer, not the plan's `setState` sketch
 
 Note: the shipped plan docs (01–06) predate implementation and contain some snippets
 that no longer match the codebase (e.g. global `d3`, CSS token names). Treat the code
