@@ -31,6 +31,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Annotated
 
 import typer
 
@@ -246,11 +247,11 @@ def emit_sql(seed: SeedData) -> list[str]:
             "source_type = excluded.source_type, last_seen = now();"
         )
 
-    for l in seed.links:
+    for link in seed.links:
         stmts.append(
             "insert into country_sources (country_id, source_id, dimension, run_id)\n"
-            f"select c.id, s.id, {_sql_str(l['dimension'])}, {_sql_str(SEED_RUN_ID)}\n"
-            f"from countries c, sources s where c.name = {_sql_str(l['country'])} and s.url = {_sql_str(l['url'])}\n"
+            f"select c.id, s.id, {_sql_str(link['dimension'])}, {_sql_str(SEED_RUN_ID)}\n"
+            f"from countries c, sources s where c.name = {_sql_str(link['country'])} and s.url = {_sql_str(link['url'])}\n"
             "on conflict (country_id, source_id, dimension) do update set last_cited = now();"
         )
 
@@ -306,12 +307,12 @@ def apply_direct(seed: SeedData, client) -> None:
         "country_sources",
         [
             {
-                "country_id": country_ids[l["country"]],
-                "source_id": source_ids[l["url"]],
-                "dimension": l["dimension"],
+                "country_id": country_ids[link["country"]],
+                "source_id": source_ids[link["url"]],
+                "dimension": link["dimension"],
                 "run_id": SEED_RUN_ID,
             }
-            for l in seed.links
+            for link in seed.links
         ],
         on_conflict="country_id,source_id,dimension",
     )
@@ -324,7 +325,10 @@ app = typer.Typer(add_completion=False)
 
 @app.command()
 def main(
-    emit_sql_dir: Path | None = typer.Option(None, "--emit-sql", help="Write chunked idempotent SQL files here instead of applying."),
+    emit_sql_dir: Annotated[
+        Path | None,
+        typer.Option("--emit-sql", help="Write chunked idempotent SQL files here instead of applying."),
+    ] = None,
     direct: bool = typer.Option(False, "--direct", help="Apply via PostgREST using SUPABASE_URL/SUPABASE_SERVICE_KEY."),
     dry_run: bool = typer.Option(False, "--dry-run", help="Build and report counts, write/apply nothing."),
 ) -> None:

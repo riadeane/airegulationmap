@@ -9,7 +9,6 @@ numeric normalization of Data Version on load.
 from __future__ import annotations
 
 from datetime import date
-from pathlib import Path
 
 import pytest
 from conftest import full_result

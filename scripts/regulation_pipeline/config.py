@@ -49,6 +49,8 @@ DEFAULT_MODEL = "claude-sonnet-4-6"
 SEARCH_MODEL = "claude-sonnet-4-6"
 
 # Countries that get web search under --search (the two-tier priority system).
+# Note: "European Union" is not a row in scores.csv, so its entry here is
+# currently inert — kept in case an EU-level row is ever added.
 PRIORITY_COUNTRIES = frozenset({
     "United States of America", "United Kingdom", "China", "European Union",
     "Germany", "France", "Brazil", "India", "Japan", "Canada", "Australia",

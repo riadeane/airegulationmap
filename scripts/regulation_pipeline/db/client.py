@@ -85,6 +85,18 @@ class SupabaseClient:
             )
             self._ok(resp)
 
+    def update(self, table: str, values: dict, filters: dict[str, str]) -> None:
+        """PATCH rows matching PostgREST ``filters`` (e.g. ``{"id": "eq.<uuid>"}``)."""
+        if not filters:
+            raise ValueError("refusing to UPDATE without filters")
+        resp = self._http.patch(
+            f"/{table}",
+            params=filters,
+            content=json.dumps(values, ensure_ascii=False, default=str),
+            headers={"Prefer": "return=minimal"},
+        )
+        self._ok(resp)
+
     def delete(self, table: str, filters: dict[str, str]) -> None:
         """``filters`` are PostgREST operators, e.g. ``{"country_id": "eq.<uuid>"}``.
         Refuses to run unfiltered — a bare DELETE on a PostgREST table is a

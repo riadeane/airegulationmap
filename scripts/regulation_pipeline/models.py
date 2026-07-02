@@ -165,7 +165,7 @@ class ResearchResult(BaseModel):
         return round(sum(scores) / len(scores), 2)
 
     @model_validator(mode="after")
-    def _cap_unsourced_confidence(self) -> "ResearchResult":
+    def _cap_unsourced_confidence(self) -> ResearchResult:
         """Keep the model self-consistent with :meth:`effective_confidence`.
         An unsourced claim is not citable, so it cannot carry more than "low"
         confidence — enforce that at validation time, not only on write, so an

@@ -62,6 +62,12 @@ class BatchRunner:
         self._max_wait = max_wait
         self._cancel_grace_seconds = cancel_grace_seconds
         self._sleep = sleep
+        # Cumulative token usage over succeeded requests (best-effort
+        # provenance; batches bill these at 50%).
+        self._usage = {"input": 0, "output": 0}
+
+    def usage(self) -> dict[str, int]:
+        return dict(self._usage)
 
     def research(self, params_by_country: dict[str, dict]) -> tuple[dict, list[str]]:
         """Run the batch, then retry transient failures once in a second,
@@ -144,6 +150,10 @@ class BatchRunner:
             kind = result.result.type
             if kind == "succeeded":
                 messages[country] = result.result.message
+                usage = getattr(result.result.message, "usage", None)
+                if usage is not None:
+                    self._usage["input"] += getattr(usage, "input_tokens", 0) or 0
+                    self._usage["output"] += getattr(usage, "output_tokens", 0) or 0
             elif kind == "errored":
                 error_type = result.result.error.type
                 # invalid_request means the request itself is malformed —

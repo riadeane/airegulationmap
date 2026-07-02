@@ -10,6 +10,10 @@ from __future__ import annotations
 
 from datetime import date
 
+# Recorded in research_runs provenance so a score can always be traced to
+# the prompt that produced it. Bump when the rubric or structure changes.
+PROMPT_VERSION = "v2-2026-06"
+
 RESEARCH_PROMPT = """You are a researcher specializing in AI policy and regulation worldwide.
 
 Country: {country}

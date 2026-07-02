@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from regulation_pipeline.config import REGULATION_FIELDS, SCORES_FIELDS, Settings
 from regulation_pipeline.db.seed import SEED_RUN_ID, build_seed, emit_sql, write_sql_chunks
 from regulation_pipeline.names import CountryNames
@@ -96,7 +95,7 @@ def test_build_seed_shapes(settings):
 
     # Deduped globally (first-seen wins, countries iterate sorted), linked per country.
     assert [s["url"] for s in seed.sources] == ["https://example.com/blog", "https://legislation.gov.uk/x"]
-    assert {(l["country"], l["url"]) for l in seed.links} == {
+    assert {(link["country"], link["url"]) for link in seed.links} == {
         ("Testland", "https://legislation.gov.uk/x"),
         ("Testland", "https://example.com/blog"),
         ("Nulland", "https://example.com/blog"),

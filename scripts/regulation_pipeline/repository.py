@@ -81,6 +81,11 @@ class Dataset:
     def regulation_row(self, country: str) -> dict | None:
         return self._regulation.get(country)
 
+    def history_for(self, country: str) -> list[dict]:
+        """A country's history snapshots (file shape), as copies — read-only
+        access for the Supabase mirror's replace-per-country sync."""
+        return [dict(s) for s in self._history.get("countries", {}).get(country, [])]
+
     # -- mutation --------------------------------------------------------------
 
     def apply(self, country: str, result: ResearchResult, today: date) -> ApplyOutcome:

@@ -14,11 +14,15 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import date
+from typing import TYPE_CHECKING
 
 from .errors import FatalAPIError
 from .repository import Dataset
 from .staleness import StalenessPolicy
 from .strategies import ResearchStrategy
+
+if TYPE_CHECKING:  # avoid importing the db layer unless a mirror is used
+    from .db.mirror import Mirror
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +37,21 @@ class RunResult:
 
 
 class PipelineService:
-    def __init__(self, dataset: Dataset, staleness: StalenessPolicy, today: date):
+    def __init__(
+        self,
+        dataset: Dataset,
+        staleness: StalenessPolicy,
+        today: date,
+        mirror: Mirror | None = None,
+    ):
         self._dataset = dataset
         self._staleness = staleness
         self._today = today
+        # Optional Supabase dual-write. Deliberately OUTSIDE Dataset: the file
+        # stores and their byte contracts stay untouched, and every mirror
+        # call below is downgraded to a warning — a mirror failure can never
+        # fail a run or change its exit code.
+        self._mirror = mirror
 
     def select(self, targets: list[str] | None, *, force: bool) -> tuple[list[str], list[str]]:
         """Return ``(all_targets, to_update)``. ``targets`` is an explicit
@@ -63,6 +78,7 @@ class PipelineService:
 
         updated = 0
         failed: list[str] = []
+        self._mirror_call("begin", len(to_update))
 
         try:
             for country, result in strategy.research(to_update, reg_rows):
@@ -70,12 +86,15 @@ class PipelineService:
                     failed.append(country)
                 else:
                     updated += 1
+                    self._mirror_record(country, result)
         except FatalAPIError as exc:
             logger.error("FATAL: %s", exc)
             logger.error("Aborting. %d countries updated before failure.", updated)
             if updated:
                 logger.info("Saving partial progress...")
                 self._dataset.save()
+            # Mirror AFTER the files are safe — same ordering as the happy path.
+            self._mirror_call("finish", updated, len(set(failed)), True)
             return RunResult(updated=updated, failed=sorted(set(failed)), fatal=True)
 
         for error in self._dataset.validate():
@@ -83,6 +102,7 @@ class PipelineService:
 
         logger.info("Writing output files...")
         self._dataset.save()
+        self._mirror_call("finish", updated, len(set(failed)), False)
         return RunResult(updated=updated, failed=sorted(set(failed)))
 
     def _apply(self, country: str, result) -> bool:
@@ -97,3 +117,26 @@ class PipelineService:
         note = "(new snapshot)" if outcome.history_added else "(no score change)"
         logger.info("%s: avg %s, confidence %s %s", country, outcome.average, outcome.confidence, note)
         return True
+
+    # -- mirror plumbing (never raises) ----------------------------------------
+
+    def _mirror_record(self, country: str, result) -> None:
+        if self._mirror is None:
+            return
+        try:
+            row = self._dataset.scores_row(country) or {}
+            self._mirror.record(
+                country, result, self._today,
+                data_version=int(row.get("Data Version") or 1),
+                history=self._dataset.history_for(country),
+            )
+        except Exception:
+            logger.warning("mirror: record(%s) failed — continuing", country, exc_info=True)
+
+    def _mirror_call(self, method: str, *args) -> None:
+        if self._mirror is None:
+            return
+        try:
+            getattr(self._mirror, method)(*args)
+        except Exception:
+            logger.warning("mirror: %s failed — continuing", method, exc_info=True)

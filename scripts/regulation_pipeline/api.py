@@ -45,6 +45,12 @@ class ResearchClient:
         self._default_model = default_model
         self._search_model = search_model
         self._today = today
+        # Cumulative token usage across the run — best-effort provenance for
+        # the research_runs audit row (the batch path tracks its own).
+        self._usage = {"input": 0, "output": 0}
+
+    def usage(self) -> dict[str, int]:
+        return dict(self._usage)
 
     def request_params(self, country: str, existing_reg: dict | None, *, use_search: bool) -> dict:
         """Build the ``messages.create`` kwargs for one country. Shared by the
@@ -75,7 +81,15 @@ class ResearchClient:
         )
         if response is None:
             return None
+        self._track_usage(response)
         return parse_message(response, country)
+
+    def _track_usage(self, response) -> None:
+        usage = getattr(response, "usage", None)
+        if usage is None:
+            return
+        self._usage["input"] += getattr(usage, "input_tokens", 0) or 0
+        self._usage["output"] += getattr(usage, "output_tokens", 0) or 0
 
 
 def parse_message(message, label: str) -> dict | None:
