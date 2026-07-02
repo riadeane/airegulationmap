@@ -3,6 +3,7 @@ import type { ScoreData, RegulationData } from '../data/loader';
 import type { HistoryData } from '../data/history';
 import type { BlocsData } from '../data/blocs';
 import type { SubscoresData } from '../data/subscores';
+import type { SourceMeta } from '../data/sources';
 
 /** Research-confidence levels as recorded per country in regulation data. */
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
@@ -42,6 +43,10 @@ export interface AppState {
   // Parsed subscores.json (methodology v2 sub-indicator audit trail) —
   // loaded async; null until then / on failure.
   subscores: SubscoresData | null;
+  // Per-URL source metadata (titles, refined types) from the sources
+  // database — loaded async from Supabase; null when absent/unreachable.
+  // The panel upgrades bare hostnames to titles when this exists.
+  sourceMeta: SourceMeta | null;
   // A COMMITTED full-text search ('' = none). Typing in the search box is
   // ephemeral (dropdown-local); committing ("See all results" / Enter on the
   // row / ?q= deep link) persists the query here, which drives the results
@@ -72,6 +77,7 @@ const state: AppState = {
   selectedBloc: null,
   blocsData: null,
   subscores: null,
+  sourceMeta: null,
   searchQuery: '',
   mainView: 'map',
   scatterX: 'enforcementLevel',

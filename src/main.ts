@@ -23,6 +23,9 @@ import { initTimeline } from './controls/timeline';
 import { initTheme } from './controls/theme';
 import { parseUrl, initUrlSync } from './controls/url';
 import { initCitePopover } from './controls/citePopover';
+import { initInitiatives } from './panel/initiatives';
+import { hydrateFromSupabase } from './data/hydrate';
+import { loadSourceMeta } from './data/sourceMeta';
 import { initHelpOverlay } from './controls/helpOverlay';
 import { initMenu } from './controls/menu';
 import { initOnboarding } from './controls/onboarding';
@@ -109,6 +112,7 @@ async function main(): Promise<void> {
   initSearch();
   initSearchResults();
   initShare();
+  initInitiatives();
   initKeyboardNav();
   initMapSubscriptions();
   initScatter();
@@ -175,6 +179,18 @@ async function main(): Promise<void> {
   // Start writing URL changes. Done after initial state is applied so
   // we don't clobber the user's URL on boot.
   initUrlSync();
+
+  // Supabase progressive enhancement, off the critical path: hydrate the
+  // dataset if the database is strictly newer than the static snapshot,
+  // and fetch source titles for the panel. Both no-op when unconfigured
+  // or unreachable — the static files remain authoritative.
+  const idle = typeof requestIdleCallback === 'function'
+    ? requestIdleCallback
+    : (fn: () => void) => setTimeout(fn, 1500);
+  idle(() => {
+    void hydrateFromSupabase();
+    void loadSourceMeta();
+  });
 
   // Global click-away to close dropdowns
   document.addEventListener('click', closeAllDropdowns);

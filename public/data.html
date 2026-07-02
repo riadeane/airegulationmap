@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data &amp; API — AI Regulation Map</title>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="canonical" href="https://airegulationmap.org/data.html">
+
+  <meta name="description" content="Download the AI Regulation Map dataset: static CSV/JSON files, a public REST API with CSV export, the accumulating sources database, and verified policy-initiative records.">
+
+  <!-- Resolve theme before paint. URL > localStorage > prefers-color-scheme. -->
+  <script>
+    (function () {
+      try {
+        var urlTheme = new URLSearchParams(location.search).get('theme');
+        if (urlTheme === 'light' || urlTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', urlTheme);
+          return;
+        }
+        var t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      } catch (e) { /* storage blocked */ }
+    })();
+  </script>
+
+  <style>
+    /* Tokens — mirror of the main app's _tokens.css, trimmed to what this
+       page uses. Inline so the page renders without the main bundle. */
+    :root {
+      --brand-hue: 75;
+      --radius: 8px;
+      --radius-sm: 5px;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --bg:              oklch(15% 0.008 var(--brand-hue));
+      --surface:         oklch(19% 0.009 var(--brand-hue));
+      --surface-raised:  oklch(23% 0.010 var(--brand-hue));
+      --border:          oklch(30% 0.013 var(--brand-hue));
+      --border-subtle:   oklch(24% 0.010 var(--brand-hue));
+      --text-primary:    oklch(92% 0.012 var(--brand-hue));
+      --text-secondary:  oklch(72% 0.014 var(--brand-hue));
+      --text-tertiary:   oklch(58% 0.014 var(--brand-hue));
+      --accent:          oklch(76% 0.13 var(--brand-hue));
+      --accent-muted:    oklch(76% 0.13 var(--brand-hue) / 0.14);
+      color-scheme: dark;
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme]) {
+        --bg:              oklch(98% 0.003 80);
+        --surface:         oklch(99.5% 0.002 80);
+        --surface-raised:  oklch(100% 0 0);
+        --border:          oklch(88% 0.008 80);
+        --border-subtle:   oklch(94% 0.004 80);
+        --text-primary:    oklch(20% 0.013 80);
+        --text-secondary:  oklch(42% 0.014 80);
+        --text-tertiary:   oklch(58% 0.014 80);
+        --accent:          oklch(48% 0.16 60);
+        --accent-muted:    oklch(48% 0.16 60 / 0.10);
+        color-scheme: light;
+      }
+    }
+    :root[data-theme='light'] {
+      --bg:              oklch(98% 0.003 80);
+      --surface:         oklch(99.5% 0.002 80);
+      --surface-raised:  oklch(100% 0 0);
+      --border:          oklch(88% 0.008 80);
+      --border-subtle:   oklch(94% 0.004 80);
+      --text-primary:    oklch(20% 0.013 80);
+      --text-secondary:  oklch(42% 0.014 80);
+      --text-tertiary:   oklch(58% 0.014 80);
+      --accent:          oklch(48% 0.16 60);
+      --accent-muted:    oklch(48% 0.16 60 / 0.10);
+      color-scheme: light;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Geist', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .site-title {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 1.05rem;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+    .site-header nav { font-size: 0.8rem; color: var(--text-tertiary); }
+
+    .doc {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 44px 28px 80px;
+    }
+    .doc h1 {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 1.9rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
+    }
+    .doc .lede { color: var(--text-secondary); margin-bottom: 36px; max-width: 60ch; }
+    .doc h2 {
+      font-family: 'Literata', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin: 42px 0 12px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .doc h3 { font-size: 0.95rem; margin: 22px 0 8px; }
+    .doc p { color: var(--text-secondary); margin-bottom: 12px; max-width: 68ch; }
+    .doc a { color: var(--accent); }
+    .doc ul { margin: 0 0 14px 20px; color: var(--text-secondary); }
+    .doc li { margin-bottom: 5px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin: 12px 0 18px;
+    }
+    th, td {
+      text-align: left;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: top;
+    }
+    th { color: var(--text-tertiary); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { color: var(--text-secondary); }
+    td code, li code, p code {
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: 0.86em;
+      background: var(--surface-raised);
+      border: 1px solid var(--border-subtle);
+      border-radius: 3px;
+      padding: 0 4px;
+      color: var(--text-primary);
+      overflow-wrap: anywhere;
+    }
+
+    pre {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin: 10px 0 18px;
+      overflow-x: auto;
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: 0.74rem;
+      line-height: 1.55;
+      color: var(--text-primary);
+    }
+
+    .note {
+      background: var(--accent-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin: 14px 0;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+      padding: 20px 28px;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      text-align: center;
+    }
+    footer a { color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-title" href="/">AI Regulation Map</a>
+    <nav aria-label="breadcrumb"><span>Data &amp; API</span></nav>
+  </header>
+
+  <main class="doc">
+    <h1>Data &amp; API</h1>
+    <p class="lede">
+      Every score, description, and source on this site is available for research use —
+      as plain static files, and as a public read-only REST API with CSV export,
+      queryable score history, an accumulating sources database, and the verified
+      policy-initiative records that ground the scores.
+      See the <a href="/methodology.html">methodology</a> for how scores are constructed.
+    </p>
+
+    <h2>Static files</h2>
+    <p>The simplest way to get the full dataset — one HTTP GET, no key, CDN-served.
+       These files are the published snapshot of the database and update together, monthly.</p>
+    <table>
+      <thead><tr><th>File</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td><code>/scores.csv</code></td>
+            <td>196 countries × 6 score columns (1–5, quarter-point decimals), last-updated date, data version. Columns: <code>Country, Regulation Status, Policy Lever, Governance Type, Actor Involvement, Average Score, Enforcement Level, Last Updated, Data Version</code>.</td></tr>
+        <tr><td><code>/regulation_data.csv</code></td>
+            <td>Per-country prose for the five dimensions, key legislation, pipe-separated source URLs, confidence (high/medium/low), last-updated.</td></tr>
+        <tr><td><code>/history.json</code></td>
+            <td>Change-point score snapshots per country (a snapshot is appended only when a score changes), powering the timeline.</td></tr>
+        <tr><td><code>/data/subscores.json</code></td>
+            <td>Methodology-v2 audit trail: the four named sub-indicators (integers 1–5) behind each dimension score.</td></tr>
+        <tr><td><code>/data/country_iso.json</code></td>
+            <td>ISO 3166-1 alpha-2/alpha-3/numeric codes for every dataset country name.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>REST API</h2>
+    <p>
+      The database behind the site is public-readable through
+      <a href="https://postgrest.org" target="_blank" rel="noopener noreferrer">PostgREST</a>.
+      Requests need the publishable <em>anon key</em> below (safe to embed — row-level
+      security allows reads only).
+    </p>
+    <pre>export BASE="https://wlakioilvvuuizxdhsdf.supabase.co/rest/v1"
+export KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsYWtpb2lsdnZ1dWl6eGRoc2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NDA1ODcsImV4cCI6MjA5ODUxNjU4N30.tD_2Z2ziTPeNMpmWpdd4zbF_Af9FqjxGNwenAZWYR1E"</pre>
+
+    <h3>The full dataset, one call</h3>
+    <pre>curl "$BASE/public_export?select=*" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $KEY"</pre>
+    <p>Add <code>Accept: text/csv</code> for a CSV download instead of JSON:</p>
+    <pre>curl "$BASE/public_export?select=country,iso3,avg_score,confidence" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+  -H "Accept: text/csv" -o ai-regulation.csv</pre>
+
+    <h3>Queryable tables</h3>
+    <table>
+      <thead><tr><th>Endpoint</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td><code>/public_export</code></td><td>View joining countries × scores × summaries — the whole dataset flat.</td></tr>
+        <tr><td><code>/countries</code></td><td>Canonical names, ISO codes, and name aliases.</td></tr>
+        <tr><td><code>/country_scores</code></td><td>Current scores incl. the sub-indicator breakdown as JSON (<code>subscores</code>).</td></tr>
+        <tr><td><code>/country_summaries</code></td><td>Current per-dimension prose, key legislation, raw source list.</td></tr>
+        <tr><td><code>/score_history</code></td><td>Change-point snapshots — every score a country has ever carried, with dates.</td></tr>
+        <tr><td><code>/sources</code> · <code>/sources_export</code></td><td>The accumulating sources database: every cited URL, classified (official / intergovernmental / academic / …), with first/last-seen dates; the export view adds which countries cite it.</td></tr>
+        <tr><td><code>/policy_initiatives</code></td><td>Verified policy-initiative records (OECD.AI Policy Navigator) that ground the scoring — name, type, binding status, years, overview, source link.</td></tr>
+        <tr><td><code>/research_runs</code></td><td>Provenance: every research run with model, prompt version, whether it was evidence-grounded, and counts.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Example queries</h3>
+    <p>PostgREST filter syntax works on every endpoint:</p>
+    <pre># Germany's full score history
+curl "$BASE/score_history?select=snapshot_date,scores,countries!inner(name)&countries.name=eq.Germany&order=snapshot_date" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $KEY"
+
+# Binding initiatives since 2024, most recent first
+curl "$BASE/policy_initiatives?select=name,start_year,binding,source_url,countries(name)&binding=eq.Binding&start_year=gte.2024&order=start_year.desc" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $KEY"
+
+# Countries citing a given source
+curl "$BASE/sources_export?url=eq.https://eur-lex.europa.eu/eli/reg/2024/1689/oj" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $KEY"</pre>
+
+    <div class="note">
+      Practical notes: responses are capped at 1,000 rows per request — page with
+      <code>Range</code> headers or <code>limit</code>/<code>offset</code>.
+      The API is best-effort infrastructure for research convenience; for archival
+      reproducibility, cite the static files (versioned in the
+      <a href="https://github.com/riadeane/airegulationmap" target="_blank" rel="noopener noreferrer">git repository</a>)
+      or keep a copy of your extract.
+    </div>
+
+    <h2>Attribution &amp; citation</h2>
+    <p>
+      Policy-initiative records include data from the
+      <a href="https://oecd.ai" target="_blank" rel="noopener noreferrer">OECD.AI Policy Observatory</a>
+      (Policy Navigator / GAIIN), used with attribution per OECD terms:
+      <em>OECD.AI Policy Observatory, oecd.ai, accessed on the date shown per record.</em>
+    </p>
+    <p>
+      To cite the map itself, use the <strong>Share</strong> button in the app for a
+      formatted APA/Chicago/MLA citation of the exact view you're referencing, or the
+      per-country <strong>Cite</strong> button. Scores are model-assigned (see the
+      <a href="/methodology.html">methodology</a> and per-run provenance in
+      <code>/research_runs</code>) — cite them as estimates, and verify claims against
+      the primary sources each entry links.
+    </p>
+  </main>
+
+  <footer>
+    <p><a href="/">← Back to the map</a> &nbsp;·&nbsp; <a href="/methodology.html">Methodology</a></p>
+  </footer>
+</body>
+</html>

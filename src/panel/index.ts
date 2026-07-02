@@ -233,7 +233,7 @@ function renderPanel(countryName: string): void {
 
   renderScores(countryName);
   updateDimensionHighlight();
-  renderTextSections(reg);
+  renderTextSections(reg, getState().sourceMeta);
   renderChangelog(countryName);
   highlightCountry(countryName);
   updateCompareButton();
@@ -349,6 +349,13 @@ export function initPanel(): void {
   on('timelineDate', () => {
     const { selectedCountry } = getState();
     if (selectedCountry) renderScores(selectedCountry);
+  });
+
+  // Source metadata (titles) arrives async from the sources database —
+  // upgrade the open country's source list from hostnames to titles.
+  on('sourceMeta', (meta) => {
+    const { selectedCountry, regulationData } = getState();
+    if (selectedCountry) renderTextSections(regulationData[selectedCountry], meta);
   });
   updateCiteButton();
 

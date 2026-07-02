@@ -38,7 +38,9 @@ export type RegulationData = Record<string, RegulationEntry>;
 const SCORE_MIN = 1;
 const SCORE_MAX = 5;
 
-function parseScore(raw: string | undefined): number | null {
+// Exported so the Supabase hydration path (data/hydrate.ts) runs numeric
+// values through the exact same validation boundary as the CSV path.
+export function parseScore(raw: string | number | null | undefined): number | null {
   if (raw == null || raw === '') return null;
   const v = Number(raw);
   return Number.isFinite(v) && v >= SCORE_MIN && v <= SCORE_MAX ? v : null;

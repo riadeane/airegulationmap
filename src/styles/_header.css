@@ -698,3 +698,17 @@ input[type="range"] {
 .filter-official-row input {
   accent-color: var(--accent);
 }
+
+/* Docs link at the bottom of the export popover */
+.export-docs-link {
+  display: block;
+  padding: 10px 16px;
+  font-size: 0.74rem;
+  color: var(--accent);
+  text-decoration: none;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.export-docs-link:hover {
+  background: var(--accent-muted);
+}
