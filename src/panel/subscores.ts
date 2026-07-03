@@ -71,7 +71,7 @@ function collapseAll(): void {
 }
 
 // Hide the disclosure caret on rows that have no audit trail for the
-// current country — a control that opens nothing is worse than no
+// current country - a control that opens nothing is worse than no
 // control. Runs when the country changes and when subscores.json lands.
 function updateExpandAvailability(): void {
   const { subscores, selectedCountry } = getState();
@@ -110,4 +110,19 @@ export function initSubscores(): void {
   // and re-evaluate which rows actually have a breakdown to show.
   on('selectedCountry', () => { collapseAll(); updateExpandAvailability(); });
   on('subscores', updateExpandAvailability);
+
+  // Sub-indicators exist for the latest research only. While the timeline
+  // shows a historical date the disclosures would pair old dimension scores
+  // with current sub-scores, so they lock until the scrubber returns to
+  // Latest (the panel notice says why). Applied once at init too - a ?date=
+  // deep link sets timelineDate before this subscription exists.
+  const syncHistoricalLock = (date: string | null) => {
+    const historical = date != null;
+    document.querySelectorAll<HTMLButtonElement>('.dim-expand').forEach(b => {
+      b.disabled = historical;
+    });
+    if (historical) collapseAll();
+  };
+  on('timelineDate', syncHistoricalLock);
+  syncHistoricalLock(getState().timelineDate);
 }

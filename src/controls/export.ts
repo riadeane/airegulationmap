@@ -1,4 +1,4 @@
-// CSV / JSON export of the dataset — the whole thing or the current
+// CSV / JSON export of the dataset - the whole thing or the current
 // filtered view. Researchers feed this straight into R / Python / Excel.
 //
 // Exports always reflect the LATEST data, even while the timeline is
@@ -7,7 +7,8 @@
 // text descriptions.
 
 import { csvFormat } from 'd3-dsv';
-import { getState } from '../state/store';
+import { getState, on } from '../state/store';
+import { visibleCountrySet } from '../state/selectors';
 import type { ScoreEntry, RegulationEntry } from '../data/loader';
 
 function buildExportRows(countries: string[]) {
@@ -36,17 +37,13 @@ function buildExportRows(countries: string[]) {
   });
 }
 
-// Countries passing the active score-range filter. Countries with no
-// score for the current attribute are excluded — they're dimmed on the
-// map, and "all countries" covers them.
+// Countries passing the active filters - the same visibility predicate the
+// map and scatter use (score range AND bloc), so "filtered view" exports
+// exactly what the user is looking at. Countries with no score for the
+// current attribute are excluded - they're dimmed on the map, and "all
+// countries" covers them.
 function getFilteredCountries(): string[] {
-  const { scoreData, currentAttribute, filterMin, filterMax } = getState();
-  return Object.keys(scoreData)
-    .filter(name => {
-      const score = scoreData[name]?.[currentAttribute];
-      return score != null && score >= filterMin && score <= filterMax;
-    })
-    .sort();
+  return [...visibleCountrySet()].sort();
 }
 
 function downloadFile(content: string, filename: string, mimeType: string): void {
@@ -61,7 +58,7 @@ function downloadFile(content: string, filename: string, mimeType: string): void
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
-// Transient confirmation so the download isn't silent — and so the
+// Transient confirmation so the download isn't silent - and so the
 // researcher can see which scope (filtered vs all) they actually got.
 // Doubles as an aria-live announcement for screen-reader users.
 function showToast(message: string): void {
@@ -80,22 +77,38 @@ function showToast(message: string): void {
   toastTimer = setTimeout(() => toast!.classList.remove('visible'), 2800);
 }
 
-function exportData(format: string, allCountries: boolean): void {
-  const countries = allCountries
-    ? Object.keys(getState().scoreData).sort()
-    : getFilteredCountries();
-  const rows = buildExportRows(countries);
+/**
+ * Download the given countries as CSV/JSON. `scopeLabel` names the set in
+ * the filename and the toast ("filtered", "all", "comparison", "search"),
+ * so the researcher can see which scope they actually got.
+ */
+export function exportCountries(
+  countries: readonly string[],
+  format: string,
+  scopeLabel: string,
+  toastLabel: string = scopeLabel
+): void {
+  const rows = buildExportRows([...countries]);
   const date = new Date().toISOString().slice(0, 10);
-  const scope = allCountries ? 'all' : 'filtered';
   if (format === 'csv') {
-    downloadFile(csvFormat(rows), `ai-regulation-data-${scope}-${date}.csv`, 'text/csv');
+    downloadFile(csvFormat(rows), `ai-regulation-data-${scopeLabel}-${date}.csv`, 'text/csv');
   } else {
-    downloadFile(JSON.stringify(rows, null, 2), `ai-regulation-data-${scope}-${date}.json`, 'application/json');
+    downloadFile(JSON.stringify(rows, null, 2), `ai-regulation-data-${scopeLabel}-${date}.json`, 'application/json');
   }
   showToast(
     `Exported ${rows.length} ${rows.length === 1 ? 'country' : 'countries'} · ` +
-    `${allCountries ? 'all countries' : 'filtered view'} · ${format.toUpperCase()}`
+    `${toastLabel} · ${format.toUpperCase()}`
   );
+}
+
+function scopeCountries(scope: string | undefined): { countries: string[]; label: string; toast: string } {
+  if (scope === 'all') {
+    return { countries: Object.keys(getState().scoreData).sort(), label: 'all', toast: 'all countries' };
+  }
+  if (scope === 'comparison') {
+    return { countries: [...getState().comparisonCountries], label: 'comparison', toast: 'comparison set' };
+  }
+  return { countries: getFilteredCountries(), label: 'filtered', toast: 'filtered view' };
 }
 
 export function initExport(): void {
@@ -112,10 +125,25 @@ export function initExport(): void {
 
   popover.addEventListener('click', e => {
     const target = (e.target as Element).closest<HTMLButtonElement>('button[data-format]');
-    if (!target) return;
-    exportData(target.dataset.format!, target.dataset.scope === 'all');
+    if (!target || target.disabled) return;
+    const { countries, label, toast } = scopeCountries(target.dataset.scope);
+    exportCountries(countries, target.dataset.format!, label, toast);
     popover.classList.remove('open');
     btn.classList.remove('active');
     btn.setAttribute('aria-expanded', 'false');
   });
+
+  // The comparison rows only make sense with a staged set; keep them
+  // visible-but-disabled so the affordance is discoverable.
+  const comparisonButtons = popover.querySelectorAll<HTMLButtonElement>('button[data-scope="comparison"]');
+  const syncComparisonButtons = () => {
+    const n = getState().comparisonCountries.length;
+    comparisonButtons.forEach(b => {
+      b.disabled = n === 0;
+      const fmt = b.dataset.format === 'csv' ? 'CSV' : 'JSON';
+      b.textContent = n > 0 ? `${fmt} · comparison (${n})` : `${fmt} · comparison`;
+    });
+  };
+  on('comparisonCountries', syncComparisonButtons);
+  syncComparisonButtons();
 }

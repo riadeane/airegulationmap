@@ -1,7 +1,7 @@
 import './styles/main.css';
 
-import { setState } from './state/store';
-import { restoreComparison, selectCountry, openScatter } from './state/interactions';
+import { getState, on, setState } from './state/store';
+import { restoreComparison, selectCountry, openScatter, commitSearch } from './state/interactions';
 import { loadScores, loadRegulation } from './data/loader';
 import { loadHistory } from './data/history';
 import { loadBlocs } from './data/blocs';
@@ -9,18 +9,23 @@ import { loadSubscores } from './data/subscores';
 import { initBlocSelector } from './controls/blocSelector';
 import { initBlocSummary } from './controls/blocSummary';
 import { initSubscores } from './panel/subscores';
-import { generateMap, initMapSubscriptions } from './map/index';
+import { generateMap, initMapSubscriptions, updateMap } from './map/index';
 import { initPanel } from './panel/index';
 import { initComparison } from './comparison/index';
 import { initScatter } from './scatter/index';
 import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelector';
 import { initFilter } from './controls/filter';
 import { initExport } from './controls/export';
-import { initSearch, initKeyboardNav } from './controls/search';
+import { initSearch, initKeyboardNav, invalidateSearchIndex } from './controls/search';
+import { initSearchResults } from './panel/searchResults';
+import { initShare } from './controls/share';
 import { initTimeline } from './controls/timeline';
 import { initTheme } from './controls/theme';
 import { parseUrl, initUrlSync } from './controls/url';
 import { initCitePopover } from './controls/citePopover';
+import { initInitiatives } from './panel/initiatives';
+import { hydrateFromSupabase } from './data/hydrate';
+import { loadSourceMeta } from './data/sourceMeta';
 import { initHelpOverlay } from './controls/helpOverlay';
 import { initMenu } from './controls/menu';
 import { initOnboarding } from './controls/onboarding';
@@ -34,7 +39,7 @@ function updateSiteLastUpdated(scoreData: ScoreData): void {
     .sort();
   const latest = dates[dates.length - 1];
   const el = document.getElementById('site-last-updated');
-  if (el) el.textContent = latest || '—';
+  if (el) el.textContent = latest || '–';
 }
 
 function updateCountryCount(scoreData: ScoreData): void {
@@ -48,11 +53,12 @@ function updateCountryCount(scoreData: ScoreData): void {
 }
 
 function closeAllDropdowns(e: MouseEvent): void {
-  if ((e.target as Element).closest('#score-dropdown, #score-btn, #filter-popover, #filter-btn, #export-popover, #export-btn')) return;
+  if ((e.target as Element).closest('#score-dropdown, #score-btn, #filter-popover, #filter-btn, #export-popover, #export-btn, #share-popover, #share-btn')) return;
   for (const [popoverId, btnId] of [
     ['score-dropdown', 'score-btn'],
     ['filter-popover', 'filter-btn'],
     ['export-popover', 'export-btn'],
+    ['share-popover', 'share-btn'],
   ]) {
     document.getElementById(popoverId)!.classList.remove('open');
     const btn = document.getElementById(btnId)!;
@@ -87,6 +93,11 @@ async function main(): Promise<void> {
   }
   if (urlState.mode) setState({ currentAttribute: urlState.mode });
   if (urlState.date) setState({ timelineDate: urlState.date });
+  if (urlState.filterMin !== undefined || urlState.filterMax !== undefined) {
+    setState({ filterMin: urlState.filterMin ?? 1, filterMax: urlState.filterMax ?? 5 });
+  }
+  if (urlState.filterConfidence) setState({ filterConfidence: urlState.filterConfidence });
+  if (urlState.filterOfficialOnly) setState({ filterOfficialOnly: true });
 
   // Wire up UI controls
   initTheme();
@@ -99,6 +110,9 @@ async function main(): Promise<void> {
   initCitePopover();
   initComparison();
   initSearch();
+  initSearchResults();
+  initShare();
+  initInitiatives();
   initKeyboardNav();
   initMapSubscriptions();
   initScatter();
@@ -122,6 +136,9 @@ async function main(): Promise<void> {
   // Country / comparison selection needs the map to exist so the
   // highlight fires correctly. Unknown country names (typo, deleted
   // from data) are dropped silently.
+  // Committed search first: it deselects to reveal the results list, so a
+  // country/compare in the same URL takes precedence by applying after.
+  if (urlState.q) commitSearch(urlState.q);
   if (urlState.compare && urlState.compare.length >= 2) {
     const valid = urlState.compare.filter(name => scoreData[name]);
     // A shared compare link opens the full comparison view directly.
@@ -142,7 +159,7 @@ async function main(): Promise<void> {
     initTimeline(history);
   });
 
-  // Sub-indicator audit trail (methodology v2) — non-blocking; the
+  // Sub-indicator audit trail (methodology v2) - non-blocking; the
   // dimension-row breakdown appears once it loads.
   loadSubscores().then(subscores => setState({ subscores }));
 
@@ -162,6 +179,32 @@ async function main(): Promise<void> {
   // Start writing URL changes. Done after initial state is applied so
   // we don't clobber the user's URL on boot.
   initUrlSync();
+
+  // Supabase progressive enhancement, off the critical path: hydrate the
+  // dataset if the database is strictly newer than the static snapshot,
+  // and fetch source titles for the panel. Both no-op when unconfigured
+  // or unreachable - the static files remain authoritative.
+  //
+  // A dataset replacement must actually repaint: the store emits
+  // 'scoreData'/'regulationData', and these subscriptions carry the new
+  // data into the surfaces that render from it.
+  on('scoreData', () => {
+    const { scoreData: fresh } = getState();
+    updateMap();
+    updateSiteLastUpdated(fresh);
+    updateCountryCount(fresh);
+  });
+  // The full-text index caches off regulationData; the open panel
+  // re-renders itself (panel/index.ts subscribes to the same key).
+  on('regulationData', invalidateSearchIndex);
+
+  const idle = typeof requestIdleCallback === 'function'
+    ? requestIdleCallback
+    : (fn: () => void) => setTimeout(fn, 1500);
+  idle(() => {
+    void hydrateFromSupabase();
+    void loadSourceMeta();
+  });
 
   // Global click-away to close dropdowns
   document.addEventListener('click', closeAllDropdowns);

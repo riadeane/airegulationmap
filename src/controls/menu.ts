@@ -23,7 +23,7 @@ export function initMenu(): void {
   });
 
   // Auto-close when the user taps outside the header (map, sheet,
-  // timeline) — otherwise the expanded toolbar stays pinned over the map
+  // timeline) - otherwise the expanded toolbar stays pinned over the map
   // for the rest of the session. Clicks on the toolbar popovers count as
   // inside, since they're anchored within #app-header.
   document.addEventListener('click', (e) => {

@@ -1,4 +1,4 @@
-// Help overlay — native <dialog>, showing the keyboard shortcuts that
+// Help overlay - native <dialog>, showing the keyboard shortcuts that
 // already exist in src/controls/search.js. Opens via ? key (wired in
 // search.js) or the header ? button (wired here). Esc and backdrop
 // click close it for free via <dialog> semantics.
@@ -27,7 +27,7 @@ export function initHelpOverlay(): void {
   document.getElementById('header-help-btn')
     ?.addEventListener('click', openHelpOverlay);
 
-  // Backdrop click — <dialog> reports the click target as the dialog
+  // Backdrop click - <dialog> reports the click target as the dialog
   // itself when the user clicks outside the inner content.
   dialog.addEventListener('click', (e) => {
     if (e.target === dialog) closeHelpOverlay();

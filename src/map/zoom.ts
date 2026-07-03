@@ -8,7 +8,7 @@ export interface ZoomHandle {
 }
 
 // d3-zoom accepts a function for .extent() (evaluated lazily) but NOT
-// for .translateExtent() — the latter must be a concrete 2x2 array.
+// for .translateExtent() - the latter must be a concrete 2x2 array.
 // We therefore expose an updateBounds hook the renderer can call after
 // a resize to keep the pan bounds in sync with the new viewport size.
 export function setupZoom(

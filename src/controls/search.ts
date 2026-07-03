@@ -1,15 +1,23 @@
 import { getState } from '../state/store';
 import { el, maybeEl } from '../dom';
-import { selectCountry, stepCountry, escapeMainView } from '../state/interactions';
+import { selectCountry, stepCountry, escapeMainView, commitSearch, clearSearch } from '../state/interactions';
 import { updateSearchHighlight } from '../map/index';
 import { matchCountryNames } from '../data/countryMatch';
-import { buildSearchIndex, searchRegulationText, FIELD_LABELS } from '../data/searchIndex';
-import type { IndexEntry, SearchMatch } from '../data/searchIndex';
+import { buildSearchIndex, searchAllMatches, FIELD_LABELS } from '../data/searchIndex';
+import type { IndexEntry } from '../data/searchIndex';
+import { snippetNode } from './snippet';
+import { applyCommittedDimming } from '../panel/searchResults';
+
+// Clear the transient typing highlight - unless a committed search owns the
+// dimming, in which case re-assert its match set instead.
+function releaseTypingHighlight(): void {
+  if (!applyCommittedDimming()) updateSearchHighlight(null);
+}
 
 const COUNTRY_LIMIT = 4;
 const TEXT_LIMIT = 6;
 
-// Trailing debounce — typing filters the country list, scans the text
+// Trailing debounce - typing filters the country list, scans the text
 // index, AND walks every map path for highlight classes, so don't do
 // it per keystroke.
 function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: number): (...args: A) => void {
@@ -22,6 +30,13 @@ function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: number): (.
 
 let textIndex: IndexEntry[] | null = null;
 
+// The full-text index derives from regulationData - a dataset replacement
+// (Supabase hydration) must invalidate it or searches keep hitting the old
+// prose. Rebuilt lazily on the next keystroke.
+export function invalidateSearchIndex(): void {
+  textIndex = null;
+}
+
 function sectionLabel(text: string): HTMLLIElement {
   const li = document.createElement('li');
   li.className = 'search-section-label';
@@ -31,25 +46,12 @@ function sectionLabel(text: string): HTMLLIElement {
   return li;
 }
 
-// Snippet with the matched term wrapped in <mark>, built from index
-// offsets via textContent — no innerHTML with data-derived strings.
-function snippetNode(match: SearchMatch): HTMLSpanElement {
-  const span = document.createElement('span');
-  span.className = 'match-snippet';
-  span.appendChild(document.createTextNode(match.snippet.slice(0, match.matchStart)));
-  const mark = document.createElement('mark');
-  mark.textContent = match.snippet.slice(match.matchStart, match.matchStart + match.matchLength);
-  span.appendChild(mark);
-  span.appendChild(document.createTextNode(match.snippet.slice(match.matchStart + match.matchLength)));
-  return span;
-}
-
 export function initSearch(): void {
   const searchInput = el<HTMLInputElement>('country-search');
   const suggestions = document.getElementById('search-suggestions')!;
   // The options list is role="listbox" with presentational section
   // labels, so screen readers don't announce result changes on their
-  // own — and a no-results message inside it is invisible to AT. This
+  // own - and a no-results message inside it is invisible to AT. This
   // out-of-band polite region speaks the outcome instead.
   const statusRegion = document.getElementById('search-status');
   const announce = (msg: string) => { if (statusRegion) statusRegion.textContent = msg; };
@@ -58,14 +60,14 @@ export function initSearch(): void {
     searchInput.value = name;
     suggestions.replaceChildren();
     announce('');
-    updateSearchHighlight(null);
+    releaseTypingHighlight();
     selectCountry(name);
   };
 
   const updateSuggestions = (query: string) => {
     suggestions.replaceChildren();
     if (query.length < 2) {
-      updateSearchHighlight(null);
+      releaseTypingHighlight();
       announce('');
       return;
     }
@@ -73,19 +75,27 @@ export function initSearch(): void {
     const { sortedCountryNames } = getState();
     if (!textIndex) textIndex = buildSearchIndex(getState().regulationData);
 
-    const countryMatches = matchCountryNames(sortedCountryNames, query, { limit: COUNTRY_LIMIT });
-    const textMatches = query.length >= 3
-      ? searchRegulationText(textIndex, query, TEXT_LIMIT + COUNTRY_LIMIT)
-        // A country already listed by name doesn't need a second row.
-        .filter(m => !countryMatches.includes(m.country))
-        .slice(0, TEXT_LIMIT)
+    // One uncapped pass each; the dropdown shows capped slices but the
+    // "See all N results" count is computed from the SAME uncapped union
+    // the committed results panel will report - the two must agree.
+    const allNameMatches = matchCountryNames(sortedCountryNames, query, {
+      limit: sortedCountryNames.length,
+    });
+    const allTextMatches = query.length >= 3
+      ? searchAllMatches(textIndex, query).filter(m => !allNameMatches.includes(m.country))
       : [];
 
-    // Nothing matched: clear the highlight to null — NOT an empty set,
+    const countryMatches = allNameMatches.slice(0, COUNTRY_LIMIT);
+    const textMatches = allTextMatches
+      // A country already listed by name doesn't need a second row.
+      .filter(m => !countryMatches.includes(m.country))
+      .slice(0, TEXT_LIMIT);
+
+    // Nothing matched: clear the highlight to null - NOT an empty set,
     // which would mark every country "dimmed" and fade the whole map to
-    // 8% — and show an explicit empty state instead of a vanished box.
+    // 8% - and show an explicit empty state instead of a vanished box.
     if (countryMatches.length === 0 && textMatches.length === 0) {
-      updateSearchHighlight(null);
+      releaseTypingHighlight();
       const empty = document.createElement('li');
       empty.className = 'search-empty';
       empty.setAttribute('role', 'presentation');
@@ -138,6 +148,25 @@ export function initSearch(): void {
       li.addEventListener('click', () => pickSuggestion(match.country));
       suggestions.appendChild(li);
     }
+
+    // The dropdown is a capped preview; committing opens the full results
+    // list in the panel (persistent, exportable, dimming that survives
+    // browsing).
+    if (query.length >= 3) {
+      const totalCountries = new Set([...allNameMatches, ...allTextMatches.map(m => m.country)]).size;
+      if (totalCountries > 0) {
+        const li = document.createElement('li');
+        li.className = 'search-see-all';
+        li.setAttribute('role', 'option');
+        li.textContent = `See all ${totalCountries} ${totalCountries === 1 ? 'result' : 'results'} →`;
+        li.addEventListener('click', () => {
+          suggestions.replaceChildren();
+          announce(`Showing all ${totalCountries} results for ${query}`);
+          commitSearch(query);
+        });
+        suggestions.appendChild(li);
+      }
+    }
   };
 
   const debouncedUpdate = debounce(updateSuggestions, 120);
@@ -149,12 +178,12 @@ export function initSearch(): void {
   document.addEventListener('click', e => {
     if (!(e.target as Element).closest('#search-container')) {
       suggestions.replaceChildren();
-      updateSearchHighlight(null);
+      releaseTypingHighlight();
       searchInput.value = '';
     }
   });
 
-  // Keyboard navigation for search. Only real options participate —
+  // Keyboard navigation for search. Only real options participate -
   // section labels are presentational.
   searchInput.addEventListener('keydown', function (e) {
     const items = suggestions.querySelectorAll<HTMLLIElement>('li[role="option"]');
@@ -169,8 +198,8 @@ export function initSearch(): void {
       e.preventDefault();
       idx = Math.max(idx - 1, 0);
     } else if (e.key === 'Enter') {
-      // Enter commits the highlighted option, or — when the user typed a
-      // query and hit Enter without arrowing — the first (top) option.
+      // Enter commits the highlighted option, or - when the user typed a
+      // query and hit Enter without arrowing - the first (top) option.
       // Previously Enter with no highlight did nothing, so typing a full
       // country name and pressing Enter was a dead end.
       e.preventDefault();
@@ -178,7 +207,7 @@ export function initSearch(): void {
       return;
     } else if (e.key === 'Escape') {
       suggestions.replaceChildren();
-      updateSearchHighlight(null);
+      releaseTypingHighlight();
       return;
     } else {
       return;
@@ -196,7 +225,7 @@ export function initKeyboardNav(): void {
       if (e.key === 'Escape') {
         target.blur();
         document.getElementById('search-suggestions')!.replaceChildren();
-        updateSearchHighlight(null);
+        releaseTypingHighlight();
       }
       return;
     }
@@ -223,13 +252,26 @@ export function initKeyboardNav(): void {
       const citePopover = document.getElementById('cite-popover');
       if (citePopover && !citePopover.hidden) return;
       if (escapeMainView()) return;
+      // Header popovers close on every remaining Esc layer - they're
+      // transient chrome, not part of the back-out stack.
+      for (const [popoverId, btnId] of [
+        ['score-dropdown', 'score-btn'],
+        ['filter-popover', 'filter-btn'],
+        ['export-popover', 'export-btn'],
+        ['share-popover', 'share-btn'],
+      ]) {
+        document.getElementById(popoverId)?.classList.remove('open');
+        const btn = document.getElementById(btnId);
+        btn?.classList.remove('active');
+        btn?.setAttribute('aria-expanded', 'false');
+      }
+      // With nothing selected, Esc peels the committed search next - so
+      // country → results list → clean map, one layer per press.
+      if (!getState().selectedCountry && getState().searchQuery) {
+        clearSearch();
+        return;
+      }
       selectCountry(null);
-      document.getElementById('score-dropdown')!.classList.remove('open');
-      document.getElementById('score-btn')!.classList.remove('active');
-      document.getElementById('filter-popover')!.classList.remove('open');
-      document.getElementById('filter-btn')!.classList.remove('active');
-      document.getElementById('export-popover')!.classList.remove('open');
-      document.getElementById('export-btn')!.classList.remove('active');
       return;
     }
 

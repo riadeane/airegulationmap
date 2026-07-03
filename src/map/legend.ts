@@ -77,7 +77,7 @@ export function addLegend(
     .attr('text-anchor', 'end')
     .text(endpoints[1]);
 
-  // "No data" key — countries with no score render in --no-data grey,
+  // "No data" key - countries with no score render in --no-data grey,
   // and without this the reader can't tell "no information" from a low
   // score (or from a country filtered out of the current view).
   const noData = legend.append('g')

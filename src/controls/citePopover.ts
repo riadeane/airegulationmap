@@ -1,6 +1,6 @@
 // "Cite" popover anchored under the panel's Cite button.
 //
-// Not a modal — a lightweight dismissable popover that shows three
+// Not a modal - a lightweight dismissable popover that shows three
 // formatted citation strings (APA / Chicago / MLA) with per-format
 // copy buttons. The permalink embedded in each citation is generated
 // fresh every open so scoped views stay citeable.

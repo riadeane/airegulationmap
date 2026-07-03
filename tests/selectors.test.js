@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { setState } from '../src/state/store';
-import { maturityRank } from '../src/state/selectors';
+import {
+  maturityRank,
+  visibleCountrySet,
+  passesCountryFilters,
+  scoresAtDate,
+} from '../src/state/selectors';
 
 // The ranking is memoized by scoreData reference; each test installs its own
 // fresh scoreData object, which invalidates the cache.
@@ -33,5 +38,130 @@ describe('maturityRank selector', () => {
     setState({ scoreData: scores({ A: 5, Blank: null }) });
     expect(maturityRank('Blank')).toBeNull();
     expect(maturityRank('Nowhere')).toBeNull();
+  });
+});
+
+describe('visibleCountrySet selector', () => {
+  const base = () => ({
+    scoreData: scores({ A: 5, B: 3, C: 1, NoScore: null }),
+    regulationData: {},
+    currentAttribute: 'averageScore',
+    filterMin: 1,
+    filterMax: 5,
+    selectedBloc: null,
+    blocsData: null,
+    filterConfidence: null,
+    filterOfficialOnly: false,
+  });
+
+  it('includes every scored country when no filter is active', () => {
+    setState(base());
+    expect([...visibleCountrySet()].sort()).toEqual(['A', 'B', 'C']);
+  });
+
+  it('applies the score range on the current attribute', () => {
+    setState({ ...base(), filterMin: 2, filterMax: 4 });
+    expect([...visibleCountrySet()]).toEqual(['B']);
+  });
+
+  it('applies the bloc filter - the bug the export path had', () => {
+    setState({
+      ...base(),
+      blocsData: { EU: { name: 'European Union', members: ['A', 'C'] } },
+      selectedBloc: 'EU',
+    });
+    expect([...visibleCountrySet()].sort()).toEqual(['A', 'C']);
+    // Range and bloc compose.
+    setState({ filterMin: 4 });
+    expect([...visibleCountrySet()]).toEqual(['A']);
+  });
+
+  it('memoizes on its inputs and invalidates when one changes', () => {
+    setState(base());
+    const first = visibleCountrySet();
+    expect(visibleCountrySet()).toBe(first); // cached: same references
+    setState({ filterMax: 3 });
+    const second = visibleCountrySet();
+    expect(second).not.toBe(first);
+    expect([...second].sort()).toEqual(['B', 'C']);
+  });
+
+  it('applies the confidence filter, excluding unknown confidence', () => {
+    setState({
+      ...base(),
+      regulationData: {
+        A: { confidence: 'high' },
+        B: { confidence: 'Low' },   // case-insensitive
+        C: {},                       // unknown - never passes a filter
+      },
+      filterConfidence: ['high', 'low'],
+    });
+    expect([...visibleCountrySet()].sort()).toEqual(['A', 'B']);
+    setState({ filterConfidence: ['medium'] });
+    expect([...visibleCountrySet()]).toEqual([]);
+  });
+
+  it('applies the official-sources-only filter', () => {
+    setState({
+      ...base(),
+      regulationData: {
+        A: { sources: 'https://legislation.gov.uk/act | https://example.com/blog' },
+        B: { sources: 'https://example.com/commentary' },
+        C: { sources: null },
+      },
+      filterOfficialOnly: true,
+    });
+    expect([...visibleCountrySet()]).toEqual(['A']);
+  });
+});
+
+describe('passesCountryFilters selector', () => {
+  it('is true for everyone without a bloc, and membership-gated with one', () => {
+    // Reset every country-level filter - the store persists across tests
+    // in this file, and earlier cases set confidence filters.
+    setState({
+      selectedBloc: null, blocsData: null, regulationData: {},
+      filterConfidence: null, filterOfficialOnly: false,
+    });
+    expect(passesCountryFilters('Anywhere')).toBe(true);
+    setState({
+      blocsData: { G2: { name: 'Pair', members: ['A', 'B'] } },
+      selectedBloc: 'G2',
+    });
+    expect(passesCountryFilters('A')).toBe(true);
+    expect(passesCountryFilters('C')).toBe(false);
+  });
+});
+
+describe('scoresAtDate selector', () => {
+  const history = {
+    schema_version: 1,
+    countries: {
+      A: [
+        { date: '2026-01-01', regulationStatus: 2, policyLever: 2, governanceType: 2, actorInvolvement: 2, enforcementLevel: 2, averageScore: 2 },
+        { date: '2026-05-01', regulationStatus: 4, policyLever: 4, governanceType: 4, actorInvolvement: 4, enforcementLevel: 4, averageScore: 4 },
+      ],
+    },
+  };
+
+  it('returns null at "Latest" (no timeline date)', () => {
+    setState({ history, timelineDate: null });
+    expect(scoresAtDate()).toBeNull();
+  });
+
+  it('resolves known snapshot dates and memoizes', () => {
+    setState({ history, timelineDate: '2026-01-01' });
+    const at = scoresAtDate();
+    expect(at.A.averageScore).toBe(2);
+    expect(scoresAtDate()).toBe(at); // cached
+    setState({ timelineDate: '2026-05-01' });
+    expect(scoresAtDate().A.averageScore).toBe(4);
+  });
+
+  it('falls back to null for a date the history never recorded', () => {
+    // A hand-edited ?date= must not render a misleading carried-back
+    // vintage - the map and panel both treat it as Latest.
+    setState({ history, timelineDate: '2026-03-01' });
+    expect(scoresAtDate()).toBeNull();
   });
 });

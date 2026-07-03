@@ -19,3 +19,7 @@ __pycache__/
 
 # Python build artifacts
 *.egg-info/
+
+# Local env (Supabase keys for dev builds)
+.env
+.env.local

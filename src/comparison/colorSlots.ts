@@ -1,11 +1,11 @@
 // Stable colour-slot assignment for the comparison set.
 //
 // A country keeps its colour for the lifetime of its presence in the
-// comparison — removing a middle country must not reshuffle the others'
+// comparison - removing a middle country must not reshuffle the others'
 // colours (which happens if callers key off the array index). This lives in
 // its own leaf module (imports nothing but the palette) so both the map
 // renderer and the comparison panel can read slot colours without either
-// feature importing the other — that circular import was the old coupling.
+// feature importing the other - that circular import was the old coupling.
 //
 // `syncColorSlots` is the single writer and is called by the interactions
 // orchestrator immediately before it commits a new comparison set, so every

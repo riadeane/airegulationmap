@@ -45,7 +45,7 @@
         if (t === 'light' || t === 'dark') {
           document.documentElement.setAttribute('data-theme', t);
         }
-      } catch (e) { /* storage blocked — fall back to prefers-color-scheme */ }
+      } catch (e) { /* storage blocked; fall back to prefers-color-scheme */ }
     })();
   </script>
 
@@ -65,8 +65,8 @@
       <ul>
         <li>read the <a href="/methodology.html">methodology page</a> (plain HTML, works offline)</li>
         <li>browse the raw data on
-          <a href="https://github.com/riadeane/airegulationmap/tree/main/public" rel="noopener noreferrer">GitHub</a>
-          — `scores.csv`, `regulation_data.csv`, and monthly `history.json` snapshots.</li>
+          <a href="https://github.com/riadeane/airegulationmap/tree/main/public" rel="noopener noreferrer">GitHub</a>:
+          `scores.csv`, `regulation_data.csv`, and monthly `history.json` snapshots.</li>
       </ul>
     </div>
   </noscript>
@@ -93,7 +93,7 @@
         </svg>
       </button>
       <div class="header-meta">
-        <span class="header-subtitle">Last updated: <span id="site-last-updated">—</span></span>
+        <span class="header-subtitle">Last updated: <span id="site-last-updated">–</span></span>
         <span class="country-count-badge" id="country-count"></span>
       </div>
     </div>
@@ -133,19 +133,42 @@
             <input type="range" id="filter-max" min="1" max="5" step="0.25" value="5" aria-label="Maximum score" aria-describedby="filter-max-label">
             <span id="filter-max-label">5</span>
           </div>
+          <fieldset class="filter-conf-row" id="filter-confidence">
+            <legend class="filter-label">Confidence</legend>
+            <label><input type="checkbox" value="high" checked> High</label>
+            <label><input type="checkbox" value="medium" checked> Medium</label>
+            <label><input type="checkbox" value="low" checked> Low</label>
+          </fieldset>
+          <label class="filter-official-row">
+            <input type="checkbox" id="filter-official">
+            Official sources only
+          </label>
         </div>
       </div>
-      <button id="scatter-btn" aria-pressed="false" title="Dimension explorer — plot every country across two score dimensions">Scatter</button>
+      <button id="scatter-btn" aria-pressed="false" title="Dimension explorer: plot every country across two score dimensions">Scatter</button>
       <div id="export-btn-container">
         <button id="export-btn" aria-haspopup="true" aria-expanded="false">
           Export <span class="caret">▾</span>
         </button>
         <div id="export-popover" aria-label="Export data">
-          <button type="button" data-format="csv" data-scope="filtered">CSV — filtered view</button>
-          <button type="button" data-format="json" data-scope="filtered">JSON — filtered view</button>
-          <button type="button" data-format="csv" data-scope="all">CSV — all countries</button>
-          <button type="button" data-format="json" data-scope="all">JSON — all countries</button>
+          <button type="button" data-format="csv" data-scope="filtered">CSV · filtered view</button>
+          <button type="button" data-format="json" data-scope="filtered">JSON · filtered view</button>
+          <button type="button" data-format="csv" data-scope="all">CSV · all countries</button>
+          <button type="button" data-format="json" data-scope="all">JSON · all countries</button>
+          <button type="button" data-format="csv" data-scope="comparison">CSV · comparison</button>
+          <button type="button" data-format="json" data-scope="comparison">JSON · comparison</button>
+          <a class="export-docs-link" href="/data.html">Data &amp; API docs →</a>
+          <a class="export-docs-link" href="/api-docs.html">API reference →</a>
         </div>
+      </div>
+      <div id="share-btn-container">
+        <button
+          id="share-btn"
+          aria-haspopup="true"
+          aria-expanded="false"
+          title="Copy a link or citation for the current view"
+        >Share</button>
+        <div id="share-popover" aria-label="Share this view"></div>
       </div>
       <button
         id="theme-toggle"
@@ -188,6 +211,10 @@
         <div class="scatter-controls">
           <label>X <select id="scatter-x" aria-label="X axis dimension"></select></label>
           <label>Y <select id="scatter-y" aria-label="Y axis dimension"></select></label>
+          <label class="scatter-trend-toggle">
+            <input type="checkbox" id="scatter-trend">
+            Trend
+          </label>
           <span class="scatter-colorkey">
             <span class="scatter-colorkey-text">Dot colour: maturity index</span>
             <span class="scatter-colorkey-ends" aria-hidden="true">low</span>
@@ -216,7 +243,12 @@
         </ol>
         <a class="panel-intro-methodology" href="/methodology.html">Read the methodology &rarr;</a>
       </div>
-      <p id="no-selection-message" class="no-selection-message" hidden>Select a country to see details.</p>
+      <p id="no-selection-message" class="no-selection-message" hidden>
+        Select a country to see details.
+        <a class="panel-methodology-link" href="/methodology.html">Methodology →</a>
+      </p>
+      <div id="search-results" class="search-results" hidden></div>
+      <div id="search-back-bar" class="search-back-bar" hidden></div>
       <div id="panel-content" style="display:none">
         <div class="panel-country-header">
           <div class="panel-name-row">
@@ -225,6 +257,11 @@
             <button id="panel-close" class="panel-close" type="button" aria-label="Close country details">&times;</button>
           </div>
           <small id="last-updated" class="data-freshness"></small>
+          <a class="panel-methodology-link" href="/methodology.html">How scores are assigned →</a>
+          <p id="panel-history-notice" class="panel-history-notice" hidden>
+            Viewing scores as of <span id="panel-history-date"></span>.
+            Text, sources and sub-indicators reflect the latest research.
+          </p>
           <div class="panel-header-actions">
             <button id="compare-btn" class="compare-btn" type="button">+ Compare</button>
             <button
@@ -338,6 +375,11 @@
           </div>
           <ul id="sources-list"></ul>
         </div>
+        <div class="panel-section" id="initiatives-section" style="display:none">
+          <div class="panel-section-label">POLICY INITIATIVES</div>
+          <ul id="initiatives-list" class="initiatives-list"></ul>
+          <p id="initiatives-attribution" class="initiatives-attribution"></p>
+        </div>
         <div class="panel-section" id="changelog-section" style="display:none">
           <div class="panel-section-label">SCORE HISTORY</div>
           <div id="changelog-entries"></div>
@@ -382,7 +424,9 @@
 
   <footer>
     <p>Scores researched and assigned by <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>. Updated monthly.</p>
-    <p>Methodology: <a href="/methodology.html">How countries are scored</a></p>
+    <p>Methodology: <a href="/methodology.html">How countries are scored</a> &nbsp;&middot;&nbsp;
+       Researchers: <a href="/data.html">Data &amp; API</a> &nbsp;&middot;&nbsp;
+       <a href="/api-docs.html">API reference</a></p>
     <p>Made by Ria Deane &nbsp;&middot;&nbsp;
       <a href="https://www.linkedin.com/in/riadeane" target="_blank" rel="noopener noreferrer">LinkedIn</a> &nbsp;&middot;&nbsp;
       <a href="https://github.com/riadeane" target="_blank" rel="noopener noreferrer">GitHub</a>

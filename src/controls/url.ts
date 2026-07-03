@@ -11,11 +11,15 @@
 
 import { getState, setState, on } from '../state/store';
 import type { AppState } from '../state/store';
-import { restoreComparison, selectCountry, openScatter } from '../state/interactions';
+import {
+  restoreComparison, selectCountry, openScatter,
+  commitSearch, clearSearch, MAX_SEARCH_QUERY,
+} from '../state/interactions';
 import { SCORE_OPTIONS, MAX_COMPARISON } from '../constants';
 import type { AttributeKey } from '../constants';
+import type { ConfidenceLevel } from '../state/store';
 
-/** State parsed from the URL — only keys present in the query appear. */
+/** State parsed from the URL - only keys present in the query appear. */
 export interface UrlState {
   country?: string;
   mode?: AttributeKey;
@@ -24,7 +28,14 @@ export interface UrlState {
   theme?: 'light' | 'dark';
   bloc?: string;
   scatter?: { x: AttributeKey; y: AttributeKey };
+  filterMin?: number;
+  filterMax?: number;
+  filterConfidence?: ConfidenceLevel[];
+  filterOfficialOnly?: boolean;
+  q?: string;
 }
+
+const CONFIDENCE_LEVELS = new Set(['high', 'medium', 'low']);
 
 const VALID_MODES = new Set<string>(SCORE_OPTIONS.map(o => o.value));
 const DEFAULT_MODE = 'averageScore';
@@ -36,6 +47,15 @@ const VALID_SCATTER_DIMS = new Set<string>(
 );
 const DEFAULT_SCATTER_X = 'enforcementLevel';
 const DEFAULT_SCATTER_Y = 'regulationStatus';
+
+// A score-range bound from the URL: a finite number in [1, 5], snapped to
+// the filter sliders' quarter-point steps. Anything else is ignored.
+function parseScoreBound(raw: string | null): number | undefined {
+  if (!raw) return undefined;
+  const v = Number(raw);
+  if (!Number.isFinite(v) || v < 1 || v > 5) return undefined;
+  return Math.round(v * 4) / 4;
+}
 
 function splitCompare(raw: string): string[] {
   if (!raw) return [];
@@ -52,7 +72,7 @@ function splitCompare(raw: string): string[] {
 }
 
 // Parse the current window URL into a partial state object. Only keys
-// actually present in the URL appear in the returned object — callers
+// actually present in the URL appear in the returned object - callers
 // decide which defaults to apply.
 export function parseUrl(search: string = window.location.search): UrlState {
   const params = new URLSearchParams(search);
@@ -76,10 +96,36 @@ export function parseUrl(search: string = window.location.search): UrlState {
   const theme = params.get('theme');
   if (theme === 'light' || theme === 'dark') out.theme = theme;
 
-  // Validated against blocsData when applied — blocs.json may not have
+  // Validated against blocsData when applied - blocs.json may not have
   // loaded yet at parse time.
   const bloc = params.get('bloc');
   if (bloc && /^[A-Z0-9]{2,8}$/i.test(bloc)) out.bloc = bloc.toUpperCase();
+
+  // Committed full-text search.
+  const q = params.get('q');
+  if (q && q.trim()) out.q = q.trim().slice(0, MAX_SEARCH_QUERY);
+
+  // Confidence filter - a strict subset of the three levels (all three is
+  // no filter at all, so it normalizes away).
+  const conf = params.get('conf');
+  if (conf) {
+    const levels = [...new Set(
+      conf.split(',').map(s => s.trim().toLowerCase()).filter(s => CONFIDENCE_LEVELS.has(s))
+    )] as ConfidenceLevel[];
+    if (levels.length > 0 && levels.length < CONFIDENCE_LEVELS.size) out.filterConfidence = levels;
+  }
+  if (params.get('official') === '1') out.filterOfficialOnly = true;
+
+  // Score-range filter. An inverted pair (min > max) is dropped entirely
+  // rather than guessing which bound the author meant.
+  const min = parseScoreBound(params.get('min'));
+  if (min !== undefined) out.filterMin = min;
+  const max = parseScoreBound(params.get('max'));
+  if (max !== undefined) out.filterMax = max;
+  if (out.filterMin !== undefined && out.filterMax !== undefined && out.filterMin > out.filterMax) {
+    delete out.filterMin;
+    delete out.filterMax;
+  }
 
   // scatter=1 → open with default axes; scatter=<x>,<y> → open with
   // those axes. Invalid axis names are ignored entirely.
@@ -96,18 +142,10 @@ export function parseUrl(search: string = window.location.search): UrlState {
   return out;
 }
 
-// Build a query string from the current (or supplied) state. Omits any
-// key whose value matches the app default so the URL stays short.
-//
-// `omitTheme` drops the theme param: a citation permalink identifies the
-// DATA VIEW, and light-vs-dark is a display preference that has no place
-// in a scholarly footnote. Share links keep it (a recipient sees your
-// theme); citations don't.
-export function buildPermalink(
-  stateSnapshot?: AppState,
-  { omitTheme = false }: { omitTheme?: boolean } = {}
-): string {
-  const s = stateSnapshot || getState();
+// Build a query string from a state snapshot. Omits any key whose value
+// matches the app default so the URL stays short. Pure (no window/document)
+// so it is unit-testable; buildPermalink is the thin browser wrapper.
+export function buildQueryString(s: Readonly<AppState>, theme: 'light' | 'dark' | null = null): string {
   const params = new URLSearchParams();
 
   // `compare` represents a COMMITTED comparison (the full view is
@@ -132,23 +170,43 @@ export function buildPermalink(
     params.set('bloc', s.selectedBloc);
   }
 
+  if (s.filterMin !== 1) params.set('min', String(s.filterMin));
+  if (s.filterMax !== 5) params.set('max', String(s.filterMax));
+  if (s.filterConfidence) params.set('conf', s.filterConfidence.join(','));
+  if (s.filterOfficialOnly) params.set('official', '1');
+
+  if (s.searchQuery) params.set('q', s.searchQuery);
+
   if (s.mainView === 'scatter') {
     const isDefault = s.scatterX === DEFAULT_SCATTER_X && s.scatterY === DEFAULT_SCATTER_Y;
     params.set('scatter', isDefault ? '1' : `${s.scatterX},${s.scatterY}`);
   }
 
-  const theme = document.documentElement.getAttribute('data-theme');
-  if (!omitTheme && (theme === 'light' || theme === 'dark')) {
+  if (theme) {
     params.set('theme', theme);
   }
 
   // URLSearchParams percent-encodes commas (%2C). We want readable
   // permalinks, so swap those back to literal commas in the final
-  // string — browsers accept both on parse.
-  const qs = params.toString().replace(/%2C/g, ',');
-  const url = window.location.pathname + (qs ? '?' + qs : '');
-  // Absolute URL for citations / sharing.
-  return window.location.origin + url;
+  // string - browsers accept both on parse.
+  return params.toString().replace(/%2C/g, ',');
+}
+
+// Absolute permalink for the current (or supplied) state.
+//
+// `omitTheme` drops the theme param: a citation permalink identifies the
+// DATA VIEW, and light-vs-dark is a display preference that has no place
+// in a scholarly footnote. Share links keep it (a recipient sees your
+// theme); citations don't.
+export function buildPermalink(
+  stateSnapshot?: AppState,
+  { omitTheme = false }: { omitTheme?: boolean } = {}
+): string {
+  const s = stateSnapshot || getState();
+  const themeAttr = document.documentElement.getAttribute('data-theme');
+  const theme = !omitTheme && (themeAttr === 'light' || themeAttr === 'dark') ? themeAttr : null;
+  const qs = buildQueryString(s, theme);
+  return window.location.origin + window.location.pathname + (qs ? '?' + qs : '');
 }
 
 function currentQueryString(): string {
@@ -159,13 +217,21 @@ function currentQueryString(): string {
 
 // Replace the URL without adding a history entry. Used for hovers and
 // click-style navigation inside the app (Back should not undo a country
-// selection or score-mode flip — too chatty).
+// selection or score-mode flip - too chatty). rAF-coalesced: slider drags
+// (filter range, timeline) emit per input event, and browsers rate-limit
+// replaceState - one write per frame reflects the same final state.
+let urlWritePending = false;
 function writeReplace(): void {
-  const qs = currentQueryString();
-  const next = window.location.pathname + qs;
-  const current = window.location.pathname + window.location.search;
-  if (next === current) return;
-  window.history.replaceState(null, '', next);
+  if (urlWritePending) return;
+  urlWritePending = true;
+  requestAnimationFrame(() => {
+    urlWritePending = false;
+    const qs = currentQueryString();
+    const next = window.location.pathname + qs;
+    const current = window.location.pathname + window.location.search;
+    if (next === current) return;
+    window.history.replaceState(null, '', next);
+  });
 }
 
 function applyUrlState(urlState: UrlState, { initial = false }: { initial?: boolean } = {}): void {
@@ -179,6 +245,23 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
 
   if (urlState.date !== undefined) setState({ timelineDate: urlState.date || null });
   else if (!initial) setState({ timelineDate: null });
+
+  if (urlState.filterMin !== undefined || urlState.filterMax !== undefined) {
+    setState({ filterMin: urlState.filterMin ?? 1, filterMax: urlState.filterMax ?? 5 });
+  } else if (!initial) {
+    setState({ filterMin: 1, filterMax: 5 });
+  }
+
+  if (urlState.filterConfidence) setState({ filterConfidence: urlState.filterConfidence });
+  else if (!initial) setState({ filterConfidence: null });
+
+  if (urlState.filterOfficialOnly) setState({ filterOfficialOnly: true });
+  else if (!initial) setState({ filterOfficialOnly: false });
+
+  // Committed search BEFORE country/compare: commitSearch deselects to show
+  // the results list, so a country in the same URL wins by applying later.
+  if (urlState.q) commitSearch(urlState.q);
+  else if (!initial) clearSearch();
 
   const { blocsData } = getState();
   if (urlState.bloc && blocsData && blocsData[urlState.bloc]) {
@@ -220,6 +303,11 @@ export function initUrlSync(): void {
   on('currentAttribute', writeReplace);
   on('timelineDate', writeReplace);
   on('selectedBloc', writeReplace);
+  on('filterMin', writeReplace);
+  on('filterMax', writeReplace);
+  on('filterConfidence', writeReplace);
+  on('filterOfficialOnly', writeReplace);
+  on('searchQuery', writeReplace);
   on('scatterX', writeReplace);
   on('scatterY', writeReplace);
 

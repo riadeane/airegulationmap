@@ -1,4 +1,4 @@
-// Typed element access — the one seam for reaching into the DOM.
+// Typed element access - the one seam for reaching into the DOM.
 //
 // The app is vanilla TS over a static index.html, so most modules resolve
 // elements by id. Left ad hoc, that meant `document.getElementById('x') as
@@ -6,11 +6,11 @@
 // element is the wrong tag) scattered across the codebase. These two helpers
 // centralise it:
 //
-//   el<T>(id)      — a REQUIRED shell element (declared in index.html). Throws
+//   el<T>(id)      - a REQUIRED shell element (declared in index.html). Throws
 //                    immediately with the offending id if it's missing, so a
 //                    renamed id fails loudly at startup instead of as a later
 //                    `null` dereference.
-//   maybeEl<T>(id) — an OPTIONAL element; returns null when absent, for the
+//   maybeEl<T>(id) - an OPTIONAL element; returns null when absent, for the
 //                    defensively-guarded call sites.
 //
 // The type parameter documents the expected element type at the call site

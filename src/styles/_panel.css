@@ -128,6 +128,26 @@
   letter-spacing: 0.04em;
 }
 
+/* Shown while the timeline is scrubbed to a historical date: the score
+   block above re-vintages to match the map, and this line says exactly
+   which parts of the entry are historical vs. latest. */
+.panel-history-notice {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.panel-history-notice #panel-history-date {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 /* Panel sections */
 .panel-section {
   padding: 16px 24px;
@@ -184,7 +204,7 @@
   height: 100%;
   /* Solid fill coloured by the score's position on the choropleth ramp
      (set in renderScoreBar), so a given value reads the same colour here
-     as the country does on the map — the old gradient always ended in
+     as the country does on the map - the old gradient always ended in
      "high/blue" regardless of the score. */
   background: var(--fill-color, var(--score-high));
   border-radius: 2px;
@@ -241,7 +261,7 @@
   font-weight: 500;
 }
 
-/* Primary target — color the map by this dimension. */
+/* Primary target - color the map by this dimension. */
 .dim-main {
   appearance: none;
   -webkit-appearance: none;
@@ -265,7 +285,7 @@
   background: var(--accent-muted);
 }
 
-/* Secondary target — disclose the sub-indicator audit trail. */
+/* Secondary target - disclose the sub-indicator audit trail. */
 .dim-expand {
   appearance: none;
   -webkit-appearance: none;
@@ -337,13 +357,13 @@
   background: var(--dot-color, var(--accent));
 }
 
-/* Fractional dot — the quarter-point part of a v2 score, filled
+/* Fractional dot - the quarter-point part of a v2 score, filled
    left-to-right so a 1.75 reads as one full dot plus a three-quarter dot. */
 .dim-dot.partial {
   background: linear-gradient(90deg, var(--dot-color, var(--accent)) var(--fill, 50%), var(--border) var(--fill, 50%));
 }
 
-/* Confidence badge — always visible at high/medium/low, but visual
+/* Confidence badge - always visible at high/medium/low, but visual
    weight scales with how much the reader should worry. High is a
    quiet tertiary-tone dot (nothing to see); low is the loudest. */
 .confidence-badge {
@@ -373,19 +393,19 @@
 }
 
 .confidence-badge[data-level='high'] {
-  /* Understated, but still legible — this is the "trust me" signal, so a
+  /* Understated, but still legible - this is the "trust me" signal, so a
      0.65 opacity on tertiary text was too faint to actually read. */
   color: var(--text-secondary);
 }
 
 .confidence-badge[data-level='medium'] {
-  color: oklch(72% 0.15 70); /* amber — tinted toward warning */
+  color: oklch(72% 0.15 70); /* amber - tinted toward warning */
   background: oklch(72% 0.15 70 / 0.10);
   border-color: oklch(72% 0.15 70 / 0.25);
 }
 
 .confidence-badge[data-level='low'] {
-  /* A caution hue distinct from the brand accent — accent means
+  /* A caution hue distinct from the brand accent - accent means
      "interactive / selected" everywhere else, so a warning shouldn't
      borrow it. Red-leaning so low confidence reads louder than medium. */
   color: oklch(64% 0.19 28);
@@ -396,7 +416,7 @@
 /* The mid/high-lightness hues above are tuned for the dark surface; on the
    cream light theme they don't clear AA at this small size. Darken the
    text (keep the tint fill) so the caveat stays readable where it matters
-   most — the citation-friendly daylight default. */
+   most - the citation-friendly daylight default. */
 :root[data-theme='light'] .confidence-badge[data-level='medium'] {
   color: oklch(52% 0.14 62);
 }
@@ -415,7 +435,7 @@
   }
 }
 
-/* Panel header actions row — Compare + Cite sit side by side. */
+/* Panel header actions row - Compare + Cite sit side by side. */
 .panel-header-actions {
   display: flex;
   gap: 8px;
@@ -458,7 +478,7 @@
   color: var(--text-tertiary);
 }
 
-/* Cite popover — dropped inline below the header actions. Not a
+/* Cite popover - dropped inline below the header actions. Not a
    modal; just a contextual box that dismisses on outside click. */
 .cite-popover {
   margin-top: 12px;
@@ -634,13 +654,13 @@
   margin-top: 4px;
 }
 
-/* Grab handle for the mobile bottom sheet — hidden on desktop, where
+/* Grab handle for the mobile bottom sheet - hidden on desktop, where
    the panel is a fixed side column. Styled + revealed in _responsive.css. */
 .sheet-grabber {
   display: none;
 }
 
-/* Panel close — touch-equivalent of Esc; desktop keeps keyboard/click-away */
+/* Panel close - touch-equivalent of Esc; desktop keeps keyboard/click-away */
 .panel-close {
   display: none;
   margin-left: auto;
@@ -771,4 +791,201 @@
 
 .changelog-note a {
   color: var(--text-secondary);
+}
+
+/* Committed-search results list - the persistent full-text search surface.
+   Reads like the panel it lives in: a count header, quiet actions, and
+   result rows that echo the dropdown's country/field/snippet anatomy. */
+.search-results {
+  padding: 18px 22px 24px;
+}
+
+.results-header {
+  margin-bottom: 12px;
+}
+
+.results-count {
+  margin: 0 0 8px;
+  font-family: 'Literata', Georgia, serif;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.results-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.results-action {
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+.results-action:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.results-section-label {
+  margin: 14px 0 4px;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-tertiary);
+}
+
+.result-row {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  margin: 0 -10px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.result-row:hover,
+.result-row:focus-visible {
+  background: var(--accent-muted);
+}
+
+.result-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.result-country {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.result-field {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.result-row .match-snippet {
+  display: block;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.result-row .match-snippet mark,
+.panel-field-mark {
+  background: var(--accent-muted);
+  color: var(--text-primary);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* Slim bar above an open country that returns to the results list */
+.search-back-bar {
+  padding: 10px 22px 0;
+}
+
+.search-back-btn {
+  padding: 6px 10px;
+  font-size: 0.74rem;
+  font-family: 'Geist', -apple-system, sans-serif;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-out);
+}
+
+.search-back-btn:hover {
+  border-color: var(--accent);
+}
+
+/* Secondary hostname line when a source shows its page title */
+.source-hostname {
+  margin-left: 6px;
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+}
+
+/* Quiet, always-present methodology on-ramp in the panel header (the
+   removable intro card was the only in-panel link before). */
+.panel-methodology-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+.panel-methodology-link:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.no-selection-message .panel-methodology-link {
+  display: block;
+  margin-top: 10px;
+  width: fit-content;
+  font-style: normal;
+}
+
+/* Policy initiatives - the verified evidence records behind the scores */
+.initiatives-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.initiatives-list li {
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.initiative-name {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+a.initiative-name {
+  border-bottom: 1px solid var(--border);
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+a.initiative-name:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.initiative-meta {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--text-tertiary);
+}
+
+.initiatives-attribution {
+  margin-top: 12px;
+  font-size: 0.64rem;
+  line-height: 1.5;
+  color: var(--text-tertiary);
 }

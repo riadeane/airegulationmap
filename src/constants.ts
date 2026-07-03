@@ -14,7 +14,7 @@ export type AttributeKey = keyof typeof ATTRIBUTE_LABELS;
 export type DimensionKey = Exclude<AttributeKey, 'averageScore'>;
 
 /**
- * What owns the main area. Exactly one of these is active at a time — the map,
+ * What owns the main area. Exactly one of these is active at a time - the map,
  * the scatter explorer, or the full comparison view. Modeling it as one value
  * (rather than two independent `scatterOpen`/`comparisonViewOpen` booleans)
  * makes "both overlays open at once" unrepresentable and lets every transition

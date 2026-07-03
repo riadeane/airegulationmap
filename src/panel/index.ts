@@ -5,7 +5,7 @@ import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { toggleComparison } from '../state/interactions';
-import { maturityRank } from '../state/selectors';
+import { maturityRank, scoresAtDate } from '../state/selectors';
 import { MAX_COMPARISON } from '../constants';
 import { classifySources, formatSourcesForCopy } from '../data/sources';
 import { writeClipboard } from '../controls/clipboard';
@@ -26,7 +26,7 @@ function normalizeConfidence(raw: string | null | undefined): ConfidenceLevel | 
 }
 
 // The bottom-sheet layout is active exactly when this media list matches
-// (phone width OR a short touch viewport / landscape phone) — mirrors the
+// (phone width OR a short touch viewport / landscape phone) - mirrors the
 // CSS in _responsive.css.
 function isSheetLayout(): boolean {
   return typeof window.matchMedia === 'function'
@@ -37,7 +37,7 @@ function isSheetLayout(): boolean {
 let sheetOpener: HTMLElement | null = null;
 
 // Give the open sheet dialog semantics and move focus into it (mobile
-// only). Non-modal — the map stays visible and tappable behind the peek,
+// only). Non-modal - the map stays visible and tappable behind the peek,
 // so we deliberately don't trap focus or `inert` the background.
 function openSheetDialog(): void {
   const panel = document.getElementById('country-panel');
@@ -66,7 +66,7 @@ function closeSheetDialog(): void {
   sheetOpener = null;
 }
 
-// Drag-down-to-dismiss on the grab handle — the gesture the pill affords.
+// Drag-down-to-dismiss on the grab handle - the gesture the pill affords.
 // A tap (no travel) closes via the button's click handler; a small drag
 // springs back; a firm downward drag closes.
 function initSheetDrag(): void {
@@ -155,6 +155,41 @@ function renderRank(countryName: string): void {
   el.textContent = result ? `Rank ${result.rank} of ${result.total}` : '';
 }
 
+// Score bar, dots, and rank - split from renderPanel because the timeline
+// re-renders just these. While the timeline is scrubbed to a historical
+// date, the panel shows that date's snapshot (the same vintage the map is
+// painting) instead of silently disagreeing with it. Prose, sources, and
+// sub-indicators have no historical record, so a notice says exactly what
+// the reader is looking at; rank is a latest-data derivation and hides.
+function renderScores(countryName: string): void {
+  const { scoreData, timelineDate } = getState();
+  // scoresAtDate() is null for "Latest" AND for dates the history doesn't
+  // know (a hand-edited ?date=); in both cases the map paints latest data,
+  // so the panel must too - historical mode only when a vintage resolved.
+  const snapshots = timelineDate ? scoresAtDate() : null;
+  const historical = snapshots != null;
+  const entry = historical
+    ? snapshots[countryName] ?? null
+    : scoreData[countryName] ?? null;
+
+  renderScoreBar(entry ? entry.averageScore : null);
+  renderAllDots(entry);
+
+  if (historical) {
+    const rankEl = document.getElementById('maturity-rank');
+    if (rankEl) rankEl.textContent = '';
+  } else {
+    renderRank(countryName);
+  }
+
+  const notice = document.getElementById('panel-history-notice');
+  if (notice) {
+    notice.hidden = !historical;
+    const dateEl = document.getElementById('panel-history-date');
+    if (dateEl && timelineDate) dateEl.textContent = timelineDate;
+  }
+}
+
 function renderPanel(countryName: string): void {
   const { scoreData, regulationData, mainView } = getState();
   const score = scoreData[countryName];
@@ -200,11 +235,9 @@ function renderPanel(countryName: string): void {
     ? `Data as of ${dateStr} · ${countText}`
     : countText;
 
-  renderScoreBar(score ? score.averageScore : null);
-  renderRank(countryName);
-  renderAllDots(score);
+  renderScores(countryName);
   updateDimensionHighlight();
-  renderTextSections(reg);
+  renderTextSections(reg, getState().sourceMeta);
   renderChangelog(countryName);
   highlightCountry(countryName);
   updateCompareButton();
@@ -214,7 +247,7 @@ function renderPanel(countryName: string): void {
   // a country slides it up (the transition lives in CSS); on desktop the
   // class is inert. Skip while the full comparison view owns the screen.
   if (!comparisonOpen) {
-    // Reset to the top for every fresh country — otherwise, after
+    // Reset to the top for every fresh country - otherwise, after
     // scrolling one country's sheet/panel, the next selection opens
     // mid-content with the name and score off-screen. renderPanel only
     // runs on a selection change, so this never clobbers a deliberate
@@ -234,7 +267,7 @@ function clearPanel(): void {
   // Show the "select a country" fallback only once the onboarding intro
   // is gone. Until the user has selected their first country the intro
   // is still mounted (consumeIntro removes it), and stacking both reads
-  // as a contradictory double empty-state — which a bare Esc (deselect
+  // as a contradictory double empty-state - which a bare Esc (deselect
   // with nothing selected) would otherwise trigger.
   if (fallback) fallback.hidden = document.getElementById('panel-intro') !== null;
   document.getElementById('panel-content')!.style.display = 'none';
@@ -255,7 +288,7 @@ export function initPanel(): void {
     });
   }
 
-  // Touch-equivalent of Esc — visible on coarse pointers only (CSS).
+  // Touch-equivalent of Esc - visible on coarse pointers only (CSS).
   const closeBtn = document.getElementById('panel-close');
   if (closeBtn) {
     closeBtn.addEventListener('click', () => setState({ selectedCountry: null }));
@@ -280,7 +313,7 @@ export function initPanel(): void {
     if (view !== 'map') document.body.classList.remove('sheet-open');
   });
 
-  // Copy the full source list as a numbered, paste-ready block —
+  // Copy the full source list as a numbered, paste-ready block -
   // analysts move these into footnotes and research notes.
   const sourcesCopyBtn = maybeEl<HTMLButtonElement>('sources-copy');
   if (sourcesCopyBtn) {
@@ -307,11 +340,33 @@ export function initPanel(): void {
   on('currentAttribute', updateDimensionHighlight);
   on('comparisonCountries', () => { updateCompareButton(); updateCiteButton(); });
 
-  // history.json arrives async — a URL-deep-linked country may already
+  // history.json arrives async - a URL-deep-linked country may already
   // be rendered by then, so backfill its changelog section.
   on('history', () => {
     const { selectedCountry } = getState();
     if (selectedCountry) renderChangelog(selectedCountry);
+  });
+
+  // The timeline scrubber re-vintages the open panel's scores so the panel
+  // and the map always show the same date. Only the score block re-renders -
+  // no scroll reset, no sheet re-open.
+  on('timelineDate', () => {
+    const { selectedCountry } = getState();
+    if (selectedCountry) renderScores(selectedCountry);
+  });
+
+  // Source metadata (titles) arrives async from the sources database -
+  // upgrade the open country's source list from hostnames to titles.
+  on('sourceMeta', (meta) => {
+    const { selectedCountry, regulationData } = getState();
+    if (selectedCountry) renderTextSections(regulationData[selectedCountry], meta);
+  });
+
+  // A dataset replacement (Supabase hydration) re-renders the open entry
+  // with the fresh prose, sources, and confidence.
+  on('regulationData', () => {
+    const { selectedCountry } = getState();
+    if (selectedCountry) renderPanel(selectedCountry);
   });
   updateCiteButton();
 

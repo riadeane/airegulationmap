@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Methodology — AI Regulation Map</title>
+  <title>Methodology · AI Regulation Map</title>
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="canonical" href="https://airegulationmap.org/methodology.html">
@@ -11,7 +11,7 @@
   <meta name="description" content="How country scores on the AI Regulation Map are constructed, the 1–5 rubric for each dimension, confidence levels, update cadence, and known limitations.">
 
   <meta property="og:type" content="article">
-  <meta property="og:title" content="Methodology — AI Regulation Map">
+  <meta property="og:title" content="Methodology · AI Regulation Map">
   <meta property="og:description" content="The 1–5 rubric for scoring AI regulation across six dimensions, plus the pipeline that assigns and updates scores.">
   <meta property="og:image" content="https://airegulationmap.org/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -19,7 +19,7 @@
   <meta property="og:url" content="https://airegulationmap.org/methodology.html">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Methodology — AI Regulation Map">
+  <meta name="twitter:title" content="Methodology · AI Regulation Map">
   <meta name="twitter:description" content="How scores are constructed, the 1–5 rubric, and the automated pipeline.">
   <meta name="twitter:image" content="https://airegulationmap.org/og-image.png">
 
@@ -46,7 +46,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 
   <style>
-    /* Tokens — mirror of the main app's _tokens.css, trimmed to what
+    /* Tokens: mirror of the main app's _tokens.css, trimmed to what
        this page actually uses. Kept inline so methodology.html renders
        correctly even if the main bundle is unavailable. */
     :root {
@@ -275,7 +275,7 @@
       text-align: center;
     }
 
-    /* Print — strip chrome, inline everything, use black-on-white. */
+    /* Print: strip chrome, inline everything, use black-on-white. */
     @media print {
       body { background: white; color: black; font-size: 11pt; }
       header.site-header, footer.site-footer { display: none; }
@@ -351,8 +351,8 @@
       (regulation status, policy lever, enforcement level) are
       <em>normative</em>: higher means more developed. Two
       (governance type, actor involvement) are <em>descriptive</em>:
-      they record how a country governs — centralized vs. distributed,
-      narrow vs. broad participation — not how well. Descriptive
+      they record how a country governs (centralized vs. distributed,
+      narrow vs. broad participation), not how well. Descriptive
       dimensions are excluded from the composite.
     </p>
     <p>
@@ -365,14 +365,14 @@
       country is published in
       <a href="/data/subscores.json"><code>subscores.json</code></a>.
       Scoring is calibrated so that <strong>5 means the global frontier at
-      the time of scoring</strong> — the standard set by the two or three
-      most advanced jurisdictions for that aspect — not perfection.
+      the time of scoring</strong>, meaning the standard set by the two or
+      three most advanced jurisdictions for that aspect, not perfection.
       Countries scored before June 2026 carry integer scores until their
       next research pass.
     </p>
 
     <h3>Regulation Status</h3>
-    <p>The existence and maturity of AI-specific regulation — whether binding law, a draft bill, a national strategy, or nothing at all.</p>
+    <p>The existence and maturity of AI-specific regulation: binding law, a draft bill, a national strategy, or nothing at all.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">No regulation or minimal engagement; AI is not named in policy documents. <em>Example: many least-developed countries with no ICT ministry position on AI.</em></div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Early-stage engagement: voluntary guidelines, a sectoral code of practice, or an advisory committee. <em>Example: a national ethics advisory board with non-binding recommendations.</em></div></div>
@@ -382,17 +382,17 @@
     </div>
 
     <h3>Policy Lever</h3>
-    <p>The breadth of policy instruments in use — from narrow, sector-specific tools to broad, cross-cutting frameworks.</p>
+    <p>The breadth of policy instruments in use, from narrow, sector-specific tools to broad, cross-cutting frameworks.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Narrow: one tool, one sector, or indirect leverage only (e.g. data protection law being bent to cover AI).</div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Two or three instruments in related areas: e.g. a national strategy paired with sectoral guidance, or a regulatory sandbox alongside a code of practice.</div></div>
-      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Mixed: several instruments — standards, procurement guidance, R&amp;D funding, some sectoral rules.</div></div>
+      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Mixed: several instruments: standards, procurement guidance, R&amp;D funding, some sectoral rules.</div></div>
       <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body">Multiple instruments across several domains, with at least one binding regulation and active funding, standards, or capacity-building work in parallel.</div></div>
       <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Broad: a horizontal regulatory framework plus sectoral adaptations, public investment, and compliance infrastructure.</div></div>
     </div>
 
     <h3>Governance Type</h3>
-    <p>Where authority for AI regulation sits — concentrated in a single body vs. distributed across agencies, sectors, and levels of government. <strong>Descriptive, not a quality scale:</strong> a 1 here means highly centralized, not bad; a 5 means highly distributed, not good. This dimension does not enter the maturity index.</p>
+    <p>Where authority for AI regulation sits: concentrated in a single body vs. distributed across agencies, sectors, and levels of government. <strong>Descriptive, not a quality scale:</strong> a 1 here means highly centralized, not bad; a 5 means highly distributed, not good. This dimension does not enter the maturity index.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Centralized: a single national authority sets and enforces policy.</div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Lead authority with informal delegation to one or two sectoral bodies; coordination happens ad hoc.</div></div>
@@ -402,7 +402,7 @@
     </div>
 
     <h3>Actor Involvement</h3>
-    <p>Which actors shape AI policy — narrow expert circles vs. broad engagement with industry, civil society, academia, and the public. <strong>Descriptive, not a quality scale</strong>, and scored on domestic process: international standard-setting activity does not substitute for civil-society access at home. This dimension does not enter the maturity index.</p>
+    <p>Which actors shape AI policy: narrow expert circles vs. broad engagement with industry, civil society, academia, and the public. <strong>Descriptive, not a quality scale</strong>, and scored on domestic process: international standard-setting activity does not substitute for civil-society access at home. This dimension does not enter the maturity index.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Limited: policy is set inside government with minimal external input.</div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Industry is consulted informally; civil society and academia have no structured access.</div></div>
@@ -412,7 +412,7 @@
     </div>
 
     <h3>Enforcement Level</h3>
-    <p>How strictly existing rules are enforced — from rules on paper only, to active supervision with penalties.</p>
+    <p>How strictly existing rules are enforced, from rules on paper only, to active supervision with penalties.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">No enforcement mechanism; obligations are not tied to any authority.</div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Obligations reference an authority but no sanctioning framework is in place; compliance is effectively voluntary.</div></div>
@@ -422,21 +422,22 @@
     </div>
 
     <h3>Maturity Index</h3>
-    <p>A <strong>regulatory maturity index</strong> (the arithmetic mean of the three normative dimensions — regulation status, policy lever, and enforcement level), labelled <em>Maturity Index</em> on the map and exported as the <code>Average Score</code> column. Governance type and actor involvement are excluded because they describe regulatory <em>style</em>, not development; averaging them in would reward or punish countries for being centralized or distributed. Shown by default on the map because it gives the fastest cross-country read, but the individual dimensions are where the interesting signal lives.</p>
+    <p>A <strong>regulatory maturity index</strong> (the arithmetic mean of the three normative dimensions: regulation status, policy lever, and enforcement level), labelled <em>Maturity Index</em> on the map and exported as the <code>Average Score</code> column. Governance type and actor involvement are excluded because they describe regulatory <em>style</em>, not development; averaging them in would reward or punish countries for being centralized or distributed. Shown by default on the map because it gives the fastest cross-country read, but the individual dimensions are where the interesting signal lives.</p>
     <div class="callout"><strong>Continuity note:</strong> Before June 2026 the composite averaged four dimensions (including the two descriptive ones, excluding enforcement) and all scores were integers. Comparisons across that boundary should use the per-dimension scores, which kept their definitions.</div>
 
     <h2 id="confidence">Confidence levels</h2>
     <p>Each country record carries a confidence label that reflects how much public, primary evidence was available to the research pass.</p>
     <ul>
-      <li><strong>High</strong> — scores are supported by enacted legislation, official regulator publications, and at least two independent English-language sources published within the last 12 months.</li>
-      <li><strong>Medium</strong> — scores rely on strategy documents, draft bills, or reputable secondary reporting; some dimensions may be inferred from adjacent policy areas.</li>
-      <li><strong>Low</strong> — public information is sparse, in a non-English primary language with uncertain translation, or predates the last major policy cycle. Treat these rows as indicative rather than definitive.</li>
+      <li><strong>High</strong>: scores are supported by enacted legislation, official regulator publications, and at least two independent English-language sources published within the last 12 months.</li>
+      <li><strong>Medium</strong>: scores rely on strategy documents, draft bills, or reputable secondary reporting; some dimensions may be inferred from adjacent policy areas.</li>
+      <li><strong>Low</strong>: public information is sparse, in a non-English primary language with uncertain translation, or predates the last major policy cycle. Treat these rows as indicative rather than definitive.</li>
     </ul>
     <p>Confidence is currently assigned at the record level (per country), not per individual dimension. We consider per-field confidence a future enhancement.</p>
 
     <h2 id="update-cadence">Data update cadence</h2>
     <p>A <a href="https://github.com/riadeane/airegulationmap/blob/main/.github/workflows/update-data.yml" rel="noopener noreferrer">GitHub Action</a> runs on the 1st of each month and researches any country whose record is older than a staleness threshold or flagged as low confidence. Manual overrides (single-country re-research, forced refresh of the whole dataset) are possible via <code>scripts/update_data.py</code>.</p>
-    <p>Every month's run is preserved as a snapshot in <code>public/history.json</code>, which drives the timeline slider on the main page — so the "score at date X" view is always reproducible from the raw data.</p>
+    <p>Every month's run is preserved as a snapshot in <code>public/history.json</code>, which drives the timeline slider on the main page, so the "score at date X" view is always reproducible from the raw data.</p>
+    <p><strong>Evidence grounding (July 2026).</strong> Research runs can be grounded in verified policy-initiative records from the <a href="https://oecd.ai" rel="noopener noreferrer">OECD.AI Policy Observatory</a> (Policy Navigator/GAIIN): for covered countries, the model scores against those records as stated facts rather than open-ended recall, and the records themselves are shown in each country's <em>Policy initiatives</em> panel section. Every run, grounded or not, is recorded with its model, prompt version, and token counts in a public <code>research_runs</code> provenance table (see <a href="/data.html">Data &amp; API</a>).</p>
 
     <h2 id="limitations">Known limitations</h2>
     <ul>
@@ -450,7 +451,7 @@
 
     <h2 id="data-access">Data access for analysts</h2>
     <p>
-      Every data file behind this site is a static, versioned artifact —
+      Every data file behind this site is a static, versioned artifact:
       no API key, no rate limits. Load it directly into your tools:
     </p>
     <div class="rubric">
@@ -465,6 +466,12 @@
       so any past state of the dataset is retrievable and citeable by
       commit hash. The in-app Export button produces the same data merged
       into a single CSV/JSON.
+    </p>
+    <p>
+      For queryable access (filtered extracts, score history, the sources
+      database, policy-initiative records, and run provenance) the same data
+      is served by a public read-only REST API with CSV export. Endpoints and
+      copy-paste examples live on the <a href="/data.html">Data &amp; API</a> page.
     </p>
 
     <h2 id="citing">Citing this site</h2>

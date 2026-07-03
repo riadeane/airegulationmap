@@ -4,12 +4,12 @@
 // hides the map layer); the country panel stays alongside, so clicking
 // a dot reads exactly like clicking a country on the map.
 //
-// Shows LATEST scores only — the timeline scrubber drives the map, not
+// Shows LATEST scores only - the timeline scrubber drives the map, not
 // this view (history snapshots are score-only and axis pairs would
 // silently mix vintages).
 
 import { select } from 'd3-selection';
-import { el } from '../dom';
+import { el, maybeEl } from '../dom';
 import type { Selection } from 'd3-selection';
 import { scaleLinear } from 'd3-scale';
 import type { ScaleLinear } from 'd3-scale';
@@ -18,6 +18,7 @@ import { format } from 'd3-format';
 import 'd3-transition';
 
 import { getState, setState, on } from '../state/store';
+import { visibleCountrySet } from '../state/selectors';
 import { toggleScatter, showMap } from '../state/interactions';
 import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants';
 import type { AttributeKey } from '../constants';
@@ -25,6 +26,7 @@ import { makeColorScale } from '../map/legend';
 import { cssVar, onThemeChange } from '../map/cssColors';
 import { createTooltip, showTooltip, hideTooltip } from '../map/tooltip';
 import { jitterFor } from './jitter';
+import { pearsonAndFit, clipLineToBox } from './stats';
 
 // The viewBox tracks the container's real pixel box (see layout()) so the
 // plot fills the tall portrait slot instead of letterboxing into a small
@@ -45,6 +47,11 @@ function isCoarse(): boolean {
 // pointers the first tap "previews" a dot (pins its name); a second tap
 // on the same dot commits the selection.
 let previewedName: string | null = null;
+
+// Trend overlay toggle - module-local, not AppState: it's a cosmetic
+// reading aid, not a shareable view axis (promote to the store + URL if
+// that ever changes).
+let showTrend = false;
 
 /** One country positioned on the two chosen score dimensions. */
 interface ScatterDot {
@@ -106,7 +113,7 @@ function createChart(): void {
 
   layout();
 
-  // Re-fit whenever the chart box changes size — the container settles
+  // Re-fit whenever the chart box changes size - the container settles
   // after open, the menu collapsing lengthens it, and rotation resizes
   // it. A ResizeObserver catches all of these (a one-time measure and a
   // window-resize listener both miss the header-height changes).
@@ -153,32 +160,23 @@ function dotTooltipHtml(d: PlottedDot, xKey: AttributeKey, yKey: AttributeKey): 
 
 function updateChart(): void {
   if (!svg) return;
-  const {
-    scoreData, scatterX, scatterY, selectedCountry,
-    currentAttribute, filterMin, filterMax, selectedBloc, blocsData,
-  } = getState();
+  const { scoreData, scatterX, scatterY, selectedCountry } = getState();
 
   svg.select('#scatter-x-label').text(ATTRIBUTE_LABELS[scatterX]);
   svg.select('#scatter-y-label').text(ATTRIBUTE_LABELS[scatterY]);
 
-  const blocSet = selectedBloc && blocsData?.[selectedBloc]
-    ? new Set(blocsData[selectedBloc].members)
-    : null;
+  // The shared visibility predicate (score range + bloc) - identical to the
+  // map's dimming and the export's "filtered view" scope.
+  const visibleSet = visibleCountrySet();
 
   const countries = Object.entries(scoreData)
-    .map(([name, scores]): ScatterDot => {
-      const filterScore = scores[currentAttribute];
-      const inRange = filterScore != null
-        && filterScore >= filterMin && filterScore <= filterMax;
-      const inBloc = !blocSet || blocSet.has(name);
-      return {
-        name,
-        x: scores[scatterX],
-        y: scores[scatterY],
-        avg: scores.averageScore,
-        visible: inRange && inBloc,
-      };
-    })
+    .map(([name, scores]): ScatterDot => ({
+      name,
+      x: scores[scatterX],
+      y: scores[scatterY],
+      avg: scores.averageScore,
+      visible: visibleSet.has(name),
+    }))
     .filter((d): d is PlottedDot => d.x != null && d.y != null);
 
   const colorScale = makeColorScale();
@@ -211,8 +209,10 @@ function updateChart(): void {
     .attr('stroke-width', d => isMarked(d.name) ? 2 : 0.6)
     .style('opacity', d => d.visible ? 0.85 : 0.15);
 
+  renderTrend(countries);
+
   // Name labels pinned to the selected dot AND (on touch) the previewed
-  // dot — in a 196-dot field the highlight ring alone is easy to lose,
+  // dot - in a 196-dot field the highlight ring alone is easy to lose,
   // and the preview needs to say which country you're about to open.
   const labelled = countries.filter(d => isMarked(d.name));
   svg.selectAll<SVGTextElement, PlottedDot>('text.scatter-dot-label')
@@ -225,8 +225,37 @@ function updateChart(): void {
     .text(d => d.name);
 }
 
+// Least-squares trend line + Pearson's r over the VISIBLE dots (the same
+// set the filters leave lit), so the annotation describes what the reader
+// is actually looking at. Drawn in data space and clipped to the plot box.
+function renderTrend(countries: PlottedDot[]): void {
+  if (!svg) return;
+  const stats = showTrend
+    ? pearsonAndFit(countries.filter(d => d.visible).map(d => ({ x: d.x, y: d.y })))
+    : null;
+  const seg = stats ? clipLineToBox(stats, { x0: 0.5, x1: 5.5, y0: 0.5, y1: 5.5 }) : null;
+
+  svg.selectAll('line.scatter-trend')
+    .data(seg ? [seg] : [])
+    .join('line')
+    .attr('class', 'scatter-trend')
+    .attr('x1', d => xScale(d.x0))
+    .attr('y1', d => yScale(d.y0))
+    .attr('x2', d => xScale(d.x1))
+    .attr('y2', d => yScale(d.y1));
+
+  svg.selectAll('text.scatter-trend-stats')
+    .data(stats ? [stats] : [])
+    .join('text')
+    .attr('class', 'scatter-trend-stats')
+    .attr('x', WIDTH - MARGIN.right - 6)
+    .attr('y', MARGIN.top + 12)
+    .attr('text-anchor', 'end')
+    .text(d => `r = ${d.r.toFixed(2)} · n = ${d.n}`);
+}
+
 // Touch: first tap previews (names) the dot, second tap on the same dot
-// selects it. Mouse (fine pointer): tap selects immediately — hover
+// selects it. Mouse (fine pointer): tap selects immediately - hover
 // already reveals identity.
 function onDotClick(name: string): void {
   if (isCoarse() && previewedName !== name) {
@@ -269,12 +298,20 @@ export function initScatter(): void {
 
   populateAxisSelects();
 
+  const trendBox = maybeEl<HTMLInputElement>('scatter-trend');
+  if (trendBox) {
+    trendBox.addEventListener('change', () => {
+      showTrend = trendBox.checked;
+      if (getState().mainView === 'scatter') updateChart();
+    });
+  }
+
   btn.addEventListener('click', () => {
-    // The FSM makes scatter and comparison mutually exclusive for free —
+    // The FSM makes scatter and comparison mutually exclusive for free -
     // switching to scatter simply leaves whatever view was active.
     toggleScatter();
     // Move focus into the explorer so keyboard users land in the new view
-    // (and back to the trigger when it closes). Only on explicit toggles —
+    // (and back to the trigger when it closes). Only on explicit toggles -
     // not on load / URL restore, which call setVisible directly.
     if (getState().mainView === 'scatter') closeBtn.focus();
   });
@@ -302,6 +339,8 @@ export function initScatter(): void {
   on('filterMin', refreshIfOpen);
   on('filterMax', refreshIfOpen);
   on('selectedBloc', refreshIfOpen);
+  on('filterConfidence', refreshIfOpen);
+  on('filterOfficialOnly', refreshIfOpen);
   onThemeChange(refreshIfOpen);
 
   setVisible(getState().mainView === 'scatter');

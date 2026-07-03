@@ -1,5 +1,5 @@
 // Renders the SCORE HISTORY section of the country panel from
-// history.json snapshots. DOM built programmatically — never innerHTML
+// history.json snapshots. DOM built programmatically - never innerHTML
 // with data-derived strings.
 
 import { getState } from '../state/store';
@@ -74,7 +74,7 @@ function renderInitialEntry(entry: ChangelogInitialEntry): HTMLDivElement {
   const time = document.createElement('time');
   time.className = 'changelog-date';
   time.dateTime = entry.date;
-  time.textContent = `${formatDate(entry.date)} — initial assessment`;
+  time.textContent = `${formatDate(entry.date)} · initial assessment`;
   entryDiv.appendChild(time);
 
   return entryDiv;
@@ -91,7 +91,7 @@ export function renderChangelog(countryName: string): void {
   const snapshots = history?.countries?.[countryName];
 
   // History hasn't loaded yet (it arrives async) or the country has no
-  // snapshots — hide rather than show an empty frame.
+  // snapshots - hide rather than show an empty frame.
   if (!snapshots || snapshots.length === 0) {
     section.style.display = 'none';
     return;
@@ -111,7 +111,7 @@ export function renderChangelog(countryName: string): void {
   }
 
   // Methodology v2 (June 2026) changed both the scoring mechanics and
-  // the calibration — without this note, a change entry crossing the
+  // the calibration - without this note, a change entry crossing the
   // boundary (e.g. "Governance Type 5 → 2.25 ↓") reads as a regulatory
   // collapse rather than a re-measurement.
   const crossesV2 = snapshots.some(s => s.date < METHODOLOGY_V2_DATE)

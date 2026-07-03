@@ -33,7 +33,7 @@ function getNormCtx(): CanvasRenderingContext2D {
   canvas.width = 1;
   canvas.height = 1;
   // willReadFrequently hints to the browser that we'll call getImageData
-  // often — avoids a console warning and keeps the canvas on the CPU
+  // often - avoids a console warning and keeps the canvas on the CPU
   // side where readbacks are cheap.
   normCtx = canvas.getContext('2d', { willReadFrequently: true })!;
   return normCtx;

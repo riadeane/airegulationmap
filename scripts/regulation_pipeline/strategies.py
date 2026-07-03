@@ -3,7 +3,7 @@
 The synchronous path researches countries one call at a time (immediate, full
 price); the Batches path submits them all at once (50% token pricing, ~1h
 turnaround). Both are generators that yield ``(country, ResearchResult | None)``
-as answers arrive — ``None`` means the answer failed for *any* reason (transient
+as answers arrive - ``None`` means the answer failed for *any* reason (transient
 error, unparseable JSON, or schema-invalid response). Validating here (rather than
 downstream) keeps the sync circuit-breaker able to count invalid responses, and
 lets the service deal only in validated domain objects.
@@ -44,7 +44,7 @@ class ResearchStrategy(ABC):
 
 class SyncStrategy(ResearchStrategy):
     """One API call per country, in order. Aborts the run if too many countries
-    fail in a row — a transient error, an unparseable answer, or a schema-invalid
+    fail in a row - a transient error, an unparseable answer, or a schema-invalid
     answer all count, since any sustained run of them signals a systemic
     problem rather than isolated flakiness."""
 
@@ -78,7 +78,7 @@ class SyncStrategy(ResearchStrategy):
                 if elapsed > self._max_wall_seconds:
                     raise FatalAPIError(
                         f"run exceeded {self._max_wall_seconds:.0f}s wall-clock budget "
-                        f"after {i - 1}/{len(countries)} countries — aborting"
+                        f"after {i - 1}/{len(countries)} countries - aborting"
                     )
             logger.info("[%d/%d] Researching %s...", i, len(countries), country)
             raw = self._client.research(
@@ -90,7 +90,7 @@ class SyncStrategy(ResearchStrategy):
                 yield country, None
                 if consecutive >= self._max_consecutive_failures:
                     raise FatalAPIError(
-                        f"{consecutive} consecutive failures — likely a systemic issue"
+                        f"{consecutive} consecutive failures - likely a systemic issue"
                     )
                 self._sleep(2)
                 continue
@@ -104,7 +104,7 @@ class SyncStrategy(ResearchStrategy):
 class BatchStrategy(ResearchStrategy):
     """Submit every country in one batch (with a transient-failure retry batch),
     then yield the validated answer for each. The Batches API returns per-request
-    results, so there is no consecutive-failure abort — a bad request costs one
+    results, so there is no consecutive-failure abort - a bad request costs one
     country, not the run."""
 
     def __init__(

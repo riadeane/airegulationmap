@@ -1,5 +1,5 @@
 // Deterministic per-country jitter so dots on the integer 5×5 score
-// grid spread out without stacking — and land in the SAME spot on
+// grid spread out without stacking - and land in the SAME spot on
 // every render, reload, and shared link. FNV-1a hash, two decorrelated
 // lanes for x and y. Pure, unit-tested.
 

@@ -1,4 +1,4 @@
-/* Scatter plot ("dimension explorer") — a full view in the map's slot.
+/* Scatter plot ("dimension explorer") - a full view in the map's slot.
    body.view-scatter hides the map layer (visibility, not display, so
    the map keeps its layout and switching back is instant). */
 
@@ -24,7 +24,7 @@ body.view-scatter #timeline-strip {
   animation: fadeIn 0.25s var(--ease-out);
 }
 
-/* The author display:flex above overrides the UA's [hidden] rule —
+/* The author display:flex above overrides the UA's [hidden] rule -
    without this, the "hidden" container covers the map on every load. */
 .scatter-container[hidden] {
   display: none;
@@ -190,4 +190,30 @@ circle.scatter-dot:hover {
     flex-wrap: wrap;
     gap: 8px;
   }
+}
+
+/* Trend overlay - least-squares line + Pearson's r over visible dots */
+.scatter-trend-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.scatter-trend-toggle input {
+  accent-color: var(--accent);
+}
+
+line.scatter-trend {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+text.scatter-trend-stats {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  fill: var(--text-secondary);
 }

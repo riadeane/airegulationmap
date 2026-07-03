@@ -1,5 +1,5 @@
 /* ── Help overlay ─────────────────────────────────────────────
-   Native <dialog> — gives us focus trap, Esc-to-close, and
+   Native <dialog> - gives us focus trap, Esc-to-close, and
    ::backdrop for free. Sits over the full viewport.
    ----------------------------------------------------------- */
 .help-overlay {

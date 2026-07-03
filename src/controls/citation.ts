@@ -25,9 +25,9 @@ export interface Citations {
 function viewTitle({ country, compareCountries, mode }: Pick<CitationView, 'country' | 'compareCountries' | 'mode'>): string {
   let title = 'AI Regulation Map';
   if (compareCountries && compareCountries.length >= 2) {
-    title += ' — ' + compareCountries.join(', ') + ' comparison';
+    title += ': ' + compareCountries.join(', ') + ' comparison';
   } else if (country) {
-    title += ' — ' + country;
+    title += ': ' + country;
   }
   if (mode && mode !== DEFAULT_MODE) {
     title += ' (' + ((ATTRIBUTE_LABELS as Record<string, string>)[mode] || mode) + ')';
@@ -36,7 +36,7 @@ function viewTitle({ country, compareCountries, mode }: Pick<CitationView, 'coun
 }
 
 function humanAccessed(dateIso: string): string {
-  // "17 April 2026" — Chicago / MLA prefer day-month-year.
+  // "17 April 2026" - Chicago / MLA prefer day-month-year.
   const d = new Date(dateIso + 'T00:00:00');
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 }

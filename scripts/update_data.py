@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AI Regulation Map — data update script (thin shim).
+"""AI Regulation Map - data update script (thin shim).
 
 Delegates to ``regulation_pipeline.cli.main``. Kept so the historical invocation
 ``python scripts/update_data.py ...`` keeps working without installing the

@@ -115,5 +115,5 @@ export function renderRadar(containerEl: Element, countries: readonly string[], 
   containerEl.appendChild(svg.node()!);
   // The numeric scores live in the unified comparison table below the
   // chart (renderComparisonTable), which is a real <table> and serves
-  // the accessibility role this chart needs — no separate data table.
+  // the accessibility role this chart needs - no separate data table.
 }

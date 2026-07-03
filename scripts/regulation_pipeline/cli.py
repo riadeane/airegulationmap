@@ -8,10 +8,13 @@ argument parsing, logging setup, credentials, and dependency construction.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sys
+from collections.abc import Callable
 from datetime import date
+from pathlib import Path
 
 import anthropic
 import typer
@@ -20,6 +23,7 @@ from .api import ResearchClient
 from .batch import BatchRunner
 from .config import DEFAULT_MODEL, Settings
 from .names import CountryNames
+from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
 from .repository import Dataset
 from .service import PipelineService
 from .staleness import StalenessPolicy
@@ -53,6 +57,22 @@ def _run(
         0, help="Abort a sync run after this many minutes (0 = unbounded). Bounds the "
         "worst case when the API is slow-but-not-failing. Ignored with --batch."
     ),
+    mirror: bool | None = typer.Option(
+        None, "--mirror/--no-mirror",
+        help="Dual-write results to Supabase (research_runs provenance, scores, "
+        "summaries, history, sources). Default: on when SUPABASE_URL and "
+        "SUPABASE_SERVICE_KEY are set. Mirror failures never fail the run.",
+    ),
+    grounded: bool = typer.Option(
+        False, "--grounded",
+        help="Ground research in verified policy initiatives (from Supabase, or "
+        "--evidence-file). Countries without evidence fall back to the plain "
+        "prompt. Grounded prompts are longer - pair with --batch.",
+    ),
+    evidence_file: str = typer.Option(
+        "", "--evidence-file",
+        help='Offline evidence for --grounded: JSON {"<country>": [initiative, ...]}.',
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose (DEBUG) logging"),
 ) -> None:
     """Update AI regulation data using the Claude API."""
@@ -66,22 +86,33 @@ def _run(
     settings = Settings(default_model=model).validate()
     today = date.today()
 
-    # SDK-level silent retries are disabled — retry.py does explicit, logged
+    # SDK-level silent retries are disabled - retry.py does explicit, logged
     # retries with backoff, and the two must not multiply.
     client = anthropic.Anthropic(api_key=api_key, max_retries=0)
     names = CountryNames.load(settings.country_names_json)
 
+    evidence_provider = None
+    if grounded:
+        evidence_provider = _build_evidence_provider(evidence_file)
+        if evidence_provider is None:
+            logger.error(
+                "--grounded needs either SUPABASE_URL + SUPABASE_SERVICE_KEY or --evidence-file"
+            )
+            raise typer.Exit(code=1)
+
     research_client = ResearchClient(
-        client, default_model=model, search_model=settings.search_model, today=today
+        client, default_model=model, search_model=settings.search_model, today=today,
+        evidence_provider=evidence_provider,
     )
     priority = settings.priority_countries
 
     def use_search_for(country: str) -> bool:
         return search_all or (search and country in priority)
 
+    batch_runner = BatchRunner(client) if batch else None
     strategy = (
-        BatchStrategy(research_client, BatchRunner(client), use_search_for)
-        if batch
+        BatchStrategy(research_client, batch_runner, use_search_for)
+        if batch_runner
         else SyncStrategy(
             research_client,
             use_search_for,
@@ -91,7 +122,14 @@ def _run(
 
     logger.info("Loading existing data...")
     dataset = Dataset.load(settings, names)
-    service = PipelineService(dataset, StalenessPolicy(settings.staleness_days, today), today)
+    supabase_mirror = _build_mirror(
+        mirror, settings, model=model, batch=batch, grounded=grounded,
+        research_client=research_client, batch_runner=batch_runner,
+    )
+    service = PipelineService(
+        dataset, StalenessPolicy(settings.staleness_days, today), today,
+        mirror=supabase_mirror,
+    )
 
     targets = None
     if countries.strip():
@@ -119,6 +157,106 @@ def _run(
             "Failed countries (%d): %s", len(result.failed), ", ".join(result.failed)
         )
         raise typer.Exit(code=1)
+
+
+def _build_evidence_provider(evidence_file: str) -> Callable[[str], list[dict]] | None:
+    """Evidence for --grounded: an offline JSON file, or ONE up-front
+    PostgREST fetch of every linked initiative, grouped by country.
+
+    Prefetching (rather than a per-country select at prompt-build time) is a
+    correctness property, not an optimization: the provider runs inside
+    request_params, deep in the research loop, where the service only knows
+    how to handle FatalAPIError - a transient Supabase error there would
+    crash the run AFTER countries were researched but BEFORE dataset.save(),
+    losing paid-for results. Failing here, before any research starts, is
+    cheap and loud."""
+    if evidence_file:
+        data = json.loads(Path(evidence_file).read_text(encoding="utf-8"))
+        return lambda country: data.get(country, [])
+
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_KEY")
+    if not (url and key):
+        return None
+
+    from .db.client import SupabaseClient
+
+    with SupabaseClient(url, key) as client:
+        names_by_id = {
+            r["id"]: r["name"]
+            for r in client.select_all("countries", {"select": "id,name"})
+        }
+        by_country: dict[str, list[dict]] = {}
+        rows = client.select_all("policy_initiatives", {
+            "select": "country_id,name,start_year,initiative_type,binding,status,overview,source_url",
+            "country_id": "not.is.null",
+            "order": "start_year.desc.nullslast",
+        })
+        for row in rows:
+            country = names_by_id.get(row.pop("country_id"))
+            if country:
+                by_country.setdefault(country, []).append(row)
+
+    logger.info(
+        "grounded: evidence loaded for %d countries (%d initiatives)",
+        len(by_country), sum(len(v) for v in by_country.values()),
+    )
+    return lambda country: by_country.get(country, [])
+
+
+def _build_mirror(
+    flag: bool | None,
+    settings: Settings,
+    *,
+    model: str,
+    batch: bool,
+    grounded: bool,
+    research_client: ResearchClient,
+    batch_runner: BatchRunner | None,
+):
+    """Construct the Supabase dual-write mirror when configured.
+
+    ``flag`` is the tri-state --mirror/--no-mirror option: None means "auto"
+    (mirror iff the env credentials exist); an explicit --mirror without
+    credentials is a configuration error worth failing loudly on.
+    """
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_KEY")
+    if flag is False:
+        return None
+    if not (url and key):
+        if flag is True:
+            logger.error("--mirror requires SUPABASE_URL and SUPABASE_SERVICE_KEY")
+            raise typer.Exit(code=1)
+        return None
+
+    from .db.client import SupabaseClient
+    from .db.mirror import RunMeta, SupabaseMirror
+
+    def usage_totals() -> dict[str, int]:
+        totals = research_client.usage()
+        if batch_runner is not None:
+            batch_usage = batch_runner.usage()
+            totals = {
+                "input": totals["input"] + batch_usage["input"],
+                "output": totals["output"] + batch_usage["output"],
+            }
+        return totals
+
+    meta = RunMeta(
+        trigger="schedule" if os.environ.get("GITHUB_EVENT_NAME") == "schedule" else "manual",
+        model=model,
+        strategy="batch" if batch else "sync",
+        prompt_version=GROUNDED_PROMPT_VERSION if grounded else PROMPT_VERSION,
+        grounded=grounded,
+        git_sha=os.environ.get("GITHUB_SHA"),
+    )
+    logger.info("Supabase mirror enabled (%s run)", meta.trigger)
+    return SupabaseMirror(
+        SupabaseClient(url, key), meta,
+        iso_path=settings.country_iso_json,
+        usage_provider=usage_totals,
+    )
 
 
 def main() -> None:

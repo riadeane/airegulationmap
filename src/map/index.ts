@@ -7,7 +7,7 @@ export { updateMap, highlightCountry, clearHighlight, updateSearchHighlight, mar
 export { generateMap };
 
 // Speak the current map mode to assistive tech when it changes. The
-// region is polite — it waits for a lull in the user's focus rather
+// region is polite - it waits for a lull in the user's focus rather
 // than interrupting mid-reading. aria-atomic ensures the whole
 // message is re-read on every update (not just the diff).
 function announceMode() {
@@ -21,7 +21,7 @@ function announceMode() {
 
 // Speak the selected country and its current-mode score. Country paths
 // aren't individually focusable, so search and arrow-stepping are the
-// keyboard paths into the map — without this, those users get no
+// keyboard paths into the map - without this, those users get no
 // feedback on what they landed on.
 function announceCountry(name: string | null) {
   const region = document.getElementById('map-live-region');
@@ -66,6 +66,8 @@ export function initMapSubscriptions() {
   on('filterMin', scheduleUpdateMap);
   on('filterMax', scheduleUpdateMap);
   on('selectedBloc', scheduleUpdateMap);
+  on('filterConfidence', scheduleUpdateMap);
+  on('filterOfficialOnly', scheduleUpdateMap);
 
   // The map paints its own comparison markers. Colour slots are assigned by
   // the interactions orchestrator before this fires, so the indices are ready.

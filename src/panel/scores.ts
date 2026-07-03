@@ -2,6 +2,14 @@ import type { ScoreEntry } from '../data/loader';
 import { makeColorScale } from '../map/legend';
 import { cssVar } from '../map/cssColors';
 
+// The five dimension values the dots render. Live rows (ScoreEntry) and
+// historical snapshots (HistorySnapshot) both satisfy this structurally,
+// so the panel can re-vintage its dots during timeline playback.
+type DimensionScores = Pick<
+  ScoreEntry,
+  'regulationStatus' | 'policyLever' | 'governanceType' | 'actorInvolvement' | 'enforcementLevel'
+>;
+
 // Optional colouriser: maps a score to the fill colour for its dots. When
 // omitted the dots fall back to the accent (CSS default).
 type ColorFor = (score: number) => string;
@@ -12,7 +20,7 @@ export function renderDots(elId: string, score: number | null, colorFor?: ColorF
   el.replaceChildren();
   // Scores carry quarter-point decimals since methodology v2. Fill whole
   // dots up to the integer part, then partially fill the next dot for the
-  // fraction — rounding (e.g. 1.75 → two full dots) overstated the score.
+  // fraction - rounding (e.g. 1.75 → two full dots) overstated the score.
   const s = score ?? 0;
   const whole = Math.floor(s);
   const frac = s - whole;
@@ -46,12 +54,12 @@ export function renderScoreBar(avg: number | null): void {
   const fill = document.getElementById('overall-bar-fill')!;
   fill.style.width = avg != null ? `${((avg - 1) / 4) * 100}%` : '0%';
   // Colour the fill by where the score lands on the ramp, so it reads the
-  // same as the country on the map — instead of the old gradient that
+  // same as the country on the map - instead of the old gradient that
   // always ended in "high/blue" no matter the score.
   fill.style.setProperty('--fill-color', avg != null ? makeColorScale()(avg) : 'transparent');
 }
 
-export function renderAllDots(scoreData: ScoreEntry | null | undefined): void {
+export function renderAllDots(scoreData: DimensionScores | null | undefined): void {
   const scale = makeColorScale();
   // Normative dimensions carry the same red→blue quality language as the
   // map; the two descriptive dimensions (governance, actor) are NOT a

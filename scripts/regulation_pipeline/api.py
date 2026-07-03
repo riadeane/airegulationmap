@@ -4,19 +4,20 @@ This layer is deliberately thin and domain-light: it builds request parameters
 (shared verbatim by the synchronous and Batches paths), calls the API with the
 shared retry policy, and extracts the JSON answer. It does *not* know about
 :class:`~regulation_pipeline.models.ResearchResult` beyond the schema it hands to
-the API — validating the raw JSON into a typed result is the service's job.
+the API - validating the raw JSON into a typed result is the service's job.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from datetime import date
 
 import anthropic
 
 from .models import ResearchResult
-from .prompt import render_prompt
+from .prompt import render_grounded_prompt, render_prompt
 from .retry import call_with_retries
 
 logger = logging.getLogger(__name__)
@@ -40,11 +41,30 @@ class ResearchClient:
         default_model: str,
         search_model: str,
         today: date,
+        evidence_provider: Callable[[str], list[dict]] | None = None,
     ):
         self._client = client
         self._default_model = default_model
         self._search_model = search_model
         self._today = today
+        # Grounded mode: returns a country's verified policy initiatives
+        # (policy_initiatives rows). When it yields records, the prompt
+        # embeds them as facts; when empty, the plain research prompt is
+        # used - so evidence-poor countries degrade gracefully.
+        self._evidence_provider = evidence_provider
+        # Cumulative token usage across the run - best-effort provenance for
+        # the research_runs audit row (the batch path tracks its own).
+        self._usage = {"input": 0, "output": 0}
+
+    def usage(self) -> dict[str, int]:
+        return dict(self._usage)
+
+    def _prompt_for(self, country: str, existing_reg: dict | None) -> str:
+        if self._evidence_provider is not None:
+            initiatives = self._evidence_provider(country)
+            if initiatives:
+                return render_grounded_prompt(country, self._today, existing_reg, initiatives)
+        return render_prompt(country, self._today, existing_reg)
 
     def request_params(self, country: str, existing_reg: dict | None, *, use_search: bool) -> dict:
         """Build the ``messages.create`` kwargs for one country. Shared by the
@@ -53,7 +73,7 @@ class ResearchClient:
         params = {
             "model": model,
             "max_tokens": _MAX_TOKENS_SEARCH if use_search else _MAX_TOKENS,
-            "messages": [{"role": "user", "content": render_prompt(country, self._today, existing_reg)}],
+            "messages": [{"role": "user", "content": self._prompt_for(country, existing_reg)}],
             # Structured outputs: the API constrains the answer to this schema,
             # so sub-scores arrive as guaranteed ints 1-5 with all fields present.
             "output_config": {
@@ -75,7 +95,15 @@ class ResearchClient:
         )
         if response is None:
             return None
+        self._track_usage(response)
         return parse_message(response, country)
+
+    def _track_usage(self, response) -> None:
+        usage = getattr(response, "usage", None)
+        if usage is None:
+            return
+        self._usage["input"] += getattr(usage, "input_tokens", 0) or 0
+        self._usage["output"] += getattr(usage, "output_tokens", 0) or 0
 
 
 def parse_message(message, label: str) -> dict | None:
@@ -83,7 +111,7 @@ def parse_message(message, label: str) -> dict | None:
     ``None``.
 
     With web search enabled, responses interleave text and ``server_tool_use``
-    blocks — the constrained JSON answer is the LAST text block, not the first.
+    blocks - the constrained JSON answer is the LAST text block, not the first.
     """
     text = next(
         (block.text for block in reversed(message.content) if block.type == "text"),

@@ -1,4 +1,4 @@
-// Resilience helpers — skeleton removal and data-load error boundary.
+// Resilience helpers - skeleton removal and data-load error boundary.
 //
 // Kept deliberately tiny: just DOM plumbing for the two paths `main()`
 // needs. The copy is honest about the failure but offers the user a
@@ -65,7 +65,7 @@ export function showLoadError(err: unknown): void {
 
   map.appendChild(wrap);
 
-  // Hide the zoom controls — they'd point at nothing.
+  // Hide the zoom controls - they'd point at nothing.
   const zoom = document.getElementById('zoom-controls');
   if (zoom) zoom.style.display = 'none';
 

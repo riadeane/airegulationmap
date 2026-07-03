@@ -4,19 +4,19 @@ These pydantic models are the single source of truth for the pipeline's core
 data shape. They drive three things that previously drifted apart across
 modules:
 
-1. **Structured-output schema** — ``ResearchResult.output_schema()`` generates
+1. **Structured-output schema** - ``ResearchResult.output_schema()`` generates
    the JSON schema handed to the Claude API (``output_config.format``), so the
    API constrains responses to exactly these fields.
-2. **Validation** — ``ResearchResult.model_validate()`` replaces the hand-rolled
+2. **Validation** - ``ResearchResult.model_validate()`` replaces the hand-rolled
    ``validate_result``; a malformed response raises instead of silently landing
    an empty cell in the CSV.
-3. **Projection** — the model knows how to compute its own dimension scores,
+3. **Projection** - the model knows how to compute its own dimension scores,
    maturity composite, sub-score audit entry, and history snapshot.
 
 Methodology v2 (2026-06): each of the five dimensions is scored through four
 named sub-indicators (integers 1-5); the dimension score is their mean, giving
 quarter-point decimals. The composite "average" is a maturity index over the
-three *normative* dimensions only — ``governance_type`` and ``actor_involvement``
+three *normative* dimensions only - ``governance_type`` and ``actor_involvement``
 are descriptive scales and are excluded. See ``public/methodology.html``.
 """
 
@@ -37,7 +37,7 @@ def _reject_bool(value: Any) -> Any:
 
 
 # An integer sub-indicator score. Rendered as ``{"type": "integer",
-# "enum": [1,2,3,4,5]}`` in the output schema — structured outputs don't support
+# "enum": [1,2,3,4,5]}`` in the output schema - structured outputs don't support
 # minimum/maximum, so the 1-5 range is an enum.
 Score = Annotated[Literal[1, 2, 3, 4, 5], BeforeValidator(_reject_bool)]
 Confidence = Literal["high", "medium", "low"]
@@ -97,7 +97,7 @@ class PolicyLever(Dimension):
 class GovernanceType(Dimension):
     key = "governance_type"
     history_key = "governanceType"
-    normative = False  # descriptive scale — excluded from the composite
+    normative = False  # descriptive scale - excluded from the composite
     regulator_plurality: Score
     formal_coordination: Score
     subnational_role: Score
@@ -108,7 +108,7 @@ class GovernanceType(Dimension):
 class ActorInvolvement(Dimension):
     key = "actor_involvement"
     history_key = "actorInvolvement"
-    normative = False  # descriptive scale — excluded from the composite
+    normative = False  # descriptive scale - excluded from the composite
     industry: Score
     civil_society: Score
     academia: Score
@@ -165,10 +165,10 @@ class ResearchResult(BaseModel):
         return round(sum(scores) / len(scores), 2)
 
     @model_validator(mode="after")
-    def _cap_unsourced_confidence(self) -> "ResearchResult":
+    def _cap_unsourced_confidence(self) -> ResearchResult:
         """Keep the model self-consistent with :meth:`effective_confidence`.
         An unsourced claim is not citable, so it cannot carry more than "low"
-        confidence — enforce that at validation time, not only on write, so an
+        confidence - enforce that at validation time, not only on write, so an
         in-memory result never advertises a confidence its sources don't
         support. (Using ``object.__setattr__`` to avoid re-triggering validation.)"""
         if self.confidence != "low" and not self.sources.strip():
@@ -176,7 +176,7 @@ class ResearchResult(BaseModel):
         return self
 
     def effective_confidence(self) -> Confidence:
-        """Unsourced claims are not citable — cap confidence at "low" so the UI
+        """Unsourced claims are not citable - cap confidence at "low" so the UI
         flags them and staleness re-researches them. The model validator above
         already applies this, so this is now a stable, idempotent accessor."""
         return self.confidence if self.sources.strip() else "low"

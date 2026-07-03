@@ -54,12 +54,12 @@
   /* Choropleth ramp endpoints (interpolated in Lab space by d3).
      Red → blue divergent: low scores read "warning / less coverage"
      at a glance, high scores read "mature / well-developed". Also
-     the most colorblind-safe divergent ramp — protan, deutan, and
+     the most colorblind-safe divergent ramp - protan, deutan, and
      tritan observers all see clear separation. */
   --score-low:       oklch(58% 0.16 28);
   --score-high:      oklch(62% 0.13 245);
 
-  /* Comparison palette — four distinct hues at matched lightness so
+  /* Comparison palette - four distinct hues at matched lightness so
      they read well against both themes and against each other on
      the radar overlay. */
   --comparison-1:    oklch(76% 0.13 75);   /* amber */
@@ -73,7 +73,7 @@
   color-scheme: dark;
 }
 
-/* Light theme — rethought as a two-hue divergent palette so the
+/* Light theme - rethought as a two-hue divergent palette so the
    choropleth gradient reads clearly across the cream background
    instead of collapsing into a muddy warm monochrome.
    - Low scores: saturated cool teal-blue.

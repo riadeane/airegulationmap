@@ -170,7 +170,7 @@ def test_research_retries_transient_failures_in_second_batch():
 
 def test_fatal_batch_error_is_not_retried():
     # invalid_request classifies as fatal, so it is NOT resubmitted in a second
-    # batch — it goes straight to the failed list.
+    # batch - it goes straight to the failed list.
     params = {"A": {}}
     batches = FakeBatches(
         [{"statuses": ["ended"], "results": _items(params, {"A": ("errored", "invalid_request")})}]
@@ -184,7 +184,7 @@ def test_fatal_batch_error_is_not_retried():
 
 def test_batch_that_never_terminates_classifies_all_retryable():
     # If a canceled batch never reaches a terminal state within the grace
-    # window, results can't be read — everything is retryable, not lost.
+    # window, results can't be read - everything is retryable, not lost.
     params = {"A": {}}
     batches = FakeBatches([{"statuses": ["canceling"], "results": []}])
     client = FakeClient(batches)

@@ -1,0 +1,354 @@
+{
+ "data": [
+  {
+   "id": 2437,
+   "englishName": "Agentic AI Hub",
+   "originalName": null,
+   "slug": "agentic-ai-hub",
+   "description": "The Agentic AI Hub is a German initiative by the Federal Ministry for Digital and State Modernization, launched on 9 March 2026, pairing 17 municipalities with ten start-ups across",
+   "website": "https://bmds.bund.de/themen/kuenstliche-intelligenz/ki-in-der-verwaltung/agentic-ai-hub",
+   "status": "Active",
+   "responsibleOrganisation": null,
+   "responsibleOrganisationSI": null,
+   "responsibleOrganisationSILocation": null,
+   "responsibleOrganisationSDLocation": null,
+   "category": "AI policy initiatives, programmes and projects",
+   "extentBinding": null,
+   "joint": null,
+   "startYear": 2026,
+   "endYear": null,
+   "overview": "<p>The Agentic AI Hub is the central interface between public administration and AI start-ups, translating bureaucratic problems into technical prototypes that are safely piloted and, where successful, scaled to what wor",
+   "actionPlan": null,
+   "budget": null,
+   "budgetAvailable": null,
+   "isEvaluated": null,
+   "evaluationBy": null,
+   "otherEvaluationBy": null,
+   "evaluationUrls": [],
+   "evaluationDescription": null,
+   "isEvaluationResultsPubliclyAvailable": true,
+   "relevantUrls": [],
+   "engagementDescription": null,
+   "hasMonitoringMechanism": null,
+   "monitoringMechanismDescription": null,
+   "videoUrl": null,
+   "moreInfos": null,
+   "trustworthyAIRelation": null,
+   "intergovernmentalCoordination": null,
+   "trustworthyAIMechanismDescription": null,
+   "otherEngagementMechanism": null,
+   "otherInitiativeType": null,
+   "createdByEmail": "clemence.descubes@oecd.org",
+   "createdByName": "Сlemence Descubes",
+   "updatedByEmail": "guillermo.hernandez@oecd.org",
+   "updatedByName": "Guillermo Hernandez",
+   "publishedByEmail": "guillermo.hernandez@oecd.org",
+   "publishedByName": "Guillermo Hernandez",
+   "editorialStatus": "Published",
+   "createdAt": "2026-06-30T16:36:39.836Z",
+   "updatedAt": "2026-07-01T08:59:54.000Z",
+   "gaiinCountry": {
+    "id": 66,
+    "name": "Germany",
+    "slug": "germany",
+    "code": "DEU",
+    "sortName": "Germany",
+    "order": null,
+    "language": "Samoa",
+    "region": "WEOG",
+    "incomeGroup": "Low income",
+    "populationIn2023": 788092463,
+    "gdp": 539180103,
+    "deletedAt": null
+   },
+   "intergovernmentalOrganisation": null,
+   "images": [],
+   "sourceFiles": [],
+   "evaluationFiles": [],
+   "relevantFiles": [],
+   "targetSectors": [
+    {
+     "id": 3,
+     "name": "Social & welfare issues",
+     "description": "",
+     "order": 0,
+     "deletedAt": null
+    },
+    {
+     "id": 5,
+     "name": "Public governance",
+     "description": "",
+     "order": 0,
+     "deletedAt": null
+    }
+   ],
+   "initiativeType": {
+    "id": 123,
+    "name": "AI use cases/projects in the public sector",
+    "order": 750,
+    "category": "AI policy initiatives, programmes and projects",
+    "isLinkedToAIPrinciple": false,
+    "displayGroup": "Cross-cutting",
+    "deletedAt": null
+   },
+   "principles": [
+    {
+     "id": 1,
+     "name": "1.1 Inclusive growth, sustainable development and well-being",
+     "type": "Values-based principles",
+     "order": 10,
+     "deletedAt": null
+    },
+    {
+     "id": 3,
+     "name": "1.3 Transparency and explainability",
+     "type": "Values-based principles",
+     "order": 8,
+     "deletedAt": null
+    },
+    {
+     "id": 4,
+     "name": "1.4 Robustness, security and safety",
+     "type": "Values-based principles",
+     "order": 7,
+     "deletedAt": null
+    },
+    {
+     "id": 5,
+     "name": "1.5 Accountability",
+     "type": "Values-based principles",
+     "order": 6,
+     "deletedAt": null
+    },
+    {
+     "id": 6,
+     "name": "2.1 Investing in AI research and development",
+     "type": "Recommendations for policymakers",
+     "order": 5,
+     "deletedAt": null
+    },
+    {
+     "id": 7,
+     "name": "2.2 Fostering an inclusive AI-enabling ecosystem",
+     "type": "Recommendations for policymakers",
+     "order": 4,
+     "deletedAt": null
+    },
+    {
+     "id": 9,
+     "name": "2.4 Building human capacity and preparing for labour market transformation",
+     "type": "Recommendations for policymakers",
+     "order": 2,
+     "deletedAt": null
+    }
+   ],
+   "tags": [
+    {
+     "id": 7,
+     "name": "AI Governance & Policy",
+     "order": 60,
+     "deletedAt": null
+    },
+    {
+     "id": 19,
+     "name": "AI-enabling Ecosystem",
+     "order": 50,
+     "deletedAt": null
+    },
+    {
+     "id": 25,
+     "name": "National Policies & Approaches",
+     "order": 220,
+     "deletedAt": null
+    }
+   ],
+   "gaiinCountryId": 66,
+   "intergovernmentalOrganisationId": null,
+   "isWarningHighlight": false,
+   "isDisabledHighlight": false,
+   "isInfoHighlight": false,
+   "isEditable": false,
+   "isDeletable": false,
+   "isEditorialStatusUpdatable": false
+  },
+  {
+   "id": 2436,
+   "englishName": "SPARK - \"Accelerating Planning and Approval through AI\"",
+   "originalName": null,
+   "slug": "spark-accelerating-planning-and-approval-through-ai",
+   "description": "SPARK (\"Accelerating Planning and Approval through AI\") is a German initiative developed by the Federal Ministry for Digital and State Modernization and financed via the Climate an",
+   "website": "https://bmds.bund.de/aktuelles/pressemitteilungen/detail/deutschland-gewinnt-internationalen-ki-preis",
+   "status": "Active",
+   "responsibleOrganisation": null,
+   "responsibleOrganisationSI": null,
+   "responsibleOrganisationSILocation": null,
+   "responsibleOrganisationSDLocation": null,
+   "category": "AI policy initiatives, programmes and projects",
+   "extentBinding": null,
+   "joint": null,
+   "startYear": 2026,
+   "endYear": null,
+   "overview": "<p>SPARK is a central project of the Federal Government to modernise public administration through artificial intelligence. It addresses challenges in planning and approval procedures. The software was developed through ",
+   "actionPlan": null,
+   "budget": null,
+   "budgetAvailable": null,
+   "isEvaluated": null,
+   "evaluationBy": null,
+   "otherEvaluationBy": null,
+   "evaluationUrls": [],
+   "evaluationDescription": null,
+   "isEvaluationResultsPubliclyAvailable": true,
+   "relevantUrls": [
+    "https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow"
+   ],
+   "engagementDescription": null,
+   "hasMonitoringMechanism": null,
+   "monitoringMechanismDescription": null,
+   "videoUrl": null,
+   "moreInfos": null,
+   "trustworthyAIRelation": null,
+   "intergovernmentalCoordination": null,
+   "trustworthyAIMechanismDescription": null,
+   "otherEngagementMechanism": null,
+   "otherInitiativeType": null,
+   "createdByEmail": "clemence.descubes@oecd.org",
+   "createdByName": "Сlemence Descubes",
+   "updatedByEmail": "guillermo.hernandez@oecd.org",
+   "updatedByName": "Guillermo Hernandez",
+   "publishedByEmail": "guillermo.hernandez@oecd.org",
+   "publishedByName": "Guillermo Hernandez",
+   "editorialStatus": "Published",
+   "createdAt": "2026-06-30T13:25:38.128Z",
+   "updatedAt": "2026-07-01T09:00:01.000Z",
+   "gaiinCountry": {
+    "id": 66,
+    "name": "Germany",
+    "slug": "germany",
+    "code": "DEU",
+    "sortName": "Germany",
+    "order": null,
+    "language": "Samoa",
+    "region": "WEOG",
+    "incomeGroup": "Low income",
+    "populationIn2023": 788092463,
+    "gdp": 539180103,
+    "deletedAt": null
+   },
+   "intergovernmentalOrganisation": null,
+   "images": [],
+   "sourceFiles": [],
+   "evaluationFiles": [],
+   "relevantFiles": [],
+   "targetSectors": [
+    {
+     "id": 5,
+     "name": "Public governance",
+     "description": "",
+     "order": 0,
+     "deletedAt": null
+    },
+    {
+     "id": 8,
+     "name": "Innovation",
+     "description": "",
+     "order": 0,
+     "deletedAt": null
+    },
+    {
+     "id": 23,
+     "name": "Public sector",
+     "description": null,
+     "order": null,
+     "deletedAt": null
+    }
+   ],
+   "initiativeType": {
+    "id": 123,
+    "name": "AI use cases/projects in the public sector",
+    "order": 750,
+    "category": "AI policy initiatives, programmes and projects",
+    "isLinkedToAIPrinciple": false,
+    "displayGroup": "Cross-cutting",
+    "deletedAt": null
+   },
+   "principles": [
+    {
+     "id": 3,
+     "name": "1.3 Transparency and explainability",
+     "type": "Values-based principles",
+     "order": 8,
+     "deletedAt": null
+    },
+    {
+     "id": 4,
+     "name": "1.4 Robustness, security and safety",
+     "type": "Values-based principles",
+     "order": 7,
+     "deletedAt": null
+    },
+    {
+     "id": 5,
+     "name": "1.5 Accountability",
+     "type": "Values-based principles",
+     "order": 6,
+     "deletedAt": null
+    },
+    {
+     "id": 6,
+     "name": "2.1 Investing in AI research and development",
+     "type": "Recommendations for policymakers",
+     "order": 5,
+     "deletedAt": null
+    },
+    {
+     "id": 7,
+     "name": "2.2 Fostering an inclusive AI-enabling ecosystem",
+     "type": "Recommendations for policymakers",
+     "order": 4,
+     "deletedAt": null
+    },
+    {
+     "id": 8,
+     "name": "2.3 Shaping an enabling interoperable governance and policy environment for AI",
+     "type": "Recommendations for policymakers",
+     "order": 3,
+     "deletedAt": null
+    }
+   ],
+   "tags": [
+    {
+     "id": 7,
+     "name": "AI Governance & Policy",
+     "order": 60,
+     "deletedAt": null
+    },
+    {
+     "id": 25,
+     "name": "National Policies & Approaches",
+     "order": 220,
+     "deletedAt": null
+    },
+    {
+     "id": 33,
+     "name": "AI in Government",
+     "order": null,
+     "deletedAt": null
+    }
+   ],
+   "gaiinCountryId": 66,
+   "intergovernmentalOrganisationId": null,
+   "isWarningHighlight": false,
+   "isDisabledHighlight": false,
+   "isInfoHighlight": false,
+   "isEditable": false,
+   "isDeletable": false,
+   "isEditorialStatusUpdatable": false
+  }
+ ],
+ "currentPage": 1,
+ "lastPage": 2,
+ "from": 1,
+ "to": 2,
+ "total": 4,
+ "perPage": 2
+}
