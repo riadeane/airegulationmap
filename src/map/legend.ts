@@ -1,20 +1,33 @@
-import { select } from 'd3-selection';
 import type { Selection } from 'd3-selection';
 import { scaleLinear } from 'd3-scale';
 import type { ScaleLinear } from 'd3-scale';
 import { interpolateLab } from 'd3-interpolate';
 import { range } from 'd3-array';
 
-import { LEGEND_ENDPOINTS } from '../constants';
+import { LEGEND_ENDPOINTS, DESCRIPTIVE_ATTRIBUTES } from '../constants';
+import type { AttributeKey } from '../constants';
 import { getState } from '../state/store';
 import { cssVar } from './cssColors';
 
 export type ColorScale = ScaleLinear<string, string>;
 
-export function makeColorScale(): ColorScale {
+/**
+ * Colour ramp for a score attribute. Normative dimensions (and the maturity
+ * index) use the red→blue quality ramp. The two descriptive dimensions use a
+ * separate valence-free ramp: their 1–5 marks a position on a spectrum
+ * (centralized↔distributed, limited↔broad), not a rank, so neither endpoint
+ * may read as "bad" or "good".
+ *
+ * Callers that always colour by maturity index (scatter dots, panel score
+ * bar) omit the argument and get the quality ramp regardless of map mode.
+ */
+export function makeColorScale(attr?: AttributeKey): ColorScale {
+  const descriptive = attr != null && DESCRIPTIVE_ATTRIBUTES.has(attr);
   return scaleLinear<string>()
     .domain([1, 5])
-    .range([cssVar('--score-low'), cssVar('--score-high')])
+    .range(descriptive
+      ? [cssVar('--score-desc-low'), cssVar('--score-desc-high')]
+      : [cssVar('--score-low'), cssVar('--score-high')])
     .interpolate(interpolateLab)
     .clamp(true);
 }
@@ -98,11 +111,4 @@ export function addLegend(
     .attr('y', 0)
     .attr('text-anchor', 'start')
     .text('No data');
-}
-
-export function updateLegendLabels(): void {
-  const { currentAttribute } = getState();
-  const endpoints = LEGEND_ENDPOINTS[currentAttribute] || ['Low', 'High'];
-  select('.legend-label-low').text(endpoints[0]);
-  select('.legend-label-high').text(endpoints[1]);
 }

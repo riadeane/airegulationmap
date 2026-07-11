@@ -1,6 +1,5 @@
 import { on, getState } from '../state/store';
-import { generateMap, updateMap, markComparisonCountries } from './renderer';
-import { updateLegendLabels } from './legend';
+import { generateMap, updateMap, markComparisonCountries, refreshLegend } from './renderer';
 import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../constants';
 
 export { updateMap, highlightCountry, clearHighlight, updateSearchHighlight, markComparisonCountries } from './renderer';
@@ -57,7 +56,9 @@ function scheduleUpdateMap(): void {
 export function initMapSubscriptions() {
   on('currentAttribute', () => {
     scheduleUpdateMap();
-    updateLegendLabels();
+    // Full legend rebuild, not just labels: descriptive dimensions use a
+    // different colour ramp, so the gradient itself can change here.
+    refreshLegend();
     announceMode();
   });
 

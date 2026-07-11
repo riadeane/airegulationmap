@@ -59,6 +59,16 @@
   --score-low:       oklch(58% 0.16 28);
   --score-high:      oklch(62% 0.13 245);
 
+  /* Valence-free ramp for the two DESCRIPTIVE dimensions (governance
+     type, actor involvement). Their 1–5 is a spectrum position, not a
+     rank, so neither endpoint may inherit the "warning" red or the
+     "mature" blue. Violet ↔ green (PRGn-style) at matched lightness
+     and chroma: both poles equally loud, midpoint lands near neutral
+     gray in Lab, and the pairing stays distinguishable for protan,
+     deutan, and tritan observers. */
+  --score-desc-low:  oklch(60% 0.11 310);
+  --score-desc-high: oklch(62% 0.11 155);
+
   /* Comparison palette - four distinct hues at matched lightness so
      they read well against both themes and against each other on
      the radar overlay. */
@@ -106,6 +116,11 @@
     --score-low:       oklch(52% 0.18 28);
     --score-high:      oklch(45% 0.15 245);
 
+    /* Descriptive-dimension ramp, darkened for the cream background.
+       See the dark-theme block for the rationale. */
+    --score-desc-low:  oklch(48% 0.12 310);
+    --score-desc-high: oklch(45% 0.11 155);
+
     --comparison-1:    oklch(48% 0.16 60);
     --comparison-2:    oklch(45% 0.16 245);
     --comparison-3:    oklch(48% 0.17 340);
@@ -138,6 +153,10 @@
 
   --score-low:       oklch(52% 0.18 28);
   --score-high:      oklch(45% 0.15 245);
+
+  /* See the media-query block above. */
+  --score-desc-low:  oklch(48% 0.12 310);
+  --score-desc-high: oklch(45% 0.11 155);
 
   --comparison-1:    oklch(48% 0.16 60);
   --comparison-2:    oklch(45% 0.16 245);

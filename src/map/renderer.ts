@@ -143,7 +143,18 @@ function fitToSize({ w, h }: Size): void {
   if (zoomHandle) zoomHandle.updateBounds({ w, h });
 
   select('#map .legend').remove();
-  addLegend(svgRef, makeColorScale(), { w, h });
+  addLegend(svgRef, makeColorScale(getState().currentAttribute), { w, h });
+}
+
+/**
+ * Rebuild the legend for the current attribute. Needed on attribute change
+ * because the descriptive dimensions use a different colour ramp, so
+ * updating the endpoint labels alone would leave a stale gradient.
+ */
+export function refreshLegend(): void {
+  if (!svgRef) return;
+  select('#map .legend').remove();
+  addLegend(svgRef, makeColorScale(getState().currentAttribute), currentSize);
 }
 
 export async function generateMap(): Promise<void> {
@@ -181,7 +192,7 @@ export async function generateMap(): Promise<void> {
   fitProjectionToFill(projection, size.w, size.h);
 
   const path = geoPath().projection(projection);
-  const colorScale = makeColorScale();
+  const colorScale = makeColorScale(currentAttribute);
 
   svgRef = svg;
   projectionRef = projection;
@@ -272,8 +283,8 @@ export async function generateMap(): Promise<void> {
   });
 
   onThemeChange(() => {
-    const refreshed = makeColorScale();
     const { scoreData: sd, currentAttribute: attr } = getState();
+    const refreshed = makeColorScale(attr);
     selectAll<SVGPathElement, CountryFeature>('#map .country')
       .transition().duration(220)
       .attr('fill', d => fillFor(sd[d.properties.name], attr, refreshed))
@@ -344,7 +355,7 @@ export function updateMap(overrideScoreData?: MapScores): void {
   // filter change mid-scrub repaints the SAME historical date instead of
   // silently snapping the map back to the latest data.
   const data = overrideScoreData || scoresAtDate() || scoreData;
-  const colorScale = makeColorScale();
+  const colorScale = makeColorScale(currentAttribute);
   const countryFiltersActive = !!(selectedBloc && blocsData?.[selectedBloc])
     || filterConfidence != null
     || filterOfficialOnly;
