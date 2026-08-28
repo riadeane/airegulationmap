@@ -25,6 +25,16 @@ export type MainView = 'map' | 'scatter' | 'comparison';
 /** Maximum countries in a side-by-side comparison. */
 export const MAX_COMPARISON = 4;
 
+/**
+ * The two descriptive dimensions record how a country governs (centralized vs.
+ * distributed, narrow vs. broad participation), not how well. They must not
+ * borrow the red→blue "warning → mature" quality ramp the normative dimensions
+ * use — a centralized democracy is not a warning. The map renders these with
+ * the valence-free --score-desc-* ramp instead (see _tokens.css).
+ */
+export const DESCRIPTIVE_ATTRIBUTES: ReadonlySet<AttributeKey> =
+  new Set(['governanceType', 'actorInvolvement']);
+
 export const LEGEND_ENDPOINTS: Record<AttributeKey, [string, string]> = {
   averageScore:     ['Minimal', 'Comprehensive'],
   regulationStatus: ['Minimal', 'Comprehensive'],
