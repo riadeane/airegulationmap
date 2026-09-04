@@ -3,8 +3,7 @@
 Two kinds of thing live here:
 
 * **Constants that are contracts** - the CSV column order/headers the frontend
-  loader depends on, the staleness threshold, the priority-country set, and the
-  default model. These are module-level so they read as the fixed contract they
+  loader depends on, the staleness threshold, and the default model. These are module-level so they read as the fixed contract they
   are.
 * **:class:`Settings`** - the injectable bundle of *where things live* and
   *which model/thresholds to use*. Paths are anchored to the repository root via
@@ -39,24 +38,10 @@ REGULATION_FIELDS = [
 # Countries stale after this many days without a fresh, confident answer.
 STALENESS_DAYS = 90
 
-# Default research model. Deliberately Sonnet 4.6, not an Opus tier - a full
-# ~196-country monthly run is cost-sensitive and this is the chosen tradeoff.
-DEFAULT_MODEL = "claude-sonnet-4-6"
-
-# Web search runs must use a model that supports the web_search_20260209 tool
-# (dynamic filtering). Sonnet 4.6 does; keep search runs on it regardless of the
-# --model flag.
-SEARCH_MODEL = "claude-sonnet-4-6"
-
-# Countries that get web search under --search (the two-tier priority system).
-# Note: "European Union" is not a row in scores.csv, so its entry here is
-# currently inert - kept in case an EU-level row is ever added.
-PRIORITY_COUNTRIES = frozenset({
-    "United States of America", "United Kingdom", "China", "European Union",
-    "Germany", "France", "Brazil", "India", "Japan", "Canada", "Australia",
-    "Singapore", "South Korea", "United Arab Emirates", "Saudi Arabia", "South Africa",
-    "Kenya", "Nigeria", "Indonesia", "Mexico", "Chile", "Argentina",
-})
+# Default research model. The model must support the web_search_20260209
+# tool and structured outputs (Opus 5, Opus 4.8, Sonnet 5, and Sonnet 4.6 do).
+# Opus 5 thinks by default, which suits the judgment-heavy scoring rubric.
+DEFAULT_MODEL = "claude-opus-5"
 
 
 @dataclass(frozen=True)
@@ -68,8 +53,6 @@ class Settings:
     root: Path = REPO_ROOT
     staleness_days: int = STALENESS_DAYS
     default_model: str = DEFAULT_MODEL
-    search_model: str = SEARCH_MODEL
-    priority_countries: frozenset[str] = PRIORITY_COUNTRIES
 
     def validate(self) -> Settings:
         """Fail fast if ``root`` is misconfigured. Without this the error is

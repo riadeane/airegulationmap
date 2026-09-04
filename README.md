@@ -16,7 +16,7 @@ Live at [airegulationmap.org](https://airegulationmap.org)
 - One-click CSV/JSON export of the full or filtered dataset
 - Timeline slider to view how scores have changed over time
 - Shareable URLs, formatted citations (APA/Chicago/MLA), and light/dark themes
-- Data is automatically re-researched monthly using Claude to keep it current
+- Data is automatically re-researched weekly using Claude with web search to keep it current
 
 ## Quick start
 
@@ -74,7 +74,7 @@ CI runs lint, tests, and the production build on every push and pull request.
 
 ## Updating the data
 
-The regulation data is refreshed automatically on the 1st of each month via GitHub Actions. You can also run it manually:
+The regulation data is refreshed automatically every Monday via GitHub Actions (all countries, with web search). You can also run it manually:
 
 ```bash
 pip install -r requirements.txt

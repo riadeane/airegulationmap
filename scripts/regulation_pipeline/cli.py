@@ -43,15 +43,21 @@ def configure_logging(verbose: bool) -> None:
 
 def _run(
     countries: str = typer.Option("", help="Comma-separated countries to update"),
-    force: bool = typer.Option(False, help="Update regardless of staleness"),
+    force: bool = typer.Option(
+        True, "--force/--no-force",
+        help="Update every selected country regardless of staleness (default). "
+        "--no-force updates only stale or low-confidence countries.",
+    ),
     dry_run: bool = typer.Option(False, help="Show what would change without writing"),
     model: str = typer.Option(DEFAULT_MODEL, help="Claude model to use"),
-    search: bool = typer.Option(False, help="Enable web search for priority countries"),
-    search_all: bool = typer.Option(
-        False, help="Enable web search for ALL countries (uses Sonnet; pair with --batch for cost)"
+    search: bool = typer.Option(
+        True, "--search/--no-search",
+        help="Give the model web search for every country (default).",
     ),
     batch: bool = typer.Option(
-        False, help="Use the Message Batches API: 50% token pricing, results within ~1h"
+        True, "--batch/--no-batch",
+        help="Use the Message Batches API: 50% token pricing, results within ~1h "
+        "(default). --no-batch runs synchronously.",
     ),
     max_runtime_minutes: int = typer.Option(
         0, help="Abort a sync run after this many minutes (0 = unbounded). Bounds the "
@@ -101,13 +107,11 @@ def _run(
             raise typer.Exit(code=1)
 
     research_client = ResearchClient(
-        client, default_model=model, search_model=settings.search_model, today=today,
-        evidence_provider=evidence_provider,
+        client, model=model, today=today, evidence_provider=evidence_provider,
     )
-    priority = settings.priority_countries
 
     def use_search_for(country: str) -> bool:
-        return search_all or (search and country in priority)
+        return search
 
     batch_runner = BatchRunner(client) if batch else None
     strategy = (

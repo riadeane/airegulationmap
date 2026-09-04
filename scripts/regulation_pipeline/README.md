@@ -1,13 +1,13 @@
 # `regulation_pipeline` - backend architecture
 
 The pipeline researches AI-regulation status for every country via the Claude API
-and writes the four data files the frontend renders. It runs monthly from GitHub
+and writes the four data files the frontend renders. It runs weekly from GitHub
 Actions and on demand from the CLI.
 
 ```bash
-python scripts/update_data.py --force --batch      # full run, 50% token pricing
+python scripts/update_data.py                      # full run: every country, web search, Batches API
 python scripts/update_data.py --countries "Germany,France"
-python scripts/update_data.py --dry-run --force    # preview, no writes
+python scripts/update_data.py --dry-run            # preview, no writes
 python -m regulation_pipeline --help               # (or: update-regulation-data, after pip install -e .)
 ```
 
@@ -97,7 +97,7 @@ sequenceDiagram
     participant API as Claude API
     participant DS as Dataset
 
-    U->>CLI: update_data.py --batch --force
+    U->>CLI: update_data.py
     CLI->>DS: Dataset.load(settings, names)
     CLI->>SVC: select(targets, force)
     SVC->>DS: scores_row / regulation_row per country

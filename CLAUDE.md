@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI Regulation Map is a data visualization web app showing global AI regulation status by country, paired with an automated Python/Claude API pipeline that researches and updates the data monthly.
+AI Regulation Map is a data visualization web app showing global AI regulation status by country, paired with an automated Python/Claude API pipeline that researches and updates the data weekly.
 
 ## Running the App
 
@@ -22,35 +22,39 @@ Pipeline tests: `pip install -r requirements-dev.txt && python -m pytest` (confi
 
 ## Data Update Script
 
+The defaults are the weekly run: every country, web search on, Message
+Batches API (50% token pricing, results within ~1h), Opus 5. A full
+196-country run costs ~$100 on Opus 5 or ~$45 on Sonnet 5; web search
+results re-sent across search iterations dominate input tokens (measured
+September 2026: ~140k input tokens and 11 searches per country on Opus 5).
+Flags only opt out.
+
 ```bash
-# Update stale/low-confidence countries automatically
+# Full weekly run (force + search + batch, default model)
 python scripts/update_data.py
 
 # Update specific countries
 python scripts/update_data.py --countries "Germany,France,Japan"
 
-# Force re-research all countries (ignores staleness)
-python scripts/update_data.py --force
+# Only stale or low-confidence countries
+python scripts/update_data.py --no-force
 
 # Preview what would be updated without writing
 python scripts/update_data.py --dry-run
 
 # Use a specific Claude model
-python scripts/update_data.py --model claude-opus-4-5
+python scripts/update_data.py --model claude-sonnet-5
 
-# Message Batches API: 50% token pricing, results within ~1h.
-# The recommended mode for full runs (the workflow defaults to it).
-python scripts/update_data.py --force --batch
+# Synchronous requests instead of the Batches API
+python scripts/update_data.py --no-batch
 
-# Web search for every country (not just priority) - always uses
-# Sonnet 4.6; pair with --batch. ~$10-12 for a full 196-country run.
-python scripts/update_data.py --force --batch --search-all
+# Research without web search (training data only)
+python scripts/update_data.py --no-search
 
 # Evidence-grounded research: inject each country's verified policy
 # initiatives (OECD/GAIIN, from Supabase) into the prompt. Countries
-# without evidence fall back to the plain prompt. Grounded prompts are
-# longer - pair with --batch.
-python scripts/update_data.py --force --batch --grounded
+# without evidence fall back to the plain prompt.
+python scripts/update_data.py --grounded
 
 # Supabase dual-write mirror: auto-on when SUPABASE_URL and
 # SUPABASE_SERVICE_KEY are set; force with --mirror / disable with
@@ -205,7 +209,7 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 
 ### Automated Updates
 
-`.github/workflows/update-data.yml` runs `update_data.py` on the 1st of each month (6am UTC) and auto-commits any changed CSV/JSON files in `public/`; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be triggered manually with optional country list, force flag, and model selection inputs. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
+`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/`; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be triggered manually with optional country list, force flag, and model selection inputs. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
 
 ### Deployment
 

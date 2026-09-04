@@ -329,8 +329,8 @@
     </p>
     <p>
       The project was originally seeded from the
-      <a href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region" rel="noopener noreferrer">EA Forum AI Governance Tracker</a>
-      in early 2026. Since then every country has been independently
+      <a href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region" rel="noopener noreferrer">EA Forum AI Governance Tracker</a>.
+      Since then every country has been independently
       re-researched and re-scored by the automated pipeline described
       below; the current dataset no longer derives from that source.
     </p>
@@ -338,7 +338,7 @@
     <div class="callout">
       <strong>Epistemic caveat.</strong> Scores are inferred by
       <a href="https://claude.ai/" rel="noopener noreferrer">Claude</a>
-      from public sources and refreshed monthly. They are not produced by
+      from public sources and refreshed weekly. They are not produced by
       human coders and have not been independently audited. Treat them
       the way you would treat a well-read colleague's summary: useful
       for orientation, worth verifying before citation.
@@ -435,7 +435,7 @@
     <p>Confidence is currently assigned at the record level (per country), not per individual dimension. We consider per-field confidence a future enhancement.</p>
 
     <h2 id="update-cadence">Data update cadence</h2>
-    <p>A <a href="https://github.com/riadeane/airegulationmap/blob/main/.github/workflows/update-data.yml" rel="noopener noreferrer">GitHub Action</a> runs on the 1st of each month and researches any country whose record is older than a staleness threshold or flagged as low confidence. Manual overrides (single-country re-research, forced refresh of the whole dataset) are possible via <code>scripts/update_data.py</code>.</p>
+    <p>A <a href="https://github.com/riadeane/airegulationmap/blob/main/.github/workflows/update-data.yml" rel="noopener noreferrer">GitHub Action</a> runs every Monday and re-researches every country with web search enabled. Manual overrides (single-country re-research, forced refresh of the whole dataset) are possible via <code>scripts/update_data.py</code>.</p>
     <p>Every month's run is preserved as a snapshot in <code>public/history.json</code>, which drives the timeline slider on the main page, so the "score at date X" view is always reproducible from the raw data.</p>
     <p><strong>Evidence grounding (July 2026).</strong> Research runs can be grounded in verified policy-initiative records from the <a href="https://oecd.ai" rel="noopener noreferrer">OECD.AI Policy Observatory</a> (Policy Navigator/GAIIN): for covered countries, the model scores against those records as stated facts rather than open-ended recall, and the records themselves are shown in each country's <em>Policy initiatives</em> panel section. Every run, grounded or not, is recorded with its model, prompt version, and token counts in a public <code>research_runs</code> provenance table (see <a href="/data.html">Data &amp; API</a>).</p>
 
@@ -444,7 +444,7 @@
       <li><strong>Point-in-time view.</strong> Scores reflect the state of regulation at the last research pass. Fast-moving jurisdictions can change materially between updates.</li>
       <li><strong>English-source bias.</strong> Non-English primary sources are under-represented, which systematically disadvantages countries whose regulatory debates happen in other languages. Claude mitigates this but does not eliminate it.</li>
       <li><strong>Aggregate hides regional variance.</strong> Federations (US, India, Brazil) are scored at the national level; substantial sub-national variation is flattened.</li>
-      <li><strong>Draft vs. enacted.</strong> The rubric tries to distinguish these, but a bill that passes the week after a research pass will not update until the next monthly run.</li>
+      <li><strong>Draft vs. enacted.</strong> The rubric tries to distinguish these, but a bill that passes the week after a research pass will not update until the next weekly run.</li>
       <li><strong>No independent audit.</strong> Scores are LLM-inferred, not human-coded, and have not been audited by domain experts. The sub-indicator breakdown in <code>subscores.json</code> exists precisely so that every dimension score can be checked claim-by-claim.</li>
       <li><strong>Methodology change, June 2026.</strong> Sub-indicator scoring, frontier-anchored calibration, and the three-dimension maturity composite were introduced in June 2026. Score movements around that date partly reflect the methodology change, not only regulatory change.</li>
     </ul>
@@ -462,7 +462,7 @@
     <p>
       Column definitions match this page. The
       <a href="https://github.com/riadeane/airegulationmap/commits/main/public">git history</a>
-      of each file is the audit trail: every monthly update is one commit,
+      of each file is the audit trail: every weekly update is one commit,
       so any past state of the dataset is retrievable and citeable by
       commit hash. The in-app Export button produces the same data merged
       into a single CSV/JSON.
