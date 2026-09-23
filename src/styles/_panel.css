@@ -444,11 +444,13 @@
 }
 
 .panel-header-actions .compare-btn,
-.panel-header-actions .cite-btn {
+.panel-header-actions .cite-btn,
+.panel-header-actions .permalink-btn {
   margin: 0;
 }
 
-.cite-btn {
+.cite-btn,
+.permalink-btn {
   appearance: none;
   -webkit-appearance: none;
   background: transparent;
@@ -466,7 +468,9 @@
 
 .cite-btn:hover,
 .cite-btn:focus-visible,
-.cite-btn[aria-expanded='true'] {
+.cite-btn[aria-expanded='true'],
+.permalink-btn:hover,
+.permalink-btn:focus-visible {
   color: var(--accent);
   border-color: var(--accent);
   background: var(--accent-muted);

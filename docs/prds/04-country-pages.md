@@ -1,6 +1,6 @@
 # PRD 04: Static country pages
 
-Status: Proposed. Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026). Owner: unassigned. Depends on: none.
 
 ## Problem
 

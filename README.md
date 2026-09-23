@@ -89,6 +89,7 @@ python scripts/update_data.py --force                       # re-research everyt
 ## Building for production
 
 ```bash
+npm run pages    # static country pages + sitemap into public/ (also runs before build)
 npm run build    # outputs to dist/
 npm run preview  # preview the build locally
 ```

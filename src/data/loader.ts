@@ -1,4 +1,6 @@
-import { csv } from 'd3-fetch';
+import { text } from 'd3-fetch';
+import { csvParse } from 'd3-dsv';
+import type { DSVRowString } from 'd3-dsv';
 
 /** A row of scores.csv, keyed by camelCase accessors. */
 export interface ScoreEntry {
@@ -46,8 +48,9 @@ export function parseScore(raw: string | number | null | undefined): number | nu
   return Number.isFinite(v) && v >= SCORE_MIN && v <= SCORE_MAX ? v : null;
 }
 
-export async function loadScores(): Promise<ScoreData> {
-  const rows = await csv<ScoreEntry>('/scores.csv', d => {
+/** Parse the body of scores.csv. Shared by the app loader and the static page build. */
+export function parseScoresCsv(body: string): ScoreData {
+  const rows = csvParse(body, (d: DSVRowString) => {
     const version = Number(d['Data Version'] ?? '');
     return {
       country: d.Country ?? '',
@@ -68,8 +71,13 @@ export async function loadScores(): Promise<ScoreData> {
   );
 }
 
-export async function loadRegulation(): Promise<RegulationData> {
-  const rows = await csv<RegulationEntry>('/regulation_data.csv', d => ({
+export async function loadScores(): Promise<ScoreData> {
+  return parseScoresCsv(await text('/scores.csv'));
+}
+
+/** Parse the body of regulation_data.csv. Shared by the app loader and the static page build. */
+export function parseRegulationCsv(body: string): RegulationData {
+  const rows = csvParse(body, (d: DSVRowString) => ({
     country: d.Country ?? '',
     regulationStatus: d['Regulation Status'] ?? null,
     policyLever: d['Policy Lever'] ?? null,
@@ -82,4 +90,8 @@ export async function loadRegulation(): Promise<RegulationData> {
     confidence: d['Confidence'] || null,
   }));
   return Object.fromEntries(rows.map(d => [d.country, d]));
+}
+
+export async function loadRegulation(): Promise<RegulationData> {
+  return parseRegulationCsv(await text('/regulation_data.csv'));
 }
