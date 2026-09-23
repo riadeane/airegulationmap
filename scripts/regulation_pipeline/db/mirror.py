@@ -139,6 +139,15 @@ class SupabaseMirror:
             self._run_id, len(self._entries), fatal,
         )
 
+    # -- gold-set drift check --------------------------------------------------
+
+    def record_gold_check(self, row: dict) -> None:
+        """Insert one ``drift.json`` row (``gold.drift_row``) into
+        ``gold_checks``. Called by the CLI after ``finish``, outside the
+        service, so it is not part of the :class:`Mirror` protocol; the CLI
+        downgrades a failure to a warning like every other mirror call."""
+        self._client.insert("gold_checks", [_gold_check_row(row)])
+
     # -- flush ----------------------------------------------------------------
 
     def _flush(self) -> None:
@@ -298,6 +307,23 @@ def _summary_row(country_id: str, e: _Entry, run_id: str) -> dict:
         "run_id": run_id,
         "summarized_at": e.today.isoformat(),
         "updated_at": _now(),
+    }
+
+
+def _gold_check_row(row: dict) -> dict:
+    """``drift.json`` row -> ``gold_checks`` columns. Same numbers, database
+    names (``checked_on`` for ``date``)."""
+    return {
+        "run_id": row["run_id"],
+        "checked_on": row["date"],
+        "model": row["model"],
+        "prompt_version": row["prompt_version"],
+        "countries_compared": row["countries_compared"],
+        "countries_missing": list(row["countries_missing"]),
+        "mae_by_dimension": row["mae_by_dimension"],
+        "within_one": row["within_one"],
+        "max_dev": row["max_dev"],
+        "max_dev_at": row["max_dev_at"],
     }
 
 

@@ -1,6 +1,6 @@
 # PRD 08: Gold set and drift check
 
-Status: Proposed. Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026). Owner: unassigned. Depends on: none. The gold entries are drafts until the maintainer verifies them.
 
 ## Problem
 
@@ -26,7 +26,8 @@ the agreement recorded over time.
 ## Requirements
 
 1. **Gold set.** `public/data/gold_set.json`: ten countries across the
-   maturity range, each with 24 sub-indicator scores, a one-line justification
+   maturity range, each with 20 sub-indicator scores (five dimensions times
+   four; the maturity index is derived), a one-line justification
    per dimension, the sources used, and the verification date. Countries:
    choose from the priority list plus two low-coverage countries. The
    maintainer verifies the scores by hand; the agent drafts them and marks

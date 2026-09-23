@@ -78,6 +78,7 @@ flowchart TD
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - decides whether a result's scores may land |
 | `digest.py` | Weekly digest: change selection, one structured-output request, `public/digest/` writers (week JSON, index, Atom), `--run <id>` regeneration |
+| `gold.py` | Gold set and drift check: the gold file's contract, the pure agreement metrics, the `drift.json` record, the step-summary block, `--model <id>` comparison CLI |
 | `names.py` | `CountryNames` - country-name normalization |
 | `config.py` | `Settings` (repo-root paths) + field/threshold/priority constants |
 | `errors.py` | `FatalAPIError` |
@@ -456,6 +457,41 @@ Claude for the prose once, and writes `public/digest/`.
   introduced (the mirror keeps earlier snapshots' ids when it replaces a
   country's history), so score change points are exact. The regulation text has
   no history in the database, so regenerated digests cover score changes only.
+
+## Gold set and drift check (`gold.py`)
+
+Nothing else measures whether the pipeline scores correctly, or whether a
+model or prompt change moved the calibration. `public/data/gold_set.json`
+holds ten countries across the maturity range with a hand-checked score for
+each of the 20 sub-indicators (five dimensions times four), a one-line
+justification per dimension, the sources used, and a `status` of `draft` or
+`verified` (with `verified_on`). `load_gold_set` validates the file against
+the sub-indicator names in `models.py`, so a typo in the gold file fails
+loudly.
+
+- **What is compared.** `PipelineService.run` keeps every validated result
+  in `RunResult.raw_results`, before the stability gate, so the check reads
+  what the model returned for a held country too. It costs no extra API
+  calls on a scheduled run. `gold.compare` is pure: it returns the mean
+  absolute error per dimension, the share of sub-indicators within one
+  point, and the largest single deviation with where it happened, plus the
+  gold countries the run did not cover.
+- **Record.** One row per run is appended to `public/data/drift.json`
+  (`{run_id, date, model, prompt_version, countries_compared,
+  countries_missing, mae_by_dimension, within_one, max_dev, max_dev_at}`)
+  and mirrored to the Supabase `gold_checks` table
+  (`supabase/migrations/0007_gold_checks.sql`). The workflow commits the
+  file with the other data files. A run covering none of the gold
+  countries records nothing.
+- **Summary.** The metrics go to the run log (`gold:` line) and to the
+  GitHub step summary. When `within_one` is below 0.8 both start with
+  "Calibration warning". The check never changes the exit code: a
+  malformed gold file or an unwritable drift file is a warning.
+- **Model comparison.** `python -m regulation_pipeline.gold --model <id>`
+  researches only the gold countries with that model (synchronous by
+  default; `--batch` for the 50% pricing; `--no-search` to drop web search)
+  and prints the metrics, or the drift row with `--json`. It writes neither
+  the dataset nor `drift.json`.
 
 ## Testing & tooling
 

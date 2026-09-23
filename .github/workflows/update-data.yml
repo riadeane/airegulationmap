@@ -137,7 +137,7 @@ jobs:
           {
             echo "## Data update"
             echo '```'
-            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:|digest:" run.log | tail -20 || true
+            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:|digest:|gold:" run.log | tail -20 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -154,6 +154,8 @@ jobs:
           if [ -f public/data/subscores.json ]; then git add public/data/subscores.json; fi
           # pending.json: candidates the stability gate held for one run.
           if [ -f public/data/pending.json ]; then git add public/data/pending.json; fi
+          # drift.json: one row of gold-set agreement metrics per run.
+          if [ -f public/data/drift.json ]; then git add public/data/drift.json; fi
           # Weekly digest (week file, index, Atom feed) travels with the data.
           if [ -d public/digest ]; then git add public/digest; fi
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT

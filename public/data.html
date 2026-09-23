@@ -276,6 +276,10 @@
             <td>The four named sub-indicators behind each dimension score: an integer 1–5 and, since September 2026, the one-sentence rationale the model gave for it.</td></tr>
         <tr><td><a href="/data/country_iso.json" download>country_iso.json</a></td>
             <td>ISO 3166 alpha-2 / alpha-3 / numeric codes for every dataset country name.</td></tr>
+        <tr><td><a href="/data/gold_set.json" download>gold_set.json</a></td>
+            <td>Hand-checked sub-indicator scores for ten countries, with justifications, sources and a draft or verified status per country (see the <a href="/methodology.html#update-cadence">methodology</a>).</td></tr>
+        <tr><td><a href="/data/drift.json" download>drift.json</a></td>
+            <td>One row per research run: how far the model's raw scores for the gold countries sat from the gold scores (mean absolute error per dimension, share within one point, largest deviation).</td></tr>
       </tbody>
     </table>
 
@@ -307,6 +311,8 @@
             <td>Verified policy-initiative records (OECD.AI / GAIIN).</td></tr>
         <tr><td><a href="/api-docs.html#/research_runs">/research_runs</a></td>
             <td>Provenance: every research run, its model and prompt version.</td></tr>
+        <tr><td><a href="/api-docs.html#/gold_checks">/gold_checks</a></td>
+            <td>The gold-set drift check per run: the queryable twin of drift.json.</td></tr>
       </tbody>
     </table>
     <p>

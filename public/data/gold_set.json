@@ -1,0 +1,515 @@
+{
+  "schema_version": 1,
+  "rubric": "v3.1-2026-09",
+  "notes": "Hand-verifiable sub-indicator scores for ten countries across the maturity range, scored against the fixed anchors of the v3 rubric in scripts/regulation_pipeline/prompt.py. Every entry is a draft: an agent drafted it on 2026-09-23 from the dataset's June 2026 sub-indicators, their cited sources and the listed primary sources. A country becomes verified only when the maintainer has checked each of its 20 scores against the listed sources, set status to verified and recorded verified_on; re-verify each quarter. Eight countries come from the priority list (Chile is left out as the closest profile to Brazil) and two (Bhutan, Kiribati) are low-coverage countries where thin web coverage tests the model's floor. The pipeline compares each run's raw results with these scores (gold.py) and appends the agreement to drift.json.",
+  "countries": [
+    {
+      "country": "China",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 5,
+          "scope": 4,
+          "implementation": 5,
+          "ai_specificity": 5
+        },
+        "policy_lever": {
+          "binding_instruments": 5,
+          "soft_law": 5,
+          "economic_tools": 5,
+          "institutional_capacity": 5
+        },
+        "governance_type": {
+          "regulator_plurality": 3,
+          "formal_coordination": 3,
+          "subnational_role": 3,
+          "nongovernmental_checks": 2
+        },
+        "actor_involvement": {
+          "industry": 4,
+          "civil_society": 1,
+          "academia": 4,
+          "international": 4
+        },
+        "enforcement_level": {
+          "sanctions_framework": 4,
+          "actions_taken": 4,
+          "dedicated_authority": 5,
+          "monitoring_practice": 4
+        }
+      },
+      "justification": {
+        "regulation_status": "Binding, AI-specific measures are in force and operating (Algorithmic Recommendation Provisions 2022, Deep Synthesis Provisions 2023, Generative AI Interim Measures 2023, AI content labelling measures 2025); coverage is built from use-case instruments rather than one horizontal AI law.",
+        "policy_lever": "Multiple binding instruments across domains, a maintained TC260 standards suite and the AI Safety Governance Framework, large state funding and pilot zones under the AI Plus Action Plan, and a staffed filing regime at the CAC.",
+        "governance_type": "The CAC leads with MIIT, MPS, SAMR and other co-issuing bodies; coordination is formal but sits under one centre; Shanghai and Shenzhen have local AI promotion regulations; internet courts rule on AI copyright but no independent body reviews state AI rules.",
+        "actor_involvement": "Firms hold standing seats in TC260 standard drafting and drafts go to public comment; independent civil society is excluded; the New Generation AI Governance Expert Committee gives academia a formal advisory role; China is active in ISO/IEC standards and UN processes but party to no AI treaty.",
+        "enforcement_level": "Penalties apply through the Cybersecurity Law, Data Security Law and PIPL (the 2026 Cybersecurity Law amendment adds AI provisions); the CAC publishes campaign-style enforcement routinely, holds an explicit AI remit, and runs pre-launch security assessments and algorithm filing."
+      },
+      "sources": [
+        "https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm",
+        "https://www.cac.gov.cn/2022-01/04/c_1642894606364259.htm",
+        "https://www.tc260.org.cn",
+        "https://oecd.ai/en/dashboards/countries/China"
+      ]
+    },
+    {
+      "country": "Japan",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 4,
+          "scope": 4,
+          "implementation": 4,
+          "ai_specificity": 5
+        },
+        "policy_lever": {
+          "binding_instruments": 3,
+          "soft_law": 5,
+          "economic_tools": 4,
+          "institutional_capacity": 4
+        },
+        "governance_type": {
+          "regulator_plurality": 3,
+          "formal_coordination": 4,
+          "subnational_role": 1,
+          "nongovernmental_checks": 2
+        },
+        "actor_involvement": {
+          "industry": 4,
+          "civil_society": 3,
+          "academia": 4,
+          "international": 5
+        },
+        "enforcement_level": {
+          "sanctions_framework": 2,
+          "actions_taken": 2,
+          "dedicated_authority": 3,
+          "monitoring_practice": 3
+        }
+      },
+      "justification": {
+        "regulation_status": "The AI Promotion Act (2025) is a dedicated, horizontal statute in force with an AI Strategy Headquarters and a Basic AI Plan, but it sets duties of effort with no obligations or sanctions on AI providers.",
+        "policy_lever": "One binding AI instrument plus the APPI; a mature, maintained soft-law suite (AI Guidelines for Business v1.1, AISI evaluation guides, the Hiroshima Process code of conduct); GENIAC and the AI and semiconductor funding framework; a Cabinet-level headquarters and a staffed AISI.",
+        "governance_type": "The Cabinet-level AI Strategy Headquarters leads with sectoral ministries and the PPC; the headquarters is a statutory coordination mechanism across all ministries; prefectures play no regulatory role; courts have rarely reviewed AI matters.",
+        "actor_involvement": "Keidanren and the AI Governance Association hold standing roles in AI Strategy Council work; civil society is consulted through public comment only; academics chair the AI Strategy Council; Japan led the Hiroshima AI Process and is active in G7, OECD and ISO work.",
+        "enforcement_level": "The AI Promotion Act carries no penalties and the APPI covers only personal data; the PPC's 2023 warning to OpenAI is the only AI-directed action; the headquarters can investigate incidents and publish names but cannot sanction; AISI evaluations are occasional."
+      },
+      "sources": [
+        "https://aisi.go.jp/",
+        "https://www8.cao.go.jp/cstp/ai/",
+        "https://fpf.org/blog/understanding-japans-ai-promotion-act-an-innovation-first-blueprint-for-ai-regulation/",
+        "https://www.twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/japan"
+      ]
+    },
+    {
+      "country": "United States of America",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 3,
+          "scope": 3,
+          "implementation": 3,
+          "ai_specificity": 4
+        },
+        "policy_lever": {
+          "binding_instruments": 4,
+          "soft_law": 4,
+          "economic_tools": 5,
+          "institutional_capacity": 3
+        },
+        "governance_type": {
+          "regulator_plurality": 5,
+          "formal_coordination": 3,
+          "subnational_role": 5,
+          "nongovernmental_checks": 4
+        },
+        "actor_involvement": {
+          "industry": 4,
+          "civil_society": 3,
+          "academia": 3,
+          "international": 4
+        },
+        "enforcement_level": {
+          "sanctions_framework": 3,
+          "actions_taken": 4,
+          "dedicated_authority": 3,
+          "monitoring_practice": 3
+        }
+      },
+      "justification": {
+        "regulation_status": "No horizontal federal AI statute; binding AI-specific rules are in force at state level (Colorado SB 205, California SB 53, Texas TRAIGA, Utah) and in one federal statute (TAKE IT DOWN Act 2025), alongside executive orders and sectoral rules, so coverage is a patchwork of use cases.",
+        "policy_lever": "Several binding instruments across domains (deepfakes, employment, frontier-model transparency, medical devices); a maintained NIST AI RMF with profiles and OMB memoranda; several active funding programmes (NSF AI Institutes, NAIRR, CHIPS and Science Act); federal bodies are staffed but AI compliance infrastructure sits with state attorneys general.",
+        "governance_type": "Many independent regulators (FTC, FDA, EEOC, CFPB, SEC) and state attorneys general; the Chief AI Officers Council and OMB memoranda give formal but light coordination; states regulate AI independently; courts, the FTC and state litigation actively shape the rules.",
+        "actor_involvement": "Industry holds standing roles through the NIST consortium, advisory committees and voluntary commitments; civil society and academia are consulted through requests for information and advisory bodies; the US is active in G7, OECD and GPAI and signed the Council of Europe AI Convention in 2024 without ratifying it.",
+        "enforcement_level": "Penalties exist under the FTC Act, state AI laws and the TAKE IT DOWN Act for some obligations; the FTC (Operation AI Comply, Rite Aid), the SEC and state attorneys general publish AI enforcement actions regularly; no authority holds a dedicated AI remit; monitoring is occasional (FTC studies, GAO audits, annual agency AI use-case inventories)."
+      },
+      "sources": [
+        "https://www.nist.gov/itl/ai-risk-management-framework",
+        "https://www.congress.gov/bill/119th-congress/senate-bill/146",
+        "https://leg.colorado.gov/bills/sb24-205",
+        "https://www.ai.gov/",
+        "https://www.kslaw.com/news-and-insights/new-state-ai-laws-are-effective-on-january-1-2026-but-a-new-executive-order-signals-disruption"
+      ]
+    },
+    {
+      "country": "Germany",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 5,
+          "scope": 5,
+          "implementation": 4,
+          "ai_specificity": 5
+        },
+        "policy_lever": {
+          "binding_instruments": 4,
+          "soft_law": 4,
+          "economic_tools": 4,
+          "institutional_capacity": 3
+        },
+        "governance_type": {
+          "regulator_plurality": 4,
+          "formal_coordination": 3,
+          "subnational_role": 3,
+          "nongovernmental_checks": 4
+        },
+        "actor_involvement": {
+          "industry": 4,
+          "civil_society": 3,
+          "academia": 4,
+          "international": 5
+        },
+        "enforcement_level": {
+          "sanctions_framework": 4,
+          "actions_taken": 2,
+          "dedicated_authority": 3,
+          "monitoring_practice": 2
+        }
+      },
+      "justification": {
+        "regulation_status": "The EU AI Act (Regulation 2024/1689) applies directly and horizontally, with prohibitions and general-purpose AI obligations in force since 2025; high-risk obligations and the national market-surveillance law (KI-MIG, cabinet draft 2026) are still in transition.",
+        "policy_lever": "Several binding instruments across domains (AI Act, GDPR and BDSG, the autonomous driving law, the Medical Device Regulation); DIN and DKE standardisation roadmaps and BSI guidance; several funding programmes (AI competence centres, the AI Action Plan, the JUPITER AI factory) with the sandbox law still pending; the Bundesnetzagentur is designated but not yet empowered.",
+        "governance_type": "A designated lead (Bundesnetzagentur) alongside BaFin, BfArM, the BSI and sixteen Land data-protection authorities; coordination through the draft coordination centre and the Datenschutzkonferenz; the Länder implement but do not regulate AI independently; the Federal Constitutional Court (police data analysis, 2023) and the CJEU (SCHUFA, 2023) have shaped AI rules.",
+        "actor_involvement": "Plattform Lernende Systeme gives industry and academia standing roles; civil society (AlgorithmWatch and others) is consulted; Germany co-legislates the AI Act, is a GPAI founding member and is active in OECD, G7 and standards work.",
+        "enforcement_level": "The AI Act penalty framework (up to 7 percent of turnover) applies; no AI Act enforcement action has been taken in Germany and GDPR actions touching AI are isolated; the Bundesnetzagentur runs a service desk but awaits its legal mandate; monitoring is occasional."
+      },
+      "sources": [
+        "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+        "https://www.gleisslutz.com/en/know-how/federal-government-draft-bill-implement-eu-artificial-intelligence-act",
+        "https://www.activemind.legal/guides/ki-mig/",
+        "https://www.ki-strategie-deutschland.de/"
+      ]
+    },
+    {
+      "country": "United Kingdom",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 2,
+          "scope": 3,
+          "implementation": 3,
+          "ai_specificity": 2
+        },
+        "policy_lever": {
+          "binding_instruments": 3,
+          "soft_law": 4,
+          "economic_tools": 4,
+          "institutional_capacity": 4
+        },
+        "governance_type": {
+          "regulator_plurality": 5,
+          "formal_coordination": 4,
+          "subnational_role": 1,
+          "nongovernmental_checks": 3
+        },
+        "actor_involvement": {
+          "industry": 4,
+          "civil_society": 3,
+          "academia": 3,
+          "international": 5
+        },
+        "enforcement_level": {
+          "sanctions_framework": 3,
+          "actions_taken": 3,
+          "dedicated_authority": 2,
+          "monitoring_practice": 3
+        }
+      },
+      "justification": {
+        "regulation_status": "No binding AI-specific statute; AI is governed through existing regulators under the 2023 pro-innovation principles, the Data (Use and Access) Act 2025 on automated decision-making and the Online Safety Act 2023, with only a private member's AI bill in Parliament.",
+        "policy_lever": "Binding levers are general (UK GDPR, the Data (Use and Access) Act, the Online Safety Act); a maintained soft-law suite (ICO AI guidance, the AI assurance framework, AI Management Essentials); sandboxes, AI Growth Zones and the compute programme; the AI Security Institute, the ICO, Ofcom and the CMA are staffed and operating.",
+        "governance_type": "Many independent regulators (ICO, CMA, Ofcom, FCA, MHRA, EHRC); the Digital Regulation Cooperation Forum is a formal coordination mechanism; the devolved administrations play no regulatory role; courts (Bridges v South Wales Police) and the ICO give occasional independent review.",
+        "actor_involvement": "Industry holds standing roles through AISI partnerships and standards bodies; civil society (Ada Lovelace Institute and others) is consulted; academia advises through the Alan Turing Institute; the UK hosted the Bletchley summit, founded the AISI network and signed the Council of Europe AI Convention in 2024.",
+        "enforcement_level": "Penalties apply for some obligations under UK GDPR and the Online Safety Act; enforcement touching AI is isolated (the ICO fine against Clearview AI, upheld in 2025; the ICO's Snap My AI investigation); no authority holds a dedicated AI remit; the CMA's foundation-model reviews and AISI evaluations are occasional."
+      },
+      "sources": [
+        "https://www.gov.uk/government/publications/ai-regulation-a-pro-innovation-approach",
+        "https://www.gov.uk/government/publications/ai-opportunities-action-plan",
+        "https://www.legislation.gov.uk/ukpga/2025/18/contents",
+        "https://bills.parliament.uk/bills/3942"
+      ]
+    },
+    {
+      "country": "Singapore",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 3,
+          "scope": 2,
+          "implementation": 3,
+          "ai_specificity": 4
+        },
+        "policy_lever": {
+          "binding_instruments": 2,
+          "soft_law": 5,
+          "economic_tools": 4,
+          "institutional_capacity": 4
+        },
+        "governance_type": {
+          "regulator_plurality": 3,
+          "formal_coordination": 3,
+          "subnational_role": 1,
+          "nongovernmental_checks": 2
+        },
+        "actor_involvement": {
+          "industry": 4,
+          "civil_society": 2,
+          "academia": 3,
+          "international": 5
+        },
+        "enforcement_level": {
+          "sanctions_framework": 2,
+          "actions_taken": 1,
+          "dedicated_authority": 3,
+          "monitoring_practice": 2
+        }
+      },
+      "justification": {
+        "regulation_status": "No general AI law and none proposed; the only binding AI-specific rule is the 2024 election law ban on deepfakes of candidates, so coverage is narrow; the dedicated instruments (Model AI Governance Framework, its generative AI edition, AI Verify) are voluntary and operating.",
+        "policy_lever": "One narrow binding AI rule plus the PDPA; a mature, maintained soft-law suite (Model Framework, AI Verify, MAS FEAT principles, CSA guidelines on securing AI, PDPC advisory guidelines on automated decisions); AI Singapore, NAIS 2.0 funding and IMDA and MAS sandboxes; IMDA and the AI Verify Foundation are staffed and operating with voluntary compliance tooling.",
+        "governance_type": "IMDA leads with MAS, the HSA and the PDPC in sectoral roles; whole-of-government coordination runs through the Ministry of Digital Development and Information; no sub-national tier; minimal judicial or independent review of AI.",
+        "actor_involvement": "Industry holds standing roles through the AI Verify Foundation and co-developed frameworks; domestic civil society has little role; universities advise and host AI Singapore; Singapore leads the ASEAN AI guide, sits in the AISI network and is active in ISO/IEC standards.",
+        "enforcement_level": "Penalties exist only under the PDPA and the election deepfake offence, not for the AI framework; no AI enforcement action has been taken; IMDA holds the AI governance remit without enforcement powers; AI Verify testing is voluntary and no audits are routine."
+      },
+      "sources": [
+        "https://www.smartnation.gov.sg/initiatives/national-ai-strategy/",
+        "https://www.pdpc.gov.sg/help-and-resources/2020/01/model-ai-governance-framework",
+        "https://aiverifyfoundation.sg/",
+        "https://www.mas.gov.sg/news/media-releases/2025/mas-guidelines-for-artificial-intelligence-risk-management"
+      ]
+    },
+    {
+      "country": "Brazil",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 3,
+          "scope": 3,
+          "implementation": 3,
+          "ai_specificity": 3
+        },
+        "policy_lever": {
+          "binding_instruments": 3,
+          "soft_law": 3,
+          "economic_tools": 4,
+          "institutional_capacity": 3
+        },
+        "governance_type": {
+          "regulator_plurality": 4,
+          "formal_coordination": 3,
+          "subnational_role": 2,
+          "nongovernmental_checks": 3
+        },
+        "actor_involvement": {
+          "industry": 3,
+          "civil_society": 3,
+          "academia": 3,
+          "international": 4
+        },
+        "enforcement_level": {
+          "sanctions_framework": 3,
+          "actions_taken": 3,
+          "dedicated_authority": 3,
+          "monitoring_practice": 2
+        }
+      },
+      "justification": {
+        "regulation_status": "The AI framework bill (PL 2338/2023) passed the Senate in December 2024 and is before the Chamber; binding AI rules in force are targeted (the TSE electoral resolution on deepfakes, Law 15.123/2025 on AI-enabled violence against women, the LGPD's automated-decision provisions, the ECA Digital), so AI is addressed within adapted general law.",
+        "policy_lever": "The LGPD is the main binding lever with targeted electoral and criminal rules; the national AI strategy (EBIA), ANPD guidance and CGI.br guidance form some published guidance; the Brazilian AI Plan (PBIA 2024-2028) funds several lines including sovereign compute and the ANPD sandbox pilot; the ANPD is an autonomous agency but its AI capacity is thin.",
+        "governance_type": "The ANPD is the proposed lead among sectoral regulators (Central Bank, CVM, Anatel, TSE, CADE); coordination is ad hoc pending the bill's national AI governance system; states (Ceará, Goiás) have thin AI laws; the STF, the TSE and federal prosecutors give occasional review.",
+        "actor_involvement": "Industry, civil society (Coalizão Direitos na Rede, Data Privacy Brasil) and academia took part in Senate hearings on the bill and hold CGI.br seats; Brazil led AI work in its 2024 G20 presidency, adheres to the OECD AI principles and is a GPAI member.",
+        "enforcement_level": "LGPD penalties (up to 2 percent of revenue) and electoral penalties cover some AI obligations; enforcement touching AI is isolated (the ANPD's 2024 suspension of Meta's AI training on Brazilian data, TSE deepfake takedowns); the ANPD is designated as future coordinator without an AI mandate yet; monitoring is occasional."
+      },
+      "sources": [
+        "https://www25.senado.leg.br/web/atividade/materias/-/materia/157233",
+        "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm",
+        "https://www.gov.br/anpd/pt-br",
+        "https://www.loc.gov/item/global-legal-monitor/2025-05-23/brazil-senate-advances-discussions-on-bill-to-regulate-ai-use/"
+      ]
+    },
+    {
+      "country": "Kenya",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 3,
+          "scope": 2,
+          "implementation": 2,
+          "ai_specificity": 3
+        },
+        "policy_lever": {
+          "binding_instruments": 2,
+          "soft_law": 3,
+          "economic_tools": 2,
+          "institutional_capacity": 2
+        },
+        "governance_type": {
+          "regulator_plurality": 2,
+          "formal_coordination": 2,
+          "subnational_role": 1,
+          "nongovernmental_checks": 3
+        },
+        "actor_involvement": {
+          "industry": 3,
+          "civil_society": 3,
+          "academia": 2,
+          "international": 3
+        },
+        "enforcement_level": {
+          "sanctions_framework": 2,
+          "actions_taken": 2,
+          "dedicated_authority": 2,
+          "monitoring_practice": 2
+        }
+      },
+      "justification": {
+        "regulation_status": "The Artificial Intelligence Bill (Senate Bills No. 4 of 2025) is in the legislative process; the only binding coverage in force is the Data Protection Act 2019's automated-decision provisions; the National AI Strategy 2025-2030 is adopted but non-binding.",
+        "policy_lever": "The Data Protection Act is the one binding lever, general rather than AI-specific; the AI strategy, the KEBS AI code of practice and ODPC guidance give some published guidance; economic programmes are few; the ODPC is staffed for data protection and no body owns AI.",
+        "governance_type": "The ICT ministry, the ODPC and the Communications Authority share a small field with little formal coordination; counties play no role; the High Court has shaped data and biometric rules (Huduma Namba 2021, Worldcoin 2025).",
+        "actor_involvement": "Industry and civil society (KICTANet, Amnesty Kenya) file memoranda on the AI bill and strategy consultations; academic input (Strathmore CIPIT) is limited; Kenya endorsed the Bletchley Declaration and the AU Continental AI Strategy.",
+        "enforcement_level": "Penalties exist only under the Data Protection Act; ODPC actions touching AI are isolated (the 2023 Worldcoin suspension); the ODPC is designated for data, not AI; audits of registered controllers are occasional."
+      },
+      "sources": [
+        "https://www.parliament.go.ke/sites/default/files/2026-04/Bill%20Digest%20-%20The%20Artificial%20Intelligence%20Bill,%20No.4%20of%202026.pdf",
+        "https://www.odpc.go.ke/",
+        "https://ict.go.ke/",
+        "https://www.kictanet.or.ke/document/memorandum-on-the-artificial-intelligence-bill-2026-senate-bills-no-4-of-2025/"
+      ]
+    },
+    {
+      "country": "Bhutan",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 1,
+          "scope": 1,
+          "implementation": 1,
+          "ai_specificity": 2
+        },
+        "policy_lever": {
+          "binding_instruments": 1,
+          "soft_law": 2,
+          "economic_tools": 1,
+          "institutional_capacity": 2
+        },
+        "governance_type": {
+          "regulator_plurality": 1,
+          "formal_coordination": 1,
+          "subnational_role": 1,
+          "nongovernmental_checks": 1
+        },
+        "actor_involvement": {
+          "industry": 1,
+          "civil_society": 1,
+          "academia": 2,
+          "international": 2
+        },
+        "enforcement_level": {
+          "sanctions_framework": 1,
+          "actions_taken": 1,
+          "dedicated_authority": 1,
+          "monitoring_practice": 1
+        }
+      },
+      "justification": {
+        "regulation_status": "No binding AI instrument exists or is proposed; the National Assembly's June 2025 motion called for a framework but no bill followed; the dedicated instruments (National AI Strategy 2025, the civil-service generative AI guideline 2024) are non-binding.",
+        "policy_lever": "No binding instrument; two pieces of published guidance; no AI funding, procurement or sandbox programme; the GovTech Agency is designated as lead with thin resources.",
+        "governance_type": "The GovTech Agency is the single authority with nothing to coordinate; no sub-national role; no judicial or independent review of AI.",
+        "actor_involvement": "No structured industry or civil society input; the Royal University of Bhutan contributed to the UNESCO readiness assessment; international engagement is limited to UNESCO and UNDP programmes.",
+        "enforcement_level": "No penalties, no actions, no authority and no monitoring for AI."
+      },
+      "sources": [
+        "https://tech.gov.bt/wp-content/uploads/2025/10/National-AI-Strategy-2025.pdf",
+        "https://tech.gov.bt/guideline-for-generative-artificial-intelligence-usage-in-the-civil-service-2024/",
+        "https://tech.gov.bt/publications/"
+      ]
+    },
+    {
+      "country": "Kiribati",
+      "status": "draft",
+      "verified_on": null,
+      "drafted_on": "2026-09-23",
+      "subscores": {
+        "regulation_status": {
+          "binding_force": 1,
+          "scope": 1,
+          "implementation": 1,
+          "ai_specificity": 1
+        },
+        "policy_lever": {
+          "binding_instruments": 1,
+          "soft_law": 1,
+          "economic_tools": 1,
+          "institutional_capacity": 1
+        },
+        "governance_type": {
+          "regulator_plurality": 1,
+          "formal_coordination": 1,
+          "subnational_role": 1,
+          "nongovernmental_checks": 1
+        },
+        "actor_involvement": {
+          "industry": 1,
+          "civil_society": 1,
+          "academia": 1,
+          "international": 1
+        },
+        "enforcement_level": {
+          "sanctions_framework": 1,
+          "actions_taken": 1,
+          "dedicated_authority": 1,
+          "monitoring_practice": 1
+        }
+      },
+      "justification": {
+        "regulation_status": "No AI-specific or AI-relevant instrument exists, is drafted or is proposed.",
+        "policy_lever": "No binding instrument, guidance, programme or body addresses AI.",
+        "governance_type": "No body holds an AI remit, so there is nothing to coordinate or review.",
+        "actor_involvement": "No structured domestic input on AI and no participation in international AI governance beyond UN membership.",
+        "enforcement_level": "No penalties, actions, authority or monitoring for AI."
+      },
+      "sources": [
+        "https://www.mict.gov.ki",
+        "https://oecd.ai/en/dashboards/countries/Kiribati"
+      ]
+    }
+  ]
+}
