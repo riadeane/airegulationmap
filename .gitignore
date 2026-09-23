@@ -14,8 +14,10 @@ dist/
 # macOS
 .DS_Store
 
-# Local session / tooling state
-.claude/
+# Local session / tooling state (shared settings + hooks are tracked)
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 
 # Python cache
 __pycache__/
