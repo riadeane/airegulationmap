@@ -178,7 +178,7 @@ sequenceDiagram
 | `panel/*` | country detail | subscriber view |
 | `comparison/*` | staging strip + full comparison | subscriber view (+ `colorSlots` leaf) |
 | `scatter/*` | dimension explorer | subscriber view |
-| `controls/*` | search, filter, blocs, export, timeline, url, theme, menu, help, cite | subscriber views |
+| `controls/*` | search, filter, blocs, export, timeline, url, theme, menu, help, cite, this-week strip | subscriber views |
 | `main.ts` | boot + wiring | composition root |
 
 ## Where the rules live

@@ -15,6 +15,8 @@ import type { BlocsData } from '../data/blocs';
 import type { HistoryData, HistorySnapshot } from '../data/history';
 import { buildScoresAtDate, extractSortedDates } from '../data/history';
 import { classifySources } from '../data/sources';
+import { computeRecentChanges } from '../data/changelog';
+import type { RecentChange } from '../data/changelog';
 import type { AttributeKey } from '../constants';
 
 export interface RankResult {
@@ -211,4 +213,39 @@ export function scoresAtDate(): Record<string, HistorySnapshot> | null {
   const result = buildScoresAtDate(history, timelineDate);
   atDateCache = { history, date: timelineDate, result };
   return result;
+}
+
+// ---------------------------------------------------------------------------
+// "This week" - the countries whose scores moved in the last seven days.
+
+/** Today's date as YYYY-MM-DD in the viewer's local time zone. */
+function localIsoDate(): string {
+  const d = new Date();
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+const NO_CHANGES: readonly RecentChange[] = [];
+
+let recentCache: {
+  history: HistoryData;
+  today: string;
+  changes: readonly RecentChange[];
+} | null = null;
+
+/**
+ * Countries whose scores changed in the seven days ending `today`, largest
+ * move first (see computeRecentChanges). Empty until history loads.
+ * Memoized on the history reference and the day, so the strip and the
+ * header control share one walk over the snapshots.
+ */
+export function recentScoreChanges(today: string = localIsoDate()): readonly RecentChange[] {
+  const { history } = getState();
+  if (!history) return NO_CHANGES;
+  if (recentCache && recentCache.history === history && recentCache.today === today) {
+    return recentCache.changes;
+  }
+  const changes = computeRecentChanges(history, today);
+  recentCache = { history, today, changes };
+  return changes;
 }

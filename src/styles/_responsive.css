@@ -237,7 +237,8 @@
   #scatter-btn,
   #export-btn-container,
   #share-btn-container,
-  .header-changes-link {
+  .header-changes-link,
+  .this-week-restore {
     order: 3;
   }
 
@@ -245,7 +246,8 @@
   body:not(.controls-open) #scatter-btn,
   body:not(.controls-open) #export-btn-container,
   body:not(.controls-open) #share-btn-container,
-  body:not(.controls-open) .header-changes-link {
+  body:not(.controls-open) .header-changes-link,
+  body:not(.controls-open) .this-week-restore {
     display: none;
   }
 

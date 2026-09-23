@@ -5,6 +5,7 @@ import {
   visibleCountrySet,
   passesCountryFilters,
   scoresAtDate,
+  recentScoreChanges,
 } from '../src/state/selectors';
 
 // The ranking is memoized by scoreData reference; each test installs its own
@@ -163,5 +164,49 @@ describe('scoresAtDate selector', () => {
     // vintage - the map and panel both treat it as Latest.
     setState({ history, timelineDate: '2026-03-01' });
     expect(scoresAtDate()).toBeNull();
+  });
+});
+
+describe('recentScoreChanges selector', () => {
+  const snap = (date, overrides = {}) => ({
+    date,
+    regulationStatus: 2,
+    policyLever: 2,
+    governanceType: 2,
+    actorInvolvement: 2,
+    enforcementLevel: 2,
+    averageScore: 2,
+    ...overrides,
+  });
+  const history = () => ({
+    schema_version: 1,
+    countries: {
+      Moved: [snap('2026-06-13'), snap('2026-09-21', { policyLever: 2.5 })],
+      Still: [snap('2026-06-13')],
+    },
+  });
+
+  it('is empty before history loads', () => {
+    setState({ history: null });
+    expect(recentScoreChanges('2026-09-23')).toEqual([]);
+  });
+
+  it('reads the store history for the given day', () => {
+    setState({ history: history() });
+    expect(recentScoreChanges('2026-09-23')).toEqual([
+      { country: 'Moved', dimension: 'policyLever', label: 'Policy Lever', delta: 0.5, date: '2026-09-21' },
+    ]);
+    // A day outside the window sees nothing.
+    expect(recentScoreChanges('2026-10-15')).toEqual([]);
+  });
+
+  it('memoizes on the history reference and the day', () => {
+    const h = history();
+    setState({ history: h });
+    const first = recentScoreChanges('2026-09-23');
+    expect(recentScoreChanges('2026-09-23')).toBe(first);
+    expect(recentScoreChanges('2026-09-24')).not.toBe(first);
+    setState({ history: history() });
+    expect(recentScoreChanges('2026-09-23')).not.toBe(first);
   });
 });
