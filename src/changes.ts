@@ -38,7 +38,10 @@ function el<K extends keyof HTMLElementTagNameMap>(
 
 function link(href: string, text: string, external = false): HTMLAnchorElement {
   const a = el('a', { href }, [text]);
-  if (external) a.rel = 'noopener noreferrer';
+  if (external) {
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+  }
   return a;
 }
 
