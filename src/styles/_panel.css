@@ -631,6 +631,15 @@
   color: var(--text-primary);
 }
 
+/* A change dated on a calibration break: a re-measurement, labelled so
+   the numbers below it are not read as a policy event. */
+.changelog-recalibration-label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin: 2px 0 4px;
+}
+
 .changelog-direction.up {
   color: var(--score-high);
 }

@@ -30,6 +30,15 @@ on:
         required: false
         default: true
         type: boolean
+      gate:
+        description: 'Stability gate (default). Off applies every score; a full run then needs a break reason.'
+        required: false
+        default: true
+        type: boolean
+      break_reason:
+        description: 'With gate off on a full run: why the scale moved (recorded as a calibration break in history.json).'
+        required: false
+        default: ''
 
 # Never let two data runs (a manual dispatch overlapping the weekly cron)
 # race to git push. cancel-in-progress: false queues the second run instead of
@@ -92,17 +101,26 @@ jobs:
           INPUT_SEARCH: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.search == 'false') && '--no-search' || '' }}
           INPUT_BATCH: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.batch == 'false') && '--no-batch' || '' }}
           INPUT_GROUNDED: ${{ (vars.EVIDENCE_SYNC_ENABLED == 'true') && '--grounded' || '' }}
+          INPUT_GATE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.gate == 'false') && '--no-gate' || '' }}
+          INPUT_BREAK_REASON: ${{ github.event.inputs.break_reason || '' }}
         run: |
           # pipefail: tee must not mask the script's exit code - the
           # partial-failure contract (exit 1) drives the step status.
           set -o pipefail
+          # The break reason carries spaces, so it goes through an array.
+          extra=()
+          if [ -n "$INPUT_BREAK_REASON" ]; then
+            extra+=(--break-reason "$INPUT_BREAK_REASON")
+          fi
           python scripts/update_data.py \
             --countries "$INPUT_COUNTRIES" \
             $INPUT_MODEL \
             $INPUT_FORCE \
             $INPUT_SEARCH \
             $INPUT_BATCH \
-            $INPUT_GROUNDED 2>&1 | tee run.log
+            $INPUT_GROUNDED \
+            $INPUT_GATE \
+            "${extra[@]}" 2>&1 | tee run.log
 
       - name: Run summary
         if: ${{ !cancelled() }}
@@ -110,7 +128,7 @@ jobs:
           {
             echo "## Data update"
             echo '```'
-            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence" run.log | tail -20 || true
+            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:" run.log | tail -20 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -125,6 +143,8 @@ jobs:
           # first run) is detected too.
           git add public/scores.csv public/regulation_data.csv public/history.json
           if [ -f public/data/subscores.json ]; then git add public/data/subscores.json; fi
+          # pending.json: candidates the stability gate held for one run.
+          if [ -f public/data/pending.json ]; then git add public/data/pending.json; fi
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push updated data

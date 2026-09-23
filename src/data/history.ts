@@ -9,9 +9,27 @@ export interface HistorySnapshot {
   averageScore: number | null;
 }
 
+/**
+ * A calibration break: a run that re-scored every country with the
+ * stability gate off (a model or rubric change). Score changes dated on a
+ * break are a re-measurement, not a policy event.
+ */
+export interface HistoryBreak {
+  date: string;
+  model: string;
+  prompt_version: string;
+  reason: string;
+}
+
 export interface HistoryData {
   schema_version: number;
   countries: Record<string, HistorySnapshot[]>;
+  breaks?: HistoryBreak[];
+}
+
+/** The calibration breaks, oldest first; [] when the file has none. */
+export function historyBreaks(history: HistoryData | null | undefined): HistoryBreak[] {
+  return [...(history?.breaks ?? [])].sort((a, b) => a.date.localeCompare(b.date));
 }
 
 export async function loadHistory(): Promise<HistoryData | null> {

@@ -12,10 +12,11 @@ service only orchestrates applying, validating the dataset, and saving.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from typing import TYPE_CHECKING
 
+from . import gate
 from .errors import FatalAPIError
 from .repository import Dataset
 from .staleness import StalenessPolicy
@@ -34,6 +35,7 @@ class RunResult:
     updated: int
     failed: list[str]
     fatal: bool = False
+    gate: gate.GateTally = field(default_factory=gate.GateTally)
 
 
 class PipelineService:
@@ -43,6 +45,9 @@ class PipelineService:
         staleness: StalenessPolicy,
         today: date,
         mirror: Mirror | None = None,
+        *,
+        gate_enabled: bool = True,
+        calibration_break: dict | None = None,
     ):
         self._dataset = dataset
         self._staleness = staleness
@@ -52,6 +57,11 @@ class PipelineService:
         # call below is downgraded to a warning - a mirror failure can never
         # fail a run or change its exit code.
         self._mirror = mirror
+        # The stability gate (gate.py). Off only for a calibration run, which
+        # records ``calibration_break`` ({date, model, prompt_version, reason})
+        # in history.json so the frontend can label the shift.
+        self._gate_enabled = gate_enabled
+        self._break = calibration_break
 
     def select(self, targets: list[str] | None, *, force: bool) -> tuple[list[str], list[str]]:
         """Return ``(all_targets, to_update)``. ``targets`` is an explicit
@@ -78,14 +88,19 @@ class PipelineService:
 
         updated = 0
         failed: list[str] = []
+        tally = gate.GateTally()
+        if self._break is not None:
+            self._dataset.record_break(self._break)
         self._mirror_call("begin", len(to_update))
 
         try:
             for country, result in strategy.research(to_update, reg_rows):
-                if result is None or not self._apply(country, result):
+                decision = None if result is None else self._apply(country, result)
+                if decision is None:
                     failed.append(country)
                 else:
                     updated += 1
+                    tally.add(country, decision)
                     self._mirror_record(country, result)
         except FatalAPIError as exc:
             logger.error("FATAL: %s", exc)
@@ -94,29 +109,54 @@ class PipelineService:
                 logger.info("Saving partial progress...")
                 self._dataset.save()
             # Mirror AFTER the files are safe - same ordering as the happy path.
-            self._mirror_call("finish", updated, len(set(failed)), True)
-            return RunResult(updated=updated, failed=sorted(set(failed)), fatal=True)
+            self._mirror_call("finish", updated, len(set(failed)), True, gate_counts=tally.counts)
+            return RunResult(updated=updated, failed=sorted(set(failed)), fatal=True, gate=tally)
 
         for error in self._dataset.validate():
             logger.warning("validation: %s", error)
 
         logger.info("Writing output files...")
         self._dataset.save()
-        self._mirror_call("finish", updated, len(set(failed)), False)
-        return RunResult(updated=updated, failed=sorted(set(failed)))
+        self._mirror_call("finish", updated, len(set(failed)), False, gate_counts=tally.counts)
+        return RunResult(updated=updated, failed=sorted(set(failed)), gate=tally)
 
-    def _apply(self, country: str, result) -> bool:
-        """Apply one validated result. Isolated so an unexpected error on one
-        country can never abort the whole run."""
+    def standing(self, country: str) -> str:
+        """What the gate will do with the next result for ``country``."""
+        if not self._gate_enabled:
+            return "gate off: any result applies"
+        return gate.standing(self._dataset.scores_row(country), self._dataset.pending_for(country))
+
+    def _apply(self, country: str, result) -> gate.Decision | None:
+        """Gate and apply one validated result. Returns the gate decision, or
+        ``None`` on failure. Isolated so an unexpected error on one country
+        can never abort the whole run."""
         try:
-            outcome = self._dataset.apply(country, result, self._today)
+            existing_scores = self._dataset.scores_row(country)
+            if self._gate_enabled:
+                decision = gate.decide(
+                    existing_scores, self._dataset.regulation_row(country), result,
+                    self._dataset.pending_for(country), self._today,
+                )
+            else:
+                decision = gate.ungated(existing_scores, result)
+            outcome = self._dataset.apply(
+                country, result, self._today, apply_scores=decision.apply_scores,
+            )
+            self._dataset.set_pending(country, decision.pending)
         except Exception:
             logger.exception("failed to apply result for %s", country)
-            return False
+            return None
 
-        note = "(new snapshot)" if outcome.history_added else "(no score change)"
-        logger.info("%s: avg %s, confidence %s %s", country, outcome.average, outcome.confidence, note)
-        return True
+        note = "(new snapshot)" if outcome.history_added else "(no snapshot)"
+        logger.info(
+            "%s: %s - %s; avg %s, confidence %s %s",
+            country, decision.rule, decision.reason, outcome.average, outcome.confidence, note,
+        )
+        for move in decision.large_moves:
+            logger.warning(
+                "%s: large move %s %s -> %s", country, move.dimension, move.old, move.new,
+            )
+        return decision
 
     # -- mirror plumbing (never raises) ----------------------------------------
 
@@ -124,19 +164,19 @@ class PipelineService:
         if self._mirror is None:
             return
         try:
-            row = self._dataset.scores_row(country) or {}
             self._mirror.record(
                 country, result, self._today,
-                data_version=int(row.get("Data Version") or 1),
+                scores_row=dict(self._dataset.scores_row(country) or {}),
+                subscores=self._dataset.subscores_for(country) or {},
                 history=self._dataset.history_for(country),
             )
         except Exception:
             logger.warning("mirror: record(%s) failed - continuing", country, exc_info=True)
 
-    def _mirror_call(self, method: str, *args) -> None:
+    def _mirror_call(self, method: str, *args, **kwargs) -> None:
         if self._mirror is None:
             return
         try:
-            getattr(self._mirror, method)(*args)
+            getattr(self._mirror, method)(*args, **kwargs)
         except Exception:
             logger.warning("mirror: %s failed - continuing", method, exc_info=True)
