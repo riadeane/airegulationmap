@@ -28,6 +28,7 @@ import { hydrateFromSupabase } from './data/hydrate';
 import { loadSourceMeta } from './data/sourceMeta';
 import { initHelpOverlay } from './controls/helpOverlay';
 import { initMenu } from './controls/menu';
+import { initThisWeek } from './controls/thisWeek';
 import { initOnboarding } from './controls/onboarding';
 import { removeMapSkeleton, showLoadError } from './panel/resilience';
 import type { ScoreData, RegulationData } from './data/loader';
@@ -118,6 +119,7 @@ async function main(): Promise<void> {
   initScatter();
   initHelpOverlay();
   initMenu();
+  initThisWeek();
   initOnboarding();
 
   if (urlState.scatter) {

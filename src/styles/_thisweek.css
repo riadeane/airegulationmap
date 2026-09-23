@@ -1,0 +1,231 @@
+/* "This week" strip - a one-line band under the header listing the
+   countries whose scores moved in the last seven days
+   (controls/thisWeek.ts). It takes the header's surface tint and no
+   accent fill: it is a signpost above the map, not a call to action.
+   The band is one line tall; on narrow screens the list scrolls
+   sideways and never wraps. */
+
+.this-week-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 32px;
+  padding: 0 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  min-width: 0;
+  animation: fadeIn 0.4s var(--ease-out);
+}
+
+.this-week-strip[hidden] {
+  display: none;
+}
+
+.this-week-label {
+  font-size: 0.66rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.this-week-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.this-week-list li {
+  flex-shrink: 0;
+}
+
+.this-week-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.76rem;
+  line-height: 1;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+}
+
+.this-week-item:hover,
+.this-week-item:focus-visible {
+  border-color: var(--border);
+  background: var(--bg);
+}
+
+.this-week-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.this-week-item[aria-current='true'] {
+  border-color: var(--accent);
+}
+
+.this-week-country {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.this-week-dim {
+  font-size: 0.66rem;
+  color: var(--text-tertiary);
+}
+
+.this-week-delta {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.this-week-delta.up {
+  color: var(--score-high);
+}
+
+.this-week-delta.down {
+  color: var(--score-low);
+}
+
+.this-week-more {
+  font-size: 0.74rem;
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s var(--ease-out);
+}
+
+.this-week-more:hover,
+.this-week-more:focus-visible {
+  border-bottom-color: var(--accent);
+}
+
+.this-week-close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-right: -4px;
+  flex-shrink: 0;
+  transition: color 0.15s var(--ease-out);
+}
+
+.this-week-close:hover,
+.this-week-close:focus-visible {
+  color: var(--accent);
+}
+
+/* "Show this week's changes" - the header control that brings a dismissed
+   strip back. The desktop header is full, so it is an icon button the
+   size of the theme toggle; the text label appears only in the mobile
+   menu (below), where the toolbar wraps. */
+.this-week-restore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.18s var(--ease-out), border-color 0.18s var(--ease-out), background 0.18s var(--ease-out);
+}
+
+.this-week-restore:hover,
+.this-week-restore:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.this-week-restore[hidden] {
+  display: none;
+}
+
+.this-week-restore-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.this-week-restore-text {
+  display: none;
+}
+
+/* Mobile tier (same query as _responsive.css): match the header gutters,
+   drop the strip label so the list gets the width, and give the restore
+   control its text label inside the menu. */
+@media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {
+  .this-week-strip {
+    padding: 0 14px;
+    gap: 8px;
+  }
+
+  .this-week-label {
+    display: none;
+  }
+
+  .this-week-restore {
+    width: auto;
+    padding: 0 12px;
+  }
+
+  .this-week-restore-text {
+    display: inline;
+  }
+}
+
+/* Touch: a taller item without a second line of band, and no scrollbar
+   track (a swipe is the affordance there). */
+@media (pointer: coarse) {
+  .this-week-strip {
+    height: 36px;
+  }
+
+  .this-week-item {
+    height: 30px;
+  }
+
+  .this-week-list {
+    scrollbar-width: none;
+  }
+
+  .this-week-list::-webkit-scrollbar {
+    display: none;
+  }
+}
