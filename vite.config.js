@@ -13,6 +13,8 @@ export default defineConfig({
         // swagger-ui-dist at build time - no CDN, no vendored blobs).
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         apiDocs: fileURLToPath(new URL('./api-docs.html', import.meta.url)),
+        // The weekly changes page renders public/digest/ client-side.
+        changes: fileURLToPath(new URL('./changes.html', import.meta.url)),
       },
     },
   },

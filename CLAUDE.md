@@ -65,6 +65,15 @@ python scripts/update_data.py --grounded
 # public/data/pending.json. --no-gate applies every score; on a full run
 # it needs a reason, recorded as a calibration break in history.json.
 python scripts/update_data.py --no-gate --break-reason "Model switch to Opus 5"
+
+# Weekly changes digest (public/digest/): auto-on for scheduled runs
+# (GITHUB_EVENT_NAME=schedule); force with --digest. One Claude request on
+# the run's model; digest failures never fail a run.
+python scripts/update_data.py --batch --digest
+
+# Regenerate the digest for a past run from Supabase score_history
+# (needs SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY).
+python -m regulation_pipeline.digest --run <research_runs.id>
 ```
 
 Requests use structured outputs (`output_config.format`, schema generated from
@@ -110,7 +119,8 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
 | `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
-| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations) |
+| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, header menu) |
+| `src/data/digest.ts` | Weekly digest parsing + formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
 **State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
@@ -145,6 +155,7 @@ Python package that calls the Claude API to research regulation status per count
 | `config.py` | `Settings` (repo-root paths) + constants (fields, staleness, priority countries) |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - evidence and persistence rules for score changes |
+| `digest.py` | Weekly digest: selects a run's gate-applied changes, one structured-output Claude request, writes `public/digest/` (week JSON, index, Atom feed); `python -m regulation_pipeline.digest --run <id>` regenerates from Supabase |
 | `history.py` | History snapshot append/change-detection |
 | `names.py` | `CountryNames` - country-name normalization via alias map |
 | `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
@@ -167,6 +178,7 @@ Python package that calls the Claude API to research regulation status per count
 | `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`) |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 | `public/openapi.json` | Committed snapshot of PostgREST's OpenAPI output; drives the Swagger UI at `api-docs.html` (Supabase serves the live spec endpoint only to secret keys, so the browser can never fetch it) |
+| `public/digest/` | Weekly changes digest: `YYYY-Www.json` per run week, `index.json` (weeks, newest first), `feed.xml` (Atom). Written by the pipeline after scheduled runs; rendered by `changes.html` |
 
 These files are served as static assets by Vite (via `publicDir`) and copied unchanged to `dist/` on build.
 

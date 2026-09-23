@@ -236,14 +236,16 @@
   #filter-btn-container,
   #scatter-btn,
   #export-btn-container,
-  #share-btn-container {
+  #share-btn-container,
+  .header-changes-link {
     order: 3;
   }
 
   body:not(.controls-open) #filter-btn-container,
   body:not(.controls-open) #scatter-btn,
   body:not(.controls-open) #export-btn-container,
-  body:not(.controls-open) #share-btn-container {
+  body:not(.controls-open) #share-btn-container,
+  body:not(.controls-open) .header-changes-link {
     display: none;
   }
 

@@ -11,11 +11,16 @@ Design constraints (see the service for the call sites):
   paid once, after ``dataset.save()`` has already secured the files.
 * ``score_history`` is replaced per recorded country rather than appended:
   ``history.py`` advances the last snapshot's date in place when scores are
-  unchanged, so an append-only mirror would drift from the file.
+  unchanged, so an append-only mirror would drift from the file. A snapshot
+  that already existed keeps its original ``run_id``; only snapshots with
+  new scores get this run's id. ``run_id`` therefore means "the run that
+  introduced this change point", which is what the weekly digest's
+  ``--run <id>`` regeneration relies on.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import uuid
 from dataclasses import dataclass
@@ -86,6 +91,12 @@ class SupabaseMirror:
         self._run_id = str(uuid.uuid4())
         self._entries: list[_Entry] = []
 
+    @property
+    def run_id(self) -> str:
+        """The ``research_runs.id`` this mirror writes. The service shares it
+        so ``RunResult.run_id`` and the database agree."""
+        return self._run_id
+
     # -- Mirror protocol -----------------------------------------------------
 
     def begin(self, attempted: int) -> None:
@@ -140,21 +151,38 @@ class SupabaseMirror:
         self._client.upsert("country_scores", scores_rows, on_conflict="country_id")
         self._client.upsert("country_summaries", summary_rows, on_conflict="country_id")
 
-        # History: replace-per-country (delete + insert the file's snapshots).
+        # History: replace-per-country (delete + insert the file's snapshots),
+        # keeping the run id of every snapshot that already existed.
         for e in self._entries:
             cid = country_ids[e.country]
+            prior_run_ids = self._prior_run_ids(cid)
             self._client.delete("score_history", {"country_id": f"eq.{cid}"})
-            self._client.insert("score_history", [
-                {
+            rows = []
+            for snap in e.history:
+                scores = {k: v for k, v in snap.items() if k != "date"}
+                rows.append({
                     "country_id": cid,
                     "snapshot_date": snap["date"],
-                    "scores": {k: v for k, v in snap.items() if k != "date"},
-                    "run_id": self._run_id,
-                }
-                for snap in e.history
-            ])
+                    "scores": scores,
+                    "run_id": prior_run_ids.get(_scores_key(scores), self._run_id),
+                })
+            self._client.insert("score_history", rows)
 
         self._sync_sources(country_ids)
+
+    def _prior_run_ids(self, country_id: str) -> dict[str, str]:
+        """Map ``scores json -> run_id`` for the country's existing snapshot
+        rows. Keyed by scores, not date: an unchanged snapshot's date advances
+        on every re-research, but its scores identify the same change point."""
+        rows = self._client.select_all("score_history", {
+            "select": "scores,run_id",
+            "country_id": f"eq.{country_id}",
+        })
+        return {
+            _scores_key(r["scores"]): r["run_id"]
+            for r in rows
+            if r.get("run_id") and isinstance(r.get("scores"), dict)
+        }
 
     def _resolve_country_ids(self, names: list[str]) -> dict[str, str]:
         rows = self._client.select_all("countries", {"select": "id,name"})
@@ -267,6 +295,11 @@ def _summary_row(country_id: str, e: _Entry, run_id: str) -> dict:
     }
 
 
+def _scores_key(scores: dict) -> str:
+    """A stable identity for a snapshot's score set (see ``_prior_run_ids``)."""
+    return json.dumps(scores, sort_keys=True, separators=(",", ":"))
+
+
 def _iso_columns(entry: dict | None) -> dict:
     if not entry:
         return {}
@@ -280,8 +313,6 @@ def _iso_columns(entry: dict | None) -> dict:
 def _load_iso(path: Path | None) -> dict:
     if path is None or not path.exists():
         return {}
-    import json
-
     return json.loads(path.read_text(encoding="utf-8")).get("countries", {})
 
 

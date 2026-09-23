@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>https://airegulationmap.org/digest/feed.xml</id>
+  <title>AI Regulation Map: weekly changes</title>
+  <subtitle>Score and law changes from each research run, with sources.</subtitle>
+  <updated>2026-09-23T02:41:00Z</updated>
+  <link rel="self" type="application/atom+xml" href="https://airegulationmap.org/digest/feed.xml"/>
+  <link rel="alternate" type="text/html" href="https://airegulationmap.org/changes.html"/>
+  <author><name>AI Regulation Map</name><uri>https://airegulationmap.org/</uri></author>
+  <generator uri="https://github.com/riadeane/airegulationmap">regulation_pipeline.digest</generator>
+</feed>

@@ -165,6 +165,23 @@ class TestSupabaseMirror:
         score_row = fake.of("POST", "country_scores")[0][0]
         assert score_row["country_id"] == "c-gen-0"
 
+    def test_history_replace_keeps_run_id_of_existing_snapshots(self):
+        # score_history.run_id means "the run that introduced this change
+        # point": an existing snapshot keeps its id even though its date may
+        # have advanced; only the new snapshot gets this run's id.
+        fake = FakePostgrest()
+        fake.select_rows["score_history"] = [
+            {"scores": {"regulationStatus": 3, "averageScore": 3}, "run_id": "run-old"},
+        ]
+        mirror = make_mirror(fake)
+        mirror.begin(attempted=1)
+        mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=HISTORY)
+        mirror.finish(updated=1, failed=0, fatal=False)
+
+        hist_rows = fake.of("POST", "score_history")[0]
+        assert [r["run_id"] for r in hist_rows] == ["run-old", mirror.run_id]
+        assert mirror.run_id == fake.of("POST", "research_runs")[0][0]["id"]
+
     def test_finish_without_records_only_updates_run(self):
         fake = FakePostgrest()
         mirror = make_mirror(fake)
@@ -249,7 +266,11 @@ class TestServiceMirrorSeam:
         svc_quiet, _ = _service(tmp_path / "quiet", quiet)
         quiet_result = svc_quiet.run(ListStrategy([("A", model()), ("B", None)]), ["A", "B"])
 
-        assert loud_result == quiet_result
+        # Same outcome (run_id/changes differ by construction: fresh id per
+        # service, and the second run sees the first run's saved rows).
+        assert (loud_result.updated, loud_result.failed, loud_result.fatal) == (
+            quiet_result.updated, quiet_result.failed, quiet_result.fatal
+        )
         assert loud.calls == ["begin", "record", "finish"]
 
     def test_no_mirror_is_identical_to_before(self, tmp_path):

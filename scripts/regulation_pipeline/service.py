@@ -12,6 +12,7 @@ service only orchestrates applying, validating the dataset, and saving.
 from __future__ import annotations
 
 import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import date
 from typing import TYPE_CHECKING
@@ -29,13 +30,38 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
+class CountryChange:
+    """One applied result: the rows it replaced, the rows it wrote, and the
+    gate rule that decided it.
+
+    ``old_*`` are ``None`` for a country with no prior data. The rows use the
+    CSV column names (``SCORES_FIELDS`` / ``REGULATION_FIELDS``) and are read
+    after the gate applied, so ``new_scores`` holds the gated scores: a held
+    result shows no score movement here. Consumers such as the weekly digest
+    decide what counts as a change; the service only records what changed.
+    """
+
+    country: str
+    old_scores: dict | None
+    new_scores: dict
+    old_regulation: dict | None
+    new_regulation: dict
+    rule: str = ""
+
+
+@dataclass(frozen=True)
 class RunResult:
-    """Outcome of a run, for the CLI to turn into an exit code."""
+    """Outcome of a run: counts for the CLI's exit code, the gate tally, and
+    the applied changes plus run id for post-run consumers (the weekly
+    digest)."""
 
     updated: int
     failed: list[str]
     fatal: bool = False
     gate: gate.GateTally = field(default_factory=gate.GateTally)
+    run_id: str = ""
+    changes: tuple[CountryChange, ...] = field(default_factory=tuple)
+    calibration_break: dict | None = None
 
 
 class PipelineService:
@@ -48,10 +74,15 @@ class PipelineService:
         *,
         gate_enabled: bool = True,
         calibration_break: dict | None = None,
+        run_id: str | None = None,
     ):
         self._dataset = dataset
         self._staleness = staleness
         self._today = today
+        # One id per run, shared with the Supabase research_runs row when a
+        # mirror is attached (the CLI passes the mirror's id) so the digest can
+        # be regenerated from the database by the same id.
+        self._run_id = run_id or str(uuid.uuid4())
         # Optional Supabase dual-write. Deliberately OUTSIDE Dataset: the file
         # stores and their byte contracts stay untouched, and every mirror
         # call below is downgraded to a warning - a mirror failure can never
@@ -89,18 +120,21 @@ class PipelineService:
         updated = 0
         failed: list[str] = []
         tally = gate.GateTally()
+        changes: list[CountryChange] = []
         if self._break is not None:
             self._dataset.record_break(self._break)
         self._mirror_call("begin", len(to_update))
 
         try:
             for country, result in strategy.research(to_update, reg_rows):
-                decision = None if result is None else self._apply(country, result)
-                if decision is None:
+                applied = None if result is None else self._apply(country, result)
+                if applied is None:
                     failed.append(country)
                 else:
+                    decision, change = applied
                     updated += 1
                     tally.add(country, decision)
+                    changes.append(change)
                     self._mirror_record(country, result)
         except FatalAPIError as exc:
             logger.error("FATAL: %s", exc)
@@ -110,7 +144,7 @@ class PipelineService:
                 self._dataset.save()
             # Mirror AFTER the files are safe - same ordering as the happy path.
             self._mirror_call("finish", updated, len(set(failed)), True, gate_counts=tally.counts)
-            return RunResult(updated=updated, failed=sorted(set(failed)), fatal=True, gate=tally)
+            return self._result(updated, failed, tally, changes, fatal=True)
 
         for error in self._dataset.validate():
             logger.warning("validation: %s", error)
@@ -118,7 +152,16 @@ class PipelineService:
         logger.info("Writing output files...")
         self._dataset.save()
         self._mirror_call("finish", updated, len(set(failed)), False, gate_counts=tally.counts)
-        return RunResult(updated=updated, failed=sorted(set(failed)), gate=tally)
+        return self._result(updated, failed, tally, changes, fatal=False)
+
+    def _result(
+        self, updated: int, failed: list[str], tally: gate.GateTally,
+        changes: list[CountryChange], *, fatal: bool,
+    ) -> RunResult:
+        return RunResult(
+            updated=updated, failed=sorted(set(failed)), fatal=fatal, gate=tally,
+            run_id=self._run_id, changes=tuple(changes), calibration_break=self._break,
+        )
 
     def standing(self, country: str) -> str:
         """What the gate will do with the next result for ``country``."""
@@ -126,10 +169,12 @@ class PipelineService:
             return "gate off: any result applies"
         return gate.standing(self._dataset.scores_row(country), self._dataset.pending_for(country))
 
-    def _apply(self, country: str, result) -> gate.Decision | None:
-        """Gate and apply one validated result. Returns the gate decision, or
-        ``None`` on failure. Isolated so an unexpected error on one country
-        can never abort the whole run."""
+    def _apply(self, country: str, result) -> tuple[gate.Decision, CountryChange] | None:
+        """Gate and apply one validated result. Returns the gate decision and
+        the rows it replaced, or ``None`` on failure. Isolated so an
+        unexpected error on one country can never abort the whole run."""
+        old_scores = _copy(self._dataset.scores_row(country))
+        old_regulation = _copy(self._dataset.regulation_row(country))
         try:
             existing_scores = self._dataset.scores_row(country)
             if self._gate_enabled:
@@ -156,7 +201,15 @@ class PipelineService:
             logger.warning(
                 "%s: large move %s %s -> %s", country, move.dimension, move.old, move.new,
             )
-        return decision
+        change = CountryChange(
+            country=country,
+            old_scores=old_scores,
+            new_scores=dict(self._dataset.scores_row(country) or {}),
+            old_regulation=old_regulation,
+            new_regulation=dict(self._dataset.regulation_row(country) or {}),
+            rule=decision.rule,
+        )
+        return decision, change
 
     # -- mirror plumbing (never raises) ----------------------------------------
 
@@ -180,3 +233,7 @@ class PipelineService:
             getattr(self._mirror, method)(*args, **kwargs)
         except Exception:
             logger.warning("mirror: %s failed - continuing", method, exc_info=True)
+
+
+def _copy(row: dict | None) -> dict | None:
+    return dict(row) if row is not None else None
