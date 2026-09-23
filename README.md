@@ -16,6 +16,7 @@ Live at [airegulationmap.org](https://airegulationmap.org)
 - One-click CSV/JSON export of the full or filtered dataset
 - Timeline slider to view how scores have changed over time
 - Shareable URLs, formatted citations (APA/Chicago/MLA), and light/dark themes
+- Every country entry has a "Report an issue" button that opens a pre-filled GitHub issue (see [CONTRIBUTING.md](CONTRIBUTING.md), "Data issues")
 - Data is automatically re-researched weekly using Claude with web search to keep it current
 
 ## Quick start
@@ -71,6 +72,8 @@ python -m pytest   # pipeline tests (pip install -r requirements-dev.txt)
 ```
 
 CI runs lint, tests, and the production build on every push and pull request.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full check list and for how data-error reports are handled.
 
 ## Updating the data
 

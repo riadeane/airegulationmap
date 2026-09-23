@@ -1,6 +1,6 @@
 # PRD 09: Error reporting from the panel
 
-Status: Proposed. Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026). Owner: unassigned. Depends on: none.
 
 ## Problem
 
@@ -58,5 +58,17 @@ everything the maintainer needs to reproduce and fix the entry.
 
 ## Open questions
 
-- Should reports auto-trigger a re-research of that country? Proposed: no,
-  the maintainer decides.
+- Should reports auto-trigger a re-research of that country? Decided: no,
+  the maintainer decides (`CONTRIBUTING.md`, "Data issues").
+
+## Implementation notes
+
+- GitHub prefills an issue *form* from query parameters named after its
+  field ids and ignores the free-text `body` parameter, which only Markdown
+  templates take. The entry block therefore travels in the form's `entry`
+  field, the country in `country`; the "What is wrong" section is the form's
+  own required textarea rather than a heading inside the prefilled text.
+- The body is capped at 6,000 characters and its encoded form at 7,000, so
+  the URL stays inside GitHub's limit (measured: 414 above roughly 8 KB).
+  Detail is shed in a fixed order: unlisted sources with a count, then the
+  rationales, then the sub-indicator block.

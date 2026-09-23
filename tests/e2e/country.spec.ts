@@ -51,3 +51,29 @@ test('the panel copies a permanent link to the country page', async ({ page, con
   await expect(page.locator('#permalink-btn')).toHaveText('Copied ✓');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(`${baseURL}/country/chile/`);
 });
+
+test('the panel opens a pre-filled GitHub issue for the country', async ({ page, context }) => {
+  // Nothing leaves the runner: the popup's GitHub request is answered here.
+  await context.route('https://github.com/**', route =>
+    route.fulfill({ status: 200, contentType: 'text/html', body: '<title>stub</title>' })
+  );
+  await page.goto('/?country=Chile');
+  await expect(page.locator('#country-name')).toHaveText('Chile');
+  const [popup] = await Promise.all([context.waitForEvent('page'), page.click('#report-btn')]);
+  await popup.waitForLoadState();
+  const url = new URL(popup.url());
+  expect(url.origin + url.pathname).toBe('https://github.com/riadeane/airegulationmap/issues/new');
+  expect(url.searchParams.get('template')).toBe('data-error.yml');
+  expect(url.searchParams.get('title')).toBe('Data: Chile');
+  expect(url.searchParams.get('labels')).toBe('data');
+  expect(url.searchParams.get('country')).toBe('Chile');
+  const entry = url.searchParams.get('entry') ?? '';
+  expect(entry).toContain('**Country:** Chile');
+  expect(entry).toContain('**Confidence:** Medium');
+  expect(entry).toMatch(/\*\*Data version:\*\* \d+/);
+  expect(entry).toMatch(/\| Regulation Status \| \d/);
+  expect(entry).toContain('**App URL:** http://localhost:4173/?country=Chile');
+  expect(entry).toMatch(/\*\*Sources \(\d+\):\*\*\n\n1\. https?:\/\//);
+  expect(entry.length).toBeLessThanOrEqual(6000);
+  await popup.close();
+});

@@ -448,7 +448,8 @@
   }
 }
 
-/* Panel header actions row - Compare + Cite sit side by side. */
+/* Panel header actions row - Compare, Cite, Permanent link, Print brief
+   and Report an issue sit side by side and wrap on narrow panels. */
 .panel-header-actions {
   display: flex;
   gap: 8px;
@@ -459,13 +460,15 @@
 .panel-header-actions .compare-btn,
 .panel-header-actions .cite-btn,
 .panel-header-actions .permalink-btn,
-.panel-header-actions .print-btn {
+.panel-header-actions .print-btn,
+.panel-header-actions .report-btn {
   margin: 0;
 }
 
 .cite-btn,
 .permalink-btn,
-.print-btn {
+.print-btn,
+.report-btn {
   appearance: none;
   -webkit-appearance: none;
   background: transparent;
@@ -487,7 +490,9 @@
 .permalink-btn:hover,
 .permalink-btn:focus-visible,
 .print-btn:hover,
-.print-btn:focus-visible {
+.print-btn:focus-visible,
+.report-btn:hover,
+.report-btn:focus-visible {
   color: var(--accent);
   border-color: var(--accent);
   background: var(--accent-muted);
