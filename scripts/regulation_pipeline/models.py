@@ -56,6 +56,8 @@ class Dimension(BaseModel):
     key: ClassVar[str]
     # CamelCase key used in the history snapshot JSON, e.g. ``regulationStatus``.
     history_key: ClassVar[str]
+    # Column header in scores.csv / regulation_data.csv, e.g. ``Regulation Status``.
+    column: ClassVar[str]
     # Whether this dimension counts toward the maturity composite.
     normative: ClassVar[bool] = True
 
@@ -77,6 +79,7 @@ class Dimension(BaseModel):
 class RegulationStatus(Dimension):
     key = "regulation_status"
     history_key = "regulationStatus"
+    column = "Regulation Status"
     binding_force: Score
     scope: Score
     implementation: Score
@@ -87,6 +90,7 @@ class RegulationStatus(Dimension):
 class PolicyLever(Dimension):
     key = "policy_lever"
     history_key = "policyLever"
+    column = "Policy Lever"
     binding_instruments: Score
     soft_law: Score
     economic_tools: Score
@@ -97,6 +101,7 @@ class PolicyLever(Dimension):
 class GovernanceType(Dimension):
     key = "governance_type"
     history_key = "governanceType"
+    column = "Governance Type"
     normative = False  # descriptive scale - excluded from the composite
     regulator_plurality: Score
     formal_coordination: Score
@@ -108,6 +113,7 @@ class GovernanceType(Dimension):
 class ActorInvolvement(Dimension):
     key = "actor_involvement"
     history_key = "actorInvolvement"
+    column = "Actor Involvement"
     normative = False  # descriptive scale - excluded from the composite
     industry: Score
     civil_society: Score
@@ -119,6 +125,7 @@ class ActorInvolvement(Dimension):
 class EnforcementLevel(Dimension):
     key = "enforcement_level"
     history_key = "enforcementLevel"
+    column = "Enforcement Level"
     sanctions_framework: Score
     actions_taken: Score
     dedicated_authority: Score
@@ -190,16 +197,16 @@ class ResearchResult(BaseModel):
         keep the schema minimal; the shape (``enum`` scores, ``additionalProperties:
         false``, every field ``required``) matches what the API expects.
         """
-        return _strip_titles(cls.model_json_schema())
+        return strip_titles(cls.model_json_schema())
 
 
-def _strip_titles(node: Any) -> Any:
+def strip_titles(node: Any) -> Any:
     """Recursively drop pydantic's ``title`` keys from a generated schema."""
     if isinstance(node, dict):
         node.pop("title", None)
         for value in node.values():
-            _strip_titles(value)
+            strip_titles(value)
     elif isinstance(node, list):
         for value in node:
-            _strip_titles(value)
+            strip_titles(value)
     return node

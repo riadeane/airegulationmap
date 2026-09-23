@@ -38,6 +38,10 @@ REGULATION_FIELDS = [
 # Countries stale after this many days without a fresh, confident answer.
 STALENESS_DAYS = 90
 
+# Public origin of the deployed site. Absolute links in the digest feed
+# (Atom ids, alternate links) are built from it.
+SITE_URL = "https://airegulationmap.org"
+
 # Default research model. The model must support the web_search_20260209
 # tool and structured outputs (Opus 5, Opus 4.8, Sonnet 5, and Sonnet 4.6 do).
 # Opus 5 thinks by default, which suits the judgment-heavy scoring rubric.
@@ -90,3 +94,8 @@ class Settings:
     def pending_json(self) -> Path:
         """Score candidates the stability gate held for one run (see gate.py)."""
         return self.root / "public" / "data" / "pending.json"
+
+    @property
+    def digest_dir(self) -> Path:
+        """Weekly digest files: ``YYYY-Www.json``, ``index.json``, ``feed.xml``."""
+        return self.root / "public" / "digest"

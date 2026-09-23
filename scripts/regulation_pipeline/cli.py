@@ -23,10 +23,11 @@ from .api import ResearchClient
 from .batch import BatchRunner
 from . import gate
 from .config import DEFAULT_MODEL, Settings
+from .digest import write_run_digest
 from .names import CountryNames
 from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
 from .repository import Dataset
-from .service import PipelineService
+from .service import PipelineService, RunResult
 from .staleness import StalenessPolicy
 from .strategies import BatchStrategy, SyncStrategy
 
@@ -92,6 +93,12 @@ def _run(
         help="With --no-gate: record a calibration break {date, model, "
         "prompt_version, reason} in history.json so the frontend labels the "
         "shift as a recalibration, not as policy change.",
+    ),
+    digest: bool | None = typer.Option(
+        None, "--digest/--no-digest",
+        help="Write the weekly digest (public/digest/) after the run. Default: on "
+        "for scheduled runs (GITHUB_EVENT_NAME=schedule), off otherwise. A digest "
+        "failure never fails the run.",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose (DEBUG) logging"),
 ) -> None:
@@ -169,7 +176,9 @@ def _run(
         mirror=supabase_mirror,
         gate_enabled=gate_enabled,
         calibration_break=calibration_break,
+        run_id=supabase_mirror.run_id if supabase_mirror is not None else None,
     )
+    write_digest = digest if digest is not None else _is_scheduled()
 
     targets = None
     if not full_run:
@@ -179,6 +188,8 @@ def _run(
     logger.info("Countries to update: %d / %d", len(to_update), len(all_targets))
     if not to_update:
         logger.info("Nothing to update.")
+        if write_digest and not dry_run:
+            _write_digest(RunResult(updated=0, failed=[]), client, settings, model, today)
         return
 
     if dry_run:
@@ -194,6 +205,8 @@ def _run(
     for line in gate.review_lines(result.gate):
         logger.warning(line)
     _write_step_summary(gate.markdown_summary(result.gate, calibration_break))
+    if write_digest:
+        _write_digest(result, client, settings, model, today)
     if result.fatal:
         raise typer.Exit(code=2)
 
@@ -203,6 +216,22 @@ def _run(
             "Failed countries (%d): %s", len(result.failed), ", ".join(result.failed)
         )
         raise typer.Exit(code=1)
+
+
+def _is_scheduled() -> bool:
+    return os.environ.get("GITHUB_EVENT_NAME") == "schedule"
+
+
+def _write_digest(
+    result: RunResult, client: anthropic.Anthropic, settings: Settings, model: str, today: date,
+) -> None:
+    """Post-run digest. Downgraded to a warning on any failure: the data
+    files are already saved, and a missing digest must not change the exit
+    code that drives the workflow's commit step."""
+    try:
+        write_run_digest(result, client=client, settings=settings, model=model, run_date=today)
+    except Exception:
+        logger.warning("digest: failed - continuing", exc_info=True)
 
 
 def _write_step_summary(markdown: str) -> None:
@@ -303,7 +332,7 @@ def _build_mirror(
         return totals
 
     meta = RunMeta(
-        trigger="schedule" if os.environ.get("GITHUB_EVENT_NAME") == "schedule" else "manual",
+        trigger="schedule" if _is_scheduled() else "manual",
         model=model,
         strategy="batch" if batch else "sync",
         prompt_version=GROUNDED_PROMPT_VERSION if grounded else PROMPT_VERSION,

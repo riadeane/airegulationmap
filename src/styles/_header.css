@@ -518,6 +518,28 @@ input[type="range"] {
 .theme-toggle[data-theme='light'] .theme-icon-sun { display: none; }
 .theme-toggle[data-theme='light'] .theme-icon-moon { display: block; }
 
+/* "This week's changes" - a quiet text link to the digest page, rendered
+   by controls/menu.ts. Text, not a button: it leaves the app rather than
+   changing the view, and it must weigh less than the map controls. */
+.header-changes-link {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 0 6px;
+  height: var(--control-h);
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 1px solid transparent;
+  transition: color 0.18s var(--ease-out), border-color 0.18s var(--ease-out);
+}
+
+.header-changes-link:hover,
+.header-changes-link:focus-visible {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 /* Menu (☰) toggle - only appears on mobile (see _responsive.css), where
    it folds the secondary controls away so the map keeps the screen.
    Hidden on desktop, which shows the full toolbar inline. */

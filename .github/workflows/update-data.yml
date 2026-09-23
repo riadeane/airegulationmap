@@ -39,6 +39,11 @@ on:
         description: 'With gate off on a full run: why the scale moved (recorded as a calibration break in history.json).'
         required: false
         default: ''
+      digest:
+        description: 'Write the weekly changes digest (public/digest/) after the run. Scheduled runs always do.'
+        required: false
+        default: false
+        type: boolean
 
 # Never let two data runs (a manual dispatch overlapping the weekly cron)
 # race to git push. cancel-in-progress: false queues the second run instead of
@@ -103,6 +108,9 @@ jobs:
           INPUT_GROUNDED: ${{ (vars.EVIDENCE_SYNC_ENABLED == 'true') && '--grounded' || '' }}
           INPUT_GATE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.gate == 'false') && '--no-gate' || '' }}
           INPUT_BREAK_REASON: ${{ github.event.inputs.break_reason || '' }}
+          # Scheduled runs write the digest by default (the CLI reads
+          # GITHUB_EVENT_NAME); a dispatch opts in with the input.
+          INPUT_DIGEST: ${{ (github.event.inputs.digest == 'true') && '--digest' || '' }}
         run: |
           # pipefail: tee must not mask the script's exit code - the
           # partial-failure contract (exit 1) drives the step status.
@@ -120,6 +128,7 @@ jobs:
             $INPUT_BATCH \
             $INPUT_GROUNDED \
             $INPUT_GATE \
+            $INPUT_DIGEST \
             "${extra[@]}" 2>&1 | tee run.log
 
       - name: Run summary
@@ -128,7 +137,7 @@ jobs:
           {
             echo "## Data update"
             echo '```'
-            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:" run.log | tail -20 || true
+            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:|digest:" run.log | tail -20 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -145,6 +154,8 @@ jobs:
           if [ -f public/data/subscores.json ]; then git add public/data/subscores.json; fi
           # pending.json: candidates the stability gate held for one run.
           if [ -f public/data/pending.json ]; then git add public/data/pending.json; fi
+          # Weekly digest (week file, index, Atom feed) travels with the data.
+          if [ -d public/digest ]; then git add public/digest; fi
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push updated data

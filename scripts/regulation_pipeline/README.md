@@ -77,6 +77,7 @@ flowchart TD
 | `history.py` | History snapshot append + change detection |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - decides whether a result's scores may land |
+| `digest.py` | Weekly digest: change selection, one structured-output request, `public/digest/` writers (week JSON, index, Atom), `--run <id>` regeneration |
 | `names.py` | `CountryNames` - country-name normalization |
 | `config.py` | `Settings` (repo-root paths) + field/threshold/priority constants |
 | `errors.py` | `FatalAPIError` |
@@ -416,6 +417,39 @@ provenance.
   plain prompt, so `models.py` and everything downstream are untouched.
   `ResearchClient` takes an `evidence_provider`; countries without
   evidence fall back to the plain prompt. Enable with `--grounded`.
+
+## Weekly digest (`digest.py`)
+
+A post-run step that stays out of the service. `PipelineService.run` returns a
+`RunResult` whose `changes` hold, per applied country, the scores and
+regulation rows the result replaced (`CountryChange`, read after the gate
+applied, so a held result shows no score movement) and the gate rule that
+decided it. `digest.py` reduces those to the countries worth reporting, asks
+Claude for the prose once, and writes `public/digest/`.
+
+- **Selection.** A country is covered when a gate-applied dimension score
+  moved, the `Specific Laws` text changed after whitespace normalisation, or
+  confidence rose to `high` with a source URL the old row did not have. On a
+  calibration-break run (`--no-gate --break-reason`) score-only changes are
+  left out and the lead opens with the recalibration sentence (PRD 01,
+  addendum A).
+- **Generation.** One request on the run's model with structured output
+  (`DigestText.output_schema()`, the same pydantic pattern as `ResearchResult`).
+  The prompt forbids claims without a source from the supplied list, em dashes,
+  and unverifiable adjectives. `validate_items` drops any item that cites a URL
+  outside its country's source list, so the digest can never link to a source
+  the run did not find.
+- **Files.** `YYYY-Www.json` (ISO week of the run date; lead, items, and the
+  raw deltas), `index.json` (weeks, newest first), `feed.xml` (Atom, one entry
+  per week). An empty run writes a one-line "no changes" week without a request.
+- **When it runs.** `--digest/--no-digest`; the default is on for scheduled
+  runs (`GITHUB_EVENT_NAME=schedule`). A digest failure is a warning: the data
+  files are already saved and the exit code is unchanged.
+- **Regeneration.** `python -m regulation_pipeline.digest --run <id>` rebuilds a
+  run's changes from Supabase. `score_history.run_id` marks the snapshots a run
+  introduced (the mirror keeps earlier snapshots' ids when it replaces a
+  country's history), so score change points are exact. The regulation text has
+  no history in the database, so regenerated digests cover score changes only.
 
 ## Testing & tooling
 
