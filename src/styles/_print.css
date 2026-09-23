@@ -71,8 +71,11 @@
     display: none !important;
   }
 
-  /* The other views inside main, and the panel's screen-only controls. */
+  /* The other views inside main, the "this week" strip, the peer
+     comparison chips, and the panel's screen-only controls. */
   body.print-brief #map-wrapper,
+  body.print-brief #this-week-strip,
+  body.print-brief #peers-section,
   body.print-brief #comparison-panel,
   body.print-brief #comparison-strip,
   body.print-brief #panel-intro,

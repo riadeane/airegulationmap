@@ -17,19 +17,21 @@ describe('canPrintBrief', () => {
 });
 
 describe('briefPermalink', () => {
-  const base = 'https://airegulationmap.org/';
+  const origin = 'https://airegulationmap.org';
 
-  it('links to the country alone', () => {
-    expect(briefPermalink(base, 'Germany', null)).toBe('https://airegulationmap.org/?country=Germany');
+  it('links to the static country page', () => {
+    expect(briefPermalink(origin, '/', 'Germany', null)).toBe('https://airegulationmap.org/country/germany/');
   });
 
-  it('encodes multi-word names the way the app parses them back', () => {
-    expect(briefPermalink(base, 'United States of America', null))
-      .toBe('https://airegulationmap.org/?country=United+States+of+America');
+  it('slugs multi-word and accented names the way the build step does', () => {
+    expect(briefPermalink(origin, '/', 'United States of America', null))
+      .toBe('https://airegulationmap.org/country/united-states-of-america/');
+    expect(briefPermalink(origin, '/', "Côte d'Ivoire", null))
+      .toBe('https://airegulationmap.org/country/cote-divoire/');
   });
 
-  it('keeps the timeline date so a historical brief reproduces', () => {
-    expect(briefPermalink(base, 'Germany', '2026-06-01'))
+  it('links a historical vintage to the app view with its date', () => {
+    expect(briefPermalink(origin, '/', 'Germany', '2026-06-01'))
       .toBe('https://airegulationmap.org/?country=Germany&date=2026-06-01');
   });
 });

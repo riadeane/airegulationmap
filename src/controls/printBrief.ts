@@ -13,6 +13,7 @@ import { getState } from '../state/store';
 import type { AppState } from '../state/store';
 import { maybeEl } from '../dom';
 import { citationsFor } from './citation';
+import { countryPagePath } from '../data/slug';
 import { renderAllBreakdowns } from '../panel/subscores';
 
 export const PRINT_BRIEF_CLASS = 'print-brief';
@@ -26,16 +27,23 @@ export function canPrintBrief(state: Pick<AppState, 'selectedCountry' | 'mainVie
 }
 
 /**
- * The link a paper copy points back to: the country alone, plus the
- * timeline date when the brief shows a historical vintage. Filters,
- * score mode and theme describe the map view, not the entry. This is
- * the share URL; switch to /country/<slug>/ when static country pages
- * (PRD 04) exist.
+ * The link a paper copy points back to. The static /country/<slug>/ page
+ * is the stable, JavaScript-free URL for the entry. A historical vintage
+ * has no static page, so that brief links to the app view with the
+ * timeline date instead. Filters, score mode and theme describe the map
+ * view, not the entry, so they stay out.
  */
-export function briefPermalink(base: string, country: string, timelineDate: string | null): string {
-  const params = new URLSearchParams({ country });
-  if (timelineDate) params.set('date', timelineDate);
-  return `${base}?${params.toString()}`;
+export function briefPermalink(
+  origin: string,
+  appPath: string,
+  country: string,
+  timelineDate: string | null
+): string {
+  if (timelineDate) {
+    const params = new URLSearchParams({ country, date: timelineDate });
+    return `${origin}${appPath}?${params.toString()}`;
+  }
+  return origin + countryPagePath(country);
 }
 
 function isoToday(): string {
@@ -53,7 +61,7 @@ function prepare(): void {
   document.body.classList.add(PRINT_BRIEF_CLASS);
   renderAllBreakdowns();
 
-  const url = briefPermalink(window.location.origin + window.location.pathname, country, timelineDate);
+  const url = briefPermalink(window.location.origin, window.location.pathname, country, timelineDate);
   const citation = maybeEl('print-citation-text');
   if (citation) citation.textContent = citationsFor({ country, timelineDate, url }).apa;
   const link = maybeEl('print-permalink-text');
