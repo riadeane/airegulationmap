@@ -10,6 +10,7 @@ import { csvFormat } from 'd3-dsv';
 import { getState, on } from '../state/store';
 import { visibleCountrySet } from '../state/selectors';
 import type { ScoreEntry, RegulationEntry } from '../data/loader';
+import type { SubscoreEntry } from '../data/subscores';
 
 function buildExportRows(countries: string[]) {
   const { scoreData, regulationData } = getState();
@@ -34,6 +35,22 @@ function buildExportRows(countries: string[]) {
       'Confidence': reg.confidence || '',
       'Last Updated': scores.lastUpdated || reg.lastUpdated || '',
     };
+  });
+}
+
+// JSON only: the methodology v2 sub-indicator audit trail, with the
+// v2.1 rationale sentence under each score (null for countries scored
+// before rationales existed). Nested, so it has no CSV column - the CSV
+// export is unchanged.
+type ExportRow = ReturnType<typeof buildExportRows>[number];
+
+export function withSubindicators(
+  rows: ExportRow[],
+  subscores: Record<string, SubscoreEntry> | undefined
+): (ExportRow & { 'Sub-indicators'?: SubscoreEntry })[] {
+  return rows.map(row => {
+    const entry = subscores?.[row.Country];
+    return entry ? { ...row, 'Sub-indicators': entry } : row;
   });
 }
 
@@ -93,7 +110,8 @@ export function exportCountries(
   if (format === 'csv') {
     downloadFile(csvFormat(rows), `ai-regulation-data-${scopeLabel}-${date}.csv`, 'text/csv');
   } else {
-    downloadFile(JSON.stringify(rows, null, 2), `ai-regulation-data-${scopeLabel}-${date}.json`, 'application/json');
+    const withAudit = withSubindicators(rows, getState().subscores?.countries);
+    downloadFile(JSON.stringify(withAudit, null, 2), `ai-regulation-data-${scopeLabel}-${date}.json`, 'application/json');
   }
   showToast(
     `Exported ${rows.length} ${rows.length === 1 ? 'country' : 'countries'} · ` +

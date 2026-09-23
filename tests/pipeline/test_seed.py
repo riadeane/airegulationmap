@@ -61,8 +61,13 @@ def settings(tmp_path) -> Settings:
         ],
     }}), encoding="utf-8")
     s.subscores_json.parent.mkdir(parents=True, exist_ok=True)
-    s.subscores_json.write_text(json.dumps({"schema_version": 2, "countries": {
-        "Testland": {"date": "2026-06-13", "regulation_status": {"binding_force": 4}},
+    s.subscores_json.write_text(json.dumps({"schema_version": 1, "methodology": "v2.1", "countries": {
+        # v2.1 shape: {score, rationale} per sub-indicator ...
+        "Testland": {"date": "2026-06-13", "regulation_status": {
+            "binding_force": {"score": 4, "rationale": "AI Act in force."},
+        }},
+        # ... and a v2 entry (bare integers) from before the rationale change.
+        "Nulland": {"date": "2026-01-01", "regulation_status": {"binding_force": 1}},
     }}), encoding="utf-8")
     s.country_names_json.write_text(json.dumps({"aliases": {"Republic of Testland": "Testland"}}), encoding="utf-8")
     s.country_iso_json.write_text(json.dumps({"schema_version": 1, "countries": {
@@ -84,7 +89,11 @@ def test_build_seed_shapes(settings):
     scores = {s["country"]: s for s in seed.scores}
     assert scores["Testland"]["regulation_status"] == 4.25
     assert scores["Testland"]["confidence"] == "high"          # normalized
-    assert scores["Testland"]["subscores"]["date"] == "2026-06-13"  # lossless passthrough
+    assert scores["Testland"]["subscores"]["date"] == "2026-06-13"
+    assert scores["Testland"]["subscores"]["regulation_status"] == {"binding_force": 4}
+    assert scores["Testland"]["rationales"] == {"regulation_status": {"binding_force": "AI Act in force."}}
+    assert scores["Nulland"]["subscores"]["regulation_status"] == {"binding_force": 1}
+    assert scores["Nulland"]["rationales"] is None
     assert scores["Nulland"]["regulation_status"] is None      # 'NA' -> null
     assert scores["Nulland"]["confidence"] is None             # junk value -> null
     assert scores["Nulland"]["data_version"] == 1
@@ -111,6 +120,9 @@ def test_emit_sql_is_idempotent_and_escapes(settings, tmp_path):
     assert "on conflict (name) do update" in joined
     assert "on conflict (country_id) do update" in joined
     assert "on conflict (country_id, snapshot_date) do update" in joined
+    # Rationales travel in their own jsonb column, split out of subscores.
+    assert "rationales = excluded.rationales" in joined
+    assert '{"regulation_status": {"binding_force": "AI Act in force."}}' in joined
     assert "on conflict (url) do update" in joined
     assert "on conflict (id) do nothing" in joined
     # Quote escaping (prose contains 'quotes').

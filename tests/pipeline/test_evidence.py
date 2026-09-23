@@ -195,6 +195,19 @@ class TestSyncEvidence:
         assert len(keys) == len(set(keys))  # payload has no duplicate conflict keys
 
 
+class TestPromptRationales:
+    def test_every_subindicator_asks_for_a_rationale(self):
+        prompt = render_prompt("Germany", TODAY, None)
+        assert prompt.count('"rationale": "<the one fact behind this score>"') == 20
+        assert '"binding_force": {"score": <' in prompt
+        assert "at most 200 characters" in prompt
+        assert "no hedging phrases" in prompt
+
+    def test_grounded_prompt_keeps_the_rationale_contract(self):
+        grounded = render_grounded_prompt("Germany", TODAY, None, TestGroundedPrompt.INITIATIVES)
+        assert grounded.count('"rationale": "<the one fact behind this score>"') == 20
+
+
 class TestGroundedPrompt:
     INITIATIVES = [
         {"name": "AI Act", "start_year": 2024, "initiative_type": "Law", "binding": "Binding",

@@ -78,7 +78,8 @@ python -m regulation_pipeline.digest --run <research_runs.id>
 
 Requests use structured outputs (`output_config.format`, schema generated from
 the pydantic model via `models.ResearchResult.output_schema()`), so responses are
-guaranteed schema-valid JSON - sub-scores arrive as ints 1–5 with all fields present.
+guaranteed schema-valid JSON - every sub-indicator arrives as `{score, rationale}` with the
+score an int 1–5 and all fields present (rationale length is checked in pydantic).
 
 Requires `ANTHROPIC_API_KEY` in environment. Install Python dependencies:
 
@@ -174,7 +175,7 @@ Python package that calls the Claude API to research regulation status per count
 | `public/history.json` | Timestamped snapshots of score data for timeline playback |
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
-| `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2) |
+| `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1) |
 | `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`) |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 | `public/openapi.json` | Committed snapshot of PostgREST's OpenAPI output; drives the Swagger UI at `api-docs.html` (Supabase serves the live spec endpoint only to secret keys, so the browser can never fetch it) |
@@ -225,9 +226,9 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 - **actor_involvement** - narrow↔broad participation (descriptive - excluded from the composite)
 - **enforcement_level** - enforcement rigor (normative)
 
-**Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` is `v3-2026-09`; the switch is recorded as a calibration break in `history.json` (`breaks`), which the timeline marks and the changelog labels as "Recalibration".
+**Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` was `v3-2026-09` for the rubric switch (now `v3.1-2026-09`, since the v2.1 rationale field changed the output structure but not the rubric); the switch is recorded as a calibration break in `history.json` (`breaks`), which the timeline marks and the changelog labels as "Recalibration".
 
-**Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/prompt.py` and modeled in `models.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. Calibration: 5 = the global frontier at scoring time, not perfection; governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
+**Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/prompt.py` and modeled in `models.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. **Methodology v2.1 (September 2026):** every sub-indicator also carries a one-sentence `rationale` (1–200 characters, validated in pydantic; the structured-output schema requires the field but cannot express length). The file stores `{score, rationale}` per sub-indicator and a top-level `methodology: "v2.1"` tag; the frontend loader (`src/data/subscores.ts`) accepts both v2 integers and v2.1 objects. Supabase mirrors rationales into `country_scores.rationales` (jsonb). governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
 
 ### Automated Updates
 

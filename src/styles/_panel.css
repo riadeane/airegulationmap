@@ -709,10 +709,25 @@
 }
 
 .subscore-line {
+  padding: 2px 0;
+}
+
+.subscore-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 2px 0;
+}
+
+/* The model's one-sentence rationale (methodology v2.1). Small body
+   text, not a caption: it is a claim to read and check, so it keeps
+   sentence case, a reading line-height, and a bounded measure. The
+   ancestor selector outranks `.panel-section p`. */
+.subscore-panel .subscore-rationale {
+  margin: 1px 0 5px;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  max-width: 64ch;
 }
 
 .subscore-label {

@@ -411,7 +411,7 @@ class TestServiceHandsOverChanges:
 
         svc.run(Answers(full_result()), ["A"])
         moved = full_result()
-        moved["regulation_status"]["binding_force"] = 5  # 4.0 -> 4.25, same laws and sources
+        moved["regulation_status"]["binding_force"]["score"] = 5  # 4.0 -> 4.25, same laws and sources
         result = svc.run(Answers(moved), ["A"])
         [c] = result.changes
         assert c.rule == "held"
