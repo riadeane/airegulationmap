@@ -3,6 +3,7 @@ import { maybeEl } from '../dom';
 import { renderScoreBar, renderAllDots } from './scores';
 import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
+import { renderPeerRow } from './peers';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { toggleComparison } from '../state/interactions';
 import { maturityRank, scoresAtDate } from '../state/selectors';
@@ -175,12 +176,15 @@ function renderScores(countryName: string): void {
   renderScoreBar(entry ? entry.averageScore : null);
   renderAllDots(entry);
 
+  // Rank and peer sets are latest-data derivations; both hide while a
+  // historical vintage is showing.
   if (historical) {
     const rankEl = document.getElementById('maturity-rank');
     if (rankEl) rankEl.textContent = '';
   } else {
     renderRank(countryName);
   }
+  renderPeerRow(historical ? null : countryName);
 
   const notice = document.getElementById('panel-history-notice');
   if (notice) {
@@ -345,6 +349,13 @@ export function initPanel(): void {
   on('history', () => {
     const { selectedCountry } = getState();
     if (selectedCountry) renderChangelog(selectedCountry);
+  });
+
+  // blocs.json arrives async - a URL-deep-linked country may already be
+  // rendered by then, so backfill its bloc peer chips.
+  on('blocsData', () => {
+    const { selectedCountry } = getState();
+    if (selectedCountry) renderScores(selectedCountry);
   });
 
   // The timeline scrubber re-vintages the open panel's scores so the panel

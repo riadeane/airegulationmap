@@ -105,7 +105,9 @@ while the timeline is scrubbed.
 `loader.ts` maps CSV rows to typed domain objects (`ScoreEntry`,
 `RegulationEntry`) and validates at the boundary (non-numeric/out-of-range →
 `null`, never `NaN`). `history.ts`, `blocs.ts`, `subscores.ts`, and
-`searchIndex.ts` are the other read models. This is the layer that most
+`searchIndex.ts` are the other read models; `peers.ts` derives the panel's
+peer sets (bloc, similar maturity, similar profile) as pure functions over
+the score rows. This is the layer that most
 resembles the backend's `Dataset` repository.
 
 ### Facade barrels - `map/index.ts`, `comparison/index.ts`, `scatter/index.ts`

@@ -111,6 +111,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/data/searchIndex.ts` | Full-text index + substring search over regulation text |
 | `src/data/countryMatch.ts` | Shared country-name autocomplete matcher |
 | `src/data/blocs.ts` | Bloc membership loading + aggregate stats (`computeBlocStats`) |
+| `src/data/peers.ts` | Peer sets for the panel's "Compare with" shortcuts (bloc, similar maturity, similar profile) |
 | `src/data/sources.ts` | Source URL classification (official vs other) + copy formatting + `SourceMeta` |
 | `src/data/subscores.ts` | subscores.json loading + sub-indicator labels (methodology v2) |
 | `src/data/supabase.ts` | Thin PostgREST reader (env-gated; null on any failure) |
