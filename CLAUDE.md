@@ -120,7 +120,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
 | `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
-| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, header menu) |
+| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, print brief, header menu) |
 | `src/data/digest.ts` | Weekly digest parsing + formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 

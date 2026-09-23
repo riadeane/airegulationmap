@@ -1,6 +1,6 @@
 # PRD 07: Printable country brief
 
-Status: Proposed. Owner: unassigned. Depends on: 03 (optional, for rationales).
+Status: Implemented (September 2026). Owner: unassigned. Depends on: 03 (optional, for rationales).
 
 ## Problem
 

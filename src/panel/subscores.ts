@@ -5,6 +5,7 @@
 // rationale, shown under the score when present.
 
 import { getState, on } from '../state/store';
+import { ATTRIBUTE_LABELS } from '../constants';
 import type { DimensionKey } from '../constants';
 import { DIMENSION_TO_SNAKE, SUBSCORE_LABELS } from '../data/subscores';
 
@@ -36,6 +37,9 @@ function renderBreakdown(container: HTMLElement, dimension: DimensionKey): boole
   const caption = document.createElement('div');
   caption.className = 'subscore-caption';
   caption.textContent = `Sub-indicators · assessed ${entry.date}`;
+  // The print brief lists every block after the scores table, away
+  // from its row, so the caption names its dimension there.
+  caption.dataset.dimension = ATTRIBUTE_LABELS[dimension];
   container.appendChild(caption);
 
   for (const [key, label] of SUBSCORE_LABELS[snake]) {
@@ -75,6 +79,22 @@ function renderBreakdown(container: HTMLElement, dimension: DimensionKey): boole
     container.appendChild(line);
   }
   return container.children.length > 1;
+}
+
+/**
+ * Render every dimension's sub-indicator block for the selected country.
+ * The print brief shows them all; on screen they stay hidden unless
+ * expanded. A historical timeline date has no sub-indicators (see the
+ * lock below), so the blocks empty instead of pairing old scores with
+ * current detail.
+ */
+export function renderAllBreakdowns(): void {
+  const historical = getState().timelineDate != null;
+  document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
+    const panel = panelFor(row);
+    if (historical) panel.replaceChildren();
+    else renderBreakdown(panel, row.dataset.dimension as DimensionKey);
+  });
 }
 
 function collapseAll(): void {

@@ -9,6 +9,7 @@ import { maturityRank, scoresAtDate } from '../state/selectors';
 import { MAX_COMPARISON } from '../constants';
 import { classifySources, formatSourcesForCopy } from '../data/sources';
 import { writeClipboard } from '../controls/clipboard';
+import { formatIsoCodes } from '../data/countryIso';
 
 const CONFIDENCE_LABELS = {
   high: 'High confidence',
@@ -145,6 +146,13 @@ function updateCiteButton(): void {
   btn.title = disabled ? 'Select a country first' : '';
 }
 
+function renderIsoCodes(countryName: string): void {
+  const el = maybeEl('country-iso');
+  if (!el) return;
+  const { countryIso } = getState();
+  el.textContent = formatIsoCodes(countryIso?.[countryName]);
+}
+
 // Maturity-index rank among countries with a composite score. The ranking is
 // derived once per data load by the memoized selector, not recomputed on every
 // panel render.
@@ -206,6 +214,7 @@ function renderPanel(countryName: string): void {
   }
 
   document.getElementById('country-name')!.textContent = countryName;
+  renderIsoCodes(countryName);
 
   const badge = document.getElementById('confidence-badge')!;
   const level = normalizeConfidence(reg && reg.confidence);
@@ -339,6 +348,12 @@ export function initPanel(): void {
 
   on('currentAttribute', updateDimensionHighlight);
   on('comparisonCountries', () => { updateCompareButton(); updateCiteButton(); });
+
+  // country_iso.json arrives async - backfill the open entry's codes.
+  on('countryIso', () => {
+    const { selectedCountry } = getState();
+    if (selectedCountry) renderIsoCodes(selectedCountry);
+  });
 
   // history.json arrives async - a URL-deep-linked country may already
   // be rendered by then, so backfill its changelog section.

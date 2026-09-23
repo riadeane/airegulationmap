@@ -255,6 +255,7 @@
         <div class="panel-country-header">
           <div class="panel-name-row">
             <span id="country-name"></span>
+            <span id="country-iso" class="country-iso"></span>
             <span id="confidence-badge" class="confidence-badge"></span>
             <button id="panel-close" class="panel-close" type="button" aria-label="Close country details">&times;</button>
           </div>
@@ -274,6 +275,12 @@
               aria-expanded="false"
               aria-controls="cite-popover"
             >Cite</button>
+            <button
+              id="print-brief-btn"
+              class="print-btn"
+              type="button"
+              title="Print a one-to-two page brief for this country (Ctrl/Cmd+P)"
+            >Print brief</button>
           </div>
           <div
             id="cite-popover"
@@ -386,6 +393,12 @@
           <div class="panel-section-label">SCORE HISTORY</div>
           <div id="changelog-entries"></div>
         </div>
+        <!-- Print brief only: the citation and permanent link, which the
+             screen shows through the Cite popover. Filled by printBrief.ts. -->
+        <div id="print-citation" class="print-citation" hidden>
+          <p><span class="print-citation-label">Cite as</span> <span id="print-citation-text"></span></p>
+          <p><span class="print-citation-label">Permanent link</span> <span id="print-permalink-text"></span></p>
+        </div>
       </div>
       <div id="comparison-strip" class="comparison-strip" role="region" aria-label="Comparison set" hidden>
         <div class="strip-header">
@@ -458,6 +471,8 @@
           <dd>Add to comparison</dd>
           <dt><kbd>Esc</kbd></dt>
           <dd>Close / deselect</dd>
+          <dt><kbd>&#8984;</kbd><kbd>P</kbd></dt>
+          <dd>Print country brief</dd>
         </dl>
       </div>
       <p class="help-overlay-footer">More detail in the <a href="/methodology.html">methodology</a>.</p>
