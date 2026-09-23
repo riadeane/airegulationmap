@@ -403,6 +403,7 @@
   }
 
   .cite-btn,
+  .permalink-btn,
   .sources-copy {
     min-height: 44px;
     display: inline-flex;

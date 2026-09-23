@@ -5,9 +5,10 @@
 // string, return the original - better stiff than factually truncated.
 //
 // CSV data is never modified. Every call is scoped to one free-text field
-// at render time in src/panel/sections.js.
+// at render time (panel, comparison view) or at build time (static
+// country pages). This module touches no DOM so both can import it.
 
-import { NORMALIZE_COPY } from '../constants';
+import { NORMALIZE_COPY, PLACEHOLDER_RE } from '../constants';
 
 const MONTHS = 'January|February|March|April|May|June|July|August|September|October|November|December';
 
@@ -103,4 +104,19 @@ export function normalizeRegulationText<T>(text: T): T | string {
   if (!out || out.trim().length === 0) return original;
   if (out.length < original.length * 0.6) return original;
   return out;
+}
+
+/**
+ * Trim a free-text CSV field for display: null for empty cells and
+ * placeholders ("N/A", "idem", a bare cross-reference), otherwise the
+ * normalized text.
+ */
+export function cleanRegulationText(text: string | null | undefined): string | null {
+  if (!text || typeof text !== 'string') return null;
+  const trimmed = text.trim();
+  if (trimmed.length === 0) return null;
+  if (PLACEHOLDER_RE.test(trimmed)) return null;
+  if (/^(cf\.|Cf\.)\s/i.test(trimmed) && trimmed.length < 40) return null;
+  if (/^idem\b/i.test(trimmed) && trimmed.length < 10) return null;
+  return normalizeRegulationText(trimmed);
 }

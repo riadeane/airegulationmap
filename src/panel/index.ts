@@ -9,6 +9,7 @@ import { maturityRank, scoresAtDate } from '../state/selectors';
 import { MAX_COMPARISON } from '../constants';
 import { classifySources, formatSourcesForCopy } from '../data/sources';
 import { writeClipboard } from '../controls/clipboard';
+import { countryPagePath } from '../data/slug';
 
 const CONFIDENCE_LABELS = {
   high: 'High confidence',
@@ -326,6 +327,19 @@ export function initPanel(): void {
       const original = 'Copy all';
       sourcesCopyBtn.textContent = ok ? 'Copied ✓' : 'Copy failed';
       setTimeout(() => { sourcesCopyBtn.textContent = original; }, 1500);
+    });
+  }
+
+  // "Permanent link": the static /country/<slug>/ page is the stable,
+  // JavaScript-free URL for this country - the one to put in a footnote.
+  const permalinkBtn = maybeEl<HTMLButtonElement>('permalink-btn');
+  if (permalinkBtn) {
+    permalinkBtn.addEventListener('click', async () => {
+      const { selectedCountry } = getState();
+      if (!selectedCountry) return;
+      const ok = await writeClipboard(window.location.origin + countryPagePath(selectedCountry));
+      permalinkBtn.textContent = ok ? 'Copied ✓' : 'Copy failed';
+      setTimeout(() => { permalinkBtn.textContent = 'Permanent link'; }, 1500);
     });
   }
 

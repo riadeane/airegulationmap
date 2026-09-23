@@ -1,7 +1,6 @@
-import { PLACEHOLDER_RE } from '../constants';
 import { maybeEl } from '../dom';
 import type { DimensionKey } from '../constants';
-import { normalizeRegulationText } from './normalize';
+import { cleanRegulationText } from './normalize';
 import { classifySources } from '../data/sources';
 import type { ClassifiedSource, SourceMeta } from '../data/sources';
 import type { RegulationEntry } from '../data/loader';
@@ -9,16 +8,6 @@ import type { RegulationEntry } from '../data/loader';
 export function showSection(id: string, show: boolean): void {
   const el = document.getElementById(id);
   if (el) el.style.display = show ? '' : 'none';
-}
-
-export function cleanRegulationText(text: string | null | undefined): string | null {
-  if (!text || typeof text !== 'string') return null;
-  const trimmed = text.trim();
-  if (trimmed.length === 0) return null;
-  if (PLACEHOLDER_RE.test(trimmed)) return null;
-  if (/^(cf\.|Cf\.)\s/i.test(trimmed) && trimmed.length < 40) return null;
-  if (/^idem\b/i.test(trimmed) && trimmed.length < 10) return null;
-  return normalizeRegulationText(trimmed);
 }
 
 const SECTION_MAP: { key: DimensionKey; sectionId: string; detailId: string }[] = [
