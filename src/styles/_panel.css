@@ -458,11 +458,13 @@
 
 .panel-header-actions .compare-btn,
 .panel-header-actions .cite-btn,
+.panel-header-actions .permalink-btn,
 .panel-header-actions .print-btn {
   margin: 0;
 }
 
 .cite-btn,
+.permalink-btn,
 .print-btn {
   appearance: none;
   -webkit-appearance: none;
@@ -482,6 +484,8 @@
 .cite-btn:hover,
 .cite-btn:focus-visible,
 .cite-btn[aria-expanded='true'],
+.permalink-btn:hover,
+.permalink-btn:focus-visible,
 .print-btn:hover,
 .print-btn:focus-visible {
   color: var(--accent);
@@ -678,6 +682,55 @@
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
   margin-top: 4px;
+}
+
+/* "Compare with" peer sets - pill chips in the comparison-chip idiom
+   (raised surface, hairline border), but buttons: a click starts the
+   comparison. No colour dot: identity colours belong to the comparison set
+   the click creates. The section is `hidden` when a country has no peers,
+   so the row never reserves empty space. */
+.peer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.peer-chip {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px 6px 11px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.74rem;
+  line-height: 1;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-out), color 0.15s var(--ease-out),
+    background 0.15s var(--ease-out);
+}
+
+.peer-chip:hover,
+.peer-chip:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.peer-chip-count {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 0.64rem;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.peer-chip:hover .peer-chip-count,
+.peer-chip:focus-visible .peer-chip-count {
+  color: inherit;
 }
 
 /* Grab handle for the mobile bottom sheet - hidden on desktop, where

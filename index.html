@@ -64,6 +64,7 @@
         Without it, you can still:
       </p>
       <ul>
+        <li>read any <a href="/country/">country entry</a> (plain HTML: scores, legislation, sources)</li>
         <li>read the <a href="/methodology.html">methodology page</a> (plain HTML, works offline)</li>
         <li>browse the raw data on
           <a href="https://github.com/riadeane/airegulationmap/tree/main/public" rel="noopener noreferrer">GitHub</a>:
@@ -190,6 +191,13 @@
     </div>
   </header>
 
+  <section id="this-week-strip" class="this-week-strip" aria-label="Score changes in the last seven days" hidden>
+    <span class="this-week-label">This week</span>
+    <ul id="this-week-list" class="this-week-list"></ul>
+    <a id="this-week-more" class="this-week-more" href="/changes.html" hidden></a>
+    <button id="this-week-close" class="this-week-close" type="button" aria-label="Hide this week's changes" title="Hide for this session">&times;</button>
+  </section>
+
   <main id="app-main" aria-label="World map and country detail">
     <div id="map-wrapper">
       <div id="map">
@@ -276,6 +284,12 @@
               aria-controls="cite-popover"
             >Cite</button>
             <button
+              id="permalink-btn"
+              class="permalink-btn"
+              type="button"
+              title="Copy a permanent link to this country's page"
+            >Permanent link</button>
+            <button
               id="print-brief-btn"
               class="print-btn"
               type="button"
@@ -349,6 +363,10 @@
               </button>
             </div>
           </div>
+        </div>
+        <div class="panel-section" id="peers-section" hidden>
+          <div class="panel-section-label">COMPARE WITH</div>
+          <div id="peer-chips" class="peer-chips" role="group" aria-label="Peer sets to compare with"></div>
         </div>
         <p id="no-details-message" class="panel-section" style="display:none; color: var(--text-secondary); font-size: 0.8rem; font-style: italic;">
           No detailed regulation data available for this country.

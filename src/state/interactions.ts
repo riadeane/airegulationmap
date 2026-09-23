@@ -97,6 +97,16 @@ export function restoreComparison(names: readonly string[]): void {
   setMainView(names.length >= 2 ? 'comparison' : 'map');
 }
 
+/**
+ * Start a fresh comparison from a ranked list - the selected country plus
+ * a peer set, most similar first. Drops duplicates, keeps the first
+ * MAX_COMPARISON (so the cap cuts the least similar), commits, and opens
+ * the full view. The panel's "Compare with" chips dispatch this.
+ */
+export function startComparison(names: readonly string[]): void {
+  restoreComparison([...new Set(names)].slice(0, MAX_COMPARISON));
+}
+
 // -- main-area view (the FSM's single writer) --------------------------------
 
 /**

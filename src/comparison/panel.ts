@@ -3,7 +3,7 @@ import { el } from '../dom';
 import { ATTRIBUTE_LABELS } from '../constants';
 import type { DimensionKey } from '../constants';
 import { matchCountryNames } from '../data/countryMatch';
-import { cleanRegulationText } from '../panel/sections';
+import { cleanRegulationText } from '../panel/normalize';
 import { renderRadar } from './radar';
 import { addToComparison, removeFromComparison } from '../state/interactions';
 import { getColorFor } from './colorSlots';

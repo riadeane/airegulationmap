@@ -20,4 +20,13 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { args: 'after-used', caughtErrors: 'none' }],
     },
   },
+  {
+    // Build-time Node scripts (the static page generator).
+    files: ['scripts/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+  },
 );
