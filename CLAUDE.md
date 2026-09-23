@@ -123,7 +123,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
 | `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
-| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, print brief, header menu, "this week" strip) |
+| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip) |
 | `src/data/digest.ts` | Weekly digest parsing + formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
@@ -197,6 +197,22 @@ curl -sS -H "apikey: $SUPABASE_SERVICE_KEY" \
 ```
 
 Display fixes (title, host, dropping write verbs) are applied at load time in `src/apiDocs.ts`, so a plain refresh never loses them.
+
+### Issue reporting (`src/controls/report.ts`)
+
+The panel's "Report an issue" action opens the GitHub issue form
+`.github/ISSUE_TEMPLATE/data-error.yml` in a new tab with the country and
+the entry as shown (scores, confidence, last updated, data version, the APA
+citation string, the app URL, the source list, and the sub-indicator rows in
+a collapsed block once rationales exist) already filled in. GitHub prefills
+form fields from query parameters named after the field ids, so the URL
+carries `template`, `title`, `labels`, `country` and `entry`; the free-text
+`body` parameter only applies to Markdown templates. The entry sheds detail
+(unlisted sources with a count, then rationales, then the sub-indicator
+block) to stay under 6,000 characters and 7,000 encoded, well inside
+GitHub's URL limit. Nothing but on-screen data is sent. Reports do not
+trigger re-research; `CONTRIBUTING.md` ("Data issues") describes how a fix
+flows through the pipeline.
 
 ### Static country pages (`scripts/build_pages.ts`)
 

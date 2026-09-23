@@ -1,0 +1,53 @@
+# Data-error reports. The panel's "Report an issue" button opens this form
+# with the country and the entry block filled from the data on screen
+# (src/controls/report.ts builds the URL from the field ids below, so keep
+# the ids in step with it). Reports are read by a maintainer; they do not
+# trigger re-research on their own. See CONTRIBUTING.md, "Data issues".
+name: Data error
+description: Report a wrong score, a stale law, or a bad source on a country entry.
+title: "Data: <country>"
+labels: ["data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for checking the data. One issue per country keeps a fix easy to trace.
+        The panel's "Report an issue" button fills in the country and the entry block for you.
+  - type: input
+    id: country
+    attributes:
+      label: Country
+      description: The country name as it appears on the map.
+      placeholder: Chile
+    validations:
+      required: true
+  - type: textarea
+    id: what-is-wrong
+    attributes:
+      label: What is wrong
+      description: Which score, law, description, or source is wrong, and what it should say.
+      placeholder: Enforcement Level is 2, but the regulator has issued fines since ...
+    validations:
+      required: true
+  - type: input
+    id: evidence
+    attributes:
+      label: Evidence (URL)
+      description: A primary source for the correction, ideally an official gazette, statute, or regulator page.
+      placeholder: https://
+    validations:
+      required: false
+  - type: textarea
+    id: entry
+    attributes:
+      label: Entry as shown in the app
+      description: Filled in by the "Report an issue" button. Leave it as it is, or paste the scores and sources you saw.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I have checked the [methodology page](https://airegulationmap.org/methodology.html).
+          required: true

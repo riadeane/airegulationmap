@@ -25,6 +25,7 @@ import { initTheme } from './controls/theme';
 import { parseUrl, initUrlSync } from './controls/url';
 import { initCitePopover } from './controls/citePopover';
 import { initPrintBrief } from './controls/printBrief';
+import { initReport } from './controls/report';
 import { initInitiatives } from './panel/initiatives';
 import { hydrateFromSupabase } from './data/hydrate';
 import { loadSourceMeta } from './data/sourceMeta';
@@ -112,6 +113,7 @@ async function main(): Promise<void> {
   initSubscores();
   initCitePopover();
   initPrintBrief();
+  initReport();
   initComparison();
   initSearch();
   initSearchResults();
