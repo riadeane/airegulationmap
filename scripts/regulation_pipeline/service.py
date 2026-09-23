@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 
 from . import gate
 from .errors import FatalAPIError
+from .models import ResearchResult
 from .repository import Dataset
 from .staleness import StalenessPolicy
 from .strategies import ResearchStrategy
@@ -53,7 +54,13 @@ class CountryChange:
 class RunResult:
     """Outcome of a run: counts for the CLI's exit code, the gate tally, and
     the applied changes plus run id for post-run consumers (the weekly
-    digest)."""
+    digest, the gold-set drift check).
+
+    ``raw_results`` holds every validated result the strategy returned, by
+    country, exactly as the model scored it: before the stability gate, so
+    a held result is present with its candidate scores. The drift check
+    reads these so it measures the model, not the gate.
+    """
 
     updated: int
     failed: list[str]
@@ -62,6 +69,7 @@ class RunResult:
     run_id: str = ""
     changes: tuple[CountryChange, ...] = field(default_factory=tuple)
     calibration_break: dict | None = None
+    raw_results: dict[str, ResearchResult] = field(default_factory=dict)
 
 
 class PipelineService:
@@ -121,12 +129,15 @@ class PipelineService:
         failed: list[str] = []
         tally = gate.GateTally()
         changes: list[CountryChange] = []
+        raw: dict[str, ResearchResult] = {}
         if self._break is not None:
             self._dataset.record_break(self._break)
         self._mirror_call("begin", len(to_update))
 
         try:
             for country, result in strategy.research(to_update, reg_rows):
+                if isinstance(result, ResearchResult):
+                    raw[country] = result
                 applied = None if result is None else self._apply(country, result)
                 if applied is None:
                     failed.append(country)
@@ -144,7 +155,7 @@ class PipelineService:
                 self._dataset.save()
             # Mirror AFTER the files are safe - same ordering as the happy path.
             self._mirror_call("finish", updated, len(set(failed)), True, gate_counts=tally.counts)
-            return self._result(updated, failed, tally, changes, fatal=True)
+            return self._result(updated, failed, tally, changes, raw, fatal=True)
 
         for error in self._dataset.validate():
             logger.warning("validation: %s", error)
@@ -152,15 +163,16 @@ class PipelineService:
         logger.info("Writing output files...")
         self._dataset.save()
         self._mirror_call("finish", updated, len(set(failed)), False, gate_counts=tally.counts)
-        return self._result(updated, failed, tally, changes, fatal=False)
+        return self._result(updated, failed, tally, changes, raw, fatal=False)
 
     def _result(
         self, updated: int, failed: list[str], tally: gate.GateTally,
-        changes: list[CountryChange], *, fatal: bool,
+        changes: list[CountryChange], raw: dict[str, ResearchResult], *, fatal: bool,
     ) -> RunResult:
         return RunResult(
             updated=updated, failed=sorted(set(failed)), fatal=fatal, gate=tally,
             run_id=self._run_id, changes=tuple(changes), calibration_break=self._break,
+            raw_results=dict(raw),
         )
 
     def standing(self, country: str) -> str:

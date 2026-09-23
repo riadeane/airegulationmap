@@ -10,9 +10,9 @@ test('data.html is a static overview that routes to the API reference', async ({
   await page.goto('/data.html');
 
   // Dataset downloads and the endpoint overview render statically.
-  await expect(page.locator('a[download]')).toHaveCount(5);
+  await expect(page.locator('a[download]')).toHaveCount(7);
   const endpointLinks = page.locator('a[href^="/api-docs.html#/"]');
-  await expect(endpointLinks).toHaveCount(8);
+  await expect(endpointLinks).toHaveCount(9);
 
   // The API reference is one click away from header, body CTA, and footer.
   await expect(page.locator('.header-links a[href="/api-docs.html"]')).toBeVisible();

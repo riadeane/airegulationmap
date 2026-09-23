@@ -99,3 +99,13 @@ class Settings:
     def digest_dir(self) -> Path:
         """Weekly digest files: ``YYYY-Www.json``, ``index.json``, ``feed.xml``."""
         return self.root / "public" / "digest"
+
+    @property
+    def gold_set_json(self) -> Path:
+        """Hand-verified sub-indicator scores for ten countries (see gold.py)."""
+        return self.root / "public" / "data" / "gold_set.json"
+
+    @property
+    def drift_json(self) -> Path:
+        """One row of gold-set agreement metrics per run (see gold.py)."""
+        return self.root / "public" / "data" / "drift.json"

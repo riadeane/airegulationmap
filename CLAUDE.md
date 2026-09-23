@@ -75,6 +75,15 @@ python scripts/update_data.py --batch --digest
 # Regenerate the digest for a past run from Supabase score_history
 # (needs SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY).
 python -m regulation_pipeline.digest --run <research_runs.id>
+
+# Gold set and drift check (always on): after each run the raw results for
+# the ten gold countries (public/data/gold_set.json) are compared with the
+# hand-checked scores and one row is appended to public/data/drift.json
+# (mirrored to Supabase gold_checks). Never fails a run; a within-one share
+# below 0.8 prefixes the step summary with "Calibration warning".
+# Model comparison: research only the gold countries, print the metrics,
+# write nothing (sync by default; --batch for the 50% pricing).
+python -m regulation_pipeline.gold --model claude-sonnet-5
 ```
 
 Requests use structured outputs (`output_config.format`, schema generated from
@@ -160,6 +169,7 @@ Python package that calls the Claude API to research regulation status per count
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - evidence and persistence rules for score changes |
 | `digest.py` | Weekly digest: selects a run's gate-applied changes, one structured-output Claude request, writes `public/digest/` (week JSON, index, Atom feed); `python -m regulation_pipeline.digest --run <id>` regenerates from Supabase |
+| `gold.py` | Gold set and drift check: loads `gold_set.json`, compares a run's raw (ungated) results with it (`compare`, pure), appends `drift.json`, mirrors `gold_checks`, step-summary block; `python -m regulation_pipeline.gold --model <id>` is the model-comparison CLI |
 | `history.py` | History snapshot append/change-detection |
 | `names.py` | `CountryNames` - country-name normalization via alias map |
 | `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
@@ -180,6 +190,8 @@ Python package that calls the Claude API to research regulation status per count
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
 | `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1) |
 | `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`) |
+| `public/data/gold_set.json` | Hand-checked sub-indicator scores for ten countries across the maturity range: 20 scores, a justification per dimension, sources, and `status` (`draft` until the maintainer verifies, then `verified` + `verified_on`). Validated by `gold.load_gold_set` |
+| `public/data/drift.json` | One row per run from the gold-set drift check: `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, within_one, max_dev, max_dev_at}`. Mirrored to Supabase `gold_checks` |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 | `public/openapi.json` | Committed snapshot of PostgREST's OpenAPI output; drives the Swagger UI at `api-docs.html` (Supabase serves the live spec endpoint only to secret keys, so the browser can never fetch it) |
 | `public/digest/` | Weekly changes digest: `YYYY-Www.json` per run week, `index.json` (weeks, newest first), `feed.xml` (Atom). Written by the pipeline after scheduled runs; rendered by `changes.html` |
@@ -269,7 +281,7 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 
 ### Automated Updates
 
-`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/`; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be triggered manually with optional country list, force flag, and model selection inputs. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
+`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`); with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be triggered manually with optional country list, force flag, and model selection inputs. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
 
 ### Deployment
 

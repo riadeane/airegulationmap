@@ -19,11 +19,12 @@ from pathlib import Path
 import anthropic
 import typer
 
+from . import gate
 from .api import ResearchClient
 from .batch import BatchRunner
-from . import gate
 from .config import DEFAULT_MODEL, Settings
 from .digest import write_run_digest
+from .gold import check_run, markdown_summary
 from .names import CountryNames
 from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
 from .repository import Dataset
@@ -205,6 +206,7 @@ def _run(
     for line in gate.review_lines(result.gate):
         logger.warning(line)
     _write_step_summary(gate.markdown_summary(result.gate, calibration_break))
+    _gold_check(result, settings, model, prompt_version, today, supabase_mirror)
     if write_digest:
         _write_digest(result, client, settings, model, today)
     if result.fatal:
@@ -232,6 +234,25 @@ def _write_digest(
         write_run_digest(result, client=client, settings=settings, model=model, run_date=today)
     except Exception:
         logger.warning("digest: failed - continuing", exc_info=True)
+
+
+def _gold_check(
+    result: RunResult, settings: Settings, model: str, prompt_version: str, today: date, mirror,
+) -> None:
+    """Post-run gold-set drift check (gold.py): compare the raw results with
+    the gold scores, append a drift.json row, mirror it, and put the metrics
+    in the step summary. Downgraded to a warning on any failure - the check
+    measures the model and must never change the exit code."""
+    try:
+        check = check_run(
+            result, settings, model=model, prompt_version=prompt_version, run_date=today,
+            mirror=mirror,
+        )
+    except Exception:
+        logger.warning("gold: check failed - continuing", exc_info=True)
+        return
+    if check is not None:
+        _write_step_summary(markdown_summary(check.metrics, check.gold))
 
 
 def _write_step_summary(markdown: str) -> None:
