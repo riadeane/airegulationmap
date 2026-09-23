@@ -3,7 +3,8 @@
 // with data-derived strings.
 
 import { getState } from '../state/store';
-import { computeChangelog } from '../data/changelog';
+import { computeChangelog, isPolicyChange } from '../data/changelog';
+import { historyBreaks } from '../data/history';
 
 // Snapshots from this date onward use methodology v2 (sub-indicator
 // means, frontier calibration, 3-dimension maturity composite).
@@ -36,6 +37,16 @@ function renderChangeEntry(entry: ChangelogDiffEntry): HTMLDivElement {
   time.dateTime = entry.date;
   time.textContent = formatDate(entry.date);
   entryDiv.appendChild(time);
+
+  // A change dated on a calibration break is a re-measurement (a model
+  // or rubric change), not a policy event. Say so before the numbers.
+  if (entry.recalibration !== undefined) {
+    entryDiv.classList.add('changelog-recalibration');
+    const label = document.createElement('span');
+    label.className = 'changelog-recalibration-label';
+    label.textContent = `Recalibration: ${entry.recalibration}`;
+    entryDiv.appendChild(label);
+  }
 
   const ul = document.createElement('ul');
   ul.className = 'changelog-changes';
@@ -98,12 +109,18 @@ export function renderChangelog(countryName: string): void {
   }
 
   section.style.display = '';
-  const changelog = computeChangelog(snapshots);
+  const changelog = computeChangelog(snapshots, historyBreaks(history));
+  const initialDate = changelog[changelog.length - 1].date;
 
   if (changelog.length === 1) {
     // Only the initial assessment exists.
-    renderEmptyMessage(container, `No score changes recorded since the initial assessment (${formatDate(changelog[0].date)}).`);
+    renderEmptyMessage(container, `No score changes recorded since the initial assessment (${formatDate(initialDate)}).`);
     return;
+  }
+
+  // Recalibrations are listed, but they do not count as policy changes.
+  if (!changelog.some(isPolicyChange)) {
+    renderEmptyMessage(container, `No policy-driven score changes recorded since the initial assessment (${formatDate(initialDate)}).`);
   }
 
   for (const entry of changelog) {

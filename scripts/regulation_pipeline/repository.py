@@ -1,10 +1,12 @@
-"""The dataset repository: the four data stores that always travel together.
+"""The dataset repository: the data stores that always travel together.
 
-``scores.csv``, ``regulation_data.csv``, ``history.json``, and ``subscores.json``
-are loaded, mutated, and saved as a unit. :class:`Dataset` owns all four, folds a
-validated :class:`~regulation_pipeline.models.ResearchResult` into them via
-:meth:`apply`, and persists them with atomic writes so an interrupted run can't
-leave a half-written CSV behind.
+``scores.csv``, ``regulation_data.csv``, ``history.json``, ``subscores.json``,
+and ``pending.json`` are loaded, mutated, and saved as a unit. :class:`Dataset`
+owns all five, folds a validated
+:class:`~regulation_pipeline.models.ResearchResult` into them via :meth:`apply`,
+and persists them with atomic writes so an interrupted run can't leave a
+half-written CSV behind. ``pending.json`` holds the score candidates the
+stability gate (:mod:`gate`) held back for one run.
 """
 
 from __future__ import annotations
@@ -38,6 +40,7 @@ class ApplyOutcome:
     average: float
     confidence: str
     history_added: bool
+    scores_applied: bool = True
 
 
 class Dataset:
@@ -50,12 +53,14 @@ class Dataset:
         regulation: dict[str, dict],
         history: dict,
         subscores: dict,
+        pending: dict | None = None,
     ):
         self._settings = settings
         self._scores = scores
         self._regulation = regulation
         self._history = history
         self._subscores = subscores
+        self._pending = pending if pending is not None else _empty_pending()
 
     # -- loading ---------------------------------------------------------------
 
@@ -67,6 +72,7 @@ class Dataset:
             regulation=_load_csv(settings.regulation_csv, names),
             history=_load_json(settings.history_json, {"schema_version": 1, "countries": {}}),
             subscores=_load_json(settings.subscores_json, {"schema_version": 1, "countries": {}}),
+            pending=_load_json(settings.pending_json, _empty_pending()),
         )
 
     # -- accessors -------------------------------------------------------------
@@ -86,11 +92,52 @@ class Dataset:
         access for the Supabase mirror's replace-per-country sync."""
         return [dict(s) for s in self._history.get("countries", {}).get(country, [])]
 
+    def subscores_for(self, country: str) -> dict | None:
+        """The stored sub-score entry (file shape), as a copy."""
+        entry = self._subscores.get("countries", {}).get(country)
+        return dict(entry) if entry is not None else None
+
+    def pending_for(self, country: str) -> dict | None:
+        """The gate's stored candidate for ``country``:
+        ``{"candidate_scores": {...}, "first_seen": "YYYY-MM-DD"}`` or ``None``."""
+        for entry in self._pending.get("pending", []):
+            if entry.get("country") == country:
+                return {k: v for k, v in entry.items() if k != "country"}
+        return None
+
     # -- mutation --------------------------------------------------------------
 
-    def apply(self, country: str, result: ResearchResult, today: date) -> ApplyOutcome:
-        """Fold one validated research result into all four stores."""
-        version = int((self._scores.get(country, {}).get("Data Version", 1)) or 1)
+    def set_pending(self, country: str, entry: dict | None) -> None:
+        """Store (or with ``None`` clear) the gate's candidate for ``country``."""
+        kept = [e for e in self._pending.get("pending", []) if e.get("country") != country]
+        if entry is not None:
+            kept.append({"country": country, **entry})
+        kept.sort(key=lambda e: e["country"])
+        self._pending["pending"] = kept
+
+    def record_break(self, entry: dict) -> None:
+        """Append a calibration break ``{date, model, prompt_version, reason}``
+        to ``history.json``. A repeat of the same date and reason is a no-op so
+        a re-run on the same day records one break."""
+        breaks = self._history.setdefault("breaks", [])
+        for existing in breaks:
+            if existing.get("date") == entry["date"] and existing.get("reason") == entry["reason"]:
+                return
+        breaks.append(dict(entry))
+
+    def apply(
+        self, country: str, result: ResearchResult, today: date, *, apply_scores: bool = True,
+    ) -> ApplyOutcome:
+        """Fold one validated research result into the stores.
+
+        With ``apply_scores=False`` (the gate held the result) only the text
+        row lands, plus ``Last Updated`` and ``Data Version`` on the scores
+        row. The dimension scores, the sub-scores, and the history snapshot
+        stay as they were. A country with no scores row always applies."""
+        existing_scores = self._scores.get(country)
+        version = int((existing_scores or {}).get("Data Version", 1) or 1)
+        if existing_scores is None:
+            apply_scores = True
 
         # Audit trail: apply() overwrites in place, and history.json only
         # captures dimension-score changes - a sources/confidence-only change
@@ -103,8 +150,21 @@ class Dataset:
                 country, prior.get("Confidence"), prior.get("Sources"), prior.get("Last Updated"),
             )
 
-        self._scores[country] = _scores_row(country, result, version + 1, today)
         self._regulation[country] = _regulation_row(country, result, today)
+
+        if not apply_scores:
+            held = dict(existing_scores)
+            held["Last Updated"] = today.isoformat()
+            held["Data Version"] = version + 1
+            self._scores[country] = held
+            return ApplyOutcome(
+                average=_as_float(held.get("Average Score")),
+                confidence=result.effective_confidence(),
+                history_added=False,
+                scores_applied=False,
+            )
+
+        self._scores[country] = _scores_row(country, result, version + 1, today)
         self._subscores["countries"][country] = _subscores_entry(result, today)
 
         snapshot = _history_snapshot(result, today)
@@ -156,6 +216,10 @@ class Dataset:
         _write_text(
             self._settings.subscores_json,
             json.dumps(self._subscores, ensure_ascii=False, indent=2, sort_keys=True),
+        )
+        _write_text(
+            self._settings.pending_json,
+            json.dumps(self._pending, ensure_ascii=False, indent=2),
         )
 
 
@@ -209,6 +273,17 @@ def _history_snapshot(result: ResearchResult, today: date) -> dict:
         snapshot[dim.history_key] = dim.score
     snapshot["averageScore"] = result.average_score()
     return snapshot
+
+
+def _empty_pending() -> dict:
+    return {"schema_version": 1, "pending": []}
+
+
+def _as_float(value) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 # -- low-level IO --------------------------------------------------------------

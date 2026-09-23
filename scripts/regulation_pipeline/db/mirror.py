@@ -48,10 +48,12 @@ class Mirror(Protocol):
 
     def record(
         self, country: str, result: ResearchResult, today: date,
-        *, data_version: int, history: list[dict],
+        *, scores_row: dict, subscores: dict, history: list[dict],
     ) -> None: ...
 
-    def finish(self, updated: int, failed: int, fatal: bool) -> None: ...
+    def finish(
+        self, updated: int, failed: int, fatal: bool, *, gate_counts: dict[str, int] | None = None,
+    ) -> None: ...
 
 
 @dataclass
@@ -59,7 +61,8 @@ class _Entry:
     country: str
     result: ResearchResult
     today: date
-    data_version: int
+    scores_row: dict      # the gated scores.csv row the dataset now holds
+    subscores: dict       # the gated subscores.json entry
     history: list[dict]
 
 
@@ -99,11 +102,16 @@ class SupabaseMirror:
 
     def record(
         self, country: str, result: ResearchResult, today: date,
-        *, data_version: int, history: list[dict],
+        *, scores_row: dict, subscores: dict, history: list[dict],
     ) -> None:
-        self._entries.append(_Entry(country, result, today, data_version, history))
+        """Buffer one country. ``scores_row`` and ``subscores`` are what the
+        dataset holds AFTER the stability gate, so a held result mirrors the
+        unchanged scores while the text fields still refresh."""
+        self._entries.append(_Entry(country, result, today, scores_row, subscores, history))
 
-    def finish(self, updated: int, failed: int, fatal: bool) -> None:
+    def finish(
+        self, updated: int, failed: int, fatal: bool, *, gate_counts: dict[str, int] | None = None,
+    ) -> None:
         if self._entries:
             self._flush()
         usage = self._usage_provider() if self._usage_provider else {}
@@ -112,7 +120,7 @@ class SupabaseMirror:
             "countries_succeeded": updated,
             "input_tokens": usage.get("input"),
             "output_tokens": usage.get("output"),
-            "notes": "aborted on fatal API error; partial results mirrored" if fatal else None,
+            "notes": _notes(fatal, gate_counts),
         }, {"id": f"eq.{self._run_id}"})
         logger.info(
             "mirror: run %s recorded (%d countries mirrored, fatal=%s)",
@@ -204,26 +212,42 @@ class SupabaseMirror:
 # -- row projections (DB shape; the CSV shape lives in repository.py) ----------
 
 
+def _notes(fatal: bool, gate_counts: dict[str, int] | None) -> str | None:
+    parts = []
+    if fatal:
+        parts.append("aborted on fatal API error; partial results mirrored")
+    if gate_counts:
+        parts.append("gate: " + " ".join(f"{k}={v}" for k, v in gate_counts.items()))
+    return "; ".join(parts) or None
+
+
 def _score_row(country_id: str, e: _Entry, run_id: str) -> dict:
-    scores = e.result.dimension_scores()
-    subscores: dict = {"date": e.today.isoformat()}
-    for key, dim in e.result.dimensions().items():
-        subscores[key] = dim.subscores()
+    row = e.scores_row
     return {
         "country_id": country_id,
-        "regulation_status": scores["regulation_status"],
-        "policy_lever": scores["policy_lever"],
-        "governance_type": scores["governance_type"],
-        "actor_involvement": scores["actor_involvement"],
-        "enforcement_level": scores["enforcement_level"],
-        "avg_score": e.result.average_score(),
-        "subscores": subscores,
+        "regulation_status": _num(row.get("Regulation Status")),
+        "policy_lever": _num(row.get("Policy Lever")),
+        "governance_type": _num(row.get("Governance Type")),
+        "actor_involvement": _num(row.get("Actor Involvement")),
+        "enforcement_level": _num(row.get("Enforcement Level")),
+        "avg_score": _num(row.get("Average Score")),
+        "subscores": e.subscores,
         "confidence": e.result.effective_confidence(),
-        "data_version": e.data_version,
+        "data_version": int(row.get("Data Version") or 1),
         "run_id": run_id,
-        "scored_at": e.today.isoformat(),
+        "scored_at": e.subscores.get("date") or e.today.isoformat(),
         "updated_at": _now(),
     }
+
+
+def _num(value) -> float | None:
+    """CSV cells arrive as strings; a held row keeps them that way."""
+    if value in (None, "", "NA"):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _summary_row(country_id: str, e: _Entry, run_id: str) -> dict:

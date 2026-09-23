@@ -32,8 +32,9 @@ flowchart TD
     CLI --> REPO
 
     SVC --> STRAT["strategies.py<br/>ResearchStrategy (Sync / Batch)"]
-    SVC --> REPO["repository.py<br/>Dataset - the four data stores"]
+    SVC --> REPO["repository.py<br/>Dataset - the five data stores"]
     SVC --> STALE["staleness.py<br/>StalenessPolicy"]
+    SVC --> GATE["gate.py<br/>stability gate"]
 
     STRAT --> API["api.py<br/>ResearchClient - request + parse"]
     STRAT --> BATCH["batch.py<br/>BatchRunner - submit / poll / classify"]
@@ -75,6 +76,7 @@ flowchart TD
 | `repository.py` | `Dataset` - load/apply/validate/atomic-save the four stores |
 | `history.py` | History snapshot append + change detection |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
+| `gate.py` | Stability gate - decides whether a result's scores may land |
 | `names.py` | `CountryNames` - country-name normalization |
 | `config.py` | `Settings` (repo-root paths) + field/threshold/priority constants |
 | `errors.py` | `FatalAPIError` |
@@ -217,9 +219,11 @@ classDiagram
 
 ## Repository and the data contract
 
-The four stores always travel together, so one object owns them. `apply` folds a
-validated result into all four; `save` writes them **atomically** (temp file +
-`os.replace`) so an interrupted run can't leave a half-written file.
+The five stores always travel together, so one object owns them. `apply` folds a
+validated result into them; `save` writes them **atomically** (temp file +
+`os.replace`) so an interrupted run can't leave a half-written file. The fifth
+store, `public/data/pending.json`, holds the score candidates the stability
+gate held for one run.
 
 ```mermaid
 flowchart LR
@@ -272,6 +276,53 @@ flowchart TD
     F -- yes --> U
     F -- no --> K["skip (fresh)"]
 ```
+
+---
+
+## Stability gate
+
+Weekly re-research of every country produces quarter-point jitter with no
+policy cause. `gate.decide` runs before `Dataset.apply` and decides whether the
+numeric scores may land. Text fields, confidence, and `Last Updated` always
+apply. The gate covers only the dimension scores, the sub-scores, and the
+history snapshot.
+
+```mermaid
+flowchart TD
+    A["result for a country"] --> B{"prior scores?"}
+    B -- no --> E["applied:evidence"]
+    B -- yes --> C{"any dimension<br/>score changed?"}
+    C -- no --> U["unchanged<br/>(clears pending)"]
+    C -- yes --> D{"new source URL,<br/>or Specific Laws changed?"}
+    D -- yes --> E
+    D -- no --> P{"pending candidate<br/>with the same dimensions<br/>moving the same way?"}
+    P -- yes --> Q["applied:persisted<br/>(clears pending)"]
+    P -- no --> H["held<br/>(stores the candidate)"]
+```
+
+- **Evidence rule.** A cited URL that the existing `Sources` column does not
+  contain counts as new. URLs compare after the same normalisation as
+  `sources.py` (no scheme, no `www.`, no trailing slash). `Specific Laws`
+  compares after whitespace normalisation. A confidence drop is not evidence.
+- **Persistence rule.** A held candidate lives in `public/data/pending.json`
+  as `{country, candidate_scores, first_seen}`. The next result for that
+  country applies when it moves the same dimensions in the same direction.
+  A result that reverts to the stored scores clears the candidate. A result
+  that moves differently replaces it. The window is two consecutive results.
+- **Provenance.** The run log carries one line per country with the rule:
+  `applied:evidence`, `applied:persisted`, `applied:ungated`, `held`, or
+  `unchanged`. The counts go to the run log (`Gate:` line), the GitHub step
+  summary, and `research_runs.notes`. An applied move of 0.75 or more on any
+  dimension appears under "Review these" with old, new, and the new sources.
+- **Mirror.** The Supabase mirror receives the gated scores row, so the
+  database never runs ahead of the static files.
+- **Escape hatch.** `--no-gate` applies every score. On a full run it needs
+  `--break-reason "<text>"`, which appends `{date, model, prompt_version,
+  reason}` to the `breaks` list in `history.json`. The frontend marks the date
+  on the timeline and labels changes on that date as a recalibration. Past
+  snapshots are never re-scored or offset.
+- **Dry run.** `--dry-run` prints the gate's standing per country: no prior
+  scores, gate on, or held since a date with the pending move.
 
 ---
 

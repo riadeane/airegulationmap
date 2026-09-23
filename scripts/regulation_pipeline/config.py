@@ -85,3 +85,8 @@ class Settings:
     @property
     def country_iso_json(self) -> Path:
         return self.root / "public" / "data" / "country_iso.json"
+
+    @property
+    def pending_json(self) -> Path:
+        """Score candidates the stability gate held for one run (see gate.py)."""
+        return self.root / "public" / "data" / "pending.json"

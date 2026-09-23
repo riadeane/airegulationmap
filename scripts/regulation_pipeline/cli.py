@@ -21,6 +21,7 @@ import typer
 
 from .api import ResearchClient
 from .batch import BatchRunner
+from . import gate
 from .config import DEFAULT_MODEL, Settings
 from .names import CountryNames
 from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
@@ -79,10 +80,34 @@ def _run(
         "", "--evidence-file",
         help='Offline evidence for --grounded: JSON {"<country>": [initiative, ...]}.',
     ),
+    gate_enabled: bool = typer.Option(
+        True, "--gate/--no-gate",
+        help="Stability gate (default on): a score change lands only with new "
+        "evidence (a new source URL or changed laws) or when the same change "
+        "repeats on the next run. --no-gate applies every score; on a full run "
+        "it needs --break-reason.",
+    ),
+    break_reason: str = typer.Option(
+        "", "--break-reason",
+        help="With --no-gate: record a calibration break {date, model, "
+        "prompt_version, reason} in history.json so the frontend labels the "
+        "shift as a recalibration, not as policy change.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose (DEBUG) logging"),
 ) -> None:
     """Update AI regulation data using the Claude API."""
     configure_logging(verbose)
+
+    full_run = not countries.strip()
+    if not gate_enabled and full_run and not break_reason.strip():
+        logger.error(
+            "--no-gate on a full run needs --break-reason \"<why the scale moved>\" "
+            "(a calibration reset is a recorded break, never silent drift)"
+        )
+        raise typer.Exit(code=1)
+    if break_reason.strip() and gate_enabled:
+        logger.error("--break-reason only applies with --no-gate")
+        raise typer.Exit(code=1)
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -130,13 +155,24 @@ def _run(
         mirror, settings, model=model, batch=batch, grounded=grounded,
         research_client=research_client, batch_runner=batch_runner,
     )
+    prompt_version = GROUNDED_PROMPT_VERSION if grounded else PROMPT_VERSION
+    calibration_break = None
+    if not gate_enabled and break_reason.strip():
+        calibration_break = {
+            "date": today.isoformat(),
+            "model": model,
+            "prompt_version": prompt_version,
+            "reason": break_reason.strip(),
+        }
     service = PipelineService(
         dataset, StalenessPolicy(settings.staleness_days, today), today,
         mirror=supabase_mirror,
+        gate_enabled=gate_enabled,
+        calibration_break=calibration_break,
     )
 
     targets = None
-    if countries.strip():
+    if not full_run:
         targets = [names.canonical(c) for c in countries.split(",") if c.strip()]
 
     all_targets, to_update = service.select(targets, force=force)
@@ -146,12 +182,18 @@ def _run(
         return
 
     if dry_run:
-        logger.info("DRY RUN - would update:")
+        logger.info("DRY RUN - would update (with the gate's standing per country):")
         for country in to_update:
-            logger.info("  %s", country)
+            logger.info("  %s: %s", country, service.standing(country))
+        if calibration_break:
+            logger.info("DRY RUN - would record break: %s", calibration_break["reason"])
         return
 
     result = service.run(strategy, to_update)
+    logger.info(result.gate.summary_line())
+    for line in gate.review_lines(result.gate):
+        logger.warning(line)
+    _write_step_summary(gate.markdown_summary(result.gate, calibration_break))
     if result.fatal:
         raise typer.Exit(code=2)
 
@@ -161,6 +203,19 @@ def _run(
             "Failed countries (%d): %s", len(result.failed), ", ".join(result.failed)
         )
         raise typer.Exit(code=1)
+
+
+def _write_step_summary(markdown: str) -> None:
+    """Append to the GitHub Actions step summary when the workflow set
+    ``GITHUB_STEP_SUMMARY``; a no-op elsewhere."""
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not path:
+        return
+    try:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(markdown)
+    except OSError:
+        logger.warning("could not write GITHUB_STEP_SUMMARY", exc_info=True)
 
 
 def _build_evidence_provider(evidence_file: str) -> Callable[[str], list[dict]] | None:

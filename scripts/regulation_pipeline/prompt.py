@@ -12,12 +12,14 @@ from datetime import date
 
 # Recorded in research_runs provenance so a score can always be traced to
 # the prompt that produced it. Bump when the rubric or structure changes.
-PROMPT_VERSION = "v2-2026-06"
+# v3 (2026-09): fixed anchors. Each level describes an observable state; a 5
+# is no longer "the global frontier today", so scores compare across time.
+PROMPT_VERSION = "v3-2026-09"
 
 # The evidence-grounded variant (same rubric + output schema, plus a
 # verified-records block). Grounded prompts are LONGER than plain ones -
 # pair grounded runs with --batch for the 50% token pricing.
-GROUNDED_PROMPT_VERSION = "v3-grounded-2026-07"
+GROUNDED_PROMPT_VERSION = "v3-grounded-2026-09"
 
 # Caps keeping the evidence block bounded: the most recent initiatives
 # carry the signal, and full overviews would dwarf the rubric.
@@ -44,13 +46,28 @@ report a dimension total. Score every sub-indicator strictly against its written
 definition.
 
 Calibration - read before scoring:
-- A sub-indicator score of 5 means the GLOBAL FRONTIER TODAY: the standard set by the
-  two or three most advanced jurisdictions for that specific aspect. It does not mean
-  perfection. When torn between 4 and 5, give 4.
-- Reference points: an EU member state implementing the EU AI Act sits near 4-5 on
-  most regulation_status sub-indicators; the United States (sectoral rules and
-  executive action, no horizontal statute) near 3; a country whose only instrument is
-  a published national AI strategy near 2; no AI-specific policy activity is 1.
+- Each level describes an observable state. Score the state that sources dated on or
+  before today let you verify. Do not score the direction of travel, and do not score
+  the gap to other countries. A country's score changes only when its own record
+  changes.
+- 5 = the state is fully in place and operating: the instrument is in force, the body
+  is staffed and acting, the practice is routine and published. A jurisdiction reaches
+  5 on a sub-indicator when its own record shows that state. It does not need to be
+  the best in the world, and perfection is not required. Today's leading
+  jurisdictions reach 5 on most sub-indicators.
+- 4 = the state is in place, but one element is incomplete, in a transition period,
+  or not yet exercised in practice.
+- 3 = the state exists in part: partial scope, one instrument or body, isolated
+  actions, or rules drafted but not in force.
+- 2 = only non-binding or preparatory activity: a strategy, a consultation, or general
+  law with no AI-specific provision.
+- 1 = no observable activity for that sub-indicator.
+- Examples of where the anchors land (illustrations, not the definition): an EU
+  member state implementing the EU AI Act sits near 4-5 on most regulation_status
+  sub-indicators; the United States (sectoral rules and executive action, no
+  horizontal statute) near 3; a country whose only instrument is a published national
+  AI strategy near 2; no AI-specific policy activity is 1.
+- When torn between two levels, give the lower one.
 - governance_type and actor_involvement are DESCRIPTIVE scales, not quality scales.
   They record HOW a country governs, not how well. A highly centralized
   single-authority system scores LOW on governance_type sub-indicators even when it is

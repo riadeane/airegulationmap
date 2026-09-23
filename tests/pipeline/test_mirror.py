@@ -79,6 +79,14 @@ HISTORY = [
     {"date": "2026-06-11", "regulationStatus": 4, "averageScore": 3.67},
 ]
 
+# The gated scores.csv row / subscores entry the dataset holds after apply().
+SCORES_ROW = {
+    "Country": "A", "Regulation Status": 4.0, "Policy Lever": 3.0,
+    "Governance Type": 2.0, "Actor Involvement": 3.0, "Average Score": 3.67,
+    "Enforcement Level": 4.0, "Last Updated": "2026-06-11", "Data Version": 5,
+}
+SUBSCORES = {"date": "2026-06-11", "regulation_status": {"binding_force": 4}}
+
 
 class TestSupabaseMirror:
     def test_full_flush_sequence(self):
@@ -86,8 +94,8 @@ class TestSupabaseMirror:
         mirror = make_mirror(fake, usage=lambda: {"input": 1000, "output": 200})
 
         mirror.begin(attempted=2)
-        mirror.record("A", model(), TODAY, data_version=5, history=HISTORY)
-        mirror.finish(updated=1, failed=1, fatal=False)
+        mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=HISTORY)
+        mirror.finish(updated=1, failed=1, fatal=False, gate_counts={"held": 2, "unchanged": 1})
 
         # Run row first, with meta + attempted count.
         run_insert = fake.of("POST", "research_runs")[0][0]
@@ -118,10 +126,28 @@ class TestSupabaseMirror:
         link_rows = fake.of("POST", "country_sources")[0]
         assert {(r["country_id"], r["source_id"]) for r in link_rows} == {("c-1", "s-1"), ("c-1", "s-2")}
 
-        # Run finalized with counts + tokens.
+        # Run finalized with counts + tokens + the gate tally in notes.
         patch = fake.of("PATCH", "research_runs")[0]
         assert patch["countries_succeeded"] == 1
         assert patch["input_tokens"] == 1000
+        assert patch["notes"] == "gate: held=2 unchanged=1"
+
+    def test_held_row_mirrors_the_stored_scores_not_the_result(self):
+        # The gate held the result: the dataset row still carries the old
+        # scores (as CSV strings) and the mirror must replay THOSE.
+        fake = FakePostgrest()
+        mirror = make_mirror(fake)
+        held_row = {**SCORES_ROW, "Regulation Status": "2.25", "Average Score": "2.5", "Data Version": "3"}
+        mirror.begin(attempted=1)
+        mirror.record("A", model(), TODAY, scores_row=held_row, subscores={"date": "2026-05-01"}, history=[])
+        mirror.finish(updated=1, failed=0, fatal=False)
+        score_row = fake.of("POST", "country_scores")[0][0]
+        assert score_row["regulation_status"] == 2.25
+        assert score_row["avg_score"] == 2.5
+        assert score_row["data_version"] == 3
+        assert score_row["scored_at"] == "2026-05-01"
+        # Text fields always apply, so the summary carries the new result.
+        assert fake.of("POST", "country_summaries")[0][0]["specific_laws"] == "AI Act (2024)"
 
     def test_unknown_country_is_upserted_then_linked(self):
         fake = FakePostgrest()
@@ -129,7 +155,7 @@ class TestSupabaseMirror:
 
         mirror = make_mirror(fake)
         mirror.begin(attempted=1)
-        mirror.record("A", model(), TODAY, data_version=1, history=[])
+        mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=[])
         mirror.finish(updated=1, failed=0, fatal=False)
 
         # The mirror upserted the missing country, re-resolved its id, and
@@ -185,10 +211,10 @@ class RecordingMirror:
     def begin(self, attempted):
         self.calls.append(("begin", attempted))
 
-    def record(self, country, result, today, *, data_version, history):
-        self.calls.append(("record", country, data_version, len(history)))
+    def record(self, country, result, today, *, scores_row, subscores, history):
+        self.calls.append(("record", country, scores_row["Data Version"], len(history)))
 
-    def finish(self, updated, failed, fatal):
+    def finish(self, updated, failed, fatal, *, gate_counts=None):
         self.calls.append(("finish", updated, failed, fatal))
 
 
@@ -217,10 +243,10 @@ class TestServiceMirrorSeam:
 
     def test_exploding_mirror_changes_nothing(self, tmp_path):
         loud, quiet = ExplodingMirror(), None
-        svc_loud, _ = _service(tmp_path, loud)
+        svc_loud, _ = _service(tmp_path / "loud", loud)
         loud_result = svc_loud.run(ListStrategy([("A", model()), ("B", None)]), ["A", "B"])
 
-        svc_quiet, _ = _service(tmp_path, quiet)
+        svc_quiet, _ = _service(tmp_path / "quiet", quiet)
         quiet_result = svc_quiet.run(ListStrategy([("A", model()), ("B", None)]), ["A", "B"])
 
         assert loud_result == quiet_result

@@ -59,6 +59,12 @@ python scripts/update_data.py --grounded
 # Supabase dual-write mirror: auto-on when SUPABASE_URL and
 # SUPABASE_SERVICE_KEY are set; force with --mirror / disable with
 # --no-mirror. Mirror failures never fail a run.
+
+# Stability gate (default on): a score change lands only with new
+# evidence or when it repeats on the next run; held candidates live in
+# public/data/pending.json. --no-gate applies every score; on a full run
+# it needs a reason, recorded as a calibration break in history.json.
+python scripts/update_data.py --no-gate --break-reason "Model switch to Opus 5"
 ```
 
 Requests use structured outputs (`output_config.format`, schema generated from
@@ -138,6 +144,7 @@ Python package that calls the Claude API to research regulation status per count
 | `prompt.py` | Research prompt template + rendering |
 | `config.py` | `Settings` (repo-root paths) + constants (fields, staleness, priority countries) |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
+| `gate.py` | Stability gate - evidence and persistence rules for score changes |
 | `history.py` | History snapshot append/change-detection |
 | `names.py` | `CountryNames` - country-name normalization via alias map |
 | `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
@@ -157,6 +164,7 @@ Python package that calls the Claude API to research regulation status per count
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
 | `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2) |
+| `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`) |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 | `public/openapi.json` | Committed snapshot of PostgREST's OpenAPI output; drives the Swagger UI at `api-docs.html` (Supabase serves the live spec endpoint only to secret keys, so the browser can never fetch it) |
 
@@ -204,6 +212,8 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 - **governance_type** - centralized↔distributed (descriptive - excluded from the composite)
 - **actor_involvement** - narrow↔broad participation (descriptive - excluded from the composite)
 - **enforcement_level** - enforcement rigor (normative)
+
+**Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` is `v3-2026-09`; the switch is recorded as a calibration break in `history.json` (`breaks`), which the timeline marks and the changelog labels as "Recalibration".
 
 **Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/prompt.py` and modeled in `models.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. Calibration: 5 = the global frontier at scoring time, not perfection; governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
 

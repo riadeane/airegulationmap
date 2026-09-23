@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildScoresAtDate, extractSortedDates } from '../src/data/history';
+import { buildScoresAtDate, extractSortedDates, historyBreaks } from '../src/data/history';
 
 const history = {
   schema_version: 1,
@@ -53,5 +53,20 @@ describe('extractSortedDates', () => {
       },
     };
     expect(extractSortedDates(h)).toEqual(['2026-01-01', '2026-02-01']);
+  });
+});
+
+describe('historyBreaks', () => {
+  it('returns [] when the file has no breaks or no history', () => {
+    expect(historyBreaks(history)).toEqual([]);
+    expect(historyBreaks(null)).toEqual([]);
+  });
+
+  it('returns the breaks oldest first without mutating the file', () => {
+    const later = { date: '2026-12-07', model: 'm', prompt_version: 'v4', reason: 'later' };
+    const earlier = { date: '2026-09-14', model: 'm', prompt_version: 'v3', reason: 'earlier' };
+    const h = { ...history, breaks: [later, earlier] };
+    expect(historyBreaks(h)).toEqual([earlier, later]);
+    expect(h.breaks).toEqual([later, earlier]);
   });
 });
