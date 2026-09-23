@@ -4,6 +4,7 @@ import type { HistoryData } from '../data/history';
 import type { BlocsData } from '../data/blocs';
 import type { SubscoresData } from '../data/subscores';
 import type { SourceMeta } from '../data/sources';
+import type { CountryIsoData } from '../data/countryIso';
 
 /** Research-confidence levels as recorded per country in regulation data. */
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
@@ -47,6 +48,9 @@ export interface AppState {
   // database - loaded async from Supabase; null when absent/unreachable.
   // The panel upgrades bare hostnames to titles when this exists.
   sourceMeta: SourceMeta | null;
+  // ISO 3166-1 codes per country (country_iso.json) - loaded async;
+  // null until then / on failure. The panel shows them beside the name.
+  countryIso: CountryIsoData | null;
   // A COMMITTED full-text search ('' = none). Typing in the search box is
   // ephemeral (dropdown-local); committing ("See all results" / Enter on the
   // row / ?q= deep link) persists the query here, which drives the results
@@ -78,6 +82,7 @@ const state: AppState = {
   blocsData: null,
   subscores: null,
   sourceMeta: null,
+  countryIso: null,
   searchQuery: '',
   mainView: 'map',
   scatterX: 'enforcementLevel',

@@ -1,0 +1,466 @@
+/* Printable country brief (PRD 07).
+   Every rule sits under @media print, and every brief rule under
+   body.print-brief, which src/controls/printBrief.ts adds while a
+   country is selected. Screen layout never changes here. The panel
+   markup is the brief: this sheet hides the app chrome, restyles the
+   panel as one serif column, and reorders it with flex `order` so the
+   record line, confidence, citation and permanent link close the page.
+   Order: title, ISO codes, scores, sub-indicators, the five text
+   sections, key legislation, sources with full URLs, then the record. */
+
+@media print {
+  /* Running header and footer through page-margin boxes, where the
+     engine supports them (Chromium). --print-date is a quoted ISO
+     string that printBrief.ts sets on the root element. */
+  @page {
+    margin: 20mm;
+
+    @top-left {
+      content: 'AI Regulation Map';
+      font-family: 'Geist', -apple-system, sans-serif;
+      font-size: 8pt;
+      color: #555;
+    }
+
+    @bottom-left {
+      content: var(--print-date);
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: 8pt;
+      color: #555;
+    }
+
+    @bottom-right {
+      content: counter(page) ' of ' counter(pages);
+      font-family: 'Geist', -apple-system, sans-serif;
+      font-size: 8pt;
+      color: #555;
+    }
+  }
+
+  html {
+    height: auto;
+    overflow: visible;
+  }
+
+  body.print-brief {
+    display: block;
+    height: auto;
+    min-height: 0;
+    background: #fff;
+    color: #000;
+    font-family: 'Literata', Georgia, serif;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  body.print-brief * {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Grain overlay. */
+  body.print-brief::after {
+    display: none;
+  }
+
+  /* Everything outside the main region: header, footer, timeline, help
+     dialog, and floating elements such as the map tooltip (an absolute
+     div that would otherwise add a blank last page). */
+  body.print-brief > :not(#app-main) {
+    display: none !important;
+  }
+
+  /* The other views inside main, the "this week" strip, the peer
+     comparison chips, and the panel's screen-only controls. */
+  body.print-brief #map-wrapper,
+  body.print-brief #this-week-strip,
+  body.print-brief #peers-section,
+  body.print-brief #comparison-panel,
+  body.print-brief #comparison-strip,
+  body.print-brief #panel-intro,
+  body.print-brief #no-selection-message,
+  body.print-brief #search-results,
+  body.print-brief #search-back-bar,
+  body.print-brief .sheet-grabber,
+  body.print-brief .panel-close,
+  body.print-brief .panel-methodology-link,
+  body.print-brief .panel-header-actions,
+  body.print-brief #cite-popover,
+  body.print-brief .dim-expand,
+  body.print-brief .dim-dot,
+  body.print-brief .score-bar-track,
+  body.print-brief .subscore-track,
+  body.print-brief .sources-copy,
+  body.print-brief .source-hostname,
+  body.print-brief #initiatives-section,
+  body.print-brief #changelog-section {
+    display: none !important;
+  }
+
+  body.print-brief #app-main {
+    display: block;
+    position: static;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  /* The panel is a side column on desktop and an absolute bottom sheet
+     on narrow viewports; a printed page is narrow, so both sets of
+     rules apply and both need to yield. */
+  body.print-brief #country-panel {
+    position: static !important;
+    display: block;
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+
+  body.print-brief #panel-content {
+    display: flex !important;
+    flex-direction: column;
+    color: #000;
+  }
+
+  /* Dissolve the header wrappers so their children take part in the
+     column order below. */
+  body.print-brief .panel-country-header,
+  body.print-brief .panel-name-row {
+    display: contents;
+  }
+
+  body.print-brief #country-name {
+    order: 0;
+    font-size: 22pt;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: #000;
+  }
+
+  body.print-brief .country-iso {
+    order: 1;
+    margin: 2pt 0 10pt;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 9pt;
+    letter-spacing: 0.06em;
+    color: #555;
+  }
+
+  body.print-brief .country-iso:empty {
+    display: none;
+  }
+
+  body.print-brief .panel-history-notice {
+    order: 2;
+    margin: 0 0 10pt;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 9.5pt;
+    font-style: italic;
+  }
+
+  body.print-brief .panel-history-notice,
+  body.print-brief .panel-history-notice * {
+    color: #333;
+  }
+
+  body.print-brief .panel-section,
+  body.print-brief #no-details-message {
+    order: 10;
+  }
+
+  body.print-brief .data-freshness {
+    order: 20;
+  }
+
+  body.print-brief .confidence-badge {
+    order: 21;
+  }
+
+  body.print-brief .print-citation {
+    order: 30;
+  }
+
+  /* Sections. */
+  body.print-brief .panel-section {
+    margin: 0 0 8pt;
+    padding: 0;
+    border: 0;
+  }
+
+  body.print-brief .panel-section-label {
+    margin: 0 0 3pt;
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #555;
+    break-after: avoid;
+  }
+
+  body.print-brief .panel-section p {
+    font-size: 11pt;
+    line-height: 1.4;
+    color: #000;
+    orphans: 3;
+    widows: 3;
+  }
+
+  body.print-brief #no-details-message {
+    font-size: 10pt !important;
+    color: #333 !important;
+  }
+
+  body.print-brief .panel-section.low-quality p {
+    opacity: 1;
+    color: #000;
+  }
+
+  body.print-brief .panel-field-mark {
+    padding: 0;
+    background: none;
+    color: inherit;
+  }
+
+  /* Maturity index: the bar becomes its number, rank on the same line. */
+  body.print-brief .score-bar-row,
+  body.print-brief .maturity-rank {
+    display: inline;
+  }
+
+  body.print-brief .score-value {
+    min-width: 0;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 13pt;
+    font-weight: 500;
+    color: #000;
+  }
+
+  body.print-brief .maturity-rank {
+    margin: 0 0 0 8pt;
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-size: 9.5pt;
+    color: #555;
+  }
+
+  /* Dimensions: a table of label and number, then every sub-indicator
+     block after the table (flex order within the list), two blocks per
+     row so the first page stays compact. */
+  body.print-brief .dimensions-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 4%;
+  }
+
+  body.print-brief .dimension-row {
+    order: 0;
+    flex: 0 0 100%;
+    display: block;
+    border-bottom: 0.5pt solid #bbb;
+    border-radius: 0;
+    background: none;
+  }
+
+  body.print-brief .dim-main {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 2pt 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: #000;
+    text-align: left;
+  }
+
+  body.print-brief .dim-label {
+    font-size: 10pt;
+    font-weight: 400;
+    color: #000;
+  }
+
+  body.print-brief .dim-dots {
+    display: inline;
+  }
+
+  body.print-brief .dim-score-value {
+    min-width: 0;
+    margin: 0;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 10pt;
+    color: #000;
+  }
+
+  /* Sub-indicators: printBrief.ts renders every block before printing;
+     on screen they stay hidden unless expanded, so `hidden` yields here.
+     The caption gains its dimension name because the block no longer
+     sits under its row. */
+  body.print-brief .subscore-panel {
+    order: 1;
+    flex: 0 0 48%;
+    display: block;
+    margin: 7pt 0 0;
+    padding: 0;
+    border: 0;
+  }
+
+  body.print-brief .subscore-panel:empty {
+    display: none;
+  }
+
+  body.print-brief .subscore-caption {
+    margin: 0 0 1pt;
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #555;
+    break-after: avoid;
+  }
+
+  body.print-brief .subscore-caption::before {
+    content: attr(data-dimension) ' · ';
+    color: #000;
+  }
+
+  body.print-brief .subscore-line {
+    padding: 0;
+    break-inside: avoid;
+  }
+
+  body.print-brief .subscore-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8pt;
+    line-height: 1.3;
+  }
+
+  body.print-brief .subscore-label {
+    font-size: 9.5pt;
+    color: #000;
+  }
+
+  body.print-brief .subscore-value {
+    min-width: 0;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 9.5pt;
+    color: #000;
+  }
+
+  body.print-brief .subscore-panel .subscore-rationale {
+    max-width: none;
+    margin: 0 0 2pt;
+    font-size: 9pt;
+    line-height: 1.35;
+    color: #333;
+  }
+
+  /* Sources: one per line, full URL after the title. */
+  body.print-brief #sources-list {
+    display: block;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  body.print-brief #sources-list li {
+    display: block;
+    margin: 0 0 2pt;
+    font-size: 9pt;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    break-inside: avoid;
+  }
+
+  body.print-brief #sources-list li a {
+    display: inline;
+    padding: 0;
+    background: none;
+    font: inherit;
+    color: #000;
+    text-decoration: none;
+  }
+
+  body.print-brief #sources-list li a::after {
+    content: ' ' attr(href);
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 7.5pt;
+    color: #444;
+  }
+
+  body.print-brief .source-tag {
+    margin-left: 4pt;
+    padding: 0;
+    background: none;
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-size: 7pt;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #000;
+  }
+
+  /* Record: data date and source count, confidence, citation, link. */
+  body.print-brief .data-freshness {
+    margin: 4pt 0 0;
+    padding-top: 6pt;
+    border-top: 0.5pt solid #000;
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-size: 8pt;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #333;
+  }
+
+  body.print-brief #panel-content .confidence-badge {
+    margin: 2pt 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #333;
+  }
+
+  body.print-brief .confidence-badge::before {
+    display: none;
+  }
+
+  body.print-brief .print-citation {
+    display: block;
+    margin-top: 6pt;
+    font-size: 9.5pt;
+    line-height: 1.4;
+    color: #000;
+  }
+
+  body.print-brief .print-citation p {
+    margin: 0 0 2pt;
+    overflow-wrap: anywhere;
+  }
+
+  body.print-brief .print-citation-label {
+    margin-right: 4pt;
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #555;
+  }
+}

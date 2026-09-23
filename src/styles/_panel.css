@@ -119,6 +119,19 @@
   overflow-wrap: anywhere;
 }
 
+/* ISO 3166-1 alpha-2 and alpha-3 beside the name - the join key a
+   researcher needs to line this entry up with another dataset. */
+.country-iso {
+  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.country-iso:empty {
+  display: none;
+}
+
 .data-freshness {
   display: block;
   font-size: 0.66rem;
@@ -445,12 +458,14 @@
 
 .panel-header-actions .compare-btn,
 .panel-header-actions .cite-btn,
-.panel-header-actions .permalink-btn {
+.panel-header-actions .permalink-btn,
+.panel-header-actions .print-btn {
   margin: 0;
 }
 
 .cite-btn,
-.permalink-btn {
+.permalink-btn,
+.print-btn {
   appearance: none;
   -webkit-appearance: none;
   background: transparent;
@@ -470,7 +485,9 @@
 .cite-btn:focus-visible,
 .cite-btn[aria-expanded='true'],
 .permalink-btn:hover,
-.permalink-btn:focus-visible {
+.permalink-btn:focus-visible,
+.print-btn:hover,
+.print-btn:focus-visible {
   color: var(--accent);
   border-color: var(--accent);
   background: var(--accent-muted);

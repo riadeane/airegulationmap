@@ -6,6 +6,7 @@ import { loadScores, loadRegulation } from './data/loader';
 import { loadHistory } from './data/history';
 import { loadBlocs } from './data/blocs';
 import { loadSubscores } from './data/subscores';
+import { loadCountryIso } from './data/countryIso';
 import { initBlocSelector } from './controls/blocSelector';
 import { initBlocSummary } from './controls/blocSummary';
 import { initSubscores } from './panel/subscores';
@@ -23,6 +24,7 @@ import { initTimeline } from './controls/timeline';
 import { initTheme } from './controls/theme';
 import { parseUrl, initUrlSync } from './controls/url';
 import { initCitePopover } from './controls/citePopover';
+import { initPrintBrief } from './controls/printBrief';
 import { initInitiatives } from './panel/initiatives';
 import { hydrateFromSupabase } from './data/hydrate';
 import { loadSourceMeta } from './data/sourceMeta';
@@ -109,6 +111,7 @@ async function main(): Promise<void> {
   initPanel();
   initSubscores();
   initCitePopover();
+  initPrintBrief();
   initComparison();
   initSearch();
   initSearchResults();
@@ -164,6 +167,9 @@ async function main(): Promise<void> {
   // Sub-indicator audit trail (methodology v2) - non-blocking; the
   // dimension-row breakdown appears once it loads.
   loadSubscores().then(subscores => setState({ subscores }));
+
+  // ISO codes for the panel name row and the printed brief - non-blocking.
+  loadCountryIso().then(countryIso => setState({ countryIso }));
 
   // Load bloc membership non-blocking; the bloc filter and summary
   // appear once the data exists. URL bloc is applied late, same as
