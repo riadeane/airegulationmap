@@ -1804,6 +1804,216 @@
         ]
       }
     },
+    "/gold_checks": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.run_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.checked_on"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.model"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.prompt_version"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.countries_compared"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.countries_missing"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.mae_by_dimension"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.within_one"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.max_dev"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.max_dev_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/gold_checks"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "summary": "Gold-set drift check, one row per research run: how far the model's raw sub-indicator scores for the ten hand-verified gold countries (public/data/gold_set.json) sit from the verified scores. The queryable twin of public/data/drift.json.",
+        "tags": [
+          "gold_checks"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.gold_checks"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "summary": "Gold-set drift check, one row per research run: how far the model's raw sub-indicator scores for the ten hand-verified gold countries (public/data/gold_set.json) sit from the verified scores. The queryable twin of public/data/drift.json.",
+        "tags": [
+          "gold_checks"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.run_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.checked_on"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.model"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.prompt_version"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.countries_compared"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.countries_missing"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.mae_by_dimension"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.within_one"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.max_dev"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.max_dev_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "summary": "Gold-set drift check, one row per research run: how far the model's raw sub-indicator scores for the ten hand-verified gold countries (public/data/gold_set.json) sit from the verified scores. The queryable twin of public/data/drift.json.",
+        "tags": [
+          "gold_checks"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.run_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.checked_on"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.model"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.prompt_version"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.countries_compared"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.countries_missing"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.mae_by_dimension"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.within_one"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.max_dev"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.max_dev_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.gold_checks"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "summary": "Gold-set drift check, one row per research run: how far the model's raw sub-indicator scores for the ten hand-verified gold countries (public/data/gold_set.json) sit from the verified scores. The queryable twin of public/data/drift.json.",
+        "tags": [
+          "gold_checks"
+        ]
+      }
+    },
     "/sources": {
       "get": {
         "parameters": [
@@ -2677,6 +2887,85 @@
         "cursor": {
           "description": "Adapter-specific resume state.",
           "format": "jsonb"
+        }
+      },
+      "type": "object"
+    },
+    "gold_checks": {
+      "description": "Gold-set drift check, one row per research run: how far the model's raw sub-indicator scores for the ten hand-verified gold countries (public/data/gold_set.json) sit from the verified scores. The queryable twin of public/data/drift.json.",
+      "required": [
+        "id",
+        "checked_on",
+        "countries_compared",
+        "countries_missing",
+        "mae_by_dimension",
+        "within_one",
+        "max_dev",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Row UUID.\n\nNote:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "run_id": {
+          "description": "FK to research_runs.id: the run whose raw results were checked; one row per run.\n\nNote:\nThis is a Foreign Key to `research_runs.id`.<fk table='research_runs' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "checked_on": {
+          "description": "Date of the run.",
+          "format": "date",
+          "type": "string"
+        },
+        "model": {
+          "description": "Claude model id the run researched with.",
+          "format": "text",
+          "type": "string"
+        },
+        "prompt_version": {
+          "description": "Version tag of the research prompt the run used.",
+          "format": "text",
+          "type": "string"
+        },
+        "countries_compared": {
+          "description": "Gold countries the run returned a valid result for.",
+          "format": "integer",
+          "type": "integer"
+        },
+        "countries_missing": {
+          "description": "Gold countries absent from the run (not selected, or no valid result).",
+          "format": "text[]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "mae_by_dimension": {
+          "description": "Mean absolute error of the run's sub-indicator scores against the gold scores, keyed by dimension (regulation_status, policy_lever, governance_type, actor_involvement, enforcement_level).",
+          "format": "jsonb"
+        },
+        "within_one": {
+          "description": "Share of compared sub-indicators whose run score is within one point of the gold score. Below 0.8 the run summary carries a calibration warning.",
+          "format": "numeric",
+          "type": "number"
+        },
+        "max_dev": {
+          "description": "Largest single sub-indicator deviation, in points (0 to 4).",
+          "format": "smallint",
+          "type": "integer"
+        },
+        "max_dev_at": {
+          "description": "Where the largest deviation happened: {country, dimension, subindicator, gold, run}.",
+          "format": "jsonb"
+        },
+        "created_at": {
+          "default": "now()",
+          "description": "Row creation time.",
+          "format": "timestamp with time zone",
+          "type": "string"
         }
       },
       "type": "object"
@@ -3713,6 +4002,99 @@
     "rowFilter.sync_state.cursor": {
       "name": "cursor",
       "description": "Adapter-specific resume state.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.gold_checks": {
+      "name": "gold_checks",
+      "description": "gold_checks",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/gold_checks"
+      }
+    },
+    "rowFilter.gold_checks.id": {
+      "name": "id",
+      "description": "Row UUID.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.run_id": {
+      "name": "run_id",
+      "description": "FK to research_runs.id: the run whose raw results were checked; one row per run.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.checked_on": {
+      "name": "checked_on",
+      "description": "Date of the run.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.model": {
+      "name": "model",
+      "description": "Claude model id the run researched with.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.prompt_version": {
+      "name": "prompt_version",
+      "description": "Version tag of the research prompt the run used.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.countries_compared": {
+      "name": "countries_compared",
+      "description": "Gold countries the run returned a valid result for.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.countries_missing": {
+      "name": "countries_missing",
+      "description": "Gold countries absent from the run (not selected, or no valid result).",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.mae_by_dimension": {
+      "name": "mae_by_dimension",
+      "description": "Mean absolute error of the run's sub-indicator scores against the gold scores, keyed by dimension (regulation_status, policy_lever, governance_type, actor_involvement, enforcement_level).",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.within_one": {
+      "name": "within_one",
+      "description": "Share of compared sub-indicators whose run score is within one point of the gold score. Below 0.8 the run summary carries a calibration warning.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.max_dev": {
+      "name": "max_dev",
+      "description": "Largest single sub-indicator deviation, in points (0 to 4).",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.max_dev_at": {
+      "name": "max_dev_at",
+      "description": "Where the largest deviation happened: {country, dimension, subindicator, gold, run}.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.created_at": {
+      "name": "created_at",
+      "description": "Row creation time.",
       "required": false,
       "in": "query",
       "type": "string"
