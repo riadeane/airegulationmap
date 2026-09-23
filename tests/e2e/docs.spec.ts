@@ -33,6 +33,33 @@ test('data.html is a static overview that routes to the API reference', async ({
   expect(serious, JSON.stringify(serious.map(v => v.id))).toEqual([]);
 });
 
+test('drift.html renders its figures from the committed files', async ({ page }) => {
+  // No route mocks: history.json, regulation_data.csv, data/blocs.json and
+  // data/drift.json are served as static assets. The build has no Supabase
+  // env here, so the run table falls back to what the files record.
+  await page.goto('/drift.html');
+  await expect(page.locator('figure.chart')).toHaveCount(5);
+  // Score movement, deltas, confidence and the bloc grid plot; the gold-set
+  // figure shows its empty state until drift.json carries a check.
+  await expect(page.locator('figure#changes svg')).toBeVisible();
+  await expect(page.locator('figure#deltas svg')).toBeVisible();
+  await expect(page.locator('figure#confidence svg')).toBeVisible();
+  await expect(page.locator('figure#blocs svg')).toBeVisible();
+  // Every figure carries a caption with its key numbers and a table twin
+  // where there is a plot.
+  const captions = page.locator('figure.chart figcaption');
+  await expect(captions).toHaveCount(5);
+  for (const text of await captions.allInnerTexts()) expect(text.trim().length).toBeGreaterThan(20);
+  await expect(page.locator('figure.chart details table')).toHaveCount(4);
+  // The latest run section lists the largest moves with app deep links.
+  await expect(page.locator('#drift-run h2')).toHaveText('Latest run');
+  await expect(page.locator('#drift-run table a[href^="/?country="]').first()).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+  const serious = results.violations.filter(v => v.impact === 'serious' || v.impact === 'critical');
+  expect(serious, JSON.stringify(serious.map(v => v.id))).toEqual([]);
+});
+
 test('docs pages have a working theme toggle', async ({ page }) => {
   await page.goto('/data.html');
   await page.emulateMedia({ colorScheme: 'light' });
