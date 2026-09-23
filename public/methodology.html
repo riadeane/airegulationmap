@@ -445,6 +445,15 @@
     <p>A <strong>regulatory maturity index</strong> (the arithmetic mean of the three normative dimensions: regulation status, policy lever, and enforcement level), labelled <em>Maturity Index</em> on the map and exported as the <code>Average Score</code> column. Governance type and actor involvement are excluded because they describe regulatory <em>style</em>, not development; averaging them in would reward or punish countries for being centralized or distributed. Shown by default on the map because it gives the fastest cross-country read, but the individual dimensions are where the interesting signal lives.</p>
     <div class="callout"><strong>Continuity note:</strong> Before June 2026 the composite averaged four dimensions (including the two descriptive ones, excluding enforcement) and all scores were integers. Comparisons across that boundary should use the per-dimension scores, which kept their definitions.</div>
 
+    <h3 id="peer-sets">Peer sets</h3>
+    <p>The country panel has a <em>Compare with</em> row. Each chip opens a side-by-side comparison of the selected country with a set of peers. Three kinds of set exist. Each lists the closest countries first and is cut to the comparison limit of four countries, so a set holds the selected country plus three peers. Countries without the scores a set needs are left out. Ties resolve alphabetically.</p>
+    <ul>
+      <li><strong>Bloc peers</strong>: for each bloc the country belongs to (EU, G7, G20, ASEAN, African Union, BRICS+, NATO, OECD), the other members with the highest maturity index.</li>
+      <li><strong>Similar maturity</strong>: the countries whose maturity index is closest to the selected country's.</li>
+      <li><strong>Similar profile</strong>: the countries at the smallest Euclidean distance across all five dimensions. The dimensions carry equal weight, including the two descriptive ones. The aim is a similar regulatory <em>shape</em>, not a similar level; the maturity set already covers level.</li>
+    </ul>
+    <p>The sets rest only on bloc membership and score distance. No other signal (region, language, income group) is used.</p>
+
     <h2 id="confidence">Confidence levels</h2>
     <p>Each country record carries a confidence label that reflects how much public, primary evidence was available to the research pass.</p>
     <ul>

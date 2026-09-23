@@ -1,6 +1,6 @@
 # PRD 06: Peer comparison shortcuts
 
-Status: Proposed. Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026). Owner: unassigned. Depends on: none.
 
 ## Problem
 
@@ -60,3 +60,13 @@ of peers.
 
 - Should "nearest by profile" weight the three normative dimensions higher?
   Proposed: no, equal weights, documented in the methodology page.
+
+## Resolution
+
+- Equal weights across all five dimensions. Documented under "Peer sets" on
+  the methodology page.
+- The comparison cap is four countries, so each set holds three peers: the
+  count on the chip is the count the click opens.
+- Peer computation lives in `src/data/peers.ts`; the panel row in
+  `src/panel/peers.ts`; the `startComparison` intent in
+  `src/state/interactions.ts`.
