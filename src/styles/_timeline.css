@@ -46,8 +46,41 @@
   background: var(--accent-muted);
 }
 
-#timeline-slider {
+/* The track wraps the slider so calibration-break ticks can sit under it.
+   --thumb-w matches the range input's thumb: the thumb's centre travels
+   a span shorter than the track by one thumb width, so each tick is
+   offset by the half-width, scaled by its position. */
+#timeline-track {
+  --thumb-w: 16px;
   flex: 1;
+  position: relative;
+}
+
+#timeline-slider {
+  display: block;
+  width: 100%;
+}
+
+.timeline-break {
+  --position: 0;
+  position: absolute;
+  top: calc(100% - 2px);
+  left: calc(var(--position) * 100% + var(--thumb-w) * (0.5 - var(--position)));
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%);
+  cursor: help;
+}
+
+.timeline-break::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--accent);
 }
 
 #timeline-date-label {

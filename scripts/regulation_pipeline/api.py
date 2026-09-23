@@ -22,11 +22,15 @@ from .retry import call_with_retries
 
 logger = logging.getLogger(__name__)
 
-# Web search runs use the web_search_20260209 tool (dynamic filtering), which
-# requires Sonnet 4.6; the search response is also larger than the plain one.
-_SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search"}
-_MAX_TOKENS = 2048
-_MAX_TOKENS_SEARCH = 3072
+# Web search runs use the web_search_20260209 tool (dynamic filtering).
+# max_uses caps searches per country. Search results are re-sent on every
+# search iteration, so they dominate input tokens; a September 2026 sample
+# showed 7-16 searches per country on Opus 5 and a 34-search outlier on
+# Sonnet 5. The cap stops outliers without touching the typical run.
+_SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search", "max_uses": 12}
+# Thinking tokens count toward max_tokens, and the default model thinks before
+# it answers. Leave room so the structured answer is never truncated.
+_MAX_TOKENS = 16000
 
 
 class ResearchClient:
@@ -38,14 +42,12 @@ class ResearchClient:
         self,
         client: anthropic.Anthropic,
         *,
-        default_model: str,
-        search_model: str,
+        model: str,
         today: date,
         evidence_provider: Callable[[str], list[dict]] | None = None,
     ):
         self._client = client
-        self._default_model = default_model
-        self._search_model = search_model
+        self._model = model
         self._today = today
         # Grounded mode: returns a country's verified policy initiatives
         # (policy_initiatives rows). When it yields records, the prompt
@@ -69,10 +71,9 @@ class ResearchClient:
     def request_params(self, country: str, existing_reg: dict | None, *, use_search: bool) -> dict:
         """Build the ``messages.create`` kwargs for one country. Shared by the
         synchronous path and the Batches path so both send identical requests."""
-        model = self._search_model if use_search else self._default_model
         params = {
-            "model": model,
-            "max_tokens": _MAX_TOKENS_SEARCH if use_search else _MAX_TOKENS,
+            "model": self._model,
+            "max_tokens": _MAX_TOKENS,
             "messages": [{"role": "user", "content": self._prompt_for(country, existing_reg)}],
             # Structured outputs: the API constrains the answer to this schema,
             # so sub-scores arrive as guaranteed ints 1-5 with all fields present.

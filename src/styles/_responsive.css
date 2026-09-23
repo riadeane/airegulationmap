@@ -320,6 +320,11 @@
     background: transparent;
   }
 
+  /* Keep the calibration-break ticks under the 24px thumb's centre. */
+  #timeline-track {
+    --thumb-w: 24px;
+  }
+
   input[type="range"]::-webkit-slider-runnable-track {
     height: 4px;
     border-radius: 2px;

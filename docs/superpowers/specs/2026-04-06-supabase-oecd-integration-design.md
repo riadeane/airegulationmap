@@ -35,6 +35,22 @@ dual-write) rather than removed; the OECD source is the official
 
 **OECD Terms:** Data freely usable with attribution, even commercially. Required citation format: `OECD (year), (dataset name), oecd.ai, accessed (date)`.
 
+### Peer projects (not ingestion sources)
+
+**regulations.ai** (Smitteck GmbH / Martin Smit, solo operator) — per-regulation catalog across ~100+ jurisdictions (including supra-national bodies: NATO, APEC, BRICS, IAEA, ICAO). Taxonomy: 7 regulation types (Act, Bill, Decree, Regulation, Policy, Guideline, Standard), 10 lifecycle statuses (Draft → Proposed → Under Review → Stalled / Withdrawn → Adopted → Awaiting Entry → In Force → In Force (Amended) → Repealed), 13 topics. Features a count-based choropleth, full DB download, and AI chat over the corpus.
+
+- **Not an ingestion source.** No published methodology, sourcing policy, update cadence, or license terms. Solo-built with AI assistance per founder's about page.
+- **Useful as a coverage spot-check** — if OECD returns 0 initiatives for a country, cross-reference regulations.ai before falling back to Claude web search.
+- **Validates the catalog/scoring split.** Regulations.ai counts laws (US=36, Slovakia=24, UK=23); we score regimes across 6 dimensions. After the Supabase migration we'll own both layers — the fact catalog (`policy_initiatives`) and the comparative index (`country_scores`). The index is the differentiator.
+
+**trackpolicy.org** (Isabelle Reksopuro, solo operator, **open source** with published methodology) — bill-level tracker for AI **and data center** policy. 734 bills, 283 data center facilities, 561 legislators, 590 news stories. Heavy US coverage (federal + all 50 states), plus UK / EU / APAC.
+
+- **Upstream sources** (primary government repositories): LegiScan (US state bills), Congress.gov (US federal), EUR-Lex (EU directives), Epoch AI's CC-BY dataset (data center facilities), RSS feeds from major outlets (news).
+- **Claude Sonnet 4.6 as classifier**, not researcher — assigns impact tags from a fixed taxonomy and infers jurisdiction stance (`restrictive` / `concerning` / `review` / `favorable` / `none`). **Externally validates this spec's "Claude as analyst" pattern** — two independent projects converged on the same split between upstream facts and model-generated interpretation.
+- **Stage-weighted scoring**: enacted bills weighted highest, filed bills lowest. See "Stage-weighted scoring" note below in the summarizer prompt design.
+- **Not an ingestion source, not a competitor.** Different unit of analysis (bills + facilities, not country scores) and different geographic emphasis (US state depth vs. our global breadth). A researcher would use both.
+- **Primary-source escalation path.** If US state-level or bill-level depth ever becomes a requirement for this project, LegiScan / Congress.gov / EUR-Lex are the sources to add — not more Claude research. Out of scope for v1 (OECD curation is the whole point), but worth flagging for v2+.
+
 ---
 
 ## Database Schema
@@ -76,6 +92,8 @@ One row per law, strategy, guideline, or agreement. The core fact table.
 | `target_sectors` | text[] | |
 | `created_at` | timestamptz | |
 | `updated_at` | timestamptz | OECD's `updatedAt`. Drives delta sync and staleness detection. |
+
+> **Status taxonomy note:** OECD's `status` field is binary (`Active` / `Inactive – initiative complete`), which is sufficient for v1 scoring. If researchers later want lifecycle nuance (e.g. distinguishing proposed bills from enacted laws from repealed frameworks), derive a `lifecycle_stage` column from `status` + `start_year` + `end_year` + `binding`. The peer project regulations.ai uses a 10-step lifecycle (Draft → Proposed → Under Review → Stalled / Withdrawn → Adopted → Awaiting Entry → In Force → In Force Amended → Repealed) worth mirroring if we go there. Out of scope for v1.
 
 ### `country_scores`
 Claude-generated numeric scores. One current row per country (upserted, not appended).
@@ -255,6 +273,59 @@ Return ONLY a valid JSON object:
 Confidence guide: high = 3+ binding initiatives; medium = strategies/guidelines only; low = 0-1 initiatives.
 ```
 
+#### Scoring rubrics (all five dimensions)
+
+Every 1–5 scale ships with all five levels defined — no 1/3/5-only rubrics. Intermediate points exist so Claude can distinguish between regimes that are "emerging" (2) vs "in-progress" (3), or between "formal but selective" (4) vs "active enforcement" (5). Anchored to the existing `LEGEND_ENDPOINTS` labels in [src/constants.js](../../../src/constants.js).
+
+**regulation_status** (Minimal → Comprehensive):
+1. No regulation, no national engagement
+2. Early voluntary guidelines or AI strategy drafted
+3. Multiple strategies or draft legislation in progress; some non-binding frameworks in force
+4. Binding regulation enacted in specific domains (e.g. public sector, high-risk AI)
+5. Comprehensive binding regulation across major AI domains, in force and actively updated
+
+**policy_lever** (Narrow → Broad):
+1. Single instrument type (e.g. strategy only, or regulation only)
+2. Two instrument types (e.g. strategy + guideline)
+3. Three or four instrument types spanning regulation, soft-law, and funding
+4. Mix of binding regulation, soft-law, fiscal instruments, and standards
+5. Full toolbox — regulation, strategy, funding, standards, international agreements, capacity-building
+
+**governance_type** (Centralized → Distributed):
+1. Single central authority handling all AI governance
+2. One lead authority with informal sectoral involvement
+3. Lead authority plus two or three named sectoral regulators (privacy, finance, health)
+4. Multi-actor network with formal coordination mechanisms
+5. Fully distributed — independent regulators, civil society bodies, industry self-regulation, cross-border coordination
+
+**actor_involvement** (Limited → Broad):
+1. Government only
+2. Government plus industry consultation
+3. Government plus industry and academia
+4. Multi-stakeholder — government, industry, academia, civil society
+5. Multi-stakeholder plus international or cross-border actors (OECD, EU, bilateral agreements)
+
+**enforcement_level** (Weak → Strong):
+1. No enforcement mechanism
+2. Voluntary / advisory-only bodies; no sanctioning power
+3. Oversight bodies with soft enforcement (guidance, reporting requirements)
+4. Formal oversight with sanctioning powers; selective or inconsistent enforcement
+5. Active enforcement — regular audits, documented penalties, visible case history
+
+These rubrics are inserted into the prompt above the `POLICY INITIATIVES` block so Claude has the full scale before reading the facts. The existing `scripts/regulation_pipeline/api.py` prompt has been updated in parallel to close the same gap on its `enforcement_level` scale (previously defined only 1/3/5).
+
+#### Stage-weighted scoring
+
+All initiatives are not equal. A `Binding` regulation in `Active` status carries more signal than a `Non-binding` guideline or an `Inactive – initiative complete` strategy. trackpolicy.org uses this explicitly (enacted bills weighted highest, filed bills lowest) — worth mirroring.
+
+Two implementation options, in order of increasing complexity:
+
+1. **Ordering cue (simplest):** Sort the initiatives in the prompt by descending weight before handing them to Claude. Claude tends to anchor on early items. No weight value exposed to the model — the order itself is the signal.
+2. **Explicit guidance line (recommended):** Add one sentence to the prompt, e.g.: *"Weight in-force binding regulations most heavily; weight non-binding strategies and inactive initiatives less. Scores should reflect the regulatory regime in force today, not the stated intent of strategies."*
+3. **Numeric weights:** Pre-compute a weight per initiative (e.g. `binding × status_weight × recency`) and include it in the prompt. More precise, but adds a weighting function to maintain. Defer unless option 2 produces inconsistent results across countries with similar initiative counts but different binding/status mixes.
+
+**Recommendation for v1:** Ship option 2. Revisit if scoring variance between countries with similar OECD coverage reveals the model is not weighting binding-ness consistently.
+
 For countries with zero OECD coverage, fall back to current web-search prompt (existing `api.py` logic), but flag confidence as `low`.
 
 ### Environment Variables
@@ -373,3 +444,7 @@ Supabase is the live data source — Cloudflare Pages only needs to redeploy whe
 | Staleness trigger | `policy_initiatives.updated_at > summarized_at` | Event-driven vs. time-based — only re-summarize when facts change |
 | Countries with no OECD coverage | Claude web-search fallback, confidence = low | Maintains global coverage without degrading verified countries |
 | History / timeline | `score_history` table (append-only) | Replaces `history.json`, same data shape |
+| Peer catalogs (regulations.ai) | Reference only, not ingested | No published methodology or license; better to own the full sourcing chain via OECD + Kaggle + Claude |
+| Peer catalogs (trackpolicy.org) | Reference only, not ingested | Different scope (US-heavy bill-level + data centers); its upstream sources (LegiScan / Congress.gov / EUR-Lex) are the v2+ escalation path if we need deeper legislative granularity |
+| Status taxonomy | OECD binary (`Active`/`Inactive`) for v1 | Richer 10-step lifecycle deferred; derive later if researchers ask for it |
+| Stage-weighted scoring | Guidance line in prompt (option 2 from summarizer section) | Aligns Claude with trackpolicy.org's weighting model without the overhead of numeric pre-computation |

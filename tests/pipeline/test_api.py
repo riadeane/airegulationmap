@@ -48,7 +48,7 @@ class _FakeClient:
 
 def _client(message=None):
     return ResearchClient(
-        _FakeClient(message), default_model="m", search_model="s", today=date(2026, 6, 11)
+        _FakeClient(message), model="m", today=date(2026, 6, 11)
     )
 
 
@@ -56,15 +56,15 @@ class TestRequestParams:
     def test_default_run(self):
         params = _client().request_params("Germany", None, use_search=False)
         assert params["model"] == "m"
-        assert params["max_tokens"] == 2048
+        assert params["max_tokens"] == 16000
         assert "tools" not in params
         assert params["output_config"]["format"]["type"] == "json_schema"
 
-    def test_search_run_uses_search_model_and_tool(self):
+    def test_search_run_adds_search_tool(self):
         params = _client().request_params("Germany", None, use_search=True)
-        assert params["model"] == "s"
-        assert params["max_tokens"] == 3072
+        assert params["model"] == "m"
         assert params["tools"][0]["type"] == "web_search_20260209"
+        assert params["tools"][0]["max_uses"] == 12
 
     def test_prompt_includes_country_and_existing_data(self):
         params = _client().request_params(
@@ -83,6 +83,6 @@ class TestResearch:
 
     def test_uses_selected_model(self):
         client = _FakeClient(text_message(json.dumps(full_result())))
-        rc = ResearchClient(client, default_model="m", search_model="s", today=date(2026, 6, 11))
+        rc = ResearchClient(client, model="m", today=date(2026, 6, 11))
         rc.research("Germany", None, use_search=True)
-        assert client.messages.kwargs["model"] == "s"
+        assert client.messages.kwargs["model"] == "m"

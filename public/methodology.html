@@ -329,8 +329,8 @@
     </p>
     <p>
       The project was originally seeded from the
-      <a href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region" rel="noopener noreferrer">EA Forum AI Governance Tracker</a>
-      in early 2026. Since then every country has been independently
+      <a href="https://forum.effectivealtruism.org/posts/8tJbcAXDZKEqQXgyR/ai-governance-tracker-of-each-country-per-region" rel="noopener noreferrer">EA Forum AI Governance Tracker</a>.
+      Since then every country has been independently
       re-researched and re-scored by the automated pipeline described
       below; the current dataset no longer derives from that source.
     </p>
@@ -338,7 +338,7 @@
     <div class="callout">
       <strong>Epistemic caveat.</strong> Scores are inferred by
       <a href="https://claude.ai/" rel="noopener noreferrer">Claude</a>
-      from public sources and refreshed monthly. They are not produced by
+      from public sources and refreshed weekly. They are not produced by
       human coders and have not been independently audited. Treat them
       the way you would treat a well-read colleague's summary: useful
       for orientation, worth verifying before citation.
@@ -364,11 +364,17 @@
       traceable to specific facts; the full sub-indicator table per
       country is published in
       <a href="/data/subscores.json"><code>subscores.json</code></a>.
-      Scoring is calibrated so that <strong>5 means the global frontier at
-      the time of scoring</strong>, meaning the standard set by the two or
-      three most advanced jurisdictions for that aspect, not perfection.
-      Countries scored before June 2026 carry integer scores until their
-      next research pass.
+      Since September 2026 (rubric v3), each level of the 1&ndash;5 scale
+      describes an <strong>observable state</strong> that a jurisdiction can
+      be verified to be in. A 5 means the state is fully in place and
+      operating: the instrument is in force, the body is staffed and acting,
+      the practice is routine and published. Today's leading jurisdictions
+      reach 5 on most sub-indicators; perfection is not required, and a
+      country's score changes only when its own record changes. Reference
+      points (an EU member state implementing the AI Act near 4 to 5 on
+      regulation status, the United States near 3) are examples of where
+      the anchors land, not the definition. Countries scored before June
+      2026 carry integer scores until their next research pass.
     </p>
 
     <h3>Regulation Status</h3>
@@ -435,18 +441,28 @@
     <p>Confidence is currently assigned at the record level (per country), not per individual dimension. We consider per-field confidence a future enhancement.</p>
 
     <h2 id="update-cadence">Data update cadence</h2>
-    <p>A <a href="https://github.com/riadeane/airegulationmap/blob/main/.github/workflows/update-data.yml" rel="noopener noreferrer">GitHub Action</a> runs on the 1st of each month and researches any country whose record is older than a staleness threshold or flagged as low confidence. Manual overrides (single-country re-research, forced refresh of the whole dataset) are possible via <code>scripts/update_data.py</code>.</p>
-    <p>Every month's run is preserved as a snapshot in <code>public/history.json</code>, which drives the timeline slider on the main page, so the "score at date X" view is always reproducible from the raw data.</p>
+    <p>A <a href="https://github.com/riadeane/airegulationmap/blob/main/.github/workflows/update-data.yml" rel="noopener noreferrer">GitHub Action</a> runs every Monday and re-researches every country with web search enabled. Manual overrides (single-country re-research, forced refresh of the whole dataset) are possible via <code>scripts/update_data.py</code>.</p>
+    <p>Every run's score changes are preserved as snapshots in <code>public/history.json</code>, which drives the timeline slider on the main page, so the "score at date X" view is always reproducible from the raw data.</p>
+    <p><strong>Stability gate (September 2026).</strong> Two research passes on the same real-world situation can disagree by a quarter point. A score change therefore lands only when the run gives evidence for it (a source URL not cited before, or a change in the named laws) or when the same change repeats on the next weekly run. Held candidates are published in <a href="/data/pending.json"><code>pending.json</code></a>. Text fields, confidence, and the last-updated date always refresh. Every recorded score change in the history therefore corresponds to new evidence, a repeated finding, or a documented recalibration.</p>
     <p><strong>Evidence grounding (July 2026).</strong> Research runs can be grounded in verified policy-initiative records from the <a href="https://oecd.ai" rel="noopener noreferrer">OECD.AI Policy Observatory</a> (Policy Navigator/GAIIN): for covered countries, the model scores against those records as stated facts rather than open-ended recall, and the records themselves are shown in each country's <em>Policy initiatives</em> panel section. Every run, grounded or not, is recorded with its model, prompt version, and token counts in a public <code>research_runs</code> provenance table (see <a href="/data.html">Data &amp; API</a>).</p>
+
+    <h2 id="rubric-versions">Rubric versions</h2>
+    <p>The scoring rubric has changed twice. Each change is a documented break in the series, never a silent drift. Earlier snapshots are kept as they were scored; nothing in the past is re-scored or offset, because past web content cannot be re-researched and an offset would be invented data.</p>
+    <ul>
+      <li><strong>v1, March 2026.</strong> Integer scores per dimension, four-dimension composite.</li>
+      <li><strong>v2, June 2026.</strong> Four sub-indicators per dimension, quarter-point means, three-dimension maturity index. A 5 meant the global frontier at the time of scoring.</li>
+      <li><strong>v3, September 2026.</strong> Fixed anchors. The frontier definition made scores comparable across countries but not across time: a country could fall without changing anything because the frontier moved, and weekly runs re-estimated the frontier every week. Each level now describes an observable state, as set out under <a href="#the-six-dimensions">The six dimensions</a>. The sub-indicator definitions and the output structure are unchanged. The first run on v3 coincided with the switch of the research model to Claude Opus 5, so the series carries one break, not two.</li>
+    </ul>
+    <p>Each break is recorded in <code>history.json</code> under <code>breaks</code> with its date, model, prompt version, and reason. The timeline marks the date, and a country's score history labels changes on that date as a recalibration rather than a policy change. A relative view (a score divided by that week's maximum) is a possible display option for the frontend; it is never the stored number.</p>
 
     <h2 id="limitations">Known limitations</h2>
     <ul>
       <li><strong>Point-in-time view.</strong> Scores reflect the state of regulation at the last research pass. Fast-moving jurisdictions can change materially between updates.</li>
       <li><strong>English-source bias.</strong> Non-English primary sources are under-represented, which systematically disadvantages countries whose regulatory debates happen in other languages. Claude mitigates this but does not eliminate it.</li>
       <li><strong>Aggregate hides regional variance.</strong> Federations (US, India, Brazil) are scored at the national level; substantial sub-national variation is flattened.</li>
-      <li><strong>Draft vs. enacted.</strong> The rubric tries to distinguish these, but a bill that passes the week after a research pass will not update until the next monthly run.</li>
+      <li><strong>Draft vs. enacted.</strong> The rubric tries to distinguish these, but a bill that passes the week after a research pass will not update until the next weekly run.</li>
       <li><strong>No independent audit.</strong> Scores are LLM-inferred, not human-coded, and have not been audited by domain experts. The sub-indicator breakdown in <code>subscores.json</code> exists precisely so that every dimension score can be checked claim-by-claim.</li>
-      <li><strong>Methodology change, June 2026.</strong> Sub-indicator scoring, frontier-anchored calibration, and the three-dimension maturity composite were introduced in June 2026. Score movements around that date partly reflect the methodology change, not only regulatory change.</li>
+      <li><strong>Methodology changes.</strong> Sub-indicator scoring and the three-dimension maturity composite arrived in June 2026; fixed anchors replaced the frontier calibration in September 2026 (see <a href="#rubric-versions">Rubric versions</a>). Score movements on those dates partly reflect the methodology change, not only regulatory change.</li>
     </ul>
 
     <h2 id="data-access">Data access for analysts</h2>
@@ -462,7 +478,7 @@
     <p>
       Column definitions match this page. The
       <a href="https://github.com/riadeane/airegulationmap/commits/main/public">git history</a>
-      of each file is the audit trail: every monthly update is one commit,
+      of each file is the audit trail: every weekly update is one commit,
       so any past state of the dataset is retrievable and citeable by
       commit hash. The in-app Export button produces the same data merged
       into a single CSV/JSON.

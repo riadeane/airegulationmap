@@ -3,7 +3,7 @@
 
 import { ATTRIBUTE_LABELS } from '../constants';
 import type { DimensionKey } from '../constants';
-import type { HistorySnapshot } from './history';
+import type { HistoryBreak, HistorySnapshot } from './history';
 
 // The five independently scored dimensions. averageScore is derived,
 // so it never appears as its own changelog line.
@@ -26,6 +26,8 @@ export interface ChangelogDiffEntry {
   date: string;
   initial?: undefined;
   changes: ChangelogChange[];
+  /** Set when the change is dated on a calibration break: the reason. */
+  recalibration?: string;
 }
 
 export interface ChangelogInitialEntry {
@@ -41,14 +43,17 @@ export type ChangelogEntry = ChangelogDiffEntry | ChangelogInitialEntry;
  *
  * Returns entries sorted newest-first: diff entries listing which
  * dimensions changed, with the initial assessment as the oldest entry.
- * Returns [] when there are no snapshots.
+ * A diff entry dated on one of `breaks` carries that break's reason as
+ * `recalibration`. Returns [] when there are no snapshots.
  */
 export function computeChangelog(
-  countryHistory: HistorySnapshot[] | null | undefined
+  countryHistory: HistorySnapshot[] | null | undefined,
+  breaks: HistoryBreak[] = []
 ): ChangelogEntry[] {
   if (!countryHistory || countryHistory.length === 0) return [];
 
   const sorted = [...countryHistory].sort((a, b) => a.date.localeCompare(b.date));
+  const reasonByDate = new Map(breaks.map(b => [b.date, b.reason]));
   const changelog: ChangelogEntry[] = [];
 
   const initialScores: Partial<Record<DimensionKey, number>> = {};
@@ -75,9 +80,22 @@ export function computeChangelog(
     }
 
     if (changes.length > 0) {
-      changelog.push({ date: curr.date, changes });
+      const recalibration = reasonByDate.get(curr.date);
+      changelog.push(
+        recalibration === undefined
+          ? { date: curr.date, changes }
+          : { date: curr.date, changes, recalibration }
+      );
     }
   }
 
   return changelog.reverse();
+}
+
+/**
+ * True for a diff entry that records a policy event: not the initial
+ * assessment and not a recalibration.
+ */
+export function isPolicyChange(entry: ChangelogEntry): boolean {
+  return !entry.initial && entry.recalibration === undefined;
 }

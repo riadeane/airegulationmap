@@ -1,8 +1,8 @@
 import { getState, setState, on } from '../state/store';
 import { el } from '../dom';
 import { updateMap } from '../map/index';
-import { buildScoresAtDate, extractSortedDates } from '../data/history';
-import type { HistoryData, HistorySnapshot } from '../data/history';
+import { buildScoresAtDate, extractSortedDates, historyBreaks } from '../data/history';
+import type { HistoryBreak, HistoryData, HistorySnapshot } from '../data/history';
 
 // Module-scope so the map subscription (added in initTimeline) can
 // resolve `timelineDate` → historic scores without re-reading history.
@@ -15,6 +15,34 @@ function scoresForDate(date: string | null): Record<string, HistorySnapshot> | u
   if (!date || !historyRef) return undefined;
   if (!sortedDatesRef.includes(date)) return undefined;
   return buildScoresAtDate(historyRef, date);
+}
+
+// One tick under the slider track per calibration break, with the reason
+// in its tooltip. A break normally coincides with a snapshot date (the run
+// re-scored every country); when it does not, the tick sits at the first
+// snapshot date after it.
+function renderBreakMarkers(breaks: HistoryBreak[], sortedDates: string[]): void {
+  const track = document.getElementById('timeline-track');
+  if (!track) return;
+  track.querySelectorAll('.timeline-break').forEach(node => node.remove());
+
+  const span = sortedDates.length - 1;
+  for (const brk of breaks) {
+    let idx = sortedDates.indexOf(brk.date);
+    if (idx < 0) idx = sortedDates.findIndex(date => date > brk.date);
+    if (idx < 0) continue;
+
+    const marker = document.createElement('span');
+    marker.className = 'timeline-break';
+    // The thumb travels a track shorter than the input by its own width,
+    // so the CSS offsets the tick by the thumb's half-width at either end.
+    marker.style.setProperty('--position', String(idx / span));
+    const text = `Recalibration on ${brk.date}: ${brk.reason}`;
+    marker.title = text;
+    marker.setAttribute('role', 'img');
+    marker.setAttribute('aria-label', text);
+    track.appendChild(marker);
+  }
 }
 
 export function initTimeline(history: HistoryData | null): void {
@@ -31,6 +59,7 @@ export function initTimeline(history: HistoryData | null): void {
 
   const slider = el<HTMLInputElement>('timeline-slider');
   slider.max = String(sortedDates.length - 1);
+  renderBreakMarkers(historyBreaks(history), sortedDates);
 
   const dateLabel = document.getElementById('timeline-date-label')!;
 

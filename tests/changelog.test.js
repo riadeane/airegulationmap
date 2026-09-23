@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeChangelog } from '../src/data/changelog';
+import { computeChangelog, isPolicyChange } from '../src/data/changelog';
 
 const snap = (date, overrides = {}) => ({
   date,
@@ -61,5 +61,49 @@ describe('computeChangelog', () => {
     expect(log.map(e => e.date)).toEqual(['2026-05-01', '2026-04-01', '2026-03-21']);
     expect(log[0].changes[0]).toMatchObject({ from: 3, to: 4 });
     expect(log[1].changes[0]).toMatchObject({ from: 2, to: 3 });
+  });
+});
+
+describe('computeChangelog with calibration breaks', () => {
+  const breaks = [
+    { date: '2026-09-14', model: 'claude-opus-5', prompt_version: 'v3-2026-09', reason: 'Model switch to Opus 5' },
+  ];
+
+  it('labels a change dated on a break as a recalibration', () => {
+    const log = computeChangelog([
+      snap('2026-06-13'),
+      snap('2026-09-14', { regulationStatus: 2.5 }),
+    ], breaks);
+    expect(log[0]).toMatchObject({
+      date: '2026-09-14',
+      recalibration: 'Model switch to Opus 5',
+    });
+    expect(log[0].changes).toEqual([
+      { dimension: 'regulationStatus', label: 'Regulation Status', from: 2, to: 2.5 },
+    ]);
+  });
+
+  it('leaves changes on other dates unlabelled', () => {
+    const log = computeChangelog([
+      snap('2026-06-13'),
+      snap('2026-09-21', { regulationStatus: 2.5 }),
+    ], breaks);
+    expect(log[0].recalibration).toBeUndefined();
+    expect('recalibration' in log[0]).toBe(false);
+  });
+
+  it('does not count a recalibration as a policy change', () => {
+    const log = computeChangelog([
+      snap('2026-06-13'),
+      snap('2026-09-14', { regulationStatus: 2.5 }),
+      snap('2026-09-28', { policyLever: 3 }),
+    ], breaks);
+    expect(log.map(isPolicyChange)).toEqual([true, false, false]);
+    expect(log.filter(isPolicyChange)).toHaveLength(1);
+  });
+
+  it('defaults to no breaks', () => {
+    const log = computeChangelog([snap('2026-06-13'), snap('2026-09-14', { policyLever: 3 })]);
+    expect(isPolicyChange(log[0])).toBe(true);
   });
 });
