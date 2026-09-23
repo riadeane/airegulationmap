@@ -79,6 +79,7 @@ function render(popover: HTMLElement): void {
     mode: state.currentAttribute,
     timelineDate: state.timelineDate,
     url: buildPermalink(state, { omitTheme: true }),
+    release: state.release,
   });
 
   for (const { key, label } of FORMATS) {

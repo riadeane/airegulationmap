@@ -7,6 +7,7 @@ import { loadHistory } from './data/history';
 import { loadBlocs } from './data/blocs';
 import { loadSubscores } from './data/subscores';
 import { loadCountryIso } from './data/countryIso';
+import { loadRelease } from './data/release';
 import { initBlocSelector } from './controls/blocSelector';
 import { initBlocSummary } from './controls/blocSummary';
 import { initSubscores } from './panel/subscores';
@@ -172,6 +173,10 @@ async function main(): Promise<void> {
 
   // ISO codes for the panel name row and the printed brief - non-blocking.
   loadCountryIso().then(countryIso => setState({ countryIso }));
+
+  // The archived dataset version (release.json) - non-blocking; the
+  // citations name its tag and DOI once it loads.
+  loadRelease().then(release => setState({ release }));
 
   // Load bloc membership non-blocking; the bloc filter and summary
   // appear once the data exists. URL bloc is applied late, same as

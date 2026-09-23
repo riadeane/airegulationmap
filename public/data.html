@@ -220,6 +220,23 @@
       overflow-wrap: anywhere;
     }
 
+    /* Cite this dataset */
+    .cite-facts {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 6px 18px;
+      margin: 14px 0;
+      font-size: 0.85rem;
+    }
+    .cite-facts dt { color: var(--text-secondary); }
+    .cite-facts dd { color: var(--text-primary); overflow-wrap: anywhere; }
+    .cite-facts dd a { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.86em; }
+    .cite-text { font-size: 0.85rem; }
+    @media (max-width: 520px) {
+      .cite-facts { grid-template-columns: 1fr; gap: 2px 0; }
+      .cite-facts dd { margin-bottom: 8px; }
+    }
+
     footer {
       border-top: 1px solid var(--border);
       margin-top: 40px;
@@ -280,6 +297,8 @@
             <td>Hand-checked sub-indicator scores for ten countries, with justifications, sources and a draft or verified status per country (see the <a href="/methodology.html#update-cadence">methodology</a>).</td></tr>
         <tr><td><a href="/data/drift.json" download>drift.json</a></td>
             <td>One row per research run: how far the model's raw scores for the gold countries sat from the gold scores (mean absolute error per dimension, share within one point, largest deviation).</td></tr>
+        <tr><td><a href="/data/release.json" download>release.json</a></td>
+            <td>The archived version of the files above: release tag, data commit date, and the Zenodo version and concept DOIs (see <a href="#citation">Cite this dataset</a>). Absent until the first release.</td></tr>
       </tbody>
     </table>
 
@@ -360,19 +379,41 @@
       </div>
     </div>
 
-    <h2 id="citation">Attribution &amp; citation</h2>
+    <h2 id="citation">Cite this dataset</h2>
+    <p>
+      Every weekly data commit is tagged <code>data-YYYY-Www</code>, published as a
+      <a href="https://github.com/riadeane/airegulationmap/releases" rel="noopener noreferrer">GitHub release</a>
+      with the four data files attached, and archived on Zenodo, which mints a DOI for each
+      version and one concept DOI that always resolves to the latest. Cite the version you
+      used: a reader can then retrieve exactly those files. The app's <strong>Cite</strong>
+      and <strong>Share</strong> buttons put the version on screen into an APA, Chicago or
+      MLA string for the exact view you are referencing.
+    </p>
+    <dl class="cite-facts">
+      <dt>Concept DOI</dt>
+      <dd id="cite-concept-doi">Pending the first archived release</dd>
+      <dt>Latest version</dt>
+      <dd id="cite-version">Pending the first archived release</dd>
+      <dt>Licence</dt>
+      <dd>Data: <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener noreferrer">CC BY 4.0</a>. Code: GPL-3.0.</dd>
+    </dl>
+    <p id="cite-example-intro" hidden>The latest version as a reference-list entry, and as BibTeX:</p>
+    <p id="cite-text" class="cite-text" hidden></p>
+    <pre class="code-block" id="cite-bibtex" tabindex="0" aria-label="BibTeX entry for the latest version" hidden></pre>
+    <p>
+      <a href="/data/release.json">release.json</a> carries the same fields for scripts, and
+      the repository's <a href="https://github.com/riadeane/airegulationmap/blob/main/CITATION.cff" rel="noopener noreferrer">CITATION.cff</a>
+      the concept DOI. Scores are model-assigned; the <a href="/methodology.html">methodology</a>
+      and the <code>research_runs</code> endpoint record how each one was produced. Cite them
+      as estimates, and verify claims against the primary sources each entry links.
+    </p>
+
+    <h2 id="attribution">Attribution</h2>
     <p>
       Policy-initiative records include data from the
       <a href="https://oecd.ai" rel="noopener noreferrer">OECD.AI Policy Observatory</a>
       (Policy Navigator / GAIIN): <em>OECD.AI Policy Observatory, oecd.ai, accessed on the
       date shown per record.</em>
-    </p>
-    <p>
-      To cite the map itself, use the <strong>Share</strong> button in the app for a
-      formatted APA/Chicago/MLA citation of the exact view you're referencing. Scores are
-      model-assigned; the <a href="/methodology.html">methodology</a> and the
-      <code>research_runs</code> endpoint record how each one was produced. Cite them as
-      estimates, and verify claims against the primary sources each entry links.
     </p>
   </main>
 
@@ -392,6 +433,84 @@
         root.setAttribute('data-theme', next);
         try { localStorage.setItem('theme', next); } catch (e) { /* storage blocked */ }
       });
+    })();
+  </script>
+  <script>
+    // Cite this dataset: fill the DOIs, the reference-list entry and the
+    // BibTeX block from release.json, which the data-release workflow writes
+    // after each weekly data commit. Text nodes only: nothing in the file
+    // is treated as markup. Sandbox DOIs (a maintainer testing the Zenodo
+    // integration) are shown as text with a note, never linked or cited.
+    (function () {
+      var TAG_RE = /^data-(\d{4})-W(\d{2})$/;
+      var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+      var DOI_RE = /^10\.\d{4,9}\/\S+$/;
+      var RELEASES = 'https://github.com/riadeane/airegulationmap/releases';
+
+      function doiNode(doi, sandbox) {
+        if (sandbox) return document.createTextNode(doi + ' (Zenodo sandbox; does not resolve)');
+        var a = document.createElement('a');
+        a.href = 'https://doi.org/' + doi;
+        a.textContent = 'https://doi.org/' + doi;
+        return a;
+      }
+
+      function bibtex(release, doi) {
+        var m = TAG_RE.exec(release.tag);
+        var lines = [
+          '@dataset{deane_airegulationmap_' + m[1] + '_W' + m[2] + ',',
+          '  author    = {Deane, Ria},',
+          '  title     = {AI Regulation Map: dataset},',
+          '  version   = {' + release.tag + '},',
+          '  year      = {' + release.date.slice(0, 4) + '},',
+          '  month     = {' + String(parseInt(release.date.slice(5, 7), 10)) + '},',
+          '  publisher = {Zenodo},'
+        ];
+        if (doi) {
+          lines.push('  doi       = {' + doi + '},');
+          lines.push('  url       = {https://doi.org/' + doi + '}');
+        } else {
+          lines.push('  url       = {' + RELEASES + '/tag/' + release.tag + '}');
+        }
+        lines.push('}');
+        return lines.join('\n');
+      }
+
+      function render(release) {
+        if (!release || typeof release !== 'object') return;
+        if (!TAG_RE.test(String(release.tag)) || !DATE_RE.test(String(release.date))) return;
+        var sandbox = release.sandbox === true;
+        var doi = typeof release.doi === 'string' && DOI_RE.test(release.doi) ? release.doi : null;
+        var concept = typeof release.concept_doi === 'string' && DOI_RE.test(release.concept_doi) ? release.concept_doi : null;
+        var citable = doi && !sandbox ? doi : null;
+
+        var conceptEl = document.getElementById('cite-concept-doi');
+        conceptEl.textContent = '';
+        conceptEl.appendChild(concept ? doiNode(concept, sandbox) : document.createTextNode('Pending: Zenodo has not minted it yet'));
+
+        var versionEl = document.getElementById('cite-version');
+        versionEl.textContent = '';
+        var tagLink = document.createElement('a');
+        tagLink.href = RELEASES + '/tag/' + release.tag;
+        tagLink.textContent = release.tag;
+        versionEl.appendChild(tagLink);
+        versionEl.appendChild(document.createTextNode(' (' + release.date + ') \u00b7 '));
+        versionEl.appendChild(doi ? doiNode(doi, sandbox) : document.createTextNode('DOI pending'));
+
+        var text = document.getElementById('cite-text');
+        text.textContent = 'Deane, R. (' + release.date.slice(0, 4) + '). AI Regulation Map: dataset (Version '
+          + release.tag + ') [Data set]. ' + (citable ? 'Zenodo. https://doi.org/' + citable : RELEASES + '/tag/' + release.tag);
+        text.hidden = false;
+        var pre = document.getElementById('cite-bibtex');
+        pre.textContent = bibtex(release, citable);
+        pre.hidden = false;
+        document.getElementById('cite-example-intro').hidden = false;
+      }
+
+      fetch('/data/release.json')
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(render)
+        .catch(function () { /* no release yet */ });
     })();
   </script>
 </body>

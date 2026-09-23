@@ -1,0 +1,39 @@
+{
+  "title": "AI Regulation Map: dataset",
+  "upload_type": "dataset",
+  "description": "<p>Weekly snapshot of the AI Regulation Map dataset (<a href=\"https://airegulationmap.org/\">airegulationmap.org</a>): the state of AI regulation in 196 countries, scored 1 to 5 on six dimensions (regulation status, policy lever, governance type, actor involvement, enforcement level, and a maturity index), with per-country descriptions, key legislation, source URLs, research confidence, the sub-indicator audit trail behind every score, and the full score history. The files are under <code>public/</code>: <code>scores.csv</code>, <code>regulation_data.csv</code>, <code>history.json</code> and <code>data/subscores.json</code>. Scores are assigned by an automated research pipeline (Claude with web search) against a fixed rubric, re-run weekly; the methodology, its limits, and the gold-set drift check are documented at <a href=\"https://airegulationmap.org/methodology.html\">airegulationmap.org/methodology.html</a>. Each release is one ISO week's data commit; the concept DOI resolves to the latest.</p>",
+  "creators": [
+    {
+      "name": "Deane, Ria"
+    }
+  ],
+  "license": "cc-by-4.0",
+  "access_right": "open",
+  "language": "eng",
+  "keywords": [
+    "artificial intelligence",
+    "AI regulation",
+    "AI governance",
+    "AI policy",
+    "comparative policy",
+    "regulatory index",
+    "dataset"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://airegulationmap.org/",
+      "relation": "isSupplementTo",
+      "resource_type": "other"
+    },
+    {
+      "identifier": "https://airegulationmap.org/methodology.html",
+      "relation": "isDescribedBy",
+      "resource_type": "publication-other"
+    },
+    {
+      "identifier": "https://airegulationmap.org/data.html",
+      "relation": "isDescribedBy",
+      "resource_type": "publication-other"
+    }
+  ]
+}

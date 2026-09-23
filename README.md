@@ -15,7 +15,7 @@ Live at [airegulationmap.org](https://airegulationmap.org)
 - Cross-dimension scatter plot to explore governance clusters
 - One-click CSV/JSON export of the full or filtered dataset
 - Timeline slider to view how scores have changed over time
-- Shareable URLs, formatted citations (APA/Chicago/MLA), and light/dark themes
+- Shareable URLs, formatted citations (APA/Chicago/MLA) that name the archived dataset version and its DOI, and light/dark themes
 - Every country entry has a "Report an issue" button that opens a pre-filled GitHub issue (see [CONTRIBUTING.md](CONTRIBUTING.md), "Data issues")
 - Data is automatically re-researched weekly using Claude with web search to keep it current
 
@@ -99,6 +99,10 @@ npm run preview  # preview the build locally
 
 Deployed on Cloudflare Pages.
 
+## Citing the dataset
+
+Every weekly data commit is a tagged GitHub release (`data-YYYY-Www`) archived on Zenodo with a DOI. `CITATION.cff` carries the concept DOI (always the latest version) and `public/data/release.json` the version on the site; the app's Cite and Share buttons produce a citation that names both. See [airegulationmap.org/data.html](https://airegulationmap.org/data.html#citation).
+
 ## License
 
-GPL-3.0
+Code: GPL-3.0. Data (the files under `public/` and the archived releases): CC BY 4.0.

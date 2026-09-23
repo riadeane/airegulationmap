@@ -128,6 +128,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/data/hydrate.ts` | Post-boot dataset hydration when the database is strictly newer |
 | `src/data/sourceMeta.ts` | Source titles/types from the sources database |
 | `src/data/slug.ts` | Country page slug and path (`/country/<slug>/`), shared by the app and the page generator |
+| `src/data/release.ts` | release.json loading (`ReleaseInfo`: release tag, data date, Zenodo DOIs) + `citableDoi` (never a sandbox or pending DOI) |
 | `src/map/` | Map rendering (renderer, legend, zoom, tooltip) |
 | `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
@@ -170,6 +171,7 @@ Python package that calls the Claude API to research regulation status per count
 | `gate.py` | Stability gate - evidence and persistence rules for score changes |
 | `digest.py` | Weekly digest: selects a run's gate-applied changes, one structured-output Claude request, writes `public/digest/` (week JSON, index, Atom feed); `python -m regulation_pipeline.digest --run <id>` regenerates from Supabase |
 | `gold.py` | Gold set and drift check: loads `gold_set.json`, compares a run's raw (ungated) results with it (`compare`, pure), appends `drift.json`, mirrors `gold_checks`, step-summary block; `python -m regulation_pipeline.gold --model <id>` is the model-comparison CLI |
+| `release.py` | Dataset releases (PRD 10): `notes` renders the GitHub release body, `doi` polls Zenodo for the release's DOI and writes `public/data/release.json` (never fails); used by `.github/workflows/data-release.yml` |
 | `history.py` | History snapshot append/change-detection |
 | `names.py` | `CountryNames` - country-name normalization via alias map |
 | `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
@@ -192,6 +194,7 @@ Python package that calls the Claude API to research regulation status per count
 | `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`) |
 | `public/data/gold_set.json` | Hand-checked sub-indicator scores for ten countries across the maturity range: 20 scores, a justification per dimension, sources, and `status` (`draft` until the maintainer verifies, then `verified` + `verified_on`). Validated by `gold.load_gold_set` |
 | `public/data/drift.json` | One row per run from the gold-set drift check: `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, within_one, max_dev, max_dev_at}`. Mirrored to Supabase `gold_checks` |
+| `public/data/release.json` | The archived dataset version: `{tag, date, doi, concept_doi, sandbox}` (`data-YYYY-Www` release tag, data commit date, Zenodo version and concept DOIs; `doi` null while minting is pending, `sandbox` true for sandbox DOIs, which the app never quotes). Written by `data-release.yml` after each weekly data commit; absent until the first release. Citations name the tag and DOI when present |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 | `public/openapi.json` | Committed snapshot of PostgREST's OpenAPI output; drives the Swagger UI at `api-docs.html` (Supabase serves the live spec endpoint only to secret keys, so the browser can never fetch it) |
 | `public/digest/` | Weekly changes digest: `YYYY-Www.json` per run week, `index.json` (weeks, newest first), `feed.xml` (Atom). Written by the pipeline after scheduled runs; rendered by `changes.html` |
@@ -282,6 +285,24 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 ### Automated Updates
 
 `.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`); with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be triggered manually with optional country list, force flag, and model selection inputs. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
+
+### Dataset releases (`.github/workflows/data-release.yml`)
+
+Every weekly data commit becomes a GitHub release tagged `data-YYYY-Www`
+(ISO week of the commit's UTC date) with the four data files attached and a
+body from `python -m regulation_pipeline.release notes` (the commit, the
+week's digest, the drift row, and the update run's summary, which
+`update-data.yml` uploads as the `run-summary` artifact). Zenodo's GitHub
+integration archives the release and mints a DOI per version plus a concept
+DOI; `.zenodo.json` supplies the record metadata and `CITATION.cff` (validated
+with `cffconvert`) holds the concept DOI. The workflow then polls Zenodo
+(`release doi`, sandbox by default; repo variable
+`ZENODO_API_BASE=https://zenodo.org/api` and secret `ZENODO_TOKEN` for
+production) and commits `public/data/release.json`, which the app's citations
+read. It runs on `workflow_run` of the update workflow (a `GITHUB_TOKEN` push
+never starts `on: push` workflows), on `push` for hand-made data commits, and
+on `workflow_dispatch` for re-runs; one release per ISO week; the DOI lookup
+never fails a run. Setup and design notes: `docs/prds/10-dataset-doi.md`.
 
 ### Deployment
 

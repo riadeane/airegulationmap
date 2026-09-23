@@ -525,6 +525,27 @@
   text-transform: uppercase;
 }
 
+/* The archived dataset version the citations name: release tag, data
+   commit date, and the DOI as a link. Absent before the first release. */
+.cite-version {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin: -6px 0 12px;
+}
+
+.cite-version a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 2px;
+}
+
+.cite-version a:hover,
+.cite-version a:focus-visible {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
 .cite-row { margin-bottom: 12px; }
 .cite-row:last-child { margin-bottom: 0; }
 

@@ -31,6 +31,7 @@ import { classifySources } from '../data/sources';
 import { DIMENSION_TO_SNAKE, SUBSCORE_LABELS } from '../data/subscores';
 import type { SubscoreEntry } from '../data/subscores';
 import type { ScoreEntry, RegulationEntry } from '../data/loader';
+import type { ReleaseInfo } from '../data/release';
 
 export const ISSUE_NEW_URL = 'https://github.com/riadeane/airegulationmap/issues/new';
 export const ISSUE_TEMPLATE = 'data-error.yml';
@@ -59,6 +60,8 @@ export interface ReportEntry {
   /** The app URL of the current view (the permalink, theme dropped). */
   url: string;
   timelineDate?: string | null;
+  /** The archived dataset version (release.json), when loaded. */
+  release?: ReleaseInfo | null;
   /** Injected for tests; callers leave it to today. */
   accessed?: string;
 }
@@ -96,7 +99,7 @@ function fits(body: string): boolean {
 }
 
 function headerBlock(entry: ReportEntry): string[] {
-  const { country, score, regulation, url, timelineDate, accessed } = entry;
+  const { country, score, regulation, url, timelineDate, release, accessed } = entry;
   const lastUpdated = score?.lastUpdated || regulation?.lastUpdated || 'unknown';
   // The same string the Cite popover offers, so the issue and a footnote
   // that quotes the entry name the same version.
@@ -104,6 +107,7 @@ function headerBlock(entry: ReportEntry): string[] {
     country,
     timelineDate: timelineDate ?? null,
     url,
+    release: release ?? null,
     ...(accessed ? { accessed } : {}),
   }).apa;
   const lines = [
@@ -247,6 +251,7 @@ export function initReport(): void {
       regulation: state.regulationData[country] ?? null,
       subscores: state.subscores?.countries[country] ?? null,
       timelineDate: state.timelineDate,
+      release: state.release,
       url: buildPermalink(state, { omitTheme: true }),
     });
     window.open(url, '_blank', 'noopener,noreferrer');

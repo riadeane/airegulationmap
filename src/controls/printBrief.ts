@@ -63,7 +63,7 @@ function prepare(): void {
 
   const url = briefPermalink(window.location.origin, window.location.pathname, country, timelineDate);
   const citation = maybeEl('print-citation-text');
-  if (citation) citation.textContent = citationsFor({ country, timelineDate, url }).apa;
+  if (citation) citation.textContent = citationsFor({ country, timelineDate, url, release: state.release }).apa;
   const link = maybeEl('print-permalink-text');
   if (link) link.textContent = url;
 }

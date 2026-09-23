@@ -3,14 +3,15 @@ import AxeBuilder from '@axe-core/playwright';
 
 // The researcher-facing docs: the static Data & API overview and the
 // self-hosted Swagger UI reference. Neither page needs route mocks: the
-// overview makes no requests on load, and the Swagger page reads only the
-// committed spec snapshot (public/openapi.json).
+// overview's only request on load is release.json (absent until the first
+// dataset release, and the section degrades to its static text), and the
+// Swagger page reads only the committed spec snapshot (public/openapi.json).
 
 test('data.html is a static overview that routes to the API reference', async ({ page }) => {
   await page.goto('/data.html');
 
   // Dataset downloads and the endpoint overview render statically.
-  await expect(page.locator('a[download]')).toHaveCount(7);
+  await expect(page.locator('a[download]')).toHaveCount(8);
   const endpointLinks = page.locator('a[href^="/api-docs.html#/"]');
   await expect(endpointLinks).toHaveCount(9);
 
@@ -27,6 +28,12 @@ test('data.html is a static overview that routes to the API reference', async ({
     expect(href).toContain('/rest/v1/');
     expect(href).toContain('apikey=');
   }
+
+  // Cite this dataset: before the first release the section keeps its
+  // static placeholders and the generated entry stays hidden.
+  await expect(page.locator('#citation')).toHaveText('Cite this dataset');
+  await expect(page.locator('#cite-concept-doi')).toContainText('Pending');
+  await expect(page.locator('#cite-bibtex')).toBeHidden();
 
   const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = results.violations.filter(v => v.impact === 'serious' || v.impact === 'critical');

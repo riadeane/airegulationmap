@@ -298,3 +298,22 @@ describe('the issue form template', () => {
     expect(template).toContain(`labels: ["${ISSUE_LABEL}"]`);
   });
 });
+
+describe('buildReportBody with an archived release', () => {
+  it('quotes the same versioned citation the Cite popover offers', () => {
+    const release = {
+      tag: 'data-2026-W38',
+      date: '2026-09-14',
+      doi: '10.5281/zenodo.1234567',
+      conceptDoi: '10.5281/zenodo.1234566',
+      sandbox: false,
+    };
+    const body = buildReportBody({ ...base, release });
+    expect(body).toContain(
+      '**Cite as:** Deane, R. (2026). AI Regulation Map: Chile (Version data-2026-W38) [Data visualization]. '
+      + `https://doi.org/10.5281/zenodo.1234567. Retrieved ${ACCESSED}, from ${URL_CHILE}`
+    );
+    // The data version line is the row's own counter, unchanged.
+    expect(body).toContain('**Data version:** 2');
+  });
+});

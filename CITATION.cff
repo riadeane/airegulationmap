@@ -1,0 +1,39 @@
+# Citation metadata for the AI Regulation Map dataset (Citation File Format
+# 1.2.0). GitHub renders it under "Cite this repository". The DOI below is
+# the Zenodo concept DOI, which always resolves to the latest weekly release;
+# each release also has its own version DOI, recorded in
+# public/data/release.json and quoted by the app's citations. The value is a
+# placeholder until the first production release mints it: see
+# docs/prds/10-dataset-doi.md, "Setup". The dataset licence (CC BY 4.0) is
+# separate from the code licence (GPL-3.0, LICENSE).
+cff-version: 1.2.0
+message: >-
+  If you use this dataset, cite the version you used: each weekly release
+  has its own DOI (public/data/release.json, or the Zenodo record). The DOI
+  below always resolves to the latest version.
+type: dataset
+title: "AI Regulation Map: dataset"
+authors:
+  - family-names: Deane
+    given-names: Ria
+doi: 10.5281/zenodo.XXXXXXX
+url: "https://airegulationmap.org/"
+repository-code: "https://github.com/riadeane/airegulationmap"
+repository-artifact: "https://github.com/riadeane/airegulationmap/releases"
+license: CC-BY-4.0
+keywords:
+  - artificial intelligence
+  - AI regulation
+  - AI governance
+  - AI policy
+  - comparative policy
+  - regulatory index
+abstract: >-
+  Weekly snapshot of the state of AI regulation in 196 countries, scored 1
+  to 5 on six dimensions (regulation status, policy lever, governance type,
+  actor involvement, enforcement level, and a maturity index), with
+  per-country descriptions, key legislation, source URLs, research
+  confidence, the sub-indicator audit trail behind every score, and the full
+  score history. Scores are assigned by an automated research pipeline
+  against a fixed rubric and re-run weekly; the methodology and its limits
+  are documented at https://airegulationmap.org/methodology.html.

@@ -10,6 +10,8 @@ import { citationsFor } from './citation';
 import { writeClipboard } from './clipboard';
 import type { Citations } from './citation';
 import { buildPermalink } from './url';
+import { citableDoi, doiUrl } from '../data/release';
+import type { ReleaseInfo } from '../data/release';
 
 const FORMATS: { key: keyof Citations; label: string }[] = [
   { key: 'apa', label: 'APA' },
@@ -46,6 +48,28 @@ async function copyToClipboard(text: string, confirmBtn: HTMLButtonElement): Pro
   }, 1500);
 }
 
+// The archived version the citations below name, with the DOI as a
+// link, so a reader sees at a glance which snapshot they are citing.
+// Nothing renders before the first release.
+function renderVersion(release: ReleaseInfo | null): HTMLElement | null {
+  if (!release) return null;
+  const line = document.createElement('p');
+  line.className = 'cite-version';
+  line.append(`Dataset version ${release.tag} (${release.date}) \u00b7 `);
+  const doi = citableDoi(release);
+  if (doi) {
+    const link = document.createElement('a');
+    link.href = doiUrl(doi);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = `doi:${doi}`;
+    line.append(link);
+  } else {
+    line.append('DOI pending');
+  }
+  return line;
+}
+
 function renderRows() {
   const state = getState();
   const url = buildPermalink(state, { omitTheme: true });
@@ -55,6 +79,7 @@ function renderRows() {
     mode: state.currentAttribute,
     timelineDate: state.timelineDate,
     url,
+    release: state.release,
   });
 
   removeAllChildren(popoverEl!);
@@ -63,6 +88,9 @@ function renderRows() {
   heading.className = 'cite-popover-heading';
   heading.textContent = 'Copy a formatted citation for this view';
   popoverEl!.appendChild(heading);
+
+  const version = renderVersion(state.release);
+  if (version) popoverEl!.appendChild(version);
 
   const liveRegion = document.createElement('div');
   liveRegion.id = 'cite-live-region';
@@ -160,4 +188,5 @@ export function initCitePopover(): void {
   on('comparisonCountries', rerenderIfOpen);
   on('currentAttribute', rerenderIfOpen);
   on('timelineDate', rerenderIfOpen);
+  on('release', rerenderIfOpen);
 }

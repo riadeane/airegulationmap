@@ -1,0 +1,265 @@
+name: Data Release
+
+# Turns each weekly data commit into a tagged GitHub release archived on
+# Zenodo with a DOI, then records the DOI in public/data/release.json so
+# the app's citations name the version on screen (PRD 10).
+#
+# Triggers. The weekly data commit is pushed with the update workflow's own
+# GITHUB_TOKEN, and GitHub never starts `on: push` workflows for commits
+# made with that token, so the update workflow's completion (workflow_run)
+# is what starts this one. `push` on scores.csv covers a data commit a
+# maintainer pushes by hand. `workflow_dispatch` re-runs the DOI lookup for
+# a tag whose DOI arrived after the lookup gave up, or creates a release
+# that is missing.
+#
+# One release per ISO week, tagged data-YYYY-Www. A second data commit in
+# the same week finds the tag taken and is skipped: it rides the next
+# week's release.
+#
+# Zenodo. The maintainer enables the repository in Zenodo's GitHub settings
+# once (docs/prds/10-dataset-doi.md, "Setup"); Zenodo then archives the
+# repository at every release tag and mints a DOI per release plus one
+# concept DOI. The lookup reads the sandbox until the repository variable
+# ZENODO_API_BASE is set to https://zenodo.org/api. The lookup never fails
+# the run: without a DOI, release.json still records the tag.
+
+on:
+  workflow_run:
+    workflows: ["Update AI Regulation Data"]
+    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - public/scores.csv
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to process (data-YYYY-Www). Blank = the week of the latest data commit on main.'
+        required: false
+        default: ''
+      lookup_minutes:
+        description: 'Minutes to wait for Zenodo to mint the DOI before giving up (release.json is written either way).'
+        required: false
+        default: '20'
+
+permissions:
+  contents: read
+
+# Two runs racing to push release.json would clash; queue them.
+concurrency:
+  group: data-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # workflow_run fires for every completion of the update workflow,
+    # including dispatches on other branches; only main's data is released.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write  # create the release and its tag; push release.json
+      actions: read    # read the update run's summary artifact
+    env:
+      DATA_FILES: public/scores.csv public/regulation_data.csv public/history.json public/data/subscores.json
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: main
+          # Tags, and the data commit's parent for the changed-files check.
+          fetch-depth: 0
+
+      - name: Find the data commit and its week
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ github.event.inputs.tag || '' }}
+          PUSH_SHA: ${{ github.event_name == 'push' && github.sha || '' }}
+        run: |
+          set -euo pipefail
+          read -r -a files <<< "$DATA_FILES"
+          tag="$INPUT_TAG"
+          if [ -n "$tag" ] && ! [[ "$tag" =~ ^data-[0-9]{4}-W[0-9]{2}$ ]]; then
+            echo "::error::tag must look like data-YYYY-Www, got '$tag'"
+            exit 1
+          fi
+          if [ -n "$tag" ] && git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            # A re-run for an existing tag: its commit is the one to process.
+            commit=$(git rev-list -n1 "$tag")
+          elif [ -n "$PUSH_SHA" ]; then
+            commit="$PUSH_SHA"
+          else
+            commit=$(git log -1 --format=%H -- "${files[@]}")
+          fi
+          if [ -z "$commit" ]; then
+            echo "No data commit on main; nothing to release."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! git diff --name-only "$commit^" "$commit" | grep -qxF -f <(printf '%s\n' "${files[@]}"); then
+            echo "Commit $commit changed no data file; nothing to release."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          date=$(TZ=UTC git show -s --format=%cd --date=format-local:%Y-%m-%d "$commit")
+          if [ -z "$tag" ]; then
+            tag="data-$(TZ=UTC date -d "$date" +%G-W%V)"
+          fi
+          existing=$(git rev-list -n1 "$tag" 2>/dev/null || true)
+          if [ -n "$existing" ] && [ "$existing" != "$commit" ]; then
+            echo "Tag $tag already points at $existing; a second data commit in the same week rides the next week's release."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          exists=false
+          if gh release view "$tag" >/dev/null 2>&1; then exists=true; fi
+          {
+            echo "proceed=true"
+            echo "tag=$tag"
+            echo "commit=$commit"
+            echo "date=$date"
+            echo "exists=$exists"
+          } >> "$GITHUB_OUTPUT"
+          echo "Release $tag: commit $commit ($date); release exists: $exists"
+
+      - name: Set up Python
+        if: ${{ steps.target.outputs.proceed == 'true' }}
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        if: ${{ steps.target.outputs.proceed == 'true' }}
+        run: pip install -r requirements.txt
+
+      # The update workflow uploads the block it wrote to its own step
+      # summary; it becomes the tail of the release body. Only a
+      # workflow_run event knows which run to read, and a missing artifact
+      # is no reason to skip the release.
+      - name: Fetch the update run's summary
+        if: ${{ steps.target.outputs.proceed == 'true' && github.event_name == 'workflow_run' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: gh run download "$RUN_ID" --name run-summary --dir summary
+
+      - name: Compose the release notes
+        if: ${{ steps.target.outputs.proceed == 'true' }}
+        env:
+          PYTHONPATH: scripts
+          TAG: ${{ steps.target.outputs.tag }}
+          COMMIT: ${{ steps.target.outputs.commit }}
+          DATE: ${{ steps.target.outputs.date }}
+        run: |
+          set -euo pipefail
+          summary=()
+          if [ -f summary/run-summary.md ]; then summary=(--summary summary/run-summary.md); fi
+          if ! python -m regulation_pipeline.release notes \
+              --tag "$TAG" --commit "$COMMIT" --date "$DATE" "${summary[@]}" > release-notes.md; then
+            # A notes failure must not block the release: fall back to the minimum.
+            echo "::warning::release notes failed; using a minimal body"
+            printf 'Weekly snapshot of the AI Regulation Map dataset: data commit %s (%s).\n' "$COMMIT" "$DATE" > release-notes.md
+          fi
+          cat release-notes.md
+
+      # The attached files are taken from the tagged commit itself, not the
+      # working tree, so a re-run on a moved main attaches the right bytes.
+      - name: Create the release
+        if: ${{ steps.target.outputs.proceed == 'true' && steps.target.outputs.exists == 'false' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.target.outputs.tag }}
+          COMMIT: ${{ steps.target.outputs.commit }}
+        run: |
+          set -euo pipefail
+          read -r -a files <<< "$DATA_FILES"
+          mkdir -p assets
+          git archive "$COMMIT" "${files[@]}" | tar -x -C assets
+          assets=()
+          for f in "${files[@]}"; do assets+=("assets/$f"); done
+          gh release create "$TAG" --target "$COMMIT" --title "Dataset $TAG" \
+            --notes-file release-notes.md "${assets[@]}"
+
+      # Zenodo mints the DOI when its webhook has archived the release,
+      # usually within a minute or two. The lookup polls, then writes
+      # release.json with whatever it has (doi null if nothing yet) and
+      # exits 0; continue-on-error covers everything else.
+      - name: Look up the DOI on Zenodo
+        id: doi
+        if: ${{ steps.target.outputs.proceed == 'true' }}
+        continue-on-error: true
+        env:
+          PYTHONPATH: scripts
+          ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+          ZENODO_API_BASE: ${{ vars.ZENODO_API_BASE || 'https://sandbox.zenodo.org/api' }}
+          ZENODO_CONCEPT_DOI: ${{ vars.ZENODO_CONCEPT_DOI || '' }}
+          LOOKUP_MINUTES: ${{ github.event.inputs.lookup_minutes || '20' }}
+          TAG: ${{ steps.target.outputs.tag }}
+          DATE: ${{ steps.target.outputs.date }}
+        run: |
+          python -m regulation_pipeline.release doi --tag "$TAG" --date "$DATE" \
+            --attempts "$LOOKUP_MINUTES" --interval 60 --out public/data/release.json
+
+      - name: Record the DOI on the release
+        if: ${{ steps.target.outputs.proceed == 'true' && steps.doi.outputs.doi != '' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.target.outputs.tag }}
+          DOI: ${{ steps.doi.outputs.doi }}
+        run: |
+          set -euo pipefail
+          body=$(gh release view "$TAG" --json body -q .body)
+          case "$body" in
+            *"doi.org/$DOI"*) echo "DOI already on the release" ;;
+            *)
+              printf '%s\n\nDOI: https://doi.org/%s\n' "$body" "$DOI" > release-body.md
+              gh release edit "$TAG" --notes-file release-body.md
+              ;;
+          esac
+
+      - name: Commit release.json
+        if: ${{ steps.target.outputs.proceed == 'true' }}
+        env:
+          TAG: ${{ steps.target.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -f public/data/release.json ]; then git add public/data/release.json; fi
+          if git diff --cached --quiet; then
+            echo "release.json unchanged"
+            exit 0
+          fi
+          git config user.name "AI Regulation Bot"
+          git config user.email "bot@github-actions"
+          git commit -m "chore: record dataset release $TAG"
+          # main may have moved while the lookup waited; rebase the one commit.
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 5))
+          done
+          echo "::error::could not push release.json"
+          exit 1
+
+      - name: Summary
+        if: ${{ always() && steps.target.outputs.proceed == 'true' }}
+        env:
+          TAG: ${{ steps.target.outputs.tag }}
+          COMMIT: ${{ steps.target.outputs.commit }}
+          DATE: ${{ steps.target.outputs.date }}
+          EXISTS: ${{ steps.target.outputs.exists }}
+          DOI: ${{ steps.doi.outputs.doi }}
+          CONCEPT_DOI: ${{ steps.doi.outputs.concept_doi }}
+          ZENODO_API_BASE: ${{ vars.ZENODO_API_BASE || 'https://sandbox.zenodo.org/api' }}
+        run: |
+          {
+            echo "## Dataset release"
+            echo "- Tag: \`$TAG\` (commit \`$COMMIT\`, $DATE); release already existed: $EXISTS"
+            echo "- Version DOI: ${DOI:-pending}"
+            echo "- Concept DOI: ${CONCEPT_DOI:-pending}"
+            echo "- Zenodo: $ZENODO_API_BASE"
+          } >> "$GITHUB_STEP_SUMMARY"

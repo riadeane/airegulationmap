@@ -5,6 +5,7 @@ import type { BlocsData } from '../data/blocs';
 import type { SubscoresData } from '../data/subscores';
 import type { SourceMeta } from '../data/sources';
 import type { CountryIsoData } from '../data/countryIso';
+import type { ReleaseInfo } from '../data/release';
 
 /** Research-confidence levels as recorded per country in regulation data. */
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
@@ -51,6 +52,11 @@ export interface AppState {
   // ISO 3166-1 codes per country (country_iso.json) - loaded async;
   // null until then / on failure. The panel shows them beside the name.
   countryIso: CountryIsoData | null;
+  // The archived dataset version (release.json: release tag, data commit
+  // date, Zenodo DOIs) - loaded async; null until then, before the first
+  // release, and once a Supabase hydration has replaced the snapshot it
+  // describes. Citations name the tag and DOI when it exists.
+  release: ReleaseInfo | null;
   // A COMMITTED full-text search ('' = none). Typing in the search box is
   // ephemeral (dropdown-local); committing ("See all results" / Enter on the
   // row / ?q= deep link) persists the query here, which drives the results
@@ -83,6 +89,7 @@ const state: AppState = {
   subscores: null,
   sourceMeta: null,
   countryIso: null,
+  release: null,
   searchQuery: '',
   mainView: 'map',
   scatterX: 'enforcementLevel',

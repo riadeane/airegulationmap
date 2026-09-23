@@ -119,10 +119,13 @@ export async function hydrateFromSupabase(): Promise<boolean> {
   if (!isStrictlyNewer(scoreData, getState().scoreData)) return false;
 
   console.info('supabase: database is newer than the static snapshot; hydrating.');
+  // The archived release describes the static snapshot, not these newer
+  // rows, so citations drop the version until the next deploy ships it.
   setState({
     scoreData,
     regulationData,
     sortedCountryNames: Object.keys(scoreData).sort(),
+    release: null,
   });
   return true;
 }
