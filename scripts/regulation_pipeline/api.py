@@ -76,7 +76,9 @@ class ResearchClient:
             "max_tokens": _MAX_TOKENS,
             "messages": [{"role": "user", "content": self._prompt_for(country, existing_reg)}],
             # Structured outputs: the API constrains the answer to this schema,
-            # so sub-scores arrive as guaranteed ints 1-5 with all fields present.
+            # so every sub-indicator arrives as {score, rationale} with the score
+            # a guaranteed int 1-5 and all fields present. Rationale length is
+            # checked in pydantic, since the schema cannot express it.
             "output_config": {
                 "format": {"type": "json_schema", "schema": ResearchResult.output_schema()}
             },

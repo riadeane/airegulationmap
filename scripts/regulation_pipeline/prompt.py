@@ -14,12 +14,14 @@ from datetime import date
 # the prompt that produced it. Bump when the rubric or structure changes.
 # v3 (2026-09): fixed anchors. Each level describes an observable state; a 5
 # is no longer "the global frontier today", so scores compare across time.
-PROMPT_VERSION = "v3-2026-09"
+# v3.1 (2026-09): every sub-indicator is {score, rationale}. The rubric is
+# unchanged, so this bump is a structure change, not a calibration break.
+PROMPT_VERSION = "v3.1-2026-09"
 
 # The evidence-grounded variant (same rubric + output schema, plus a
 # verified-records block). Grounded prompts are LONGER than plain ones -
 # pair grounded runs with --batch for the 50% token pricing.
-GROUNDED_PROMPT_VERSION = "v3-grounded-2026-09"
+GROUNDED_PROMPT_VERSION = "v3.1-grounded-2026-09"
 
 # Caps keeping the evidence block bounded: the most recent initiatives
 # carry the signal, and full overviews would dwarf the rubric.
@@ -40,10 +42,17 @@ Existing data (may be outdated):
 Research the current state of AI regulation in {country} as of {today}.
 Consider recent legislation, executive orders, national strategies, and international agreements.
 
-Each of the five dimensions is scored through FOUR concrete sub-indicators, each an
-integer 1-5. The dimension score is computed downstream as their mean - you never
-report a dimension total. Score every sub-indicator strictly against its written
+Each of the five dimensions is scored through FOUR concrete sub-indicators, each
+scored 1-5. The dimension score is computed downstream as the mean of the four
+scores - you never report a dimension total. Score every sub-indicator strictly against its written
 definition.
+
+Every sub-indicator is an object {{"score": <integer 1-5>, "rationale": "<one sentence>"}}.
+The rationale states the single fact the score rests on. Name the instrument, body,
+or date where one exists (e.g. "AI Act (Regulation 2024/1689) in force since 1 August
+2024"). One sentence, at most 200 characters. State facts only: no hedging phrases
+such as "appears to", "may", "likely", or "it is possible that". If no fact supports
+a higher score, say what is absent ("No AI-specific instrument exists or is proposed").
 
 Calibration - read before scoring:
 - Each level describes an observable state. Score the state that sources dated on or
@@ -80,38 +89,38 @@ Calibration - read before scoring:
 Return ONLY a valid JSON object with these exact keys:
 {{
   "regulation_status": {{
-    "binding_force": <1 = nothing binding exists or proposed; 3 = binding AI legislation drafted/in legislative process; 5 = binding AI rules in force>,
-    "scope": <1 = no AI coverage in any sector; 3 = a few sectors or use-cases covered; 5 = horizontal cross-sector coverage>,
-    "implementation": <1 = paper commitments only; 3 = partially in force or in transition period; 5 = fully operational with secondary rules and guidance issued>,
-    "ai_specificity": <1 = only general law incidentally touching AI; 3 = AI explicitly addressed within adapted general law; 5 = dedicated AI-specific instruments>,
+    "binding_force": {{"score": <1 = nothing binding exists or proposed; 3 = binding AI legislation drafted/in legislative process; 5 = binding AI rules in force>, "rationale": "<the one fact behind this score>"}},
+    "scope": {{"score": <1 = no AI coverage in any sector; 3 = a few sectors or use-cases covered; 5 = horizontal cross-sector coverage>, "rationale": "<the one fact behind this score>"}},
+    "implementation": {{"score": <1 = paper commitments only; 3 = partially in force or in transition period; 5 = fully operational with secondary rules and guidance issued>, "rationale": "<the one fact behind this score>"}},
+    "ai_specificity": {{"score": <1 = only general law incidentally touching AI; 3 = AI explicitly addressed within adapted general law; 5 = dedicated AI-specific instruments>, "rationale": "<the one fact behind this score>"}},
     "text": "<current regulatory approach, 1-3 sentences justifying the sub-scores>"
   }},
   "policy_lever": {{
-    "binding_instruments": <1 = no binding instruments; 3 = one binding instrument; 5 = multiple binding instruments across domains>,
-    "soft_law": <1 = no guidance/standards/codes; 3 = some published guidance; 5 = mature, maintained suite of standards and codes>,
-    "economic_tools": <1 = no funding/procurement/sandbox programs; 3 = one or two programs; 5 = several active programs>,
-    "institutional_capacity": <1 = no dedicated bodies; 3 = bodies designated but thinly resourced; 5 = staffed, operational institutions with compliance infrastructure>,
+    "binding_instruments": {{"score": <1 = no binding instruments; 3 = one binding instrument; 5 = multiple binding instruments across domains>, "rationale": "<the one fact behind this score>"}},
+    "soft_law": {{"score": <1 = no guidance/standards/codes; 3 = some published guidance; 5 = mature, maintained suite of standards and codes>, "rationale": "<the one fact behind this score>"}},
+    "economic_tools": {{"score": <1 = no funding/procurement/sandbox programs; 3 = one or two programs; 5 = several active programs>, "rationale": "<the one fact behind this score>"}},
+    "institutional_capacity": {{"score": <1 = no dedicated bodies; 3 = bodies designated but thinly resourced; 5 = staffed, operational institutions with compliance infrastructure>, "rationale": "<the one fact behind this score>"}},
     "text": "<policy mechanisms used, 1-2 sentences>"
   }},
   "governance_type": {{
-    "regulator_plurality": <DESCRIPTIVE: 1 = single authority sets and enforces policy; 3 = lead body plus sectoral regulators; 5 = many independent regulators with their own remits>,
-    "formal_coordination": <DESCRIPTIVE: 1 = single actor, nothing to coordinate; 3 = ad hoc coordination; 5 = formal coordination mechanisms across many bodies>,
-    "subnational_role": <DESCRIPTIVE: 1 = no sub-national role; 3 = sub-national implementation of national rules; 5 = states/provinces regulate AI independently>,
-    "nongovernmental_checks": <DESCRIPTIVE: 1 = no court/ombudsman/independent-review role; 3 = occasional judicial or independent review; 5 = courts and independent bodies actively shape AI rules>,
+    "regulator_plurality": {{"score": <DESCRIPTIVE: 1 = single authority sets and enforces policy; 3 = lead body plus sectoral regulators; 5 = many independent regulators with their own remits>, "rationale": "<the one fact behind this score>"}},
+    "formal_coordination": {{"score": <DESCRIPTIVE: 1 = single actor, nothing to coordinate; 3 = ad hoc coordination; 5 = formal coordination mechanisms across many bodies>, "rationale": "<the one fact behind this score>"}},
+    "subnational_role": {{"score": <DESCRIPTIVE: 1 = no sub-national role; 3 = sub-national implementation of national rules; 5 = states/provinces regulate AI independently>, "rationale": "<the one fact behind this score>"}},
+    "nongovernmental_checks": {{"score": <DESCRIPTIVE: 1 = no court/ombudsman/independent-review role; 3 = occasional judicial or independent review; 5 = courts and independent bodies actively shape AI rules>, "rationale": "<the one fact behind this score>"}},
     "text": "<governance structure, 1-2 sentences>"
   }},
   "actor_involvement": {{
-    "industry": <DESCRIPTIVE: 1 = no structured industry input; 3 = published consultations and working groups; 5 = standing formal roles in policy-making>,
-    "civil_society": <DESCRIPTIVE: 1 = civil society excluded from domestic process; 3 = consulted occasionally; 5 = standing formal roles for NGOs/unions>,
-    "academia": <DESCRIPTIVE: 1 = no academic involvement; 3 = some advisory input; 5 = formal standing advisory roles>,
-    "international": <DESCRIPTIVE: 1 = no participation in international AI governance; 3 = signatory to declarations; 5 = active treaty/standards participation>,
+    "industry": {{"score": <DESCRIPTIVE: 1 = no structured industry input; 3 = published consultations and working groups; 5 = standing formal roles in policy-making>, "rationale": "<the one fact behind this score>"}},
+    "civil_society": {{"score": <DESCRIPTIVE: 1 = civil society excluded from domestic process; 3 = consulted occasionally; 5 = standing formal roles for NGOs/unions>, "rationale": "<the one fact behind this score>"}},
+    "academia": {{"score": <DESCRIPTIVE: 1 = no academic involvement; 3 = some advisory input; 5 = formal standing advisory roles>, "rationale": "<the one fact behind this score>"}},
+    "international": {{"score": <DESCRIPTIVE: 1 = no participation in international AI governance; 3 = signatory to declarations; 5 = active treaty/standards participation>, "rationale": "<the one fact behind this score>"}},
     "text": "<actors and geographic scope, 1-2 sentences>"
   }},
   "enforcement_level": {{
-    "sanctions_framework": <1 = no penalties defined; 3 = penalties defined for some obligations; 5 = comprehensive penalty framework>,
-    "actions_taken": <1 = never enforced; 3 = isolated enforcement actions; 5 = routine, published enforcement actions>,
-    "dedicated_authority": <1 = nobody owns AI enforcement; 3 = authority designated without dedicated resources; 5 = resourced authority with explicit AI remit>,
-    "monitoring_practice": <1 = no audits or monitoring; 3 = occasional reviews; 5 = routine audits and public reporting>,
+    "sanctions_framework": {{"score": <1 = no penalties defined; 3 = penalties defined for some obligations; 5 = comprehensive penalty framework>, "rationale": "<the one fact behind this score>"}},
+    "actions_taken": {{"score": <1 = never enforced; 3 = isolated enforcement actions; 5 = routine, published enforcement actions>, "rationale": "<the one fact behind this score>"}},
+    "dedicated_authority": {{"score": <1 = nobody owns AI enforcement; 3 = authority designated without dedicated resources; 5 = resourced authority with explicit AI remit>, "rationale": "<the one fact behind this score>"}},
+    "monitoring_practice": {{"score": <1 = no audits or monitoring; 3 = occasional reviews; 5 = routine audits and public reporting>, "rationale": "<the one fact behind this score>"}},
     "text": "<how strictly rules are enforced, 1 sentence>"
   }},
   "specific_laws": "<REQUIRED if any exist: comma-separated official names of laws, acts, executive orders, or national strategies WITH years, e.g. 'AI Act (2024), Data Protection Act (2018)'. Empty string ONLY if no AI-relevant instrument of any kind exists>",

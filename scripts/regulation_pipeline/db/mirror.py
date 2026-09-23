@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Protocol
 
 from ..models import ResearchResult
+from ..repository import split_subscores_entry
 from ..sources import classify_sources
 from .client import SupabaseClient
 
@@ -251,6 +252,7 @@ def _notes(fatal: bool, gate_counts: dict[str, int] | None) -> str | None:
 
 def _score_row(country_id: str, e: _Entry, run_id: str) -> dict:
     row = e.scores_row
+    subscores, rationales = split_subscores_entry(e.subscores)
     return {
         "country_id": country_id,
         "regulation_status": _num(row.get("Regulation Status")),
@@ -259,7 +261,11 @@ def _score_row(country_id: str, e: _Entry, run_id: str) -> dict:
         "actor_involvement": _num(row.get("Actor Involvement")),
         "enforcement_level": _num(row.get("Enforcement Level")),
         "avg_score": _num(row.get("Average Score")),
-        "subscores": e.subscores,
+        # The gated subscores.json entry nests {score, rationale} (methodology
+        # v2.1) or bare integers (v2). The DB keeps them in two columns, so a
+        # held result mirrors the unchanged scores AND their unchanged rationales.
+        "subscores": subscores,
+        "rationales": rationales,
         "confidence": e.result.effective_confidence(),
         "data_version": int(row.get("Data Version") or 1),
         "run_id": run_id,

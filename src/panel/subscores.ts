@@ -1,6 +1,8 @@
 // Expandable sub-indicator breakdown beneath each dimension row.
 // Methodology v2 scores every dimension as the mean of four named
 // sub-indicators; this is the per-claim audit trail, one click deep.
+// Since v2.1 each sub-indicator also carries the model's one-sentence
+// rationale, shown under the score when present.
 
 import { getState, on } from '../state/store';
 import type { DimensionKey } from '../constants';
@@ -37,11 +39,14 @@ function renderBreakdown(container: HTMLElement, dimension: DimensionKey): boole
   container.appendChild(caption);
 
   for (const [key, label] of SUBSCORE_LABELS[snake]) {
-    const value = block[key];
-    if (value == null) continue;
+    const cell = block[key];
+    if (cell == null) continue;
+    const value = cell.score;
 
     const line = document.createElement('div');
     line.className = 'subscore-line';
+    const row = document.createElement('div');
+    row.className = 'subscore-row';
 
     const name = document.createElement('span');
     name.className = 'subscore-label';
@@ -58,7 +63,15 @@ function renderBreakdown(container: HTMLElement, dimension: DimensionKey): boole
     num.className = 'subscore-value';
     num.textContent = String(value);
 
-    line.append(name, track, num);
+    row.append(name, track, num);
+    line.appendChild(row);
+
+    if (cell.rationale) {
+      const rationale = document.createElement('p');
+      rationale.className = 'subscore-rationale';
+      rationale.textContent = cell.rationale;
+      line.appendChild(rationale);
+    }
     container.appendChild(line);
   }
   return container.children.length > 1;

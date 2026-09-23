@@ -37,7 +37,7 @@ import typer
 
 from ..config import Settings
 from ..names import CountryNames
-from ..repository import Dataset
+from ..repository import Dataset, split_subscores_entry
 from ..sources import classify_sources
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,14 @@ def build_seed(settings: Settings, names: CountryNames) -> SeedData:
     dataset = Dataset.load(settings, names)
     iso = json.loads(settings.country_iso_json.read_text(encoding="utf-8"))["countries"]
     history = json.loads(settings.history_json.read_text(encoding="utf-8"))["countries"]
-    subscores = json.loads(settings.subscores_json.read_text(encoding="utf-8"))["countries"]
+    # subscores.json mixes v2 (integer) and v2.1 ({score, rationale}) entries;
+    # the DB keeps them in two columns.
+    subscores = {
+        country: split_subscores_entry(entry)
+        for country, entry in json.loads(
+            settings.subscores_json.read_text(encoding="utf-8")
+        )["countries"].items()
+    }
 
     # country_names.json maps alias -> canonical; the countries table wants
     # the reverse (canonical -> [aliases]).
@@ -115,7 +122,8 @@ def build_seed(settings: Settings, names: CountryNames) -> SeedData:
             "actor_involvement": _num(srow.get("Actor Involvement")),
             "enforcement_level": _num(srow.get("Enforcement Level")),
             "avg_score": _num(srow.get("Average Score")),
-            "subscores": subscores.get(country),
+            "subscores": subscores.get(country, (None, None))[0],
+            "rationales": subscores.get(country, (None, None))[1],
             "confidence": _confidence(rrow.get("Confidence")),
             "data_version": int(srow.get("Data Version") or 1),
             "scored_at": srow.get("Last Updated") or None,
@@ -199,16 +207,18 @@ def emit_sql(seed: SeedData) -> list[str]:
     for s in seed.scores:
         stmts.append(
             "insert into country_scores (country_id, regulation_status, policy_lever, governance_type, "
-            "actor_involvement, enforcement_level, avg_score, subscores, confidence, data_version, run_id, scored_at)\n"
+            "actor_involvement, enforcement_level, avg_score, subscores, rationales, confidence, data_version, run_id, scored_at)\n"
             f"select id, {_sql_num(s['regulation_status'])}, {_sql_num(s['policy_lever'])}, "
             f"{_sql_num(s['governance_type'])}, {_sql_num(s['actor_involvement'])}, "
             f"{_sql_num(s['enforcement_level'])}, {_sql_num(s['avg_score'])}, {_sql_jsonb(s['subscores'])}, "
+            f"{_sql_jsonb(s['rationales'])}, "
             f"{_sql_str(s['confidence'])}, {s['data_version']}, {_sql_str(SEED_RUN_ID)}, {_sql_str(s['scored_at'])}\n"
             f"from countries where name = {_sql_str(s['country'])}\n"
             "on conflict (country_id) do update set regulation_status = excluded.regulation_status, "
             "policy_lever = excluded.policy_lever, governance_type = excluded.governance_type, "
             "actor_involvement = excluded.actor_involvement, enforcement_level = excluded.enforcement_level, "
-            "avg_score = excluded.avg_score, subscores = excluded.subscores, confidence = excluded.confidence, "
+            "avg_score = excluded.avg_score, subscores = excluded.subscores, rationales = excluded.rationales, "
+            "confidence = excluded.confidence, "
             "data_version = excluded.data_version, run_id = excluded.run_id, scored_at = excluded.scored_at, "
             "updated_at = now();"
         )

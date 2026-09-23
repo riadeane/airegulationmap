@@ -13,7 +13,7 @@ import json
 from datetime import date
 
 import typer
-from conftest import full_result
+from conftest import full_result, sub
 from regulation_pipeline import cli, gate
 from regulation_pipeline.config import Settings
 from regulation_pipeline.models import ResearchResult
@@ -39,12 +39,12 @@ def result(**overrides) -> ResearchResult:
 def bumped(**overrides) -> ResearchResult:
     """The baseline with regulation_status moved 4.0 -> 4.25 and nothing
     else changed: the jitter the gate exists to hold."""
-    reg = dict(full_result()["regulation_status"], scope=4)
+    reg = dict(full_result()["regulation_status"], scope=sub(4))
     return result(regulation_status=reg, **overrides)
 
 
 def dropped() -> ResearchResult:
-    reg = dict(full_result()["regulation_status"], scope=2)
+    reg = dict(full_result()["regulation_status"], scope=sub(2))
     return result(regulation_status=reg)
 
 
@@ -142,7 +142,7 @@ class TestDecide:
 
     def test_large_move_is_flagged_only_when_applied(self):
         scores, reg = existing_rows()
-        big = dict(full_result()["regulation_status"], binding_force=1, scope=1, implementation=1)
+        big = dict(full_result()["regulation_status"], binding_force=sub(1), scope=sub(1), implementation=sub(1))
         held = gate.decide(scores, reg, result(regulation_status=big), None, RUN_1)
         assert held.large_moves == ()
         applied = gate.decide(
@@ -161,7 +161,7 @@ class TestSummary:
     def test_markdown_lists_counts_and_review_rows(self):
         tally = gate.GateTally()
         scores, reg = existing_rows()
-        big = dict(full_result()["regulation_status"], binding_force=1, scope=1, implementation=1)
+        big = dict(full_result()["regulation_status"], binding_force=sub(1), scope=sub(1), implementation=sub(1))
         tally.add("A", gate.decide(
             scores, reg, result(regulation_status=big, sources="https://new.gov/x"), None, RUN_1,
         ))

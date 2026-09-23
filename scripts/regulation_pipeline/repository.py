@@ -22,7 +22,7 @@ from pathlib import Path
 
 from . import history as history_mod
 from .config import REGULATION_FIELDS, SCORES_FIELDS, Settings
-from .models import ResearchResult
+from .models import METHODOLOGY_VERSION, ResearchResult
 from .names import CountryNames
 
 logger = logging.getLogger(__name__)
@@ -166,6 +166,10 @@ class Dataset:
 
         self._scores[country] = _scores_row(country, result, version + 1, today)
         self._subscores["countries"][country] = _subscores_entry(result, today)
+        # The tag describes the newest entries; older entries keep the v2
+        # integer shape until their next research pass. Readers must accept
+        # both (see ``split_subscores_entry``).
+        self._subscores["methodology"] = METHODOLOGY_VERSION
 
         snapshot = _history_snapshot(result, today)
         added = history_mod.append_snapshot(self._history, country, snapshot)
@@ -258,10 +262,37 @@ def _regulation_row(country: str, result: ResearchResult, today: date) -> dict:
 
 
 def _subscores_entry(result: ResearchResult, today: date) -> dict:
+    """Methodology v2.1 shape: ``{"score": int, "rationale": str}`` per
+    sub-indicator, so the audit trail carries the fact behind each score."""
     entry: dict = {"date": today.isoformat()}
     for key, dim in result.dimensions().items():
-        entry[key] = dim.subscores()
+        scores, rationales = dim.subscores(), dim.rationales()
+        entry[key] = {
+            name: {"score": scores[name], "rationale": rationales[name]} for name in scores
+        }
     return entry
+
+
+def split_subscores_entry(entry: dict) -> tuple[dict, dict | None]:
+    """Split one subscores.json country entry into the integer sub-scores
+    (with ``date``) and the rationales (without). Accepts both file shapes:
+    v2 (``"binding_force": 4``) and v2.1 (``"binding_force": {"score": 4,
+    "rationale": "..."}``). Returns ``None`` rationales for a v2 entry."""
+    scores: dict = {}
+    rationales: dict = {}
+    for key, block in entry.items():
+        if not isinstance(block, dict):
+            scores[key] = block  # "date" and any future scalar metadata
+            continue
+        scores[key] = {}
+        for name, value in block.items():
+            if isinstance(value, dict):
+                scores[key][name] = value.get("score")
+                if value.get("rationale"):
+                    rationales.setdefault(key, {})[name] = value["rationale"]
+            else:
+                scores[key][name] = value
+    return scores, (rationales or None)
 
 
 def _history_snapshot(result: ResearchResult, today: date) -> dict:

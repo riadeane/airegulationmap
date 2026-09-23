@@ -18,13 +18,26 @@ named sub-indicators (integers 1-5); the dimension score is their mean, giving
 quarter-point decimals. The composite "average" is a maturity index over the
 three *normative* dimensions only - ``governance_type`` and ``actor_involvement``
 are descriptive scales and are excluded. See ``public/methodology.html``.
+
+Methodology v2.1 (2026-09): every sub-indicator carries a one-sentence
+``rationale`` that states the fact the score rests on, so a reader can check a
+score without repeating the research.
 """
 
 from __future__ import annotations
 
 from typing import Annotated, Any, ClassVar, Literal
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, model_validator
+from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, model_validator
+
+# Tag written to subscores.json and bumped whenever the audit-trail shape
+# changes. v2 = integer sub-scores; v2.1 = ``{score, rationale}`` per sub-indicator.
+METHODOLOGY_VERSION = "v2.1"
+
+# Rationale length bounds. Enforced here, not in the output schema: structured
+# outputs reject ``minLength``/``maxLength``, so the schema says only ``string``.
+RATIONALE_MIN_CHARS = 1
+RATIONALE_MAX_CHARS = 200
 
 
 def _reject_bool(value: Any) -> Any:
@@ -45,10 +58,35 @@ Confidence = Literal["high", "medium", "low"]
 _STRICT: ConfigDict = ConfigDict(extra="forbid")
 
 
+def _check_rationale(value: str) -> str:
+    """One sentence, 1-200 characters after trimming. A blank rationale is a
+    missing rationale; an over-long one is an explanation, not a fact."""
+    value = value.strip()
+    if not RATIONALE_MIN_CHARS <= len(value) <= RATIONALE_MAX_CHARS:
+        raise ValueError(
+            f"rationale must be {RATIONALE_MIN_CHARS}-{RATIONALE_MAX_CHARS} characters, got {len(value)}"
+        )
+    return value
+
+
+Rationale = Annotated[str, AfterValidator(_check_rationale)]
+
+
+class SubIndicator(BaseModel):
+    """One scored sub-indicator: the integer score and the single fact that
+    justifies it."""
+
+    model_config = _STRICT
+
+    score: Score
+    rationale: Rationale
+
+
 class Dimension(BaseModel):
     """A scored dimension: four named sub-indicators plus a ``text``
-    justification. Concrete subclasses name the sub-indicators as ``Score``
-    fields; the dimension score is their mean. ``text`` is always last."""
+    justification. Concrete subclasses name the sub-indicators as
+    ``SubIndicator`` fields; the dimension score is the mean of their scores.
+    ``text`` is always last."""
 
     model_config = _STRICT
 
@@ -67,7 +105,12 @@ class Dimension(BaseModel):
         return tuple(name for name in cls.model_fields if name != "text")
 
     def subscores(self) -> dict[str, int]:
-        return {name: getattr(self, name) for name in self.subindicators()}
+        """Map ``sub-indicator name -> integer score``."""
+        return {name: getattr(self, name).score for name in self.subindicators()}
+
+    def rationales(self) -> dict[str, str]:
+        """Map ``sub-indicator name -> rationale sentence``."""
+        return {name: getattr(self, name).rationale for name in self.subindicators()}
 
     @property
     def score(self) -> float:
@@ -80,10 +123,10 @@ class RegulationStatus(Dimension):
     key = "regulation_status"
     history_key = "regulationStatus"
     column = "Regulation Status"
-    binding_force: Score
-    scope: Score
-    implementation: Score
-    ai_specificity: Score
+    binding_force: SubIndicator
+    scope: SubIndicator
+    implementation: SubIndicator
+    ai_specificity: SubIndicator
     text: str
 
 
@@ -91,10 +134,10 @@ class PolicyLever(Dimension):
     key = "policy_lever"
     history_key = "policyLever"
     column = "Policy Lever"
-    binding_instruments: Score
-    soft_law: Score
-    economic_tools: Score
-    institutional_capacity: Score
+    binding_instruments: SubIndicator
+    soft_law: SubIndicator
+    economic_tools: SubIndicator
+    institutional_capacity: SubIndicator
     text: str
 
 
@@ -103,10 +146,10 @@ class GovernanceType(Dimension):
     history_key = "governanceType"
     column = "Governance Type"
     normative = False  # descriptive scale - excluded from the composite
-    regulator_plurality: Score
-    formal_coordination: Score
-    subnational_role: Score
-    nongovernmental_checks: Score
+    regulator_plurality: SubIndicator
+    formal_coordination: SubIndicator
+    subnational_role: SubIndicator
+    nongovernmental_checks: SubIndicator
     text: str
 
 
@@ -115,10 +158,10 @@ class ActorInvolvement(Dimension):
     history_key = "actorInvolvement"
     column = "Actor Involvement"
     normative = False  # descriptive scale - excluded from the composite
-    industry: Score
-    civil_society: Score
-    academia: Score
-    international: Score
+    industry: SubIndicator
+    civil_society: SubIndicator
+    academia: SubIndicator
+    international: SubIndicator
     text: str
 
 
@@ -126,10 +169,10 @@ class EnforcementLevel(Dimension):
     key = "enforcement_level"
     history_key = "enforcementLevel"
     column = "Enforcement Level"
-    sanctions_framework: Score
-    actions_taken: Score
-    dedicated_authority: Score
-    monitoring_practice: Score
+    sanctions_framework: SubIndicator
+    actions_taken: SubIndicator
+    dedicated_authority: SubIndicator
+    monitoring_practice: SubIndicator
     text: str
 
 
@@ -164,6 +207,10 @@ class ResearchResult(BaseModel):
     def dimension_scores(self) -> dict[str, float]:
         """Map ``dimension key -> mean sub-indicator score``."""
         return {key: dim.score for key, dim in self.dimensions().items()}
+
+    def rationales(self) -> dict[str, dict[str, str]]:
+        """Map ``dimension key -> {sub-indicator name -> rationale}``."""
+        return {key: dim.rationales() for key, dim in self.dimensions().items()}
 
     def average_score(self) -> float:
         """Maturity index: mean of the normative dimension scores

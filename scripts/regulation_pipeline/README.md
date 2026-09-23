@@ -162,8 +162,14 @@ classDiagram
         +str text
         +subindicators() tuple$
         +subscores() dict
+        +rationales() dict
         +score() float
     }
+    class SubIndicator {
+        +int score
+        +str rationale
+    }
+    Dimension *-- "4" SubIndicator
     Dimension <|-- RegulationStatus
     Dimension <|-- PolicyLever
     Dimension <|-- GovernanceType

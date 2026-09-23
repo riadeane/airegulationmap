@@ -6,7 +6,7 @@ from conftest import full_result
 from regulation_pipeline.config import REGULATION_FIELDS, SCORES_FIELDS, Settings
 from regulation_pipeline.models import ResearchResult
 from regulation_pipeline.names import CountryNames
-from regulation_pipeline.repository import Dataset
+from regulation_pipeline.repository import Dataset, split_subscores_entry
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TODAY = date(2026, 6, 11)
@@ -58,8 +58,20 @@ class TestApply:
         ds.apply("Germany", result_model(), TODAY)
         entry = ds._subscores["countries"]["Germany"]
         assert entry["date"] == "2026-06-11"
-        assert entry["regulation_status"]["ai_specificity"] == 5
+        # Methodology v2.1: each sub-indicator is {score, rationale}.
+        assert entry["regulation_status"]["ai_specificity"] == {"score": 5, "rationale": "Fact."}
         assert set(entry["actor_involvement"]) == {"industry", "civil_society", "academia", "international"}
+        assert ds._subscores["methodology"] == "v2.1"
+
+    def test_split_subscores_entry_accepts_v2_and_v21(self):
+        v2 = {"date": "2026-06-13", "regulation_status": {"binding_force": 4}}
+        assert split_subscores_entry(v2) == (v2, None)
+        v21 = {"date": "2026-09-01", "regulation_status": {
+            "binding_force": {"score": 5, "rationale": "AI Act in force."},
+        }}
+        scores, rationales = split_subscores_entry(v21)
+        assert scores == {"date": "2026-09-01", "regulation_status": {"binding_force": 5}}
+        assert rationales == {"regulation_status": {"binding_force": "AI Act in force."}}
 
     def test_history_snapshot_appended_with_average(self, tmp_path):
         ds = empty_dataset(tmp_path)

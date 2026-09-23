@@ -85,7 +85,12 @@ SCORES_ROW = {
     "Governance Type": 2.0, "Actor Involvement": 3.0, "Average Score": 3.67,
     "Enforcement Level": 4.0, "Last Updated": "2026-06-11", "Data Version": 5,
 }
-SUBSCORES = {"date": "2026-06-11", "regulation_status": {"binding_force": 4}}
+# v2.1 shape: {score, rationale} per sub-indicator. The mirror splits it
+# into the subscores and rationales columns.
+SUBSCORES = {
+    "date": "2026-06-11",
+    "regulation_status": {"binding_force": {"score": 4, "rationale": "Fact."}},
+}
 
 
 class TestSupabaseMirror:
@@ -109,6 +114,8 @@ class TestSupabaseMirror:
         assert score_row["data_version"] == 5
         assert score_row["avg_score"] == 3.67
         assert score_row["subscores"]["regulation_status"]["binding_force"] == 4
+        assert score_row["rationales"]["regulation_status"]["binding_force"] == "Fact."
+        assert "date" not in score_row["rationales"]
         assert score_row["run_id"] == run_insert["id"]
         summary_row = fake.of("POST", "country_summaries")[0][0]
         assert summary_row["specific_laws"] == "AI Act (2024)"
