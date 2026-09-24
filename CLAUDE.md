@@ -306,7 +306,8 @@ verified initiatives embedded in the prompt (capped at 15): `0` = the run
 consulted the evidence database and it held none, `null` = the run did not
 consult it (not `--grounded`), so the panel never claims "no verified
 initiatives on record" for a run that did not look. `grounded` is always
-`initiatives_used > 0` (a check constraint in the database). No record (no
+`initiatives_used > 0` with null counted as 0 (a check constraint in the
+database). No record (no
 key, or all three columns null) = not researched since PRD 14; the panel
 then shows nothing. The panel sentence reads "Grounded in 7 verified policy
 initiatives and web search" or "Web search only; no verified initiatives on

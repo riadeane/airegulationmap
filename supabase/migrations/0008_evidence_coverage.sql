@@ -69,7 +69,7 @@ left join country_summaries su on su.country_id = c.id;
 comment on table country_scores is
   'Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, research confidence, and evidence coverage (grounded, initiatives_used, web_search).';
 comment on column country_scores.grounded is
-  'True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. The run''s model is research_runs.model via run_id. Null when the country has no run record since evidence coverage was first recorded (September 2026); initiatives_used and web_search are then null too.';
+  'True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals coalesce(initiatives_used, 0) > 0, so false when initiatives_used is 0 or null. The run''s model is research_runs.model via run_id. Null when the country has no run record since evidence coverage was first recorded (September 2026); initiatives_used and web_search are then null too.';
 comment on column country_scores.initiatives_used is
   'Verified policy initiatives embedded in the research prompt (capped at 15). 0 when the run consulted the evidence database and it held none for the country; null when the run did not consult it (not a grounded run) or the country has no run record.';
 comment on column country_scores.web_search is
@@ -78,7 +78,7 @@ comment on column country_scores.web_search is
 comment on view public_export is
   'Flat research export: one row per country joining scores, sub-indicators, prose, and evidence coverage. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.';
 comment on column public_export.grounded is
-  'True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. Null when the country has no run record since evidence coverage was first recorded (September 2026).';
+  'True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals coalesce(initiatives_used, 0) > 0, so false when initiatives_used is 0 or null. Null when the country has no run record since evidence coverage was first recorded (September 2026).';
 comment on column public_export.initiatives_used is
   'Verified policy initiatives embedded in the research prompt (capped at 15). 0 when the run consulted the evidence database and it held none for the country; null when the run did not consult it (not a grounded run) or the country has no run record.';
 comment on column public_export.web_search is

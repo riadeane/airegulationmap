@@ -348,7 +348,7 @@
       <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
       <tbody>
         <tr><td><code>grounded</code></td>
-            <td><code>true</code> when the prompt embedded at least one verified policy initiative. Always equal to <code>initiatives_used &gt; 0</code>.</td></tr>
+            <td><code>true</code> when the prompt embedded at least one verified policy initiative. Always equal to <code>initiatives_used &gt; 0</code> with <code>null</code> counted as 0, so <code>false</code> when the run did not consult the evidence database.</td></tr>
         <tr><td><code>initiatives_used</code></td>
             <td>How many verified policy initiatives the prompt embedded, capped at 15. <code>0</code>: the run consulted the evidence database and it held none for the country. <code>null</code>: the run did not consult it (not a grounded run).</td></tr>
         <tr><td><code>search</code></td>

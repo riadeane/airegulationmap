@@ -2426,7 +2426,7 @@
           "format": "jsonb"
         },
         "grounded": {
-          "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. The run's model is research_runs.model via run_id. Null when the country has no run record since evidence coverage was first recorded (September 2026); initiatives_used and web_search are then null too.",
+          "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals coalesce(initiatives_used, 0) > 0, so false when initiatives_used is 0 or null. The run's model is research_runs.model via run_id. Null when the country has no run record since evidence coverage was first recorded (September 2026); initiatives_used and web_search are then null too.",
           "format": "boolean",
           "type": "boolean"
         },
@@ -2659,7 +2659,7 @@
           "type": "string"
         },
         "grounded": {
-          "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. Null when the country has no run record since evidence coverage was first recorded (September 2026).",
+          "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals coalesce(initiatives_used, 0) > 0, so false when initiatives_used is 0 or null. Null when the country has no run record since evidence coverage was first recorded (September 2026).",
           "format": "boolean",
           "type": "boolean"
         },
@@ -3449,7 +3449,7 @@
     },
     "rowFilter.country_scores.grounded": {
       "name": "grounded",
-      "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. The run's model is research_runs.model via run_id. Null when the country has no run record since evidence coverage was first recorded (September 2026); initiatives_used and web_search are then null too.",
+      "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals coalesce(initiatives_used, 0) > 0, so false when initiatives_used is 0 or null. The run's model is research_runs.model via run_id. Null when the country has no run record since evidence coverage was first recorded (September 2026); initiatives_used and web_search are then null too.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3749,7 +3749,7 @@
     },
     "rowFilter.public_export.grounded": {
       "name": "grounded",
-      "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. Null when the country has no run record since evidence coverage was first recorded (September 2026).",
+      "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals coalesce(initiatives_used, 0) > 0, so false when initiatives_used is 0 or null. Null when the country has no run record since evidence coverage was first recorded (September 2026).",
       "required": false,
       "in": "query",
       "type": "string"
