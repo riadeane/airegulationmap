@@ -306,9 +306,10 @@ class TestWrite:
 
         index = json.loads((settings.digest_dir / "index.json").read_text())
         assert index["weeks"] == [{
-            "week": "2026-W37", "date": "2026-09-07", "run_id": "run-1",
+            "kind": "weekly", "week": "2026-W37", "date": "2026-09-07", "run_id": "run-1",
             "model": "claude-test", "item_count": 2, "change_count": 2, "file": "2026-W37.json",
         }]
+        assert index["months"] == []
 
         feed = ET.parse(settings.digest_dir / "feed.xml").getroot()
         assert feed.tag == f"{ATOM}feed"

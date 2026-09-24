@@ -76,6 +76,12 @@ python scripts/update_data.py --batch --digest
 # (needs SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY).
 python -m regulation_pipeline.digest --run <research_runs.id>
 
+# Monthly trend piece (public/digest/YYYY-MM.json): scheduled runs write the
+# previous month's piece when it is missing (three static SVG charts from
+# history.json + one Claude request over the month's digest items). Backfill
+# a finished month from the files on disk (needs ANTHROPIC_API_KEY):
+python -m regulation_pipeline.digest --monthly 2026-09
+
 # Gold set and drift check (always on): after each run the raw results for
 # the ten gold countries (public/data/gold_set.json) are compared with the
 # hand-checked scores and one row is appended to public/data/drift.json
@@ -133,7 +139,8 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
 | `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
 | `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip) |
-| `src/data/digest.ts` | Weekly digest parsing + formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
+| `src/data/digest.ts` | Weekly digest + monthly trend piece parsing and formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
+| `src/data/svg.ts` | Whitelist sanitizer for the monthly piece's chart SVG (pure; `changes.ts` rebuilds the result with `createElementNS`, never innerHTML) |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
 **State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
@@ -168,7 +175,9 @@ Python package that calls the Claude API to research regulation status per count
 | `config.py` | `Settings` (repo-root paths) + constants (fields, staleness, priority countries) |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - evidence and persistence rules for score changes |
-| `digest.py` | Weekly digest: selects a run's gate-applied changes, one structured-output Claude request, writes `public/digest/` (week JSON, index, Atom feed); `python -m regulation_pipeline.digest --run <id>` regenerates from Supabase |
+| `digest.py` | Weekly digest: selects a run's gate-applied changes, one structured-output Claude request, writes `public/digest/` (week JSON, index, Atom feed); `python -m regulation_pipeline.digest --run <id>` regenerates from Supabase, `--monthly YYYY-MM` regenerates a monthly piece |
+| `monthly.py` | Monthly trend piece (PRD 12): reads `history.json` as a step function (a change takes effect on the first run after the previous snapshot's last confirmation), computes bloc series / dimension movement / movers, one structured-output request over the month's digest items (sections citing any other URL are dropped), writes `YYYY-MM.json` |
+| `charts.py` | Hand-built static SVG charts (stdlib only): OKLCH-to-hex from the legend endpoints, line chart with dodged end labels, diverging bars; `currentColor` text so they read in both themes |
 | `gold.py` | Gold set and drift check: loads `gold_set.json`, compares a run's raw (ungated) results with it (`compare`, pure), appends `drift.json`, mirrors `gold_checks`, step-summary block; `python -m regulation_pipeline.gold --model <id>` is the model-comparison CLI |
 | `history.py` | History snapshot append/change-detection |
 | `names.py` | `CountryNames` - country-name normalization via alias map |
@@ -194,7 +203,7 @@ Python package that calls the Claude API to research regulation status per count
 | `public/data/drift.json` | One row per run from the gold-set drift check: `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, within_one, max_dev, max_dev_at}`. Mirrored to Supabase `gold_checks` |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 | `public/openapi.json` | Committed snapshot of PostgREST's OpenAPI output; drives the Swagger UI at `api-docs.html` (Supabase serves the live spec endpoint only to secret keys, so the browser can never fetch it) |
-| `public/digest/` | Weekly changes digest: `YYYY-Www.json` per run week, `index.json` (weeks, newest first), `feed.xml` (Atom). Written by the pipeline after scheduled runs; rendered by `changes.html` |
+| `public/digest/` | Weekly changes digest: `YYYY-Www.json` per run week, `YYYY-MM.json` per monthly trend piece (three embedded SVG charts with their tables, lead, sourced sections, drift sentence), `index.json` (`weeks` and `months`, newest first, each with `kind`), `feed.xml` (Atom, both kinds). Written by the pipeline after scheduled runs; rendered by `changes.html` (`?week=` / `?month=`) |
 | `public/data/country_slugs.json` | Slug -> canonical name for the static country pages; generated by `scripts/build_pages.ts`, committed so API consumers can resolve `/country/<slug>/` |
 | `public/country/` | Generated static country pages (`<slug>/index.html` per country plus an index); gitignored, written by `npm run pages` |
 | `public/sitemap.xml` | Generated sitemap (top-level pages + every country page); gitignored, written by `npm run pages`. `public/robots.txt` points at it |

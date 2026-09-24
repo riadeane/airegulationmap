@@ -97,8 +97,14 @@ class Settings:
 
     @property
     def digest_dir(self) -> Path:
-        """Weekly digest files: ``YYYY-Www.json``, ``index.json``, ``feed.xml``."""
+        """Digest files: ``YYYY-Www.json`` per week, ``YYYY-MM.json`` per
+        monthly trend piece, ``index.json``, ``feed.xml``."""
         return self.root / "public" / "digest"
+
+    @property
+    def blocs_json(self) -> Path:
+        """Bloc membership lists (EU, G7, ...), keyed by short code."""
+        return self.root / "public" / "data" / "blocs.json"
 
     @property
     def gold_set_json(self) -> Path:

@@ -25,6 +25,7 @@ from .batch import BatchRunner
 from .config import DEFAULT_MODEL, Settings
 from .digest import write_run_digest
 from .gold import check_run, markdown_summary
+from .monthly import write_monthly_if_due
 from .names import CountryNames
 from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
 from .repository import Dataset
@@ -98,7 +99,8 @@ def _run(
     digest: bool | None = typer.Option(
         None, "--digest/--no-digest",
         help="Write the weekly digest (public/digest/) after the run. Default: on "
-        "for scheduled runs (GITHUB_EVENT_NAME=schedule), off otherwise. A digest "
+        "for scheduled runs (GITHUB_EVENT_NAME=schedule), off otherwise. Scheduled "
+        "runs also write the previous month's trend piece when it is missing. A digest "
         "failure never fails the run.",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose (DEBUG) logging"),
@@ -227,13 +229,20 @@ def _is_scheduled() -> bool:
 def _write_digest(
     result: RunResult, client: anthropic.Anthropic, settings: Settings, model: str, today: date,
 ) -> None:
-    """Post-run digest. Downgraded to a warning on any failure: the data
-    files are already saved, and a missing digest must not change the exit
-    code that drives the workflow's commit step."""
+    """Post-run digest, plus the monthly trend piece on the first scheduled
+    run of a month (monthly.py). Downgraded to a warning on any failure: the
+    data files are already saved, and a missing digest must not change the
+    exit code that drives the workflow's commit step."""
     try:
         write_run_digest(result, client=client, settings=settings, model=model, run_date=today)
     except Exception:
         logger.warning("digest: failed - continuing", exc_info=True)
+    if not _is_scheduled():
+        return
+    try:
+        write_monthly_if_due(settings, client=client, model=model, run_date=today, run_id=result.run_id)
+    except Exception:
+        logger.warning("digest: monthly piece failed - continuing", exc_info=True)
 
 
 def _gold_check(

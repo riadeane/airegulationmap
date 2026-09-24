@@ -77,7 +77,9 @@ flowchart TD
 | `history.py` | History snapshot append + change detection |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - decides whether a result's scores may land |
-| `digest.py` | Weekly digest: change selection, one structured-output request, `public/digest/` writers (week JSON, index, Atom), `--run <id>` regeneration |
+| `digest.py` | Weekly digest: change selection, one structured-output request, `public/digest/` writers (week JSON, index, Atom), `--run <id>` / `--monthly YYYY-MM` regeneration |
+| `monthly.py` | Monthly trend piece: history as a step function, the month's movement, bloc series, drift sentence, one structured-output request, `YYYY-MM.json` |
+| `charts.py` | Hand-built static SVG (stdlib only): OKLCH colour, line chart with dodged end labels, diverging bar chart |
 | `gold.py` | Gold set and drift check: the gold file's contract, the pure agreement metrics, the `drift.json` record, the step-summary block, `--model <id>` comparison CLI |
 | `names.py` | `CountryNames` - country-name normalization |
 | `config.py` | `Settings` (repo-root paths) + field/threshold/priority constants |
@@ -457,6 +459,51 @@ Claude for the prose once, and writes `public/digest/`.
   introduced (the mirror keeps earlier snapshots' ids when it replaces a
   country's history), so score change points are exact. The regulation text has
   no history in the database, so regenerated digests cover score changes only.
+
+## Monthly trend piece (`monthly.py`, `charts.py`)
+
+Weekly digests report events; the monthly piece shows direction. On a
+scheduled run, after the weekly digest, `write_monthly_if_due` writes
+`public/digest/YYYY-MM.json` for the previous calendar month when that file
+does not exist yet and the month has at least one week file. The first
+scheduled run of a month therefore writes it, and a later run of the same
+month retries if that one failed. `index.json` lists it under `months` with
+`kind: "monthly"`; the Atom feed carries it as an entry (text only: feed
+readers strip inline SVG); `changes.html?month=YYYY-MM` renders it.
+
+- **History as a step function.** `history.json` stores change points, and an
+  unchanged re-research advances the last snapshot's date (`history.py`), so a
+  snapshot's date is its last confirmation, not the day it took effect. A
+  "latest snapshot on or before the day" lookup would therefore push most
+  changes into the month of the latest run. `country_steps` dates each change
+  on the first known run (history dates, week files, breaks, drift rows) after
+  the previous snapshot's date: exact under weekly full runs, the earliest
+  possible date otherwise. The first snapshot is carried back, as the app's
+  timeline does.
+- **Charts.** Three static SVGs built in Python with the standard library
+  (`charts.py`) and embedded in the JSON with a preformatted table and the raw
+  data: each bloc's mean maturity index at 14 weekly points over the 13 weeks
+  to the month's last day, the net movement of each dimension across all
+  countries in the month (rises and falls summed separately), and the ten
+  largest month-over-month movers on the maturity index. Text and rules use
+  `currentColor`, so one file reads in both themes; series colours come from
+  the map legend's OKLCH endpoints. Each bloc keeps a fixed step of that ramp
+  (`BLOC_SLOTS`), chosen so blocs at neighbouring levels get distant steps, and
+  every line is labelled at its end.
+- **Calibration breaks.** Changes dated on a `history.json` break are left
+  out of the month's movement; the bloc chart marks the break with a rule.
+- **Narrative.** One request on the run's model with structured output
+  (`MonthlyText`: `{lead, sections: [{heading, text, sources}]}`) over the
+  month's digest items and the chart data. `validate_sections` drops any
+  section that cites no source or a URL that no digest item of the month
+  cited. A month with no movement and no items gets a fixed lead and no
+  request.
+- **Drift.** One computed sentence on the month's `drift.json` rows (runs,
+  within-one range, runs below the 0.8 warning), linked to the drift
+  dashboard once `drift.html` exists, else to `drift.json`.
+- **Backfill.** `python -m regulation_pipeline.digest --monthly YYYY-MM`
+  regenerates a finished month from the files on disk (needs only
+  `ANTHROPIC_API_KEY`).
 
 ## Gold set and drift check (`gold.py`)
 

@@ -9,7 +9,7 @@
   <link rel="canonical" href="https://airegulationmap.org/changes.html">
   <link rel="alternate" type="application/atom+xml" title="AI Regulation Map: weekly changes" href="/digest/feed.xml">
 
-  <meta name="description" content="What changed in the AI Regulation Map after the latest research run: score movements and new laws by country, each linked to its sources.">
+  <meta name="description" content="What changed in the AI Regulation Map after the latest research run: score movements and new laws by country, each linked to its sources, plus monthly trend pieces charting movement by bloc and dimension.">
 
   <meta property="og:type" content="article">
   <meta property="og:title" content="This week's changes · AI Regulation Map">
@@ -358,6 +358,7 @@
     }
     .change:last-of-type { border-bottom: 1px solid var(--border-subtle); }
     .change h2.change-country { margin: 0 0 4px; font-size: 1.2rem; }
+    .change h2.change-heading { margin: 0 0 8px; font-size: 1.2rem; }
     .change h2.change-country a { color: var(--text-primary); text-decoration: none; }
     .change h2.change-country a:hover { color: var(--accent); }
     .change-headline { color: var(--text-primary); font-weight: 500; margin-bottom: 8px; }
@@ -398,9 +399,94 @@
     .digest-weeks li { margin-bottom: 6px; }
     .digest-weeks strong { color: var(--text-primary); font-weight: 500; }
 
+    /* Monthly trend piece */
+    .digest-trend-link {
+      font-size: 0.85rem;
+      color: var(--text-tertiary);
+      margin: -16px 0 28px;
+    }
+
+    .trend-figure { margin: 32px 0; }
+    .trend-figure h2.trend-title {
+      font-size: 1.05rem;
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--text-primary);
+      margin: 0 0 12px;
+    }
+    .trend-chart { overflow-x: auto; }
+    @media (max-width: 560px) {
+      .trend-chart svg { min-width: 460px; }
+    }
+    .trend-figure svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      color: var(--text-primary);
+      font-family: 'Geist', -apple-system, sans-serif;
+      font-variant-numeric: tabular-nums;
+      overflow: visible;
+    }
+    /* End dots sit on the lines; a ring in the page colour separates them. */
+    .trend-figure .mark-ring { stroke: var(--bg); }
+    .trend-caption {
+      font-size: 0.85rem;
+      color: var(--text-tertiary);
+      margin: 10px 0 0;
+      max-width: 60ch;
+    }
+
+    .trend-data { margin-top: 10px; }
+    .trend-data summary {
+      cursor: pointer;
+      width: fit-content;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+    .trend-data summary:hover { color: var(--text-primary); }
+    .trend-table-wrap { overflow-x: auto; margin-top: 8px; }
+    .trend-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: var(--text-secondary);
+    }
+    .trend-table th,
+    .trend-table td {
+      padding: 5px 14px 5px 0;
+      text-align: left;
+      vertical-align: baseline;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .trend-table th:last-child,
+    .trend-table td:last-child { padding-right: 0; }
+    .trend-table thead th {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      border-bottom-color: var(--border);
+    }
+    .trend-table tbody th { font-weight: 400; color: var(--text-primary); }
+    .trend-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .trend-table td.num { font-family: 'Geist Mono', 'JetBrains Mono', monospace; color: var(--text-primary); }
+
+    .trend-drift { margin-top: 40px; font-size: 0.9rem; }
+
     @media print {
       .change { break-inside: avoid; }
       .change-new { background: #f2f2f2; color: #333; }
+      .trend-figure { break-inside: avoid; }
+      /* currentColor follows the screen theme; paper is always white. */
+      .trend-figure svg { color: black; }
+      .trend-figure .mark-ring { stroke: white; }
+      .trend-data:not([open]) { display: none; }
+      .trend-table th, .trend-table td { border-color: #ccc; color: black; }
     }
   </style>
 </head>
@@ -427,7 +513,8 @@
     <h1 class="doc-title">This week's changes</h1>
     <p class="doc-subtitle">Loading the latest digest…</p>
     <noscript>
-      <p>This page needs JavaScript to render the digest. The same content is
+      <p>This page needs JavaScript to render the weekly digest and the monthly
+      trend pieces. The same content is
       available as <a href="/digest/index.json">JSON</a> and as an
       <a href="/digest/feed.xml">Atom feed</a>.</p>
     </noscript>

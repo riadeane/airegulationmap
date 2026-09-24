@@ -6,8 +6,9 @@ and writes three files under ``public/digest/``:
 * ``YYYY-Www.json`` - the structured digest for the run's ISO week: a lead,
   one item per country with a headline, summary and source URLs, plus the
   raw score / law / confidence deltas the prose was written from.
-* ``index.json`` - every week on disk, newest first.
-* ``feed.xml`` - an Atom feed with one entry per week.
+* ``index.json`` - every week on disk, newest first, and every monthly
+  trend piece (``YYYY-MM.json``, written by :mod:`regulation_pipeline.monthly`).
+* ``feed.xml`` - an Atom feed with one entry per week and per monthly piece.
 
 The prose comes from one Claude request with structured output. Every item
 must cite URLs from the country's own source list; an item that cites
@@ -18,6 +19,8 @@ which rows each result replaced (:class:`~regulation_pipeline.service.CountryCha
 ``python -m regulation_pipeline.digest --run <id>`` regenerates a digest for
 a past run from Supabase ``score_history`` (see :func:`changes_from_supabase`
 for what the database can and cannot reconstruct).
+``python -m regulation_pipeline.digest --monthly YYYY-MM`` regenerates a
+monthly trend piece from the stored week files and ``history.json``.
 """
 
 from __future__ import annotations
@@ -38,6 +41,7 @@ import typer
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from .api import parse_message
+from .charts import month_name
 from .config import SITE_URL, Settings
 from .models import ResearchResult, strip_titles
 from .retry import call_with_retries
@@ -442,15 +446,12 @@ def write_run_digest(
 
 def write_digest(settings: Settings, digest: dict) -> Path:
     """Write the week file, then rebuild ``index.json`` and ``feed.xml`` from
-    every week file on disk."""
+    every digest file on disk."""
     digest_dir = settings.digest_dir
     digest_dir.mkdir(parents=True, exist_ok=True)
     path = digest_dir / f"{digest['week']}.json"
     _write(path, json.dumps(digest, ensure_ascii=False, indent=2))
-
-    weeks = load_weeks(digest_dir)
-    _write(digest_dir / "index.json", json.dumps(build_index(weeks), ensure_ascii=False, indent=2))
-    _write(digest_dir / "feed.xml", render_feed(weeks))
+    rebuild_listing(digest_dir)
     logger.info(
         "digest: wrote %s (%d items, %d countries changed)",
         path.relative_to(settings.root), len(digest["items"]), len(digest["changes"]),
@@ -458,23 +459,44 @@ def write_digest(settings: Settings, digest: dict) -> Path:
     return path
 
 
+def rebuild_listing(digest_dir: Path) -> None:
+    """Rewrite ``index.json`` and ``feed.xml`` from the week and month files."""
+    weeks = load_weeks(digest_dir)
+    months = load_months(digest_dir)
+    _write(digest_dir / "index.json", json.dumps(build_index(weeks, months), ensure_ascii=False, indent=2))
+    _write(digest_dir / "feed.xml", render_feed(weeks, months))
+
+
 def load_weeks(digest_dir: Path) -> list[dict]:
     """Every week file, newest first."""
-    weeks = []
-    for path in digest_dir.glob("????-W??.json"):
-        try:
-            weeks.append(json.loads(path.read_text(encoding="utf-8")))
-        except (OSError, ValueError):
-            logger.warning("digest: skipping unreadable %s", path.name)
+    weeks = _load(digest_dir, "????-W??.json")
     weeks.sort(key=lambda d: d.get("week", ""), reverse=True)
     return weeks
 
 
-def build_index(weeks: list[dict]) -> dict:
+def load_months(digest_dir: Path) -> list[dict]:
+    """Every monthly trend piece (``YYYY-MM.json``), newest first."""
+    months = [d for d in _load(digest_dir, "????-??.json") if d.get("kind") == "monthly"]
+    months.sort(key=lambda d: d.get("month", ""), reverse=True)
+    return months
+
+
+def _load(digest_dir: Path, pattern: str) -> list[dict]:
+    documents = []
+    for path in digest_dir.glob(pattern):
+        try:
+            documents.append(json.loads(path.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            logger.warning("digest: skipping unreadable %s", path.name)
+    return documents
+
+
+def build_index(weeks: list[dict], months: list[dict] = ()) -> dict:
     return {
         "schema_version": SCHEMA_VERSION,
         "weeks": [
             {
+                "kind": "weekly",
                 "week": d["week"],
                 "date": d["date"],
                 "run_id": d["run_id"],
@@ -484,6 +506,19 @@ def build_index(weeks: list[dict]) -> dict:
                 "file": f"{d['week']}.json",
             }
             for d in weeks
+        ],
+        "months": [
+            {
+                "kind": "monthly",
+                "month": d["month"],
+                "date": d["date"],
+                "run_id": d.get("run_id"),
+                "model": d["model"],
+                "section_count": len(d["sections"]),
+                "chart_count": len(d["charts"]),
+                "file": f"{d['month']}.json",
+            }
+            for d in months
         ],
     }
 
@@ -501,7 +536,7 @@ _FEED = """<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>{feed_id}</id>
   <title>AI Regulation Map: weekly changes</title>
-  <subtitle>Score and law changes from each research run, with sources.</subtitle>
+  <subtitle>Score and law changes from each research run, and a monthly trend piece, with sources.</subtitle>
   <updated>{updated}</updated>
   <link rel="self" type="application/atom+xml" href="{feed_id}"/>
   <link rel="alternate" type="text/html" href="{site}/changes.html"/>
@@ -521,9 +556,15 @@ _ENTRY = """  <entry>
 """
 
 
-def render_feed(weeks: list[dict], *, site: str = SITE_URL) -> str:
-    """Atom 1.0 document for ``weeks`` (newest first)."""
-    shown = weeks[:_MAX_FEED_ENTRIES]
+def render_feed(weeks: list[dict], months: list[dict] = (), *, site: str = SITE_URL) -> str:
+    """Atom 1.0 document for ``weeks`` and monthly pieces, newest first by
+    publication date (a monthly piece before the week published with it)."""
+    documents = sorted(
+        [*weeks, *months],
+        key=lambda d: (d.get("date", ""), d.get("kind") == "monthly", d.get("week") or d.get("month", "")),
+        reverse=True,
+    )
+    shown = documents[:_MAX_FEED_ENTRIES]
     updated = max((d["generated_at"] for d in shown), default=None)
     entries = "".join(_entry(d, site) for d in shown)
     return _FEED.format(
@@ -535,11 +576,17 @@ def render_feed(weeks: list[dict], *, site: str = SITE_URL) -> str:
 
 
 def _entry(digest: dict, site: str) -> str:
+    if digest.get("kind") == "monthly":
+        link = f"{site}/changes.html?month={digest['month']}"
+        title, content = monthly_entry_title(digest), monthly_entry_html(digest, site)
+    else:
+        link = f"{site}/changes.html?week={digest['week']}"
+        title, content = entry_title(digest), entry_html(digest, site)
     return _ENTRY.format(
-        link=f"{site}/changes.html?week={digest['week']}",
-        title=html.escape(entry_title(digest)),
+        link=link,
+        title=html.escape(title),
         updated=_rfc3339(digest["generated_at"]),
-        content=html.escape(entry_html(digest, site)),
+        content=html.escape(content),
     )
 
 
@@ -572,6 +619,44 @@ def entry_html(digest: dict, site: str = SITE_URL) -> str:
     parts.append(
         f'<p>Run {html.escape(digest["date"])}, model {html.escape(digest["model"])}. '
         f'<a href="{site}/changes.html?week={digest["week"]}">Read on the site</a>.</p>'
+    )
+    return "".join(parts)
+
+
+def monthly_entry_title(piece: dict) -> str:
+    year, month = piece["month"].split("-")
+    return f"Trends, {month_name(int(month))} {year}"
+
+
+def monthly_entry_html(piece: dict, site: str = SITE_URL) -> str:
+    """A monthly piece as feed HTML: lead, sections with their sources, the
+    drift sentence, and a pointer to the charts (inline SVG is left out:
+    most feed readers strip it)."""
+    parts = [f"<p>{html.escape(piece['lead'])}</p>"]
+    for section in piece["sections"]:
+        links = ", ".join(
+            f'<a href="{html.escape(u, quote=True)}">{html.escape(_host(u))}</a>'
+            for u in section["sources"]
+        )
+        parts.append(
+            f"<h3>{html.escape(section['heading'])}</h3>"
+            f"<p>{html.escape(section['text'])} Sources: {links}.</p>"
+        )
+    drift = piece.get("drift")
+    if drift:
+        href = drift["href"]
+        href = f"{site}{href}" if href.startswith("/") else href
+        parts.append(
+            f"<p>{html.escape(drift['text'])} "
+            f'<a href="{html.escape(href, quote=True)}">{html.escape(drift["label"])}</a>.</p>'
+        )
+    page = f"{site}/changes.html?month={piece['month']}"
+    if piece["charts"]:
+        titles = "; ".join(html.escape(chart["title"]) for chart in piece["charts"])
+        parts.append(f'<p>Charts on the site: <a href="{page}">{titles}</a>.</p>')
+    parts.append(
+        f'<p>Published {html.escape(piece["date"])}, model {html.escape(piece["model"])}. '
+        f'<a href="{page}">Read on the site</a>.</p>'
     )
     return "".join(parts)
 
@@ -693,20 +778,37 @@ def _scores_row(country: str, snapshot_scores: dict) -> dict:
 
 
 def _regenerate(
-    run: str = typer.Option(..., "--run", help="research_runs.id of the run to regenerate"),
-    model: str = typer.Option("", help="Claude model (default: the model recorded on the run)"),
+    run: str = typer.Option("", "--run", help="research_runs.id of the run to regenerate"),
+    monthly: str = typer.Option(
+        "", "--monthly", metavar="YYYY-MM",
+        help="Regenerate the monthly trend piece for this month from the stored week files "
+        "and history.json",
+    ),
+    model: str = typer.Option(
+        "", help="Claude model (default: the model recorded on the run; for --monthly, the "
+        "pipeline default)",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose (DEBUG) logging"),
 ) -> None:
-    """Regenerate the weekly digest for a past run from Supabase score_history.
+    """Regenerate the weekly digest for a past run from Supabase score_history,
+    or a monthly trend piece from the files on disk.
 
-    Needs SUPABASE_URL, SUPABASE_SERVICE_KEY and ANTHROPIC_API_KEY. Regenerated
-    digests cover score changes only: the database keeps no history of the
-    regulation text.
+    --run needs SUPABASE_URL, SUPABASE_SERVICE_KEY and ANTHROPIC_API_KEY.
+    Regenerated digests cover score changes only: the database keeps no
+    history of the regulation text. --monthly needs ANTHROPIC_API_KEY.
     """
     from .cli import configure_logging
-    from .db.client import SupabaseClient
 
     configure_logging(verbose)
+    if bool(run) == bool(monthly):
+        logger.error("pass exactly one of --run <id> or --monthly YYYY-MM")
+        raise typer.Exit(code=1)
+    if monthly:
+        _regenerate_monthly(monthly, model)
+        return
+
+    from .db.client import SupabaseClient
+
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_SERVICE_KEY")
     api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -735,6 +837,35 @@ def _regenerate(
     client = anthropic.Anthropic(api_key=api_key, max_retries=0)
     try:
         write_run_digest(result, client=client, settings=settings, model=digest_model, run_date=run_date)
+    except DigestError as exc:
+        logger.error("%s", exc)
+        raise typer.Exit(code=2) from exc
+
+
+def _regenerate_monthly(month_key: str, model: str) -> None:
+    from .monthly import Month, write_monthly
+
+    try:
+        month = Month.parse(month_key)
+    except ValueError as exc:
+        logger.error("%s", exc)
+        raise typer.Exit(code=1) from exc
+    today = date.today()
+    if month.last_day >= today:
+        logger.error("%s has not ended yet; a monthly piece covers a whole month", month.key)
+        raise typer.Exit(code=1)
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        logger.error("ANTHROPIC_API_KEY environment variable not set")
+        raise typer.Exit(code=1)
+
+    settings = Settings().validate()
+    # SDK-level silent retries stay off; retry.py does explicit, logged retries.
+    client = anthropic.Anthropic(api_key=api_key, max_retries=0)
+    try:
+        write_monthly(
+            settings, month, client=client, model=model or settings.default_model, run_date=today,
+        )
     except DigestError as exc:
         logger.error("%s", exc)
         raise typer.Exit(code=2) from exc
