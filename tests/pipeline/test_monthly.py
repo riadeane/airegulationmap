@@ -103,13 +103,17 @@ AUG_URL = "https://aug.example.fr/policy"
 OCT_URL = "https://brazil.gov.br/ia"
 
 
-def week_doc(day: date, items: list[dict]) -> dict:
+def week_doc(day: date, items: list[dict], *, scored: bool = True) -> dict:
+    """A week file as digest.py writes it. Every item here reports a score
+    change, so its ``changes`` row carries ``scores`` unless ``scored`` is
+    off (a calibration-break run reports none)."""
+    scores = {"regulation_status": {"old": 3.0, "new": 3.25}} if scored else {}
     return {
         "schema_version": 1, "week": digest_mod.week_of(day), "date": day.isoformat(),
         "generated_at": datetime(day.year, day.month, day.day, 6, 30, tzinfo=UTC).isoformat(),
         "run_id": f"run-{day.isoformat()}", "model": "claude-test", "prompt_version": "digest-v1",
         "calibration_break": None, "lead": "Lead.", "items": items,
-        "changes": [{"country": i["country"]} for i in items],
+        "changes": [{"country": i["country"], "scores": scores} for i in items],
     }
 
 
@@ -222,7 +226,10 @@ class TestThreeMonthPiece:
             assert url in prompt
         assert AUG_URL not in prompt and OCT_URL not in prompt
         assert "Month: September 2026 (2026-09-01 to 2026-09-30)" in prompt
-        assert "- European Union (2): " in prompt
+        # Bloc figures for the 13 weeks and for the month itself: the EU's
+        # +0.12 over the window includes France's August rise.
+        assert "- European Union (2): 13 weeks 3.00 -> 3.12 (+0.12); September 2026 3.08 -> 3.12 (+0.04)" in prompt
+        assert "Use a bloc's figures within the month for the month" in prompt
         assert "- Germany: 3.00 -> 3.25 (+0.25)" in prompt
         assert "### Week 37, 2026 (run 2026-09-07)" in prompt
         assert "British English" in prompt and "Do not use em dashes" in prompt
@@ -378,6 +385,81 @@ class TestSteps:
         assert steps[0].scores[MATURITY] is None and steps[1].scores[MATURITY] == 2.0
 
 
+def replay_with_hold(held_on: date, lands_on: date, *, break_on: date | None = None) -> dict:
+    """Weekly runs where Germany's move to regulationStatus 3.75 is held by
+    the gate on ``held_on`` (history untouched, as Dataset.apply does) and
+    lands on ``lands_on``. With ``break_on``, an ungated recalibration on
+    that day moves every country's enforcement to 2.0."""
+    history: dict = {"schema_version": 1, "countries": {}}
+    for day in RUNS:
+        for country in ("Germany", "Kenya"):
+            scores = scores_on(country, date(2026, 7, 1))
+            if country == "Germany" and day >= lands_on:
+                scores["regulationStatus"] = 3.75
+            if break_on is not None and day >= break_on:
+                scores["enforcementLevel"] = 2.0
+            scores["averageScore"] = round(
+                (scores["regulationStatus"] + scores["policyLever"] + scores["enforcementLevel"]) / 3, 2
+            )
+            if country == "Germany" and day == held_on:
+                continue  # held: the gate leaves history as it was
+            append_snapshot(history, country, {"date": day.isoformat(), **scores})
+    if break_on is not None:
+        history["breaks"] = [{"date": break_on.isoformat(), "model": "m", "prompt_version": "v", "reason": "Model switch"}]
+    return history
+
+
+class TestHeldChanges:
+    def test_a_held_change_counts_in_the_month_its_digest_reported_it(self, tmp_path):
+        # Held on 28 Sep, applied on 5 Oct: history keeps Germany dated 21 Sep,
+        # so without the week file the move would look like September's.
+        settings = seed(tmp_path, history=replay_with_hold(date(2026, 9, 28), OCT_RUN), weeks=False)
+        write_digest(settings, week_doc(date(2026, 9, 28), []))
+        write_digest(settings, week_doc(OCT_RUN, [item("Germany", DE_URL)]))
+        assert gather(settings, SEPTEMBER).moves == []
+        [move] = gather(settings, Month(2026, 10)).moves
+        assert move.country == "Germany" and move.deltas["regulationStatus"] == 0.75
+
+    def test_without_a_digest_the_estimate_is_the_first_run_after(self, tmp_path):
+        settings = seed(tmp_path, history=replay_with_hold(date(2026, 9, 28), OCT_RUN), weeks=False)
+        drift = json.loads(settings.drift_json.read_text())
+        drift["checks"].append({"date": "2026-09-28", "within_one": 0.9})  # the 28 Sep run is known
+        settings.drift_json.write_text(json.dumps(drift))
+        [move] = gather(settings, SEPTEMBER).moves  # one run early, as documented
+        assert move.country == "Germany"
+
+    def test_a_recalibration_after_a_hold_is_not_movement(self, tmp_path):
+        # Germany held on 14 Sep; the ungated break on 21 Sep applies its move
+        # and re-measures enforcement. All of it is dated on the break.
+        history = replay_with_hold(date(2026, 9, 14), date(2026, 9, 21), break_on=date(2026, 9, 21))
+        settings = seed(tmp_path, history=history, weeks=False)
+        write_digest(settings, week_doc(date(2026, 9, 21), [], scored=False))
+        inputs = gather(settings, SEPTEMBER)
+        assert inputs.moves == []
+        assert inputs.month_breaks and inputs.breaks[0]["date"] == "2026-09-21"
+
+    def test_quiet_month_with_a_recalibration_says_so(self, tmp_path):
+        history = replay_with_hold(date(2026, 9, 14), date(2026, 9, 21), break_on=date(2026, 9, 21))
+        settings = seed(tmp_path, history=history, weeks=False)
+        write_digest(settings, week_doc(date(2026, 9, 21), [], scored=False))
+        client = FakeClient(NARRATIVE)
+        piece = json.loads(write_monthly(settings, SEPTEMBER, client=client, model="m", run_date=OCT_RUN).read_text())
+        assert client.messages.calls == []
+        assert piece["lead"] == (
+            "No policy-driven score changes in September 2026, and the weekly digests carry no sourced "
+            "changes. Scores were recalibrated on 21 September 2026 (Model switch), a re-measurement the "
+            "month's movement leaves out."
+        )
+
+    def test_reported_changes_reads_scored_rows_only(self):
+        weeks = [
+            {"date": "2026-09-07", "changes": [{"country": "A", "scores": {"x": {}}}, {"country": "B", "scores": {}}]},
+            {"date": "2026-09-14", "changes": [{"country": "A", "scores": {"y": {}}}, "junk"]},
+            {"date": "bad", "changes": [{"country": "C", "scores": {"x": {}}}]},
+        ]
+        assert monthly_mod.reported_changes(weeks) == {"A": [date(2026, 9, 7), date(2026, 9, 14)]}
+
+
 class TestMovement:
     def test_changes_on_a_calibration_break_are_left_out(self):
         steps = {"A": [
@@ -441,11 +523,22 @@ class TestDrift:
         assert drift_summary([{"date": "2026-08-31", "within_one": 0.9}], SEPTEMBER, href="h", label="l") is None
 
     def test_one_run(self):
-        drift = drift_summary([{"date": "2026-09-07", "within_one": 0.923}], SEPTEMBER, href="h", label="l")
+        drift = drift_summary([{"date": "2026-09-07", "within_one": 0.92}], SEPTEMBER, href="h", label="l")
         assert drift["text"] == (
             "The gold-set drift check ran once in September 2026: 92% of sub-indicators were within "
             "one point of the hand-checked scores."
         )
+
+    def test_a_share_just_under_the_threshold_never_prints_as_the_threshold(self):
+        drift = drift_summary([{"date": "2026-09-07", "within_one": 0.795}], SEPTEMBER, href="h", label="l")
+        assert "79.5% of sub-indicators" in drift["text"]
+        assert drift["text"].endswith("fell below the 80% warning threshold.")
+
+    def test_ranges_that_print_alike_read_as_equal(self):
+        checks = [{"date": "2026-09-07", "within_one": 0.9}, {"date": "2026-09-14", "within_one": 0.9001}]
+        assert "in each run 90% of" in drift_summary(checks, SEPTEMBER, href="h", label="l")["text"]
+        checks[1]["within_one"] = 0.895
+        assert "between 89.5% and 90% of" in drift_summary(checks, SEPTEMBER, href="h", label="l")["text"]
 
     def test_one_low_run(self):
         drift = drift_summary([{"date": "2026-09-07", "within_one": 0.7}], SEPTEMBER, href="h", label="l")
@@ -488,6 +581,8 @@ class TestNarrative:
     def test_prompt_names_calibration_breaks(self, tmp_path):
         breaks = [{"date": "2026-09-14", "model": "m", "prompt_version": "v", "reason": "Model switch"}]
         settings = seed(tmp_path, history=replay_history(breaks=breaks))
+        # A break run's week file reports no score changes (select_changes).
+        write_digest(settings, week_doc(date(2026, 9, 14), [item("Japan", JP_URL)], scored=False))
         inputs = gather(settings, SEPTEMBER)
         assert inputs.breaks == breaks and inputs.month_breaks == breaks
         prompt = render_prompt(inputs)
@@ -498,7 +593,13 @@ class TestNarrative:
         charts_by_id = {c.id: c for c in monthly_mod.build_charts(inputs)}
         assert "Recalibration" in charts_by_id["bloc-maturity"].svg
         assert "left out" in charts_by_id["dimension-movement"].caption
-        assert "now 3.25" in charts_by_id["top-movers"].svg
+        movers = charts_by_id["top-movers"]
+        assert "now 3.25" in movers.svg
+        # Start and end straddle the re-measurement: only the end is shown.
+        assert movers.table["columns"] == ["Country", "End of September 2026", "Change excluding the recalibration"]
+        assert movers.table["rows"][0] == ["Germany", "3.25", "+0.25"]
+        assert "- Germany: now 3.25, change excluding the recalibration +0.25" in prompt
+        assert "(the month's figures include the recalibration)" in prompt
 
 
 # -- the listing -----------------------------------------------------------------------
@@ -580,6 +681,40 @@ class TestCharts:
         paths = [p.get("d") for p in root.iter(f"{SVG}path") if p.get("stroke") == "#123456"]
         assert paths[0].count("M") == 2  # the gap lifts the pen
 
+    @pytest.mark.parametrize("low,high,expected", [
+        (3.0, 3.0, (2.9, 3.1)),
+        (5.0, 5.0, (4.9, 5.0)),
+        (1.0, 1.0, (1.0, 1.1)),
+        (1.9, 2.0, (1.9, 2.0)),
+        (1.25, 3.4, (1.0, 3.5)),
+    ])
+    def test_y_domain_stays_on_the_tick_grid(self, low, high, expected):
+        lo, hi, step = charts._y_domain(low, high)
+        assert (lo, hi) == expected
+        ticks = charts._ticks(lo, hi, step)
+        assert ticks[0] == lo and ticks[-1] == hi
+        assert len({charts._tick(t, step) for t in ticks}) == len(ticks)  # no two gridlines share a label
+
+    def test_flat_series_is_drawn_inside_the_plot(self):
+        for value in (1.0, 3.0, 5.0):
+            svg = charts.line_chart_svg(
+                window_dates(SEPTEMBER), [charts.Series("Flat", (value,) * 14, "#123456", "x", "h")],
+                ids=charts.ChartIds("t", "d"), title="T", desc="D",
+            )
+            root = ET.fromstring(svg)
+            height = float(root.get("height"))
+            ys = [float(line.get("y1")) for line in root.iter(f"{SVG}line") if line.get("x1") != line.get("x2")]
+            assert all(0 <= y <= height for y in ys)
+
+    def test_xml_illegal_characters_are_dropped(self):
+        svg = charts.line_chart_svg(
+            window_dates(SEPTEMBER), [charts.Series("A\x0cB", (2.0,) * 14, "#123456", "x", "h\x00")],
+            ids=charts.ChartIds("t", "d"), title="T\x1f", desc="D",
+            markers=[(date(2026, 9, 14), "Recalibration", "reason \x0b")],
+        )
+        root = ET.fromstring(svg)  # well-formed
+        assert "AB" in "".join(root.itertext())
+
     def test_empty_charts_render_a_message(self):
         ids = charts.ChartIds("t", "d")
         svg = charts.line_chart_svg(window_dates(SEPTEMBER), [], ids=ids, title="T", desc="D", empty="Nothing.")
@@ -656,6 +791,26 @@ class TestBackfillCli:
         monkeypatch.setattr(digest_mod, "Settings", lambda: settings)
         monkeypatch.setattr(digest_mod.anthropic, "Anthropic", lambda **kw: FakeClient({"bad": 1}))
         assert runner.invoke(_digest_app(), ["--monthly", "2026-09"]).exit_code == 2
+
+
+@pytest.mark.filterwarnings("ignore:'regulation_pipeline.digest' found in sys.modules:RuntimeWarning")
+def test_module_cli_exits_2_when_generation_fails(monkeypatch, tmp_path):
+    # `python -m regulation_pipeline.digest` runs the module as __main__, a
+    # second copy of digest.py; DigestError raised by monthly.py must still
+    # be caught there.
+    import runpy
+    import sys
+
+    import anthropic
+
+    settings = seed(tmp_path)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    monkeypatch.setattr("regulation_pipeline.config.Settings.validate", lambda self: settings)
+    monkeypatch.setattr(anthropic, "Anthropic", lambda **kw: FakeClient({"bad": 1}))
+    monkeypatch.setattr(sys, "argv", ["digest", "--monthly", "2026-08"])
+    with pytest.raises(SystemExit) as exit_info:
+        runpy.run_module("regulation_pipeline.digest", run_name="__main__")
+    assert exit_info.value.code == 2
 
 
 class TestScheduledTrigger:

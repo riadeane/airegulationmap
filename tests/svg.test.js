@@ -106,6 +106,24 @@ describe('sanitizeSvg', () => {
     expect(sanitizeSvg(tree).children[0].attrs).toEqual([['opacity', '0.5']]);
   });
 
+  it('drops url() spelled with CSS escapes and any non-colour paint', () => {
+    const tree = svg([
+      node('rect', { fill: '\\75 rl(https://attacker.example/p.svg#g)', stroke: 'u\\rl(https://attacker.example/q.svg#g)' }),
+      node('rect', { fill: 'attr(data-x)', stroke: 'context-stroke' }),
+      node('path', { fill: '#348dcf', stroke: 'currentColor' }),
+      node('path', { fill: 'none', stroke: ' #C74C41 ' }),
+      node('text', { 'font-family': 'Geist\\, x' }),
+    ]);
+    const attrs = sanitizeSvg(tree).children.map((child) => child.attrs);
+    expect(attrs).toEqual([
+      [],
+      [],
+      [['fill', '#348dcf'], ['stroke', 'currentColor']],
+      [['fill', 'none'], ['stroke', ' #C74C41 ']],
+      [],
+    ]);
+  });
+
   it('rejects a root that is not svg', () => {
     expect(sanitizeSvg(node('g', {}, [node('rect')]))).toBeNull();
     expect(sanitizeSvg(node('html'))).toBeNull();

@@ -476,10 +476,13 @@ readers strip inline SVG); `changes.html?month=YYYY-MM` renders it.
   snapshot's date is its last confirmation, not the day it took effect. A
   "latest snapshot on or before the day" lookup would therefore push most
   changes into the month of the latest run. `country_steps` dates each change
-  on the first known run (history dates, week files, breaks, drift rows) after
-  the previous snapshot's date: exact under weekly full runs, the earliest
-  possible date otherwise. The first snapshot is carried back, as the app's
-  timeline does.
+  inside (previous snapshot's date, its own date] on, in order: the run whose
+  week file reported the country's score change (exact); a calibration break
+  (an ungated run applies every change); the first known run (history dates,
+  week files, breaks, drift rows). The last is an estimate that is one run
+  early when the gate held the change or the research failed on that run,
+  because neither advances the snapshot date. The first snapshot is carried
+  back, as the app's timeline does.
 - **Charts.** Three static SVGs built in Python with the standard library
   (`charts.py`) and embedded in the JSON with a preformatted table and the raw
   data: each bloc's mean maturity index at 14 weekly points over the 13 weeks

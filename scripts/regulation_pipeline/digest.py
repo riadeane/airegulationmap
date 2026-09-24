@@ -43,6 +43,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from .api import parse_message
 from .charts import month_name
 from .config import SITE_URL, Settings
+from .errors import DigestError
 from .models import ResearchResult, strip_titles
 from .retry import call_with_retries
 from .service import CountryChange, RunResult
@@ -66,10 +67,6 @@ _BREAK_LEAD = (
 # Dimension key -> CSV column, in canonical order.
 SCORE_COLUMNS: dict[str, str] = {dim.key: dim.column for dim in ResearchResult.DIMENSIONS}
 _HISTORY_KEYS: dict[str, str] = {dim.history_key: dim.key for dim in ResearchResult.DIMENSIONS}
-
-
-class DigestError(RuntimeError):
-    """The digest could not be generated (the run itself is unaffected)."""
 
 
 # -- structured output -----------------------------------------------------------

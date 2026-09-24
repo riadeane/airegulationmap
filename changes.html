@@ -482,6 +482,13 @@
       .change { break-inside: avoid; }
       .change-new { background: #f2f2f2; color: #333; }
       .trend-figure { break-inside: avoid; }
+      /* Paper is always white: the dark theme's light text tokens would
+         print near-invisible, so every theme prints with dark ink. */
+      :root, :root:not([data-theme]), :root[data-theme] {
+        --text-primary: black;
+        --text-secondary: #222;
+        --text-tertiary: #555;
+      }
       /* currentColor follows the screen theme; paper is always white. */
       .trend-figure svg { color: black; }
       .trend-figure .mark-ring { stroke: white; }

@@ -18,10 +18,13 @@ Reading ``history.json`` as a time series needs care. It stores change
 points, and re-researching a country without a change *advances the last
 snapshot's date* (``history.py``), so a snapshot's date is the last day it was
 confirmed, not the day it took effect. A plain "latest snapshot on or before
-the date" lookup would put most changes in the wrong month. Here a change
-takes effect on the first known run after the previous snapshot's last
-confirmation (:func:`country_steps`): exact when every run researches every
-country (the weekly default), the earliest possible date otherwise.
+the date" lookup would put most changes in the wrong month. Here
+(:func:`country_steps`) a change is dated, in order of preference, on the run
+whose weekly digest reported the country's score change, on a calibration
+break between the two snapshots, or else on the first known run after the
+previous snapshot's date. The last is an estimate: a run where the gate held
+the change or the research failed leaves the date where it was, so without a
+digest such a change is dated one run early.
 
 Score changes dated on a calibration break (``history.json`` ``breaks``) are
 a re-measurement, not policy movement: the bloc chart marks the break, and
@@ -50,7 +53,8 @@ from . import charts
 from .api import parse_message
 from .charts import fixed, long_date, short_date, signed
 from .config import Settings
-from .digest import DigestError, _plain, _write, load_weeks, rebuild_listing
+from .digest import _plain, _write, load_weeks, rebuild_listing
+from .errors import DigestError
 from .gold import WARN_WITHIN_ONE
 from .models import ResearchResult, strip_titles
 from .retry import call_with_retries
@@ -86,6 +90,10 @@ BLOC_SLOTS: dict[str, int] = {
 _RAMP_SIZE = 8
 
 _QUIET_LEAD = "No country's scores moved in {month}, and the weekly digests carry no sourced changes."
+_QUIET_BREAK_LEAD = (
+    "No policy-driven score changes in {month}, and the weekly digests carry no sourced changes. "
+    "Scores were recalibrated on {days}, a re-measurement the month's movement leaves out."
+)
 
 
 # -- months ------------------------------------------------------------------
@@ -172,10 +180,24 @@ def known_run_dates(
     return sorted(d for d in days if d is not None)
 
 
-def country_steps(snapshots: Iterable[Mapping], run_dates: Sequence[date]) -> list[Step]:
-    """A country's snapshots as steps, oldest first. Snapshot ``k`` took
-    effect on the first run date after snapshot ``k-1``'s date (its last
-    confirmation) and no later than its own date."""
+def country_steps(
+    snapshots: Iterable[Mapping],
+    run_dates: Sequence[date],
+    *,
+    reported: Iterable[date] = (),
+    breaks: Iterable[date] = (),
+) -> list[Step]:
+    """A country's snapshots as steps, oldest first.
+
+    Snapshot ``k`` took effect after snapshot ``k-1``'s date (its last
+    confirmation) and no later than its own date. Within that interval the
+    change is dated on the first of: a run whose week file reported this
+    country's score change (``reported``, exact); a calibration break
+    (``breaks``: an ungated run applies every change); the first known run
+    (``run_dates``, sorted), which is one run early when the gate held the
+    change or the research failed on that run.
+    """
+    evidence = (sorted(set(reported)), sorted(set(breaks)), list(run_dates))
     dated = sorted(
         ((day, s) for s in snapshots if (day := _parse_date(s.get("date"))) is not None),
         key=lambda pair: pair[0],
@@ -185,11 +207,32 @@ def country_steps(snapshots: Iterable[Mapping], run_dates: Sequence[date]) -> li
     for day, snapshot in dated:
         since: date | None = None
         if confirmed is not None:
-            i = bisect.bisect_right(run_dates, confirmed)
-            since = run_dates[i] if i < len(run_dates) and run_dates[i] <= day else day
+            since = next(
+                (found for days in evidence if (found := _first_between(days, confirmed, day))), day,
+            )
         steps.append(Step(since, {key: _score(snapshot.get(key)) for key in SCORE_KEYS}))
         confirmed = day
     return steps
+
+
+def _first_between(days: Sequence[date], after: date, until: date) -> date | None:
+    """The first of the sorted ``days`` in ``(after, until]``."""
+    i = bisect.bisect_right(days, after)
+    return days[i] if i < len(days) and days[i] <= until else None
+
+
+def reported_changes(weeks: Iterable[Mapping]) -> dict[str, list[date]]:
+    """Country -> the run dates whose week file reported a score change for
+    it. Calibration-break runs report none (``digest.select_changes``)."""
+    reported: dict[str, list[date]] = {}
+    for week in weeks:
+        day = _parse_date(week.get("date"))
+        if day is None:
+            continue
+        for change in week.get("changes", []):
+            if isinstance(change, dict) and change.get("scores") and isinstance(change.get("country"), str):
+                reported.setdefault(change["country"], []).append(day)
+    return reported
 
 
 def _score(value: object) -> float | None:
@@ -387,7 +430,7 @@ def drift_summary(checks: Iterable[Mapping], month: Month, *, href: str, label: 
     low, high = min(shares), max(shares)
     if len(shares) == 1:
         spread = f"{_pct(low)} of sub-indicators were"
-    elif low == high:
+    elif _pct(low) == _pct(high):
         spread = f"in each run {_pct(low)} of sub-indicators were"
     else:
         spread = f"between {_pct(low)} and {_pct(high)} of sub-indicators were"
@@ -405,7 +448,9 @@ def drift_summary(checks: Iterable[Mapping], month: Month, *, href: str, label: 
 
 
 def _pct(share: float) -> str:
-    return f"{round(share * 100)}%"
+    """'92%', '79.5%': one decimal when it matters, so a share just under the
+    warning threshold never prints as the threshold itself."""
+    return f"{share * 100:.1f}".rstrip("0").rstrip(".") + "%"
 
 
 def drift_link(settings: Settings) -> tuple[str, str]:
@@ -470,6 +515,9 @@ class MonthInputs:
     movers: list[CountryMove]
     breaks: list[dict] = field(default_factory=list)  # calibration breaks inside the window
     drift: dict | None = None
+    # Each bloc's mean at the end of the previous month and of this one,
+    # for the prompt: the chart's series spans the 13-week window.
+    bloc_month: list[BlocSeries] = field(default_factory=list)
 
     @property
     def month_breaks(self) -> list[dict]:
@@ -481,24 +529,31 @@ def gather(settings: Settings, month: Month) -> MonthInputs:
     weeks = load_weeks(settings.digest_dir)
     checks = _load_json(settings.drift_json, {}).get("checks", [])
     runs = known_run_dates(history, weeks, checks)
-    steps = {country: country_steps(snaps, runs) for country, snaps in history.get("countries", {}).items()}
-    dates = window_dates(month)
     all_breaks = [b for b in history.get("breaks", []) if _parse_date(b.get("date"))]
-    breaks = [dict(b) for b in all_breaks if dates[0] < _parse_date(b["date"]) <= dates[-1]]
-    moves = month_moves(steps, month, (_parse_date(b["date"]) for b in all_breaks))
+    break_days = [_parse_date(b["date"]) for b in all_breaks]
+    reported = reported_changes(weeks)
+    steps = {
+        country: country_steps(snaps, runs, reported=reported.get(country, ()), breaks=break_days)  # type: ignore[arg-type]
+        for country, snaps in history.get("countries", {}).items()
+    }
+    dates = window_dates(month)
+    breaks = [dict(b) for b in all_breaks if dates[0] < _parse_date(b["date"]) <= dates[-1]]  # type: ignore[operator]
+    moves = month_moves(steps, month, break_days)  # type: ignore[arg-type]
     ours = month_weeks(weeks, month)
+    blocs = load_blocs(settings.blocs_json)
     href, label = drift_link(settings)
     return MonthInputs(
         month=month,
         weeks=ours,
         items=month_items(ours),
         dates=dates,
-        blocs=bloc_series(load_blocs(settings.blocs_json), steps, dates),
+        blocs=bloc_series(blocs, steps, dates),
         movement=dimension_movement(moves),
         moves=moves,
         movers=top_movers(moves),
         breaks=breaks,
         drift=drift_summary(checks, month, href=href, label=label),
+        bloc_month=bloc_series(blocs, steps, [month.first_day - timedelta(days=1), month.last_day]),
     )
 
 
@@ -686,13 +741,23 @@ def movers_chart(inputs: MonthInputs) -> Chart:
             else f"the end of {previous.label} and of {month.label}"
         )
         caption = f"{who} during {month.label}{order}, with the index at {when}." + _break_note(inputs.month_breaks)
-    table = {
-        "columns": ["Country", f"End of {previous.label}", f"End of {month.label}", "Change"],
-        "rows": [
-            [m.country, fixed(m.start.get(MATURITY)), fixed(m.end.get(MATURITY)), signed(m.deltas[MATURITY])]
-            for m in inputs.movers
-        ],
-    }
+    if recalibrated:
+        # The boundary values straddle the re-measurement; only the end
+        # value sits beside a change that leaves it out.
+        table = {
+            "columns": ["Country", f"End of {month.label}", "Change excluding the recalibration"],
+            "rows": [
+                [m.country, fixed(m.end.get(MATURITY)), signed(m.deltas[MATURITY])] for m in inputs.movers
+            ],
+        }
+    else:
+        table = {
+            "columns": ["Country", f"End of {previous.label}", f"End of {month.label}", "Change"],
+            "rows": [
+                [m.country, fixed(m.start.get(MATURITY)), fixed(m.end.get(MATURITY)), signed(m.deltas[MATURITY])]
+                for m in inputs.movers
+            ],
+        }
     data = {"rows": [
         {"country": m.country, "start": m.start.get(MATURITY), "end": m.end.get(MATURITY),
          "change": m.deltas[MATURITY]}
@@ -739,7 +804,7 @@ You get two inputs, both below:
 Scores run from 1 to 5. The maturity index is the mean of regulation status, policy lever and enforcement level. Governance type and actor involvement are descriptive scales: a higher score is neither better nor worse.
 
 Return:
-- "lead": two or three sentences, at most 70 words, that state the direction of movement in the month: which blocs and dimensions moved and by how much, taken from the chart data.
+- "lead": two or three sentences, at most 70 words, that state the direction of movement in the month: which blocs and dimensions moved during the month and by how much, taken from the chart data. Use a bloc's figures within the month for the month, and its 13-week figures only when you say they cover the 13 weeks.
 - "sections": up to four sections that explain the movement with the digest items behind it, each with:
   - "heading": at most 8 words.
   - "text": two to four sentences, at most 110 words. Name the countries and instruments from the digest items and give the score changes.
@@ -799,12 +864,25 @@ def _p(value: float | None) -> str:
 
 def _chart_block(inputs: MonthInputs, dates: Sequence[date]) -> str:
     month = inputs.month
-    lines = [f"Bloc mean maturity index, {dates[0].isoformat()} to {dates[-1].isoformat()} (members scored):"]
+    recalibrated = bool(inputs.month_breaks)
+    lines = [
+        f"Bloc mean maturity index (members scored): over the {WINDOW_WEEKS} weeks "
+        f"{dates[0].isoformat()} to {dates[-1].isoformat()}, and within {month.label}"
+        + (" (the month's figures include the recalibration)" if recalibrated else "") + ":"
+    ]
+    in_month = {s.key: s for s in inputs.bloc_month}
     for s in inputs.blocs:
         if s.last is None:
             lines.append(f"- {s.name}: no scored members")
-        else:
-            lines.append(f"- {s.name} ({s.scored}): {fixed(s.first)} -> {fixed(s.last)} ({_p(s.change)})")
+            continue
+        line = f"- {s.name} ({s.scored}): {WINDOW_WEEKS} weeks {fixed(s.first)} -> {fixed(s.last)} ({_p(s.change)})"
+        month_series = in_month.get(s.key)
+        if month_series is not None and month_series.change is not None:
+            line += (
+                f"; {month.label} {fixed(month_series.first)} -> {fixed(month_series.last)} "
+                f"({_p(month_series.change)})"
+            )
+        lines.append(line)
     lines.append(f"\nNet movement by dimension across all countries in {month.label}:")
     for m in inputs.movement:
         lines.append(
@@ -818,10 +896,16 @@ def _chart_block(inputs: MonthInputs, dates: Sequence[date]) -> str:
         other = ", ".join(
             f"{LABELS[k]} {_p(v)}" for k, v in m.deltas.items() if k != MATURITY
         )
-        lines.append(
-            f"- {m.country}: {fixed(m.start.get(MATURITY))} -> {fixed(m.end.get(MATURITY))} "
-            f"({_p(m.deltas[MATURITY])}); {other}"
-        )
+        if recalibrated:
+            lines.append(
+                f"- {m.country}: now {fixed(m.end.get(MATURITY))}, change excluding the recalibration "
+                f"{_p(m.deltas[MATURITY])}; {other}"
+            )
+        else:
+            lines.append(
+                f"- {m.country}: {fixed(m.start.get(MATURITY))} -> {fixed(m.end.get(MATURITY))} "
+                f"({_p(m.deltas[MATURITY])}); {other}"
+            )
     return "\n".join(lines) + "\n"
 
 
@@ -931,6 +1015,18 @@ def build_piece(
     }
 
 
+def _quiet_lead(inputs: MonthInputs) -> str:
+    """The fixed lead for a month with no movement and no digest item. A
+    recalibration in the month moved every score, so it is named."""
+    if inputs.month_breaks:
+        days = ", ".join(
+            f"{long_date(_parse_date(b['date']))} ({b.get('reason') or 'calibration reset'})"  # type: ignore[arg-type]
+            for b in inputs.month_breaks
+        )
+        return _QUIET_BREAK_LEAD.format(month=inputs.month.label, days=days)
+    return _QUIET_LEAD.format(month=inputs.month.label)
+
+
 def write_monthly(
     settings: Settings,
     month: Month,
@@ -952,7 +1048,7 @@ def write_monthly(
             raise DigestError("an Anthropic client is required for the monthly narrative")
         text = generate(client, inputs, model=model)
     else:
-        text = MonthlyText(lead=_QUIET_LEAD.format(month=month.label), sections=[])
+        text = MonthlyText(lead=_quiet_lead(inputs), sections=[])
     piece = build_piece(
         inputs, text, run_id=run_id, model=model, run_date=run_date, generated_at=now or datetime.now(UTC),
     )

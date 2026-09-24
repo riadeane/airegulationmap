@@ -356,7 +356,10 @@ function renderMonthly(
     el('p', { class: 'doc-subtitle' }, [trendSubtitle(piece)]),
     renderMonthlyMeta(piece, entry),
   );
-  if (piece.calibrationBreaks.length) root.append(renderBreaks(piece.calibrationBreaks));
+  // Breaks earlier in the 13-week window are marked on the bloc chart; only
+  // one inside the month is left out of the month's movement.
+  const monthBreaks = piece.calibrationBreaks.filter((b) => b.date.startsWith(`${piece.month}-`));
+  if (monthBreaks.length) root.append(renderBreaks(monthBreaks));
   if (piece.lead) root.append(el('p', { class: 'digest-lead' }, [piece.lead]));
 
   piece.charts.forEach((chart, i) => root.append(renderFigure(chart, i)));

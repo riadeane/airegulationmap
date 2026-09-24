@@ -45,7 +45,14 @@ export const SVG_ATTRIBUTES: ReadonlySet<string> = new Set([
 ]);
 
 // Values that could fetch or run something even on an allowed attribute.
-const UNSAFE_VALUE_RE = /url\s*\(|javascript:|data:|expression\s*\(/i;
+// A backslash is rejected outright: CSS escapes ('\\75 rl(', 'u\\rl(') would
+// otherwise spell url( past the pattern, and the charts never emit one.
+const UNSAFE_VALUE_RE = /url\s*\(|javascript:|data:|expression\s*\(|\\/i;
+
+// Paint attributes take only the shapes the charts emit: a hex colour,
+// currentColor or none. Anything else (a paint server, a CSS function) goes.
+const PAINT_ATTRIBUTES: ReadonlySet<string> = new Set(['fill', 'stroke']);
+const SAFE_PAINT_RE = /^(none|currentColor|#[0-9a-fA-F]{3,8})$/;
 
 // Inside these, whitespace between runs renders ('Label <tspan>3.38</tspan>'),
 // so whitespace-only text is kept; elsewhere it is only indentation.
@@ -62,6 +69,7 @@ function safeAttrs(node: SvgSourceNode): [string, string][] {
     const { name, value } = list[i];
     // Exact match: prefixed names (xlink:href, xml:space) never pass.
     if (!SVG_ATTRIBUTES.has(name) || UNSAFE_VALUE_RE.test(value)) continue;
+    if (PAINT_ATTRIBUTES.has(name) && !SAFE_PAINT_RE.test(value.trim())) continue;
     attrs.push([name, value]);
   }
   return attrs;

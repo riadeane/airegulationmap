@@ -25,6 +25,7 @@ nothing is readable only from the picture.
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
@@ -182,7 +183,7 @@ def _attrs(attrs: dict[str, object]) -> str:
             continue
         if isinstance(value, float):
             value = _num(value)
-        parts.append(f'{key}="{escape(str(value), quote=True)}"')
+        parts.append(f'{key}="{escape(_clean(str(value)), quote=True)}"')
     return (" " + " ".join(parts)) if parts else ""
 
 
@@ -193,8 +194,16 @@ def _el(tag: str, attrs: dict[str, object] | None = None, *children: str) -> str
     return f"<{tag}{_attrs(attrs or {})}>{inner}</{tag}>"
 
 
+# Characters XML 1.0 forbids even escaped; one would make the SVG ill-formed.
+_XML_ILLEGAL = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ufffe\uffff]")
+
+
+def _clean(content: str) -> str:
+    return _XML_ILLEGAL.sub("", content)
+
+
 def _text(content: str) -> str:
-    return escape(content, quote=False)
+    return escape(_clean(content), quote=False)
 
 
 @dataclass(frozen=True)
@@ -377,21 +386,22 @@ def line_chart_svg(
 
 
 def _y_domain(low: float, high: float) -> tuple[float, float, float]:
-    """A tick step and a domain on it that holds the data, inside 1-5."""
+    """A tick step and a domain on its grid that holds the data, inside 1-5.
+    A flat series gets one step either side where the scale allows."""
     spread = high - low
     step = 0.5 if spread > 1.2 else 0.25 if spread > 0.4 else 0.1
-    lo = math.floor(low / step + 1e-9) * step
-    hi = math.ceil(high / step - 1e-9) * step
-    if hi - lo < step:
-        lo, hi = lo - step / 2, hi + step / 2
-    lo, hi = max(1.0, lo), min(5.0, hi)
-    if hi <= lo:  # a flat series at a scale end
-        lo, hi = (hi - step, hi) if hi >= 5.0 else (lo, lo + step)
-    return lo, hi, step
+    lo = round(math.floor(low / step + 1e-9) * step, 4)
+    hi = round(math.ceil(high / step - 1e-9) * step, 4)
+    if hi - lo < step - 1e-9:
+        if lo - step >= 1.0 - 1e-9:
+            lo = round(lo - step, 4)
+        if hi + step <= 5.0 + 1e-9:
+            hi = round(hi + step, 4)
+    return max(1.0, lo), min(5.0, hi), step
 
 
 def _ticks(lo: float, hi: float, step: float) -> list[float]:
-    count = int(round((hi - lo) / step))
+    count = int(math.floor((hi - lo) / step + 1e-9))
     return [round(lo + i * step, 4) for i in range(count + 1)]
 
 
