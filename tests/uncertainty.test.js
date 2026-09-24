@@ -11,7 +11,7 @@ import {
   writeUncertaintyPref,
   UNCERTAINTY_STORAGE_KEY,
 } from '../src/controls/uncertainty';
-import { hatchTransform } from '../src/map/hatch';
+import { hatchTransform, hatchedCountries } from '../src/map/hatch';
 import { buildQueryString } from '../src/controls/url';
 
 // PRD 13: the map hatches countries that are low confidence as of the
@@ -268,5 +268,28 @@ describe('hatchTransform', () => {
   it('treats a degenerate zoom factor as the default', () => {
     expect(hatchTransform(0)).toBe('rotate(45)');
     expect(hatchTransform(NaN)).toBe('rotate(45)');
+  });
+});
+
+describe('hatchedCountries', () => {
+  const scores = { Chad: 1.5, Mali: null, Niger: Number.NaN, Germany: 2.9 };
+  const low = new Set(['Chad', 'Mali', 'Niger', 'Nauru']);
+  const rule = show => ({
+    show,
+    hasScore: name => scores[name] != null && Number.isFinite(scores[name]),
+    isLow: name => low.has(name),
+  });
+
+  it('hatches low-confidence countries that carry a score colour', () => {
+    expect([...hatchedCountries(Object.keys(scores), rule(true))]).toEqual(['Chad']);
+  });
+
+  it('never hatches "no data" (null, NaN, or absent) countries', () => {
+    const hatched = hatchedCountries(['Mali', 'Niger', 'Nauru'], rule(true));
+    expect(hatched.size).toBe(0);
+  });
+
+  it('hatches nothing while "Show uncertainty" is off', () => {
+    expect(hatchedCountries(Object.keys(scores), rule(false)).size).toBe(0);
   });
 });

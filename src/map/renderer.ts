@@ -18,7 +18,7 @@ import type { ColorScale } from './legend';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip';
 import { setupZoom } from './zoom';
 import type { ZoomHandle } from './zoom';
-import { HATCH_ID, appendHatchPattern, hatchTransform } from './hatch';
+import { HATCH_ID, appendHatchPattern, hatchTransform, hatchedCountries } from './hatch';
 import { toggleComparison, selectCountry } from '../state/interactions';
 import {
   passesCountryFilters, scoresAtDate, confidenceAtDate, isLowConfidenceAtDate,
@@ -59,9 +59,14 @@ let countryFeaturesRef: CountryFeature[] = [];
 // Names currently hatched - what the map shows, so the tooltip and the
 // live region describe the drawing rather than re-deriving it.
 let hatchedRef: ReadonlySet<string> = new Set();
-// The committed/transient search match set (null = no search), kept so a
-// hatch path that enters mid-search dims with its country.
+// The country emphasis a hatch path repeats (see syncHatchEmphasis), kept
+// so a path that enters later picks it up: the committed/transient search
+// match set (null = no search), the highlighted country, the comparison
+// colour slots, and the hovered country.
 let searchMatchesRef: Set<string> | null = null;
+let highlightedRef: string | null = null;
+let comparisonRef: ReadonlyMap<string, number> = new Map();
+let hoveredRef: string | null = null;
 
 // A country's score on `attr`, or null for "no data" (missing, null, NaN).
 function scoreOf(entry: MapScoreEntry | undefined, attr: AttributeKey): number | null {
@@ -91,31 +96,53 @@ export function isHatched(name: string): boolean {
 // shown date (isLowConfidenceAtDate) and carry a score colour; "no data"
 // countries keep their plain fill. Off entirely while "Show uncertainty"
 // is unchecked. The hatch paths repeat the country geometry with the
-// pattern fill and no stroke, so borders stay as drawn. `fadeIn` starts
-// entering paths transparent for updateMap's opacity transition.
+// pattern fill and no stroke of their own, so borders stay as drawn.
+// `fadeIn` starts entering paths transparent for updateMap's opacity
+// transition. Call only once the layer exists (generateMap builds it).
 function joinHatch(
+  hatchLayer: GroupSelection,
   data: MapScores,
   attr: AttributeKey,
   { fadeIn }: { fadeIn: boolean }
 ): Selection<SVGPathElement, CountryFeature, SVGGElement, unknown> {
-  const hatched = new Set<string>();
-  if (getState().showUncertainty) {
-    for (const f of countryFeaturesRef) {
-      const name = f.properties.name;
-      if (scoreOf(data[name], attr) != null && isLowConfidenceAtDate(name)) hatched.add(name);
-    }
-  }
+  const hatched = hatchedCountries(countryFeaturesRef.map(f => f.properties.name), {
+    show: getState().showUncertainty,
+    hasScore: name => scoreOf(data[name], attr) != null,
+    isLow: isLowConfidenceAtDate,
+  });
   hatchedRef = hatched;
-  const matches = searchMatchesRef;
-  return hatchLayerRef!
+  const joined = hatchLayer
     .selectAll<SVGPathElement, CountryFeature>('.country-hatch')
     .data(countryFeaturesRef.filter(f => hatched.has(f.properties.name)), d => d.properties.name)
     .join(enter => enter.append('path')
       .attr('class', 'country-hatch')
       .attr('d', pathRef!)
       .attr('fill', `url(#${HATCH_ID})`)
-      .style('opacity', () => (fadeIn ? 0 : null)))
-    .classed('search-dimmed', d => !!matches && !matches.has(d.properties.name));
+      .style('opacity', () => (fadeIn ? 0 : null)));
+  syncHatchEmphasis();
+  return joined;
+}
+
+// The hatch sits above every country, so on its own it would stripe the
+// accent outline of a hatched country that is selected, compared, matched
+// by a search or hovered. Its hatch path therefore repeats the country's
+// emphasis classes (the CSS rules name both, so the strokes match), and
+// the emphasised paths are raised so their outline also clears
+// neighbouring hatches. Search dimming is mirrored the same way.
+function syncHatchEmphasis(): void {
+  if (!hatchLayerRef) return;
+  const matches = searchMatchesRef;
+  const paths = hatchLayerRef.selectAll<SVGPathElement, CountryFeature>('.country-hatch')
+    .classed('search-dimmed', d => !!matches && !matches.has(d.properties.name))
+    .classed('search-highlighted', d => !!matches && matches.has(d.properties.name))
+    .classed('in-comparison', d => comparisonRef.has(d.properties.name))
+    .attr('data-comparison-index', d => comparisonRef.get(d.properties.name) ?? null)
+    .classed('selected', d => d.properties.name === highlightedRef)
+    .classed('hovered', d => d.properties.name === hoveredRef);
+  // Later raises land on top: the hovered outline, then the selected one.
+  for (const cls of ['search-highlighted', 'in-comparison', 'selected', 'hovered']) {
+    paths.filter(`.${cls}`).raise();
+  }
 }
 
 function readContainerSize(): Size {
@@ -305,7 +332,15 @@ export async function generateMap(): Promise<void> {
         hint
       );
     })
-    .on('mouseout', hideTooltip)
+    .on('mouseover.hatch', (_event: MouseEvent, d) => {
+      hoveredRef = d.properties.name;
+      if (hatchedRef.has(hoveredRef)) syncHatchEmphasis();
+    })
+    .on('mouseout', (_event: MouseEvent, d) => {
+      hideTooltip();
+      hoveredRef = null;
+      if (hatchedRef.has(d.properties.name)) syncHatchEmphasis();
+    })
     .on('click', function (event: MouseEvent, d) {
       const name = d.properties.name;
       if (event.shiftKey) {
@@ -321,7 +356,10 @@ export async function generateMap(): Promise<void> {
   hatchLayerRef = mapGroup.append<SVGGElement>('g')
     .attr('class', 'hatch-layer')
     .attr('aria-hidden', 'true');
-  joinHatch(scoreData, currentAttribute, { fadeIn: false });
+  joinHatch(hatchLayerRef, scoreData, currentAttribute, { fadeIn: false });
+  // A search typed while the map loaded set the match set before any path
+  // existed; apply it to both layers now so they agree.
+  if (searchMatchesRef) updateSearchHighlight(searchMatchesRef);
 
   zoomHandle = setupZoom(svg, mapGroup, () => currentSize, (k) => {
     hatchPatternRef?.attr('patternTransform', hatchTransform(k));
@@ -438,8 +476,10 @@ export function updateMap(overrideScoreData?: MapScores): void {
     }));
 
   // The hatch follows its country's opacity, so a filtered-out country's
-  // texture recedes with its fill.
-  joinHatch(data, currentAttribute, { fadeIn: true })
+  // texture recedes with its fill. (No layer yet while the map loads;
+  // generateMap's first paint reads the same state.)
+  if (!hatchLayerRef) return;
+  joinHatch(hatchLayerRef, data, currentAttribute, { fadeIn: true })
     .interrupt()
     .transition()
     .duration(500)
@@ -454,16 +494,22 @@ export function highlightCountry(countryName: string): void {
     .filter(d => d.properties.name === countryName)
     .classed('selected', true)
     .attr('stroke-width', 2);
+  highlightedRef = countryName;
+  syncHatchEmphasis();
 }
 
 export function clearHighlight(): void {
   selectAll('.country').classed('selected', false).attr('stroke-width', 0.3);
+  highlightedRef = null;
+  syncHatchEmphasis();
 }
 
 export function markComparisonCountries(names: readonly string[] | null | undefined): void {
   selectAll('.country')
     .classed('in-comparison', false)
     .attr('data-comparison-index', null);
+  comparisonRef = new Map((names ?? []).map(name => [name, getColorIndex(name)]));
+  syncHatchEmphasis();
   if (!names || names.length === 0) return;
   const namesSet = new Set(names);
   selectAll<SVGPathElement, CountryFeature>('.country')
@@ -477,11 +523,11 @@ export function markComparisonCountries(names: readonly string[] | null | undefi
 // null to clear the highlight entirely.
 export function updateSearchHighlight(matchedNames: Set<string> | null): void {
   searchMatchesRef = matchedNames;
+  syncHatchEmphasis();
   if (!matchedNames) {
     selectAll('.country')
       .classed('search-dimmed', false)
       .classed('search-highlighted', false);
-    selectAll('.country-hatch').classed('search-dimmed', false);
     return;
   }
   selectAll<SVGPathElement, CountryFeature>('.country').each(function (d) {
@@ -490,6 +536,4 @@ export function updateSearchHighlight(matchedNames: Set<string> | null): void {
       .classed('search-dimmed', !matches)
       .classed('search-highlighted', matches);
   });
-  selectAll<SVGPathElement, CountryFeature>('.country-hatch')
-    .classed('search-dimmed', d => !matchedNames.has(d.properties.name));
 }

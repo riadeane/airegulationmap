@@ -27,6 +27,26 @@ export function hatchTransform(k: number): string {
   return scale === 1 ? 'rotate(45)' : `rotate(45) scale(${scale})`;
 }
 
+/**
+ * The countries the hatch layer draws, in `names` order: those low
+ * confidence at the shown date that carry a score colour. "No data"
+ * countries keep their plain fill, and nothing is hatched while "Show
+ * uncertainty" is off.
+ */
+export function hatchedCountries(
+  names: Iterable<string>,
+  { show, hasScore, isLow }: {
+    show: boolean;
+    hasScore: (name: string) => boolean;
+    isLow: (name: string) => boolean;
+  }
+): Set<string> {
+  const hatched = new Set<string>();
+  if (!show) return hatched;
+  for (const name of names) if (hasScore(name) && isLow(name)) hatched.add(name);
+  return hatched;
+}
+
 /** Append the hatch pattern to `defs` under `id`, at the default zoom. */
 export function appendHatchPattern<P extends BaseType, PD>(
   defs: Selection<SVGDefsElement, unknown, P, PD>,

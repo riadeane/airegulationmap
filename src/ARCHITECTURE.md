@@ -131,8 +131,9 @@ Params: `country`, `compare`, `mode`, `date`, `bloc`, `min`/`max` (score
 range), `conf`/`official` (country filters), `q` (committed search),
 `scatter`, `theme`. The header Share popover (`controls/share.ts`) surfaces
 the permalink + formatted citations for ANY view, no selection required.
-Display preferences stay out of the URL: `showUncertainty` (the map hatch
-toggle) lives in `localStorage`, like the theme's stored choice.
+`showUncertainty` (the map hatch toggle) is a per-browser preference in
+`localStorage` and, unlike `theme`, is not carried in the URL, so a shared
+link opens with the reader's own setting.
 
 ### Static-first + Supabase hydration - `data/supabase.ts`, `data/hydrate.ts`
 The app boots from the static files, always. Supabase is progressive

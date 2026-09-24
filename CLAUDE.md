@@ -230,8 +230,10 @@ flows through the pipeline.
 
 Countries whose confidence is `low` carry a diagonal hatch over their score
 fill: one `<pattern id="hatch-low">` in the map SVG's `<defs>` and a second
-fill layer (`.hatch-layer`, stroke-free, pointer-events off) that repeats
-each hatched country's path above the countries. The marks use
+fill layer (`.hatch-layer`, pointer-events off) that repeats each hatched
+country's path above the countries. Hatch paths draw no border; a hatched
+country's selected, compared, search-match or hover outline is repeated on
+its hatch path so the texture never stripes it. The marks use
 `--map-stroke` at `--hatch-opacity` (per theme, `_tokens.css`), kept below
 border strength. The pattern counter-scales with the zoom factor, so the
 lines stay 4 px apart on screen at every zoom level. The hatch follows
