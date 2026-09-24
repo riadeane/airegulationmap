@@ -1,6 +1,6 @@
 # PRD 11: Drift dashboard
 
-Status: Proposed. Owner: unassigned. Depends on: 08 (optional, for gold metrics).
+Status: Implemented (September 2026). Owner: unassigned. Depends on: 08 (optional, for gold metrics). The confidence figure is a cross-section by research vintage until the pipeline records confidence per run (see the implementation note at the end).
 
 ## Problem
 
@@ -59,3 +59,22 @@ confident it is.
 
 - Should the page expose per-bloc drift? Proposed: yes if it fits in one
   small multiple, otherwise defer.
+
+## Implementation note
+
+- `drift.html` + `src/drift.ts` (page entry), `src/charts/drift.ts` (the
+  D3 small multiples), `src/data/drift.ts` (pure aggregations, covered by
+  `tests/drift.test.js`). Linked from the app header (`src/controls/menu.ts`),
+  `data.html`, and `changes.html`; listed in the sitemap.
+- Colours: ordered series use a single-hue lightness ramp off the legend's
+  high pole mixed toward the page's light neutral (5 steps for the
+  dimensions, 3 for confidence); magnitudes use a neutral-to-pole sequential
+  fill; first assessments use `--no-data`. Both ramps were checked with the
+  dataviz palette validator in both themes.
+- Confidence: `regulation_data.csv` keeps only each entry's current label
+  and `history.json` carries no confidence, so "over time" is served as a
+  cross-section by the run that last updated each entry. It becomes a true
+  series once the pipeline records confidence per run.
+- Per-bloc drift ships as one small multiple (a bloc-by-run heat grid).
+- Every figure has a caption with the key numbers and a "Show as a table"
+  twin; hover tooltips are the only interactivity.

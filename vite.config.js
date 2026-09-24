@@ -15,6 +15,8 @@ export default defineConfig({
         apiDocs: fileURLToPath(new URL('./api-docs.html', import.meta.url)),
         // The weekly changes page renders public/digest/ client-side.
         changes: fileURLToPath(new URL('./changes.html', import.meta.url)),
+        // The drift dashboard renders history.json / drift.json client-side.
+        drift: fileURLToPath(new URL('./drift.html', import.meta.url)),
       },
     },
   },
