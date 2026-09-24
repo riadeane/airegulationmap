@@ -69,6 +69,10 @@
 
   /* Map stroke between countries */
   --map-stroke:      oklch(15% 0.008 var(--brand-hue));
+  /* Low-confidence hatch: --map-stroke lines at this opacity over the
+     score fill. Kept below the borders' strength (full-opacity stroke)
+     so shared borders between hatched countries still read. */
+  --hatch-opacity:   0.4;
 
   color-scheme: dark;
 }
@@ -112,6 +116,7 @@
     --comparison-4:    oklch(48% 0.13 150);
 
     --map-stroke:      oklch(100% 0 0);
+    --hatch-opacity:   0.35;
 
     color-scheme: light;
   }
@@ -145,6 +150,7 @@
   --comparison-4:    oklch(48% 0.13 150);
 
   --map-stroke:      oklch(100% 0 0);
+  --hatch-opacity:   0.35;
 
   color-scheme: light;
 }

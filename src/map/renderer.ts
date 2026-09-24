@@ -18,8 +18,11 @@ import type { ColorScale } from './legend';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip';
 import { setupZoom } from './zoom';
 import type { ZoomHandle } from './zoom';
+import { HATCH_ID, appendHatchPattern, hatchTransform } from './hatch';
 import { toggleComparison, selectCountry } from '../state/interactions';
-import { passesCountryFilters, scoresAtDate } from '../state/selectors';
+import {
+  passesCountryFilters, scoresAtDate, confidenceAtDate, isLowConfidenceAtDate,
+} from '../state/selectors';
 import { getColorIndex } from '../comparison/colorSlots';
 import { cssVar, onThemeChange } from './cssColors';
 
@@ -31,6 +34,7 @@ type MapScores = ScoreData | Record<string, HistorySnapshot>;
 type MapScoreEntry = ScoreEntry | HistorySnapshot;
 
 type SvgSelection = Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
+type GroupSelection = Selection<SVGGElement, unknown, HTMLElement, unknown>;
 
 interface Size {
   w: number;
@@ -40,12 +44,30 @@ interface Size {
 // Module-level refs so resize and theme-change handlers can redraw
 // without re-running the whole generateMap async flow.
 let svgRef: SvgSelection | null = null;
-let mapGroupRef: Selection<SVGGElement, unknown, HTMLElement, unknown> | null = null;
+let mapGroupRef: GroupSelection | null = null;
 let projectionRef: GeoProjection | null = null;
 let pathRef: GeoPath | null = null;
 let graticuleRef: MultiLineString | null = null;
 let currentSize: Size = { w: 1000, h: 500 };
 let zoomHandle: ZoomHandle | null = null;
+
+// The low-confidence hatch (PRD 13): a second fill layer above the
+// countries, one path per hatched country, all filled from one pattern.
+let hatchLayerRef: GroupSelection | null = null;
+let hatchPatternRef: Selection<SVGPatternElement, unknown, HTMLElement, unknown> | null = null;
+let countryFeaturesRef: CountryFeature[] = [];
+// Names currently hatched - what the map shows, so the tooltip and the
+// live region describe the drawing rather than re-deriving it.
+let hatchedRef: ReadonlySet<string> = new Set();
+// The committed/transient search match set (null = no search), kept so a
+// hatch path that enters mid-search dims with its country.
+let searchMatchesRef: Set<string> | null = null;
+
+// A country's score on `attr`, or null for "no data" (missing, null, NaN).
+function scoreOf(entry: MapScoreEntry | undefined, attr: AttributeKey): number | null {
+  const value = entry ? entry[attr] : null;
+  return value != null && Number.isFinite(value) ? value : null;
+}
 
 // Resolve a country's fill. The color scale clamps its domain, but a
 // null/NaN score must read as "no data" grey, not as the low-end color
@@ -56,10 +78,44 @@ function fillFor(
   attr: AttributeKey,
   colorScale: ColorScale
 ): string {
-  const value = entry ? entry[attr] : null;
-  return value != null && Number.isFinite(value)
-    ? colorScale(value)
-    : cssVar('--no-data');
+  const value = scoreOf(entry, attr);
+  return value != null ? colorScale(value) : cssVar('--no-data');
+}
+
+/** True when the map currently draws the low-confidence hatch on `name`. */
+export function isHatched(name: string): boolean {
+  return hatchedRef.has(name);
+}
+
+// Join the hatch layer to the countries that are low confidence at the
+// shown date (isLowConfidenceAtDate) and carry a score colour; "no data"
+// countries keep their plain fill. Off entirely while "Show uncertainty"
+// is unchecked. The hatch paths repeat the country geometry with the
+// pattern fill and no stroke, so borders stay as drawn. `fadeIn` starts
+// entering paths transparent for updateMap's opacity transition.
+function joinHatch(
+  data: MapScores,
+  attr: AttributeKey,
+  { fadeIn }: { fadeIn: boolean }
+): Selection<SVGPathElement, CountryFeature, SVGGElement, unknown> {
+  const hatched = new Set<string>();
+  if (getState().showUncertainty) {
+    for (const f of countryFeaturesRef) {
+      const name = f.properties.name;
+      if (scoreOf(data[name], attr) != null && isLowConfidenceAtDate(name)) hatched.add(name);
+    }
+  }
+  hatchedRef = hatched;
+  const matches = searchMatchesRef;
+  return hatchLayerRef!
+    .selectAll<SVGPathElement, CountryFeature>('.country-hatch')
+    .data(countryFeaturesRef.filter(f => hatched.has(f.properties.name)), d => d.properties.name)
+    .join(enter => enter.append('path')
+      .attr('class', 'country-hatch')
+      .attr('d', pathRef!)
+      .attr('fill', `url(#${HATCH_ID})`)
+      .style('opacity', () => (fadeIn ? 0 : null)))
+    .classed('search-dimmed', d => !!matches && !matches.has(d.properties.name));
 }
 
 function readContainerSize(): Size {
@@ -139,6 +195,7 @@ function fitToSize({ w, h }: Size): void {
   select<SVGPathElement, GeoSphere>('#map .sphere').attr('d', pathRef!);
   select('#map .graticule').attr('d', pathRef!(graticuleRef!));
   mapGroupRef!.selectAll<SVGPathElement, CountryFeature>('.country').attr('d', pathRef!);
+  mapGroupRef!.selectAll<SVGPathElement, CountryFeature>('.country-hatch').attr('d', pathRef!);
 
   if (zoomHandle) zoomHandle.updateBounds({ w, h });
 
@@ -165,14 +222,15 @@ export async function generateMap(): Promise<void> {
   // both. The title must be the first child to be announced correctly.
   svg.append('title').text('World map showing AI regulation scores by country');
 
-  svg.append('defs')
-    .append('clipPath')
+  const defs = svg.append('defs');
+  defs.append('clipPath')
     .attr('id', 'clip')
     .append('rect')
     .attr('width', size.w)
     .attr('height', size.h)
     .attr('rx', 20)
     .attr('ry', 20);
+  hatchPatternRef = appendHatchPattern(defs, HATCH_ID);
 
   const g = svg.append<SVGGElement>('g')
     .attr('clip-path', 'url(#clip)');
@@ -193,6 +251,7 @@ export async function generateMap(): Promise<void> {
   // page load and offline dev works. Source: world-atlas@2 (Natural Earth).
   const world = (await json<Topology>('/data/countries-110m.json'))!;
   const countries = (feature(world, world.objects.countries) as FeatureCollection<Geometry, { name: string }>).features;
+  countryFeaturesRef = countries;
 
   const mapGroup = g.append<SVGGElement>('g').attr('class', 'map-group');
   mapGroupRef = mapGroup;
@@ -233,9 +292,16 @@ export async function generateMap(): Promise<void> {
       const hint = inComparison
         ? '<br><em>Shift+click to remove from comparison</em>'
         : '<br><em>Shift+click to add to comparison</em>';
+      // Hatched countries say so in the title line; the confidence line
+      // follows the same date-aware rule as the hatch.
+      const flag = hatchedRef.has(countryName)
+        ? ' <span class="tooltip-flag">low confidence</span>'
+        : '';
+      const confidence = confidenceAtDate(countryName);
       showTooltip(event,
-        `<strong>${countryName}</strong>` +
+        `<strong>${countryName}${flag}</strong>` +
         (score != null ? `<br>${label}: ${score} / 5` : '<br>No data') +
+        (confidence ? `<br>Confidence: ${confidence}` : '') +
         hint
       );
     })
@@ -250,7 +316,16 @@ export async function generateMap(): Promise<void> {
       }
     });
 
-  zoomHandle = setupZoom(svg, mapGroup, () => currentSize);
+  // Second fill layer: drawn after every country so the hatch sits on
+  // top of the score fills; pointer-events pass through to the country.
+  hatchLayerRef = mapGroup.append<SVGGElement>('g')
+    .attr('class', 'hatch-layer')
+    .attr('aria-hidden', 'true');
+  joinHatch(scoreData, currentAttribute, { fadeIn: false });
+
+  zoomHandle = setupZoom(svg, mapGroup, () => currentSize, (k) => {
+    hatchPatternRef?.attr('patternTransform', hatchTransform(k));
+  });
   addLegend(svg, colorScale, size);
 
   // Tap anywhere that ISN'T a country (ocean, sphere edge, graticule, bare
@@ -361,6 +436,16 @@ export function updateMap(overrideScoreData?: MapScores): void {
     .style('opacity', d => countryOpacity(d.properties.name, data[d.properties.name], {
       currentAttribute, filterMin, filterMax, countryFiltersActive,
     }));
+
+  // The hatch follows its country's opacity, so a filtered-out country's
+  // texture recedes with its fill.
+  joinHatch(data, currentAttribute, { fadeIn: true })
+    .interrupt()
+    .transition()
+    .duration(500)
+    .style('opacity', d => countryOpacity(d.properties.name, data[d.properties.name], {
+      currentAttribute, filterMin, filterMax, countryFiltersActive,
+    }));
 }
 
 export function highlightCountry(countryName: string): void {
@@ -391,10 +476,12 @@ export function markComparisonCountries(names: readonly string[] | null | undefi
 // is a Set of country names (name matches plus full-text matches), or
 // null to clear the highlight entirely.
 export function updateSearchHighlight(matchedNames: Set<string> | null): void {
+  searchMatchesRef = matchedNames;
   if (!matchedNames) {
     selectAll('.country')
       .classed('search-dimmed', false)
       .classed('search-highlighted', false);
+    selectAll('.country-hatch').classed('search-dimmed', false);
     return;
   }
   selectAll<SVGPathElement, CountryFeature>('.country').each(function (d) {
@@ -403,4 +490,6 @@ export function updateSearchHighlight(matchedNames: Set<string> | null): void {
       .classed('search-dimmed', !matches)
       .classed('search-highlighted', matches);
   });
+  selectAll<SVGPathElement, CountryFeature>('.country-hatch')
+    .classed('search-dimmed', d => !matchedNames.has(d.properties.name));
 }

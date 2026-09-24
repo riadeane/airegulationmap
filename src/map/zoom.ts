@@ -11,11 +11,17 @@ export interface ZoomHandle {
 // for .translateExtent() - the latter must be a concrete 2x2 array.
 // We therefore expose an updateBounds hook the renderer can call after
 // a resize to keep the pan bounds in sync with the new viewport size.
+//
+// `onScale` hears the zoom factor whenever it changes (not on pure pans),
+// for artwork that must hold a constant on-screen size inside the zoomed
+// group - the low-confidence hatch counter-scales its pattern with it.
 export function setupZoom(
   svg: Selection<SVGSVGElement, unknown, HTMLElement, unknown>,
   mapGroup: Selection<SVGGElement, unknown, HTMLElement, unknown>,
-  getSize: () => { w: number; h: number }
+  getSize: () => { w: number; h: number },
+  onScale?: (k: number) => void
 ): ZoomHandle {
+  let lastK = 1;
   const zoom = d3Zoom<SVGSVGElement, unknown>()
     .scaleExtent([1, 8])
     .extent((): [[number, number], [number, number]] => {
@@ -24,6 +30,11 @@ export function setupZoom(
     })
     .on('zoom', (event) => {
       mapGroup.attr('transform', event.transform);
+      const { k } = event.transform;
+      if (onScale && k !== lastK) {
+        lastK = k;
+        onScale(k);
+      }
     });
 
   // Seed with the current size; the renderer will call updateZoomBounds

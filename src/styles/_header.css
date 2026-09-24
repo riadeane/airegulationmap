@@ -716,6 +716,36 @@ input[type="range"] {
   margin-bottom: 4px;
 }
 
+/* "Show uncertainty" - a display preference below "Reset filters", ruled
+   off like the reset row so it doesn't read as another filter. */
+.filter-display-row {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 12px;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.filter-uncertainty-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.filter-uncertainty-toggle input {
+  accent-color: var(--accent);
+}
+
+.filter-hint {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  padding-left: 18px;
+}
+
 .filter-conf-row input,
 .filter-official-row input {
   accent-color: var(--accent);

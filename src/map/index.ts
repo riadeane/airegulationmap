@@ -1,6 +1,6 @@
 import { on, getState } from '../state/store';
-import { generateMap, updateMap, markComparisonCountries } from './renderer';
-import { updateLegendLabels } from './legend';
+import { generateMap, updateMap, markComparisonCountries, isHatched } from './renderer';
+import { updateLegendLabels, updateLegendUncertainty } from './legend';
 import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../constants';
 
 export { updateMap, highlightCountry, clearHighlight, updateSearchHighlight, markComparisonCountries } from './renderer';
@@ -33,8 +33,10 @@ function announceCountry(name: string | null) {
   const { scoreData, currentAttribute } = getState();
   const label = ATTRIBUTE_LABELS[currentAttribute] || currentAttribute;
   const score = scoreData[name]?.[currentAttribute];
+  // The hatch is visual; say it too, as the tooltip does.
+  const flag = isHatched(name) ? ' Low confidence.' : '';
   region.textContent = score != null
-    ? `Selected ${name}. ${label}: ${score} of 5.`
+    ? `Selected ${name}. ${label}: ${score} of 5.${flag}`
     : `Selected ${name}. No ${label} data.`;
 }
 
@@ -68,6 +70,17 @@ export function initMapSubscriptions() {
   on('selectedBloc', scheduleUpdateMap);
   on('filterConfidence', scheduleUpdateMap);
   on('filterOfficialOnly', scheduleUpdateMap);
+
+  // The low-confidence hatch: its toggle, and confidence itself (a
+  // hydrated dataset can carry new ratings). The legend key follows the
+  // toggle and, on a past date, whether history recorded confidence.
+  on('showUncertainty', () => {
+    scheduleUpdateMap();
+    updateLegendUncertainty();
+  });
+  on('regulationData', scheduleUpdateMap);
+  on('timelineDate', updateLegendUncertainty);
+  on('history', updateLegendUncertainty);
 
   // The map paints its own comparison markers. Colour slots are assigned by
   // the interactions orchestrator before this fires, so the indices are ready.

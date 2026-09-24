@@ -128,11 +128,11 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/data/hydrate.ts` | Post-boot dataset hydration when the database is strictly newer |
 | `src/data/sourceMeta.ts` | Source titles/types from the sources database |
 | `src/data/slug.ts` | Country page slug and path (`/country/<slug>/`), shared by the app and the page generator |
-| `src/map/` | Map rendering (renderer, legend, zoom, tooltip) |
+| `src/map/` | Map rendering (renderer, legend, zoom, tooltip, low-confidence hatch pattern in `hatch.ts`) |
 | `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
 | `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
-| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip) |
+| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip, "Show uncertainty" toggle) |
 | `src/data/digest.ts` | Weekly digest parsing + formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
@@ -225,6 +225,25 @@ block) to stay under 6,000 characters and 7,000 encoded, well inside
 GitHub's URL limit. Nothing but on-screen data is sent. Reports do not
 trigger re-research; `CONTRIBUTING.md` ("Data issues") describes how a fix
 flows through the pipeline.
+
+### Uncertainty on the map (`src/map/hatch.ts`, `src/controls/uncertainty.ts`)
+
+Countries whose confidence is `low` carry a diagonal hatch over their score
+fill: one `<pattern id="hatch-low">` in the map SVG's `<defs>` and a second
+fill layer (`.hatch-layer`, stroke-free, pointer-events off) that repeats
+each hatched country's path above the countries. The marks use
+`--map-stroke` at `--hatch-opacity` (per theme, `_tokens.css`), kept below
+border strength. The pattern counter-scales with the zoom factor, so the
+lines stay 4 px apart on screen at every zoom level. The hatch follows
+`isLowConfidenceAtDate()` (`state/selectors.ts`): the snapshot's
+`confidence` at the timeline date when `history.json` records one, else the
+current confidence, in which case the legend adds "(current rating)".
+"No data" countries are never hatched. The legend shows "Hatched: low
+confidence"; the tooltip title adds "low confidence". The "Show
+uncertainty" checkbox (filter popover, below "Reset filters", on by
+default) is a per-browser display preference in `localStorage`
+(`showUncertainty`); the URL does not carry it and "Reset filters" leaves
+it alone.
 
 ### Static country pages (`scripts/build_pages.ts`)
 

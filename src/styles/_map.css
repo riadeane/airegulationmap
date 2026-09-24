@@ -149,6 +149,16 @@
   font-weight: 500;
 }
 
+/* "low confidence" beside the country name on hatched countries. */
+.tooltip-flag {
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  margin-left: 3px;
+  white-space: nowrap;
+}
+
 /* Country path interaction - hover is a stroke change (cheap) rather
    than a filter (repaints). filter: brightness/saturate on SVG paths
    is measurably slower on large countries. */
@@ -176,6 +186,28 @@
 .country.search-highlighted {
   stroke: var(--accent) !important;
   stroke-width: 1.5px !important;
+}
+
+/* Low-confidence hatch (PRD 13) - the second fill layer over the country
+   paths. Pointer events pass through to the country underneath; no
+   stroke, so borders stay exactly as the country paths draw them. The
+   opacity mirrors the country's (filters inline, search dimming here). */
+.hatch-layer {
+  pointer-events: none;
+}
+
+.hatch-mark {
+  fill: var(--map-stroke);
+  fill-opacity: var(--hatch-opacity);
+}
+
+.country-hatch {
+  stroke: none;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+.country-hatch.search-dimmed {
+  opacity: 0.08 !important;
 }
 
 /* Graticule */

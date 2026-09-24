@@ -462,6 +462,7 @@
       <li><strong>Low</strong>: public information is sparse, in a non-English primary language with uncertain translation, or predates the last major policy cycle. Treat these rows as indicative rather than definitive.</li>
     </ul>
     <p>Confidence is currently assigned at the record level (per country), not per individual dimension. We consider per-field confidence a future enhancement.</p>
+    <p>On the map, low-confidence countries are hatched with fine diagonal lines over their score colour, so an indicative reading does not look as settled as a well-sourced one. The hatch does not change the colour, and it can be turned off under Filter, "Show uncertainty". Countries with no data keep the plain no-data fill. When the timeline shows a past date, the hatch follows the confidence recorded for that date if the history has one, and otherwise the current rating; the legend says which.</p>
 
     <h2 id="update-cadence">Data update cadence</h2>
     <p>A <a href="https://github.com/riadeane/airegulationmap/blob/main/.github/workflows/update-data.yml" rel="noopener noreferrer">GitHub Action</a> runs every Monday and re-researches every country with web search enabled. Manual overrides (single-country re-research, forced refresh of the whole dataset) are possible via <code>scripts/update_data.py</code>.</p>

@@ -94,11 +94,16 @@ export function officialSourceCountries(): ReadonlySet<string> {
   return set;
 }
 
-function confidenceOf(country: string): ConfidenceLevel | null {
-  const raw = getState().regulationData[country]?.confidence;
+/** A raw confidence cell ("Low", " medium ") as a level, or null when
+ *  absent or unrecognised. */
+export function normalizeConfidence(raw: string | null | undefined): ConfidenceLevel | null {
   if (!raw) return null;
   const v = raw.trim().toLowerCase();
   return v === 'high' || v === 'medium' || v === 'low' ? v : null;
+}
+
+function confidenceOf(country: string): ConfidenceLevel | null {
+  return normalizeConfidence(getState().regulationData[country]?.confidence);
 }
 
 /**
@@ -212,6 +217,43 @@ export function scoresAtDate(): Record<string, HistorySnapshot> | null {
   }
   const result = buildScoresAtDate(history, timelineDate);
   atDateCache = { history, date: timelineDate, result };
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Uncertainty - the confidence the map's low-confidence hatch follows.
+
+/**
+ * A country's research confidence as of the scrubbed timeline date: the
+ * confidence recorded on the snapshot the map is showing, when history
+ * carries one, otherwise the current confidence from regulation data. At
+ * "Latest" there is no snapshot, so this is the current confidence.
+ */
+export function confidenceAtDate(country: string): ConfidenceLevel | null {
+  const recorded = normalizeConfidence(scoresAtDate()?.[country]?.confidence);
+  return recorded ?? confidenceOf(country);
+}
+
+/** True when the country is low confidence as of the scrubbed timeline
+ *  date (see confidenceAtDate) - the rule the map hatch follows. */
+export function isLowConfidenceAtDate(country: string): boolean {
+  return confidenceAtDate(country) === 'low';
+}
+
+let fallbackCache: { snapshots: Record<string, HistorySnapshot>; result: boolean } | null = null;
+
+/**
+ * True when the timeline shows a past date and at least one snapshot on it
+ * records no confidence, so the hatch uses current confidence there. The
+ * legend says so. False at "Latest", where current confidence is the
+ * confidence of the data shown. Memoized on the snapshot set.
+ */
+export function confidenceFallsBackAtDate(): boolean {
+  const snapshots = scoresAtDate();
+  if (!snapshots) return false;
+  if (fallbackCache && fallbackCache.snapshots === snapshots) return fallbackCache.result;
+  const result = Object.values(snapshots).some(s => normalizeConfidence(s.confidence) == null);
+  fallbackCache = { snapshots, result };
   return result;
 }
 

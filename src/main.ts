@@ -16,6 +16,7 @@ import { initComparison } from './comparison/index';
 import { initScatter } from './scatter/index';
 import { buildScoreSelector, initDimensionClicks } from './controls/scoreSelector';
 import { initFilter } from './controls/filter';
+import { initUncertaintyToggle } from './controls/uncertainty';
 import { initExport } from './controls/export';
 import { initSearch, initKeyboardNav, invalidateSearchIndex } from './controls/search';
 import { initSearchResults } from './panel/searchResults';
@@ -107,6 +108,7 @@ async function main(): Promise<void> {
   initTheme();
   buildScoreSelector();
   initFilter();
+  initUncertaintyToggle();
   initExport();
   initDimensionClicks();
   initPanel();

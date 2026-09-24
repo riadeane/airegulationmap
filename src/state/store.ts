@@ -21,6 +21,10 @@ export interface AppState {
   // Restrict to countries citing at least one official (government/
   // legislature/regulator) source.
   filterOfficialOnly: boolean;
+  // Hatch low-confidence countries on the map (PRD 13). A per-browser
+  // display preference (controls/uncertainty.ts persists it in
+  // localStorage); the URL never carries it.
+  showUncertainty: boolean;
   selectedCountry: string | null;
   // Read-only arrays: the store owns these; consumers replace them via
   // setState (always with a fresh array), never mutate in place. The
@@ -73,6 +77,7 @@ const state: AppState = {
   filterMax: 5,
   filterConfidence: null,
   filterOfficialOnly: false,
+  showUncertainty: true,
   selectedCountry: null,
   sortedCountryNames: [],
   comparisonCountries: [],
