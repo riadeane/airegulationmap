@@ -361,8 +361,14 @@ export async function generateMap(): Promise<void> {
   // existed; apply it to both layers now so they agree.
   if (searchMatchesRef) updateSearchHighlight(searchMatchesRef);
 
+  // Write the pattern transform only when its snapped value changes: each
+  // write re-records the pattern (see hatchTransform).
+  let hatchTransformValue = hatchTransform(1);
   zoomHandle = setupZoom(svg, mapGroup, () => currentSize, (k) => {
-    hatchPatternRef?.attr('patternTransform', hatchTransform(k));
+    const next = hatchTransform(k);
+    if (next === hatchTransformValue) return;
+    hatchTransformValue = next;
+    hatchPatternRef?.attr('patternTransform', next);
   });
   addLegend(svg, colorScale, size);
 

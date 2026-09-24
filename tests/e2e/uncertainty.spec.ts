@@ -224,7 +224,8 @@ test('"Show uncertainty" turns the hatch off, persists, and stays out of the URL
 test('the hatch keeps its on-screen spacing as the map zooms', async ({ page }) => {
   await expect(page.locator('#hatch-low')).toHaveAttribute('patternTransform', 'rotate(45)');
   await page.click('#zoom-controls button[aria-label="Zoom in"]');
-  await expect(page.locator('#hatch-low')).toHaveAttribute('patternTransform', /^rotate\(45\) scale\(0\.66/, { timeout: 5_000 });
+  // 1.5x snaps to the 2^(1/2) step: scale(1/1.414...).
+  await expect(page.locator('#hatch-low')).toHaveAttribute('patternTransform', /^rotate\(45\) scale\(0\.707/, { timeout: 5_000 });
   await page.click('#zoom-controls button[aria-label="Reset zoom"]');
   await expect(page.locator('#hatch-low')).toHaveAttribute('patternTransform', 'rotate(45)', { timeout: 5_000 });
 });

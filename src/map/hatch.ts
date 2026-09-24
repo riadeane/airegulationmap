@@ -20,11 +20,19 @@ const LINE_WIDTH = 1;
  * transform and the pattern tiles in that group's user space, so an
  * uncompensated tile would widen with every zoom step (and would collapse
  * into a flat tint in any view smaller than the default). Scaling the tile
- * by 1/k keeps the lines SPACING px apart on screen at every zoom level.
+ * by 1/k keeps the lines about SPACING px apart on screen at every zoom
+ * level.
+ *
+ * k is snapped to quarter-octave steps first: every change of the
+ * transform re-records the pattern for the next paint, and following k
+ * exactly re-recorded it on every frame of a zoom animation. Snapped, a
+ * zoom step changes it two or three times, and the on-screen spacing stays
+ * within about 9% of SPACING (exact at the default zoom and at 2x, 4x, 8x).
  */
 export function hatchTransform(k: number): string {
-  const scale = Number.isFinite(k) && k > 0 ? 1 / k : 1;
-  return scale === 1 ? 'rotate(45)' : `rotate(45) scale(${scale})`;
+  if (!Number.isFinite(k) || k <= 0) return 'rotate(45)';
+  const snapped = 2 ** (Math.round(Math.log2(k) * 4) / 4);
+  return snapped === 1 ? 'rotate(45)' : `rotate(45) scale(${1 / snapped})`;
 }
 
 /**

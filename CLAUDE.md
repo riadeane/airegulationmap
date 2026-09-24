@@ -235,8 +235,9 @@ country's path above the countries. Hatch paths draw no border; a hatched
 country's selected, compared, search-match or hover outline is repeated on
 its hatch path so the texture never stripes it. The marks use
 `--map-stroke` at `--hatch-opacity` (per theme, `_tokens.css`), kept below
-border strength. The pattern counter-scales with the zoom factor, so the
-lines stay 4 px apart on screen at every zoom level. The hatch follows
+border strength. The pattern counter-scales with the zoom factor (snapped
+to quarter-octave steps so a zoom animation re-records it only a few
+times), so the lines stay about 4 px apart on screen at every zoom level. The hatch follows
 `isLowConfidenceAtDate()` (`state/selectors.ts`): the snapshot's
 `confidence` at the timeline date when `history.json` records one, else the
 current confidence, in which case the legend adds "(current rating)".

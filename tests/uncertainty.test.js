@@ -265,6 +265,18 @@ describe('hatchTransform', () => {
     expect(hatchTransform(2)).toBe('rotate(45) scale(0.5)');
   });
 
+  it('snaps to quarter-octave steps, keeping spacing within about 9% of 4 px', () => {
+    // Nearby zoom factors share one transform (no re-record per frame).
+    expect(hatchTransform(1.05)).toBe(hatchTransform(1));
+    expect(hatchTransform(1.5)).toBe(hatchTransform(1.45));
+    for (let k = 1; k <= 8; k += 0.01) {
+      const scale = Number(/scale\(([^)]+)\)/.exec(hatchTransform(k))?.[1] ?? 1);
+      const onScreen = 4 * k * scale;
+      expect(onScreen).toBeGreaterThan(4 / 1.091);
+      expect(onScreen).toBeLessThan(4 * 1.091);
+    }
+  });
+
   it('treats a degenerate zoom factor as the default', () => {
     expect(hatchTransform(0)).toBe('rotate(45)');
     expect(hatchTransform(NaN)).toBe('rotate(45)');
