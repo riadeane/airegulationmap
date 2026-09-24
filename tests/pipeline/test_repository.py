@@ -21,6 +21,12 @@ def result_model() -> ResearchResult:
     return ResearchResult.model_validate(full_result())
 
 
+EVIDENCE = {
+    "grounded": True, "initiatives_used": 7, "search": True,
+    "model": "claude-test", "run_id": "run-1",
+}
+
+
 class TestApply:
     def test_scores_row(self, tmp_path):
         ds = empty_dataset(tmp_path)
@@ -73,6 +79,16 @@ class TestApply:
         assert scores == {"date": "2026-09-01", "regulation_status": {"binding_force": 5}}
         assert rationales == {"regulation_status": {"binding_force": "AI Act in force."}}
 
+    def test_split_subscores_entry_skips_evidence(self):
+        entry = {
+            "date": "2026-09-21",
+            "regulation_status": {"binding_force": {"score": 5, "rationale": "AI Act in force."}},
+            "evidence": EVIDENCE,
+        }
+        scores, rationales = split_subscores_entry(entry)
+        assert scores == {"date": "2026-09-21", "regulation_status": {"binding_force": 5}}
+        assert rationales == {"regulation_status": {"binding_force": "AI Act in force."}}
+
     def test_history_snapshot_appended_with_average(self, tmp_path):
         ds = empty_dataset(tmp_path)
         outcome = ds.apply("Germany", result_model(), TODAY)
@@ -93,6 +109,42 @@ class TestApply:
         assert outcome.history_added is False
         assert len(ds._history["countries"]["Germany"]) == 1
         assert ds._history["countries"]["Germany"][0]["date"] == "2026-07-01"
+
+
+class TestSetEvidence:
+    def test_stores_beside_the_subscores(self, tmp_path):
+        ds = empty_dataset(tmp_path)
+        ds.apply("Germany", result_model(), TODAY)
+        ds.set_evidence("Germany", EVIDENCE)
+        entry = ds.subscores_for("Germany")
+        assert entry["evidence"] == EVIDENCE
+        assert entry["date"] == "2026-06-11"
+        assert entry["regulation_status"]["ai_specificity"]["score"] == 5
+
+    def test_creates_an_absent_entry(self, tmp_path):
+        # A held result for a country whose sub-scores predate methodology v2.
+        ds = empty_dataset(tmp_path)
+        ds.set_evidence("Germany", EVIDENCE)
+        assert ds.subscores_for("Germany") == {"evidence": EVIDENCE}
+
+    def test_replaces_and_removes(self, tmp_path):
+        ds = empty_dataset(tmp_path)
+        ds.apply("Germany", result_model(), TODAY)
+        ds.set_evidence("Germany", EVIDENCE)
+        plain = {**EVIDENCE, "grounded": False, "initiatives_used": None, "run_id": "run-2"}
+        ds.set_evidence("Germany", plain)
+        assert ds.subscores_for("Germany")["evidence"] == plain
+        ds.set_evidence("Germany", None)
+        assert "evidence" not in ds.subscores_for("Germany")
+        ds.set_evidence("Nowhere", None)  # no entry, nothing to remove
+        assert ds.subscores_for("Nowhere") is None
+
+    def test_stored_record_is_a_copy(self, tmp_path):
+        ds = empty_dataset(tmp_path)
+        record = dict(EVIDENCE)
+        ds.set_evidence("Germany", record)
+        record["initiatives_used"] = 99
+        assert ds.subscores_for("Germany")["evidence"]["initiatives_used"] == 7
 
 
 class TestValidate:
@@ -137,6 +189,23 @@ class TestPersistence:
             "public/history.json", "public/data/subscores.json",
         ]:
             assert (tmp_path / rel).read_bytes() == (REPO_ROOT / rel).read_bytes(), rel
+
+    def test_round_trip_with_evidence_is_byte_identical(self, tmp_path):
+        # The evidence block (PRD 14) sorts inside the entry like everything
+        # else, so a file carrying it rewrites unchanged too.
+        ds = empty_dataset(tmp_path)
+        ds.apply("Germany", result_model(), TODAY)
+        ds.set_evidence("Germany", EVIDENCE)
+        ds.apply("France", result_model(), TODAY)
+        ds.set_evidence("France", {**EVIDENCE, "grounded": False, "initiatives_used": 0})
+        ds.save()
+        path = tmp_path / "public" / "data" / "subscores.json"
+        first = path.read_bytes()
+        assert b'"evidence": {\n        "grounded": true,\n        "initiatives_used": 7,' in first
+        assert not first.endswith(b"\n")
+
+        empty_dataset(tmp_path).save()
+        assert path.read_bytes() == first
 
     def test_save_is_atomic_and_leaves_no_temp_file(self, tmp_path):
         ds = empty_dataset(tmp_path)

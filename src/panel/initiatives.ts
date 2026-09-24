@@ -10,6 +10,7 @@
 import { getState, on } from '../state/store';
 import { restGet, isConfigured } from '../data/supabase';
 import { showSection } from './sections';
+import { renderEvidence } from './evidence';
 
 interface Initiative {
   name: string;
@@ -78,6 +79,19 @@ function render(list: HTMLElement, attribution: HTMLElement, initiatives: Initia
     + 'Records are shown as received; scores may draw on additional sources.';
 }
 
+// Show the section for `country` (null hides it). The section records which
+// country it is showing, so the evidence line in the panel header links to
+// it only for that country, and re-renders after every change.
+function showFor(country: string | null): void {
+  showSection('initiatives-section', country != null);
+  const section = document.getElementById('initiatives-section');
+  if (section) {
+    if (country) section.dataset.country = country;
+    else delete section.dataset.country;
+  }
+  renderEvidence();
+}
+
 export function initInitiatives(): void {
   const list = document.getElementById('initiatives-list');
   const attribution = document.getElementById('initiatives-attribution');
@@ -85,7 +99,7 @@ export function initInitiatives(): void {
 
   on('selectedCountry', async (country) => {
     const seq = ++renderSeq;
-    showSection('initiatives-section', false);
+    showFor(null);
     if (!country) return;
 
     const initiatives = await initiativesFor(country);
@@ -94,6 +108,6 @@ export function initInitiatives(): void {
     if (initiatives.length === 0) return;
 
     render(list, attribution, initiatives);
-    showSection('initiatives-section', true);
+    showFor(country);
   });
 }

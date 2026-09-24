@@ -145,6 +145,12 @@
             <input type="checkbox" id="filter-official">
             Official sources only
           </label>
+          <fieldset class="filter-conf-row filter-evidence-row" id="filter-evidence">
+            <legend class="filter-label">Evidence</legend>
+            <label><input type="radio" name="filter-evidence" value="any" checked> Any</label>
+            <label title="Research drew on verified policy initiatives (OECD.AI / GAIIN)"><input type="radio" name="filter-evidence" value="grounded"> Grounded</label>
+            <label title="Web search, no verified policy initiatives"><input type="radio" name="filter-evidence" value="search"> Search only</label>
+          </fieldset>
         </div>
       </div>
       <button id="scatter-btn" aria-pressed="false" title="Dimension explorer: plot every country across two score dimensions">Scatter</button>
@@ -268,6 +274,7 @@
             <button id="panel-close" class="panel-close" type="button" aria-label="Close country details">&times;</button>
           </div>
           <small id="last-updated" class="data-freshness"></small>
+          <small id="evidence-coverage" class="data-freshness evidence-coverage" hidden></small>
           <a class="panel-methodology-link" href="/methodology.html">How scores are assigned →</a>
           <p id="panel-history-notice" class="panel-history-notice" hidden>
             Viewing scores as of <span id="panel-history-date"></span>.

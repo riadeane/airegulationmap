@@ -8,7 +8,13 @@ from pathlib import Path
 
 import pytest
 from regulation_pipeline.config import REGULATION_FIELDS, SCORES_FIELDS, Settings
-from regulation_pipeline.db.seed import SEED_RUN_ID, build_seed, emit_sql, write_sql_chunks
+from regulation_pipeline.db.seed import (
+    SEED_RUN_ID,
+    apply_direct,
+    build_seed,
+    emit_sql,
+    write_sql_chunks,
+)
 from regulation_pipeline.names import CountryNames
 
 
@@ -62,9 +68,13 @@ def settings(tmp_path) -> Settings:
     }}), encoding="utf-8")
     s.subscores_json.parent.mkdir(parents=True, exist_ok=True)
     s.subscores_json.write_text(json.dumps({"schema_version": 1, "methodology": "v2.1", "countries": {
-        # v2.1 shape: {score, rationale} per sub-indicator ...
+        # v2.1 shape: {score, rationale} per sub-indicator, plus the PRD 14
+        # evidence block from a grounded run ...
         "Testland": {"date": "2026-06-13", "regulation_status": {
             "binding_force": {"score": 4, "rationale": "AI Act in force."},
+        }, "evidence": {
+            "grounded": True, "initiatives_used": 7, "search": True,
+            "model": "claude-test", "run_id": "run-1",
         }},
         # ... and a v2 entry (bare integers) from before the rationale change.
         "Nulland": {"date": "2026-01-01", "regulation_status": {"binding_force": 1}},
@@ -97,6 +107,12 @@ def test_build_seed_shapes(settings):
     assert scores["Nulland"]["regulation_status"] is None      # 'NA' -> null
     assert scores["Nulland"]["confidence"] is None             # junk value -> null
     assert scores["Nulland"]["data_version"] == 1
+    # Evidence columns (PRD 14): from the block, null without one; never in
+    # the subscores jsonb.
+    columns = ("grounded", "initiatives_used", "web_search")
+    assert "evidence" not in scores["Testland"]["subscores"]
+    assert tuple(scores["Testland"][c] for c in columns) == (True, 7, True)
+    assert tuple(scores["Nulland"][c] for c in columns) == (None, None, None)
 
     assert len(seed.history) == 2
     assert seed.history[0]["scores"]["regulationStatus"] == 3
@@ -125,6 +141,12 @@ def test_emit_sql_is_idempotent_and_escapes(settings, tmp_path):
     assert '{"regulation_status": {"binding_force": "AI Act in force."}}' in joined
     assert "on conflict (url) do update" in joined
     assert "on conflict (id) do nothing" in joined
+    # Evidence columns: inserted and refreshed on conflict; SQL booleans.
+    assert "scored_at, grounded, initiatives_used, web_search)" in joined
+    assert "grounded = excluded.grounded, initiatives_used = excluded.initiatives_used, " in joined
+    assert "web_search = excluded.web_search" in joined
+    assert "'2026-06-13', true, 7, true\nfrom countries where name = 'Testland'" in joined
+    assert "null, null, null\nfrom countries where name = 'Nulland'" in joined
     # Quote escaping (prose contains 'quotes').
     assert "with ''quotes'' inside" in joined
     # FK resolution never uses client-side UUIDs for countries.
@@ -151,3 +173,28 @@ def test_chunking_respects_size(settings, tmp_path):
         # A single oversized statement may exceed the cap, but our fixture
         # statements are small; each chunk stays near the limit.
         assert len(p.read_text(encoding="utf-8")) < 1200
+
+
+class _FakeSeedClient:
+    """Records upserts; answers the two id read-backs apply_direct makes."""
+
+    def __init__(self):
+        self.upserts: dict[str, list[dict]] = {}
+
+    def upsert(self, table, rows, on_conflict):
+        self.upserts.setdefault(table, []).extend(rows)
+
+    def select_all(self, table, params):
+        if table == "countries":
+            return [{"id": "c-null", "name": "Nulland"}, {"id": "c-test", "name": "Testland"}]
+        return [{"id": f"s-{i}", "url": r["url"]} for i, r in enumerate(self.upserts.get("sources", []))]
+
+
+def test_apply_direct_seeds_the_evidence_columns(settings):
+    client = _FakeSeedClient()
+    apply_direct(build_seed(settings, CountryNames.load(settings.country_names_json)), client)
+    rows = {r["country_id"]: r for r in client.upserts["country_scores"]}
+    columns = ("grounded", "initiatives_used", "web_search")
+    assert tuple(rows["c-test"][c] for c in columns) == (True, 7, True)
+    assert tuple(rows["c-null"][c] for c in columns) == (None, None, None)
+    assert "evidence" not in rows["c-test"]["subscores"]

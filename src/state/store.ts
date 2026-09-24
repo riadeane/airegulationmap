@@ -5,6 +5,7 @@ import type { BlocsData } from '../data/blocs';
 import type { SubscoresData } from '../data/subscores';
 import type { SourceMeta } from '../data/sources';
 import type { CountryIsoData } from '../data/countryIso';
+import type { EvidenceFilter } from '../data/evidence';
 
 /** Research-confidence levels as recorded per country in regulation data. */
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
@@ -21,6 +22,10 @@ export interface AppState {
   // Restrict to countries citing at least one official (government/
   // legislature/regulator) source.
   filterOfficialOnly: boolean;
+  // Evidence facet (PRD 14): 'any' = no filter; 'grounded' = research drew
+  // on verified policy initiatives; 'search' = web search without any.
+  // Countries with no run record in subscores.json pass only 'any'.
+  filterEvidence: EvidenceFilter;
   selectedCountry: string | null;
   // Read-only arrays: the store owns these; consumers replace them via
   // setState (always with a fresh array), never mutate in place. The
@@ -73,6 +78,7 @@ const state: AppState = {
   filterMax: 5,
   filterConfidence: null,
   filterOfficialOnly: false,
+  filterEvidence: 'any',
   selectedCountry: null,
   sortedCountryNames: [],
   comparisonCountries: [],

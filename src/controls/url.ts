@@ -3,7 +3,11 @@
 // Every meaningful view the user lands on encodes to a query string so
 // a researcher can paste the URL into an email and the recipient sees
 // the same country, score dimension, comparison set, timeline date,
-// and theme.
+// filters, and theme.
+//
+// Params: country, compare, mode, date, bloc, min/max (score range),
+// conf/official/evidence (country filters), q (committed search),
+// scatter, theme.
 //
 // The store is the seam: state changes write to the URL via
 // `history.replaceState`, and `popstate` writes back into the store.
@@ -18,6 +22,7 @@ import {
 import { SCORE_OPTIONS, MAX_COMPARISON } from '../constants';
 import type { AttributeKey } from '../constants';
 import type { ConfidenceLevel } from '../state/store';
+import { parseEvidenceFilter } from '../data/evidence';
 
 /** State parsed from the URL - only keys present in the query appear. */
 export interface UrlState {
@@ -32,6 +37,8 @@ export interface UrlState {
   filterMax?: number;
   filterConfidence?: ConfidenceLevel[];
   filterOfficialOnly?: boolean;
+  // Only the narrowing facets; 'any' is the default and never serialized.
+  filterEvidence?: 'grounded' | 'search';
   q?: string;
 }
 
@@ -115,6 +122,8 @@ export function parseUrl(search: string = window.location.search): UrlState {
     if (levels.length > 0 && levels.length < CONFIDENCE_LEVELS.size) out.filterConfidence = levels;
   }
   if (params.get('official') === '1') out.filterOfficialOnly = true;
+  const evidence = parseEvidenceFilter(params.get('evidence'));
+  if (evidence && evidence !== 'any') out.filterEvidence = evidence;
 
   // Score-range filter. An inverted pair (min > max) is dropped entirely
   // rather than guessing which bound the author meant.
@@ -174,6 +183,7 @@ export function buildQueryString(s: Readonly<AppState>, theme: 'light' | 'dark' 
   if (s.filterMax !== 5) params.set('max', String(s.filterMax));
   if (s.filterConfidence) params.set('conf', s.filterConfidence.join(','));
   if (s.filterOfficialOnly) params.set('official', '1');
+  if (s.filterEvidence && s.filterEvidence !== 'any') params.set('evidence', s.filterEvidence);
 
   if (s.searchQuery) params.set('q', s.searchQuery);
 
@@ -258,6 +268,9 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
   if (urlState.filterOfficialOnly) setState({ filterOfficialOnly: true });
   else if (!initial) setState({ filterOfficialOnly: false });
 
+  if (urlState.filterEvidence) setState({ filterEvidence: urlState.filterEvidence });
+  else if (!initial) setState({ filterEvidence: 'any' });
+
   // Committed search BEFORE country/compare: commitSearch deselects to show
   // the results list, so a country in the same URL wins by applying later.
   if (urlState.q) commitSearch(urlState.q);
@@ -307,6 +320,7 @@ export function initUrlSync(): void {
   on('filterMax', writeReplace);
   on('filterConfidence', writeReplace);
   on('filterOfficialOnly', writeReplace);
+  on('filterEvidence', writeReplace);
   on('searchQuery', writeReplace);
   on('scatterX', writeReplace);
   on('scatterY', writeReplace);

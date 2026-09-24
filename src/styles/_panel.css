@@ -141,6 +141,36 @@
   letter-spacing: 0.04em;
 }
 
+/* Evidence coverage (PRD 14): how the latest research pass was grounded,
+   read as the second line of the record under "Data as of". The class
+   rule above sets display, so [hidden] needs restating. */
+.evidence-coverage {
+  margin-top: 1px;
+  line-height: 1.45;
+}
+
+.evidence-coverage[hidden] {
+  display: none;
+}
+
+/* Present only while the Policy Initiatives section is showing. */
+.evidence-initiatives-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+.evidence-initiatives-link:hover,
+.evidence-initiatives-link:focus-visible {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.evidence-initiatives-link:focus-visible {
+  outline-offset: 2px;
+}
+
 /* Shown while the timeline is scrubbed to a historical date: the score
    block above re-vintages to match the map, and this line says exactly
    which parts of the entry are historical vs. latest. */

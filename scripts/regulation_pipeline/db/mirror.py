@@ -16,6 +16,10 @@ Design constraints (see the service for the call sites):
   new scores get this run's id. ``run_id`` therefore means "the run that
   introduced this change point", which is what the weekly digest's
   ``--run <id>`` regeneration relies on.
+* The evidence columns of ``country_scores`` (``grounded``,
+  ``initiatives_used``, ``web_search``) come from the ``evidence`` block of
+  the subscores entry the service hands over, so the database says exactly
+  what the file says, including null when the file has no run record.
 """
 
 from __future__ import annotations
@@ -29,7 +33,7 @@ from pathlib import Path
 from typing import Protocol
 
 from ..models import ResearchResult
-from ..repository import split_subscores_entry
+from ..repository import EVIDENCE_KEY, split_subscores_entry
 from ..sources import classify_sources
 from .client import SupabaseClient
 
@@ -68,7 +72,7 @@ class _Entry:
     result: ResearchResult
     today: date
     scores_row: dict      # the gated scores.csv row the dataset now holds
-    subscores: dict       # the gated subscores.json entry
+    subscores: dict       # the gated subscores.json entry (with the evidence block)
     history: list[dict]
 
 
@@ -280,6 +284,22 @@ def _score_row(country_id: str, e: _Entry, run_id: str) -> dict:
         "run_id": run_id,
         "scored_at": e.subscores.get("date") or e.today.isoformat(),
         "updated_at": _now(),
+        **evidence_columns(e.subscores),
+    }
+
+
+def evidence_columns(entry: dict | None) -> dict:
+    """A subscores.json entry's ``evidence`` block as ``country_scores``
+    columns (PRD 14). All three are ``None`` when the entry has no run record;
+    ``initiatives_used`` keeps the file's null-versus-0 meaning. Shared with
+    the seed so both write paths map the file the same way."""
+    evidence = (entry or {}).get(EVIDENCE_KEY)
+    if not isinstance(evidence, dict):
+        evidence = {}
+    return {
+        "grounded": evidence.get("grounded"),
+        "initiatives_used": evidence.get("initiatives_used"),
+        "web_search": evidence.get("search"),
     }
 
 

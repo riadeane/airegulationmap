@@ -2,26 +2,37 @@ import json
 
 import pytest
 from conftest import full_result, text_message
+from regulation_pipeline.api import ResearchRequest
 from regulation_pipeline.errors import FatalAPIError
-from regulation_pipeline.models import ResearchResult
+from regulation_pipeline.models import ResearchProvenance, ResearchResult
 from regulation_pipeline.strategies import BatchStrategy, SyncStrategy
 
 INVALID = {"bad": "data"}  # parses as JSON, fails schema validation
 
 
 class StubResearchClient:
-    """Stands in for ResearchClient for both strategies."""
+    """Stands in for ResearchClient for both strategies. ``initiatives`` maps
+    a country to the number of verified initiatives its prompt would embed;
+    a country missing from it gets ``None`` (no evidence provider)."""
 
-    def __init__(self, results: dict):
+    def __init__(self, results: dict, initiatives: dict | None = None):
         self.results = results  # country -> raw dict or None
+        self.initiatives = initiatives or {}
         self.calls: list[tuple[str, bool]] = []
+        self.requested: list[str] = []
+
+    def _provenance(self, country, use_search):
+        return ResearchProvenance(self.initiatives.get(country), use_search, "claude-test")
 
     def research(self, country, existing, *, use_search):
         self.calls.append((country, use_search))
-        return self.results.get(country)
+        return self.results.get(country), self._provenance(country, use_search)
 
-    def request_params(self, country, existing, *, use_search):
-        return {"country": country, "use_search": use_search}
+    def request(self, country, existing, *, use_search):
+        self.requested.append(country)
+        return ResearchRequest(
+            {"country": country, "use_search": use_search}, self._provenance(country, use_search),
+        )
 
 
 class StubRunner:
@@ -68,6 +79,22 @@ class TestSyncStrategy:
             for _ in strat.research(["A", "B", "C", "D"], {}):
                 pass
 
+    def test_attaches_provenance_for_grounded_and_plain(self):
+        client = StubResearchClient({"A": full_result(), "B": full_result()}, initiatives={"A": 7})
+        out = dict(SyncStrategy(client, lambda c: c == "A", sleep=lambda s: None).research(["A", "B"], {}))
+        assert out["A"].provenance == ResearchProvenance(7, True, "claude-test")
+        assert out["A"].provenance.record("run-1") == {
+            "grounded": True, "initiatives_used": 7, "search": True,
+            "model": "claude-test", "run_id": "run-1",
+        }
+        assert out["B"].provenance == ResearchProvenance(None, False, "claude-test")
+        assert out["B"].provenance.grounded is False
+
+    def test_failure_with_provenance_is_still_none(self):
+        client = StubResearchClient({"B": INVALID}, initiatives={"A": 3, "B": 3})
+        out = list(SyncStrategy(client, lambda c: True, sleep=lambda s: None).research(["A", "B"], {}))
+        assert out == [("A", None), ("B", None)]
+
     def test_success_resets_consecutive_counter(self):
         client = StubResearchClient({"B": full_result()})  # only B succeeds
         strat = SyncStrategy(client, lambda c: False, sleep=lambda s: None, max_consecutive_failures=2)
@@ -96,6 +123,30 @@ class TestBatchStrategy:
         runner = StubRunner({}, ["A"])
         list(BatchStrategy(client, runner, lambda c: True).research(["A"], {}))
         assert runner.params["A"]["use_search"] is True
+
+    def test_attaches_each_requests_provenance(self):
+        client = StubResearchClient({}, initiatives={"A": 15, "B": 0})
+        answer = text_message(json.dumps(full_result()))
+        runner = StubRunner({"A": answer, "B": answer, "C": answer}, [])
+        out = dict(BatchStrategy(client, runner, lambda c: c != "C").research(["A", "B", "C"], {}))
+        assert out["A"].provenance == ResearchProvenance(15, True, "claude-test")
+        assert out["A"].provenance.grounded is True
+        assert out["B"].provenance == ResearchProvenance(0, True, "claude-test")
+        assert out["B"].provenance.grounded is False
+        assert out["C"].provenance == ResearchProvenance(None, False, "claude-test")
+        # The runner received the params alone, and each request was built
+        # once: the evidence provider is never asked twice for a country.
+        assert runner.params == {
+            "A": {"country": "A", "use_search": True},
+            "B": {"country": "B", "use_search": True},
+            "C": {"country": "C", "use_search": False},
+        }
+        assert client.requested == ["A", "B", "C"]
+
+    def test_failed_request_with_provenance_is_still_none(self):
+        client = StubResearchClient({}, initiatives={"A": 4})
+        runner = StubRunner({}, ["A"])
+        assert dict(BatchStrategy(client, runner, lambda c: True).research(["A"], {})) == {"A": None}
 
 
 def _drain_until_fatal(gen):

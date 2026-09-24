@@ -412,7 +412,8 @@
     color: #000;
   }
 
-  /* Record: data date and source count, confidence, citation, link. */
+  /* Record: data date and source count, evidence coverage, confidence,
+     citation, link. */
   body.print-brief .data-freshness {
     margin: 4pt 0 0;
     padding-top: 6pt;
@@ -422,6 +423,20 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: #333;
+  }
+
+  /* The evidence line shares the record's order and type but continues
+     the data line: no second rule, and the initiatives link prints as
+     text (the section it points to is not in the brief). */
+  body.print-brief .data-freshness.evidence-coverage {
+    margin-top: 1pt;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  body.print-brief .evidence-initiatives-link {
+    color: inherit;
+    border-bottom: 0;
   }
 
   body.print-brief #panel-content .confidence-badge {

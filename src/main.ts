@@ -102,6 +102,9 @@ async function main(): Promise<void> {
   }
   if (urlState.filterConfidence) setState({ filterConfidence: urlState.filterConfidence });
   if (urlState.filterOfficialOnly) setState({ filterOfficialOnly: true });
+  // The evidence records arrive with subscores.json (below); the map and
+  // scatter repaint on 'subscores', so the facet can apply before they land.
+  if (urlState.filterEvidence) setState({ filterEvidence: urlState.filterEvidence });
 
   // Wire up UI controls
   initTheme();

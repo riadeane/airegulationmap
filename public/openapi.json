@@ -371,6 +371,15 @@
             "$ref": "#/parameters/rowFilter.country_scores.rationales"
           },
           {
+            "$ref": "#/parameters/rowFilter.country_scores.grounded"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.country_scores.initiatives_used"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.country_scores.web_search"
+          },
+          {
             "$ref": "#/parameters/select"
           },
           {
@@ -406,7 +415,7 @@
             "description": "Partial Content"
           }
         },
-        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, and research confidence.",
+        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, research confidence, and evidence coverage (grounded, initiatives_used, web_search).",
         "tags": [
           "country_scores"
         ]
@@ -428,7 +437,7 @@
             "description": "Created"
           }
         },
-        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, and research confidence.",
+        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, research confidence, and evidence coverage (grounded, initiatives_used, web_search).",
         "tags": [
           "country_scores"
         ]
@@ -481,6 +490,15 @@
             "$ref": "#/parameters/rowFilter.country_scores.rationales"
           },
           {
+            "$ref": "#/parameters/rowFilter.country_scores.grounded"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.country_scores.initiatives_used"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.country_scores.web_search"
+          },
+          {
             "$ref": "#/parameters/preferReturn"
           }
         ],
@@ -489,7 +507,7 @@
             "description": "No Content"
           }
         },
-        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, and research confidence.",
+        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, research confidence, and evidence coverage (grounded, initiatives_used, web_search).",
         "tags": [
           "country_scores"
         ]
@@ -542,6 +560,15 @@
             "$ref": "#/parameters/rowFilter.country_scores.rationales"
           },
           {
+            "$ref": "#/parameters/rowFilter.country_scores.grounded"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.country_scores.initiatives_used"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.country_scores.web_search"
+          },
+          {
             "$ref": "#/parameters/body.country_scores"
           },
           {
@@ -553,7 +580,7 @@
             "description": "No Content"
           }
         },
-        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, and research confidence.",
+        "summary": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, research confidence, and evidence coverage (grounded, initiatives_used, web_search).",
         "tags": [
           "country_scores"
         ]
@@ -866,6 +893,15 @@
             "$ref": "#/parameters/rowFilter.public_export.summarized_at"
           },
           {
+            "$ref": "#/parameters/rowFilter.public_export.grounded"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.public_export.initiatives_used"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.public_export.web_search"
+          },
+          {
             "$ref": "#/parameters/select"
           },
           {
@@ -901,7 +937,7 @@
             "description": "Partial Content"
           }
         },
-        "summary": "Flat research export: one row per country joining scores, sub-indicators, and prose. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
+        "summary": "Flat research export: one row per country joining scores, sub-indicators, prose, and evidence coverage. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
         "tags": [
           "public_export"
         ]
@@ -2305,7 +2341,7 @@
       "type": "object"
     },
     "country_scores": {
-      "description": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, and research confidence.",
+      "description": "Latest scores per country: five dimensions plus the maturity composite, methodology v2 sub-indicators with their v2.1 rationales, research confidence, and evidence coverage (grounded, initiatives_used, web_search).",
       "required": [
         "id",
         "country_id",
@@ -2388,6 +2424,21 @@
         "rationales": {
           "description": "Methodology v2.1: one-sentence model rationale per sub-indicator, keyed dimension -> sub-indicator (same keys as subscores, no date). Null for countries not yet re-researched under v2.1.",
           "format": "jsonb"
+        },
+        "grounded": {
+          "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. The run's model is research_runs.model via run_id. Null when the country has no run record since evidence coverage was first recorded (September 2026); initiatives_used and web_search are then null too.",
+          "format": "boolean",
+          "type": "boolean"
+        },
+        "initiatives_used": {
+          "description": "Verified policy initiatives embedded in the research prompt (capped at 15). 0 when the run consulted the evidence database and it held none for the country; null when the run did not consult it (not a grounded run) or the country has no run record.",
+          "format": "integer",
+          "type": "integer"
+        },
+        "web_search": {
+          "description": "True when the model had web search for the country's latest research pass. Null when the country has no run record.",
+          "format": "boolean",
+          "type": "boolean"
         }
       },
       "type": "object"
@@ -2499,7 +2550,7 @@
       "type": "object"
     },
     "public_export": {
-      "description": "Flat research export: one row per country joining scores, sub-indicators, and prose. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
+      "description": "Flat research export: one row per country joining scores, sub-indicators, prose, and evidence coverage. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
       "properties": {
         "country": {
           "description": "Canonical country name.",
@@ -2606,6 +2657,21 @@
           "description": "Date the prose was last researched.",
           "format": "date",
           "type": "string"
+        },
+        "grounded": {
+          "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. Null when the country has no run record since evidence coverage was first recorded (September 2026).",
+          "format": "boolean",
+          "type": "boolean"
+        },
+        "initiatives_used": {
+          "description": "Verified policy initiatives embedded in the research prompt (capped at 15). 0 when the run consulted the evidence database and it held none for the country; null when the run did not consult it (not a grounded run) or the country has no run record.",
+          "format": "integer",
+          "type": "integer"
+        },
+        "web_search": {
+          "description": "True when the model had web search for the country's latest research pass. Null when the country has no run record.",
+          "format": "boolean",
+          "type": "boolean"
         }
       },
       "type": "object"
@@ -3381,6 +3447,27 @@
       "in": "query",
       "type": "string"
     },
+    "rowFilter.country_scores.grounded": {
+      "name": "grounded",
+      "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. The run's model is research_runs.model via run_id. Null when the country has no run record since evidence coverage was first recorded (September 2026); initiatives_used and web_search are then null too.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.country_scores.initiatives_used": {
+      "name": "initiatives_used",
+      "description": "Verified policy initiatives embedded in the research prompt (capped at 15). 0 when the run consulted the evidence database and it held none for the country; null when the run did not consult it (not a grounded run) or the country has no run record.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.country_scores.web_search": {
+      "name": "web_search",
+      "description": "True when the model had web search for the country's latest research pass. Null when the country has no run record.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
     "body.countries": {
       "name": "countries",
       "description": "countries",
@@ -3656,6 +3743,27 @@
     "rowFilter.public_export.summarized_at": {
       "name": "summarized_at",
       "description": "Date the prose was last researched.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.public_export.grounded": {
+      "name": "grounded",
+      "description": "True when the research prompt embedded at least one verified policy initiative (OECD.AI Policy Navigator / GAIIN); always equals initiatives_used > 0. Null when the country has no run record since evidence coverage was first recorded (September 2026).",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.public_export.initiatives_used": {
+      "name": "initiatives_used",
+      "description": "Verified policy initiatives embedded in the research prompt (capped at 15). 0 when the run consulted the evidence database and it held none for the country; null when the run did not consult it (not a grounded run) or the country has no run record.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.public_export.web_search": {
+      "name": "web_search",
+      "description": "True when the model had web search for the country's latest research pass. Null when the country has no run record.",
       "required": false,
       "in": "query",
       "type": "string"

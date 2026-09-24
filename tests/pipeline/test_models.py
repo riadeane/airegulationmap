@@ -1,7 +1,9 @@
+import json
+
 import pytest
 from conftest import full_result
 from pydantic import ValidationError
-from regulation_pipeline.models import ResearchResult
+from regulation_pipeline.models import ResearchProvenance, ResearchResult
 
 
 class TestValidation:
@@ -151,3 +153,40 @@ class TestOutputSchema:
     def test_confidence_enum(self):
         schema = ResearchResult.output_schema()
         assert schema["properties"]["confidence"]["enum"] == ["high", "medium", "low"]
+
+
+class TestProvenance:
+    """PRD 14: the request facts ride on the result without touching the
+    answer contract."""
+
+    def test_not_in_output_schema(self):
+        schema = ResearchResult.output_schema()
+        assert set(schema["properties"]) == {
+            "regulation_status", "policy_lever", "governance_type", "actor_involvement",
+            "enforcement_level", "specific_laws", "sources", "confidence",
+        }
+        assert "provenance" not in json.dumps(schema)
+
+    @pytest.mark.parametrize("key", ["provenance", "_provenance"])
+    def test_answer_cannot_set_provenance(self, key):
+        raw = full_result(**{key: {"initiatives_used": 15, "search": True, "model": "x"}})
+        with pytest.raises(ValidationError):
+            ResearchResult.model_validate(raw)
+
+    def test_defaults_to_none_and_attaches(self):
+        result = ResearchResult.model_validate(full_result())
+        assert result.provenance is None
+        provenance = ResearchProvenance(initiatives_used=7, search=True, model="claude-x")
+        assert result.with_provenance(provenance) is result
+        assert result.provenance == provenance
+        # Not part of the answer: dumping the result never carries it.
+        assert "provenance" not in result.model_dump()
+
+    @pytest.mark.parametrize(("used", "grounded"), [(None, False), (0, False), (1, True), (15, True)])
+    def test_grounded_is_derived_from_the_count(self, used, grounded):
+        provenance = ResearchProvenance(initiatives_used=used, search=False, model="m")
+        assert provenance.grounded is grounded
+        assert provenance.record("run-1") == {
+            "grounded": grounded, "initiatives_used": used, "search": False,
+            "model": "m", "run_id": "run-1",
+        }

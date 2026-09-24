@@ -54,7 +54,8 @@ python scripts/update_data.py --no-search
 
 # Evidence-grounded research: inject each country's verified policy
 # initiatives (OECD/GAIIN, from Supabase) into the prompt. Countries
-# without evidence fall back to the plain prompt.
+# without evidence fall back to the plain prompt. Every run records each
+# country's evidence coverage (see "Evidence coverage" below).
 python scripts/update_data.py --grounded
 
 # Supabase dual-write mirror: auto-on when SUPABASE_URL and
@@ -124,15 +125,16 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/data/peers.ts` | Peer sets for the panel's "Compare with" shortcuts (bloc, similar maturity, similar profile) |
 | `src/data/sources.ts` | Source URL classification (official vs other) + copy formatting + `SourceMeta` |
 | `src/data/subscores.ts` | subscores.json loading + sub-indicator labels (methodology v2) |
+| `src/data/evidence.ts` | Evidence coverage (pure): `normalizeEvidence` for the subscores.json `evidence` record, `evidenceSentence` (panel and country pages), `matchesEvidenceFilter` / `parseEvidenceFilter` for the Evidence facet |
 | `src/data/supabase.ts` | Thin PostgREST reader (env-gated; null on any failure) |
 | `src/data/hydrate.ts` | Post-boot dataset hydration when the database is strictly newer |
 | `src/data/sourceMeta.ts` | Source titles/types from the sources database |
 | `src/data/slug.ts` | Country page slug and path (`/country/<slug>/`), shared by the app and the page generator |
 | `src/map/` | Map rendering (renderer, legend, zoom, tooltip) |
-| `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives) |
+| `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives, evidence coverage: `evidence.ts` renders the sentence under the confidence line and links to the Policy Initiatives section) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
 | `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
-| `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip) |
+| `src/controls/` | UI controls (search, score selector, filter incl. the Evidence facet, blocs and bloc summary incl. the grounded share, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip) |
 | `src/data/digest.ts` | Weekly digest parsing + formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
 | `src/data/drift.ts` | Drift dashboard aggregations (pure): countries changed per run by dimension, delta bins, confidence by vintage, drift.json and `research_runs` parsing, per-bloc shares |
 | `src/charts/drift.ts` | The drift dashboard's D3 small multiples (token-driven palette, hover tooltips); `src/drift.ts` is the `drift.html` entry |
@@ -190,7 +192,7 @@ Python package that calls the Claude API to research regulation status per count
 | `public/history.json` | Timestamped snapshots of score data for timeline playback |
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
-| `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1) |
+| `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1), plus the `evidence` record of each country's latest research pass (PRD 14; absent = no run record yet) |
 | `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`) |
 | `public/data/gold_set.json` | Hand-checked sub-indicator scores for ten countries across the maturity range: 20 scores, a justification per dimension, sources, and `status` (`draft` until the maintainer verifies, then `verified` + `verified_on`). Validated by `gold.load_gold_set` |
 | `public/data/drift.json` | One row per run from the gold-set drift check: `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, within_one, max_dev, max_dev_at}`. Mirrored to Supabase `gold_checks` |
@@ -216,9 +218,10 @@ Display fixes (title, host, dropping write verbs) are applied at load time in `s
 
 The panel's "Report an issue" action opens the GitHub issue form
 `.github/ISSUE_TEMPLATE/data-error.yml` in a new tab with the country and
-the entry as shown (scores, confidence, last updated, data version, the APA
-citation string, the app URL, the source list, and the sub-indicator rows in
-a collapsed block once rationales exist) already filled in. GitHub prefills
+the entry as shown (scores, confidence, the evidence coverage sentence once
+the country has a run record, last updated, data version, the APA citation
+string, the app URL, the source list, and the sub-indicator rows in a
+collapsed block once rationales exist) already filled in. GitHub prefills
 form fields from query parameters named after the field ids, so the URL
 carries `template`, `title`, `labels`, `country` and `entry`; the free-text
 `body` parameter only applies to Markdown templates. The entry sheds detail
@@ -262,7 +265,8 @@ cleanup, so a page shows what the panel shows. Each page carries a canonical
 URL, Open Graph tags, and JSON-LD `Dataset` markup with the six scores as
 `variableMeasured`. The panel's "Permanent link" button copies the page URL
 for the selected country. Slugs come from `src/data/slug.ts`
-(lowercase ASCII, hyphens: `Côte d'Ivoire` -> `cote-divoire`).
+(lowercase ASCII, hyphens: `Côte d'Ivoire` -> `cote-divoire`). Pages
+show the evidence coverage sentence as plain text (no link).
 
 ### Supabase (system of record + researcher API)
 
@@ -287,6 +291,33 @@ Environment variables: frontend builds take optional `VITE_SUPABASE_URL` +
 `VITE_SUPABASE_ANON_KEY` (see `.env.example`; anon key is RLS-read-only and
 safe to expose). The pipeline/mirror/evidence sync take `SUPABASE_URL` +
 `SUPABASE_SERVICE_KEY` (GitHub Actions secrets - never in the frontend).
+
+### Evidence coverage (PRD 14)
+
+Every applied result records how the country's latest research pass was
+grounded, including results the stability gate holds (the record describes
+the pass behind the entry's text, sources and confidence). In
+`subscores.json` it is `countries.<name>.evidence = {grounded,
+initiatives_used, search, model, run_id}`; in Supabase it is
+`country_scores.grounded` / `initiatives_used` / `web_search` (migration
+`0008_evidence_coverage.sql`, also appended to `public_export`; the model is
+`research_runs.model` via `run_id`). `initiatives_used` is the number of
+verified initiatives embedded in the prompt (capped at 15): `0` = the run
+consulted the evidence database and it held none, `null` = the run did not
+consult it (not `--grounded`), so the panel never claims "no verified
+initiatives on record" for a run that did not look. `grounded` is always
+`initiatives_used > 0` (a check constraint in the database). No record (no
+key, or all three columns null) = not researched since PRD 14; the panel
+then shows nothing. The panel sentence reads "Grounded in 7 verified policy
+initiatives and web search" or "Web search only; no verified initiatives on
+record"; the filter's Evidence facet (any / grounded / search only, URL
+parameter `evidence=grounded|search`) composes with the confidence and
+official-source filters in `passesCountryFilters`; the bloc summary shows the
+bloc's grounded share. The JSON export carries the record under its own
+`Evidence` key, and the issue report adds the sentence. There is no evidence
+colour mode on the map. Apply migration 0008 before the next mirrored run:
+until it lands the `country_scores` upsert is rejected for the unknown
+columns (the run itself still succeeds; the mirror only warns).
 
 ### Scoring Dimensions
 

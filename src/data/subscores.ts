@@ -9,6 +9,8 @@
 // the rest of the app sees a single shape.
 
 import type { DimensionKey } from '../constants';
+import { normalizeEvidence } from './evidence';
+import type { EvidenceRecord } from './evidence';
 
 export type SnakeDimension =
   | 'regulation_status'
@@ -32,6 +34,9 @@ export interface SubscoreEntry {
   governance_type?: SubscoreBlock;
   actor_involvement?: SubscoreBlock;
   enforcement_level?: SubscoreBlock;
+  /** How the latest research pass was grounded (PRD 14). Absent when the
+   *  country has no run record yet. */
+  evidence?: EvidenceRecord;
 }
 
 export interface SubscoresData {
@@ -69,6 +74,8 @@ function normalizeEntry(raw: RawEntry): SubscoreEntry {
     }
     entry[snake] = cells;
   }
+  const evidence = normalizeEvidence(raw.evidence);
+  if (evidence) entry.evidence = evidence;
   return entry;
 }
 
