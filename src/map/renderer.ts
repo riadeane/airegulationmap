@@ -161,10 +161,6 @@ export async function generateMap(): Promise<void> {
     .attr('viewBox', [0, 0, size.w, size.h])
     .attr('preserveAspectRatio', 'xMidYMid meet');
 
-  // Some screen readers prefer <title> to aria-label on SVG, so set
-  // both. The title must be the first child to be announced correctly.
-  svg.append('title').text('World map showing AI regulation scores by country');
-
   svg.append('defs')
     .append('clipPath')
     .attr('id', 'clip')
