@@ -35,6 +35,7 @@ export const TOP_LEVEL_PATHS = [
   '/data.html',
   '/api-docs.html',
   '/changes.html',
+  '/drift.html',
   '/country/',
 ];
 

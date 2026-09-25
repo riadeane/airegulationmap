@@ -3,25 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>This week's changes · AI Regulation Map</title>
+  <title>Drift · AI Regulation Map</title>
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="canonical" href="https://airegulationmap.org/changes.html">
-  <link rel="alternate" type="application/atom+xml" title="AI Regulation Map: weekly changes" href="/digest/feed.xml">
+  <link rel="canonical" href="https://airegulationmap.org/drift.html">
 
-  <meta name="description" content="What changed in the AI Regulation Map after the latest research run: score movements and new laws by country, each linked to its sources.">
+  <meta name="description" content="How much the AI Regulation Map dataset moves from one research run to the next, and how confident it is: countries changed per run, the size of score moves, confidence by vintage, and the gold-set drift check.">
 
   <meta property="og:type" content="article">
-  <meta property="og:title" content="This week's changes · AI Regulation Map">
-  <meta property="og:description" content="Score movements and new laws by country after the latest research run, each linked to its sources.">
+  <meta property="og:title" content="Drift · AI Regulation Map">
+  <meta property="og:description" content="How much the dataset moves per research run and how confident it is: change counts, delta distributions, confidence, and the gold-set check.">
   <meta property="og:image" content="https://airegulationmap.org/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:url" content="https://airegulationmap.org/changes.html">
+  <meta property="og:url" content="https://airegulationmap.org/drift.html">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="This week's changes · AI Regulation Map">
-  <meta name="twitter:description" content="Score movements and new laws by country after the latest research run, with sources.">
+  <meta name="twitter:title" content="Drift · AI Regulation Map">
+  <meta name="twitter:description" content="How much the dataset moves per research run and how confident it is.">
   <meta name="twitter:image" content="https://airegulationmap.org/og-image.png">
 
   <!-- Resolve theme before paint. URL > localStorage > prefers-color-scheme. -->
@@ -47,9 +46,11 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 
   <style>
-    /* Tokens: mirror of the main app's _tokens.css, trimmed to what
-       this page actually uses. Kept inline so methodology.html renders
-       correctly even if the main bundle is unavailable. */
+    /* Tokens: mirror of the main app's _tokens.css, trimmed to what this
+       page uses (plus the score and no-data tints the charts read). Kept
+       inline so the prose renders even if the bundle is unavailable.
+       --text-tertiary follows _tokens.css (52% light / 62% dark) so the
+       small chart labels clear WCAG AA. */
     :root {
       --brand-hue: 75;
       --radius: 8px;
@@ -64,10 +65,14 @@
 
       --text-primary:    oklch(92% 0.012 var(--brand-hue));
       --text-secondary:  oklch(72% 0.014 var(--brand-hue));
-      --text-tertiary:   oklch(58% 0.014 var(--brand-hue));
+      --text-tertiary:   oklch(62% 0.014 var(--brand-hue));
 
       --accent:          oklch(76% 0.13 var(--brand-hue));
       --accent-muted:    oklch(76% 0.13 var(--brand-hue) / 0.14);
+
+      --no-data:         oklch(26% 0.007 var(--brand-hue));
+      --score-low:       oklch(58% 0.16 28);
+      --score-high:      oklch(62% 0.13 245);
 
       color-scheme: dark;
     }
@@ -81,9 +86,12 @@
         --border-subtle:   oklch(94% 0.004 80);
         --text-primary:    oklch(20% 0.013 80);
         --text-secondary:  oklch(42% 0.014 80);
-        --text-tertiary:   oklch(58% 0.014 80);
+        --text-tertiary:   oklch(52% 0.014 80);
         --accent:          oklch(48% 0.16 60);
         --accent-muted:    oklch(48% 0.16 60 / 0.10);
+        --no-data:         oklch(93% 0.004 80);
+        --score-low:       oklch(52% 0.18 28);
+        --score-high:      oklch(45% 0.15 245);
         color-scheme: light;
       }
     }
@@ -96,9 +104,12 @@
       --border-subtle:   oklch(94% 0.004 80);
       --text-primary:    oklch(20% 0.013 80);
       --text-secondary:  oklch(42% 0.014 80);
-      --text-tertiary:   oklch(58% 0.014 80);
+      --text-tertiary:   oklch(52% 0.014 80);
       --accent:          oklch(48% 0.16 60);
       --accent-muted:    oklch(48% 0.16 60 / 0.10);
+      --no-data:         oklch(93% 0.004 80);
+      --score-low:       oklch(52% 0.18 28);
+      --score-high:      oklch(45% 0.15 245);
       color-scheme: light;
     }
 
@@ -334,36 +345,131 @@
       :root:not([data-theme]) .theme-icon-moon { display: none; }
     }
 
-    /* Digest */
-    .digest-meta {
+    /* Page width: prose stays at 68ch; the figures grid may go wider. */
+    main.doc.wide { max-width: 1040px; }
+    main.doc.wide .prose { max-width: 68ch; }
+
+    .drift-meta {
       font-family: 'Geist Mono', 'JetBrains Mono', monospace;
       font-size: 0.78rem;
       color: var(--text-tertiary);
       margin: -24px 0 28px;
     }
-    .digest-meta code { font-size: 1em; padding: 1px 5px; }
 
-    .digest-lead {
+    /* Figures: small multiples, two across when there is room. */
+    .figures {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 28px 36px;
+      margin: 36px 0 12px;
+    }
+    @media (max-width: 480px) {
+      .figures { grid-template-columns: 1fr; }
+    }
+
+    figure.chart {
+      min-width: 0;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 16px;
+    }
+    figure.chart#gold, figure.chart#blocs { grid-column: 1 / -1; }
+    .chart-title {
       font-family: 'Literata', Georgia, serif;
       font-size: 1.1rem;
-      line-height: 1.55;
+      font-weight: 500;
+      margin: 0 0 4px;
       color: var(--text-primary);
-      margin-bottom: 36px;
-      max-width: 60ch;
+    }
+    .chart-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-tertiary);
+      margin: 0 0 12px;
+      line-height: 1.5;
+    }
+    .chart-plot { width: 100%; min-height: 40px; }
+    .chart-svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+    .chart-empty {
+      font-size: 0.88rem;
+      color: var(--text-tertiary);
+      padding: 18px 0;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      text-align: center;
+      margin: 0 0 12px;
+    }
+    figcaption {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-top: 12px;
     }
 
-    .change {
-      padding: 22px 0 26px;
-      border-top: 1px solid var(--border-subtle);
+    /* SVG text wears text tokens; only fills are set by the script. */
+    .chart-tick { font-size: 11px; fill: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+    .chart-value { font-size: 11px; fill: var(--text-secondary); font-variant-numeric: tabular-nums; }
+    .chart-row-label {
+      font-size: 10.5px;
+      fill: var(--text-tertiary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
-    .change:last-of-type { border-bottom: 1px solid var(--border-subtle); }
-    .change h2.change-country { margin: 0 0 4px; font-size: 1.2rem; }
-    .change h2.change-country a { color: var(--text-primary); text-decoration: none; }
-    .change h2.change-country a:hover { color: var(--accent); }
-    .change-headline { color: var(--text-primary); font-weight: 500; margin-bottom: 8px; }
-    .change-summary { margin-bottom: 12px; }
+    .chart-gridline { stroke: var(--border-subtle); stroke-width: 1; shape-rendering: crispEdges; }
+    .chart-axisline { stroke: var(--border); stroke-width: 1; shape-rendering: crispEdges; }
+    .chart-threshold { stroke: var(--text-tertiary); stroke-width: 1; shape-rendering: crispEdges; }
+    .chart-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .chart-dot { stroke-width: 2; }
+    .chart-mark { transition: opacity 0.12s var(--ease-out); }
+    .chart-mark:hover { opacity: 0.8; }
 
-    .change-facts {
+    .chart-legend {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 16px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+    .chart-legend li { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+    .legend-key { display: inline-block; width: 12px; height: 12px; border-radius: 3px; flex: none; }
+    .legend-key-line { width: 16px; height: 2px; border-radius: 1px; }
+    .legend-key-ramp { width: 40px; height: 8px; border-radius: 2px; }
+
+    .chart-details { margin-top: 8px; font-size: 0.82rem; }
+    .chart-details summary { cursor: pointer; color: var(--text-tertiary); }
+    .chart-details summary:hover { color: var(--accent); }
+    .chart-details[open] summary { margin-bottom: 8px; }
+    .chart-table-wrap, .chart-details { overflow-x: auto; }
+    table.chart-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.82rem;
+      font-variant-numeric: tabular-nums;
+    }
+    table.chart-table th, table.chart-table td {
+      text-align: left;
+      padding: 5px 10px 5px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    table.chart-table thead th {
+      font-family: 'Geist', -apple-system, sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+    table.chart-table tbody th { font-weight: 500; color: var(--text-primary); }
+    table.chart-table td { color: var(--text-secondary); }
+
+    /* Latest run */
+    #drift-run h2 { margin-top: 48px; }
+    #drift-run h3 { margin-top: 24px; }
+    .run-source, .run-note { font-size: 0.85rem; }
+    .run-facts {
       display: grid;
       grid-template-columns: max-content 1fr;
       gap: 4px 18px;
@@ -371,46 +477,55 @@
       margin: 0 0 12px;
       color: var(--text-secondary);
     }
-    .change-facts dt { color: var(--text-tertiary); }
-    .change-facts dd {
+    .run-facts dt { color: var(--text-tertiary); }
+    .run-facts dd {
       font-family: 'Geist Mono', 'JetBrains Mono', monospace;
       font-variant-numeric: tabular-nums;
       color: var(--text-primary);
     }
+    .run-facts dd code { font-size: 1em; padding: 1px 5px; }
+    #drift-run table.chart-table { max-width: 60ch; }
 
-    .change h3 { margin: 14px 0 6px; }
-    .change-sources { list-style: none; padding: 0; margin: 0; font-size: 0.88rem; }
-    .change-sources li { margin-bottom: 3px; }
-    .change-new {
-      font-size: 0.7rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--accent);
-      background: var(--accent-muted);
-      padding: 1px 6px;
-      border-radius: 3px;
-      margin-left: 6px;
+    /* Hover tooltip (mirror of the map's) */
+    .tooltip {
+      position: absolute;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      pointer-events: none;
+      font-family: 'Geist', -apple-system, sans-serif;
+      font-size: 0.78rem;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+      color: var(--text-secondary);
+      max-width: 260px;
+      z-index: 200;
+      line-height: 1.5;
     }
-
-    .change-uncovered { margin-top: 40px; }
-    .change-uncovered h2, .digest-weeks h2 { margin-top: 44px; }
-    .digest-weeks ul { list-style: none; padding: 0; }
-    .digest-weeks li { margin-bottom: 6px; }
-    .digest-weeks strong { color: var(--text-primary); font-weight: 500; }
+    .tooltip strong {
+      font-family: 'Literata', Georgia, serif;
+      color: var(--text-primary);
+      display: block;
+      margin-bottom: 3px;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+    .tooltip b { color: var(--text-primary); font-weight: 500; }
 
     @media print {
-      .change { break-inside: avoid; }
-      .change-new { background: #f2f2f2; color: #333; }
+      .figures { display: block; }
+      figure.chart { break-inside: avoid; margin-bottom: 24px; }
+      .chart-details { display: none; }
+      .tooltip { display: none; }
     }
   </style>
 </head>
 <body>
   <header class="site-header">
     <a class="site-title" href="/">AI Regulation Map</a>
-    <nav aria-label="breadcrumb"><span>Changes</span></nav>
+    <nav aria-label="breadcrumb"><span>Drift</span></nav>
     <div class="header-links">
-      <a href="/digest/feed.xml" title="Atom feed of weekly changes">Feed</a>
-      <a href="/drift.html">Drift</a>
+      <a href="/changes.html">This week's changes</a>
       <a href="/methodology.html">Methodology</a>
       <a href="/data.html">Data &amp; API</a>
       <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme" title="Switch theme">
@@ -424,20 +539,42 @@
     </div>
   </header>
 
-  <main class="doc" id="digest" aria-live="polite">
-    <h1 class="doc-title">This week's changes</h1>
-    <p class="doc-subtitle">Loading the latest digest…</p>
+  <main class="doc wide">
+    <div class="prose">
+      <h1 class="doc-title">Drift</h1>
+      <p class="doc-subtitle">How much the dataset moves from one research run to the next, and how confident it is.</p>
+
+      <p>This page measures the pipeline, not the world. Every Monday the
+      research pipeline re-scores every country from scratch, and a stability
+      gate lets a score change through only with new evidence or when it repeats
+      on the next run (see the <a href="/methodology.html#update-cadence">methodology</a>).
+      The figures below show what came through that gate on each run: how many
+      countries changed and on which dimension, how large the moves were, the
+      confidence the pipeline assigned, and how closely a run agrees with a
+      hand-checked gold set. A busy week here can mean regulation moved or that
+      the model re-read the same evidence differently; the
+      <a href="/changes.html">weekly digest</a> says which, country by country.
+      Nothing on this page is a measure of how well any country governs AI.</p>
+    </div>
+
+    <div id="drift-figures" class="figures" aria-live="polite">
+      <p class="chart-empty">Loading the figures…</p>
+    </div>
+
     <noscript>
-      <p>This page needs JavaScript to render the digest. The same content is
-      available as <a href="/digest/index.json">JSON</a> and as an
-      <a href="/digest/feed.xml">Atom feed</a>.</p>
+      <p>The figures need JavaScript. The same numbers are in the published
+      files: <a href="/history.json">history.json</a> for score movement,
+      <a href="/regulation_data.csv">regulation_data.csv</a> for confidence and
+      <a href="/data/drift.json">drift.json</a> for the gold-set check.</p>
     </noscript>
+
+    <section id="drift-run" class="prose" aria-live="polite"></section>
   </main>
 
   <footer class="site-footer">
-    <p><a href="/">&larr; Back to the map</a> &nbsp;·&nbsp; <a href="/digest/feed.xml">Atom feed</a> &nbsp;·&nbsp; <a href="/methodology.html">Methodology</a></p>
+    <p><a href="/">&larr; Back to the map</a> &nbsp;·&nbsp; <a href="/changes.html">This week's changes</a> &nbsp;·&nbsp; <a href="/methodology.html">Methodology</a> &nbsp;·&nbsp; <a href="/data.html">Data &amp; API</a></p>
   </footer>
 
-  <script type="module" src="/src/changes.ts"></script>
+  <script type="module" src="/src/drift.ts"></script>
 </body>
 </html>

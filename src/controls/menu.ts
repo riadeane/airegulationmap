@@ -1,7 +1,7 @@
-// Header menu. Owns the "This week's changes" link to the digest page
-// and the mobile-only ☰ toggle that folds the secondary header controls
-// (filter, scatter, export, the changes link) away so the map keeps the
-// screen; tapping it reveals them. The theme toggle and the freshness
+// Header menu. Owns the "This week's changes" link to the digest page,
+// the "Drift" link to the drift dashboard, and the mobile-only ☰ toggle
+// that folds the secondary header controls (filter, scatter, export, the
+// page links) away so the map keeps the screen; tapping it reveals them. The theme toggle and the freshness
 // metadata stay OUT of the menu (persistent theme + trust signal). On
 // desktop the button is hidden and the full toolbar shows inline, so the
 // toggled `controls-open` class has no effect there.
@@ -9,20 +9,27 @@
 import { on } from '../state/store';
 
 const CHANGES_HREF = '/changes.html';
+const DRIFT_HREF = '/drift.html';
 
 // Rendered here rather than in index.html so the menu module owns every
-// secondary header entry; the link sits before the theme toggle.
-function addChangesLink(header: HTMLElement): void {
-  if (header.querySelector('.header-changes-link')) return;
+// secondary header entry; the links sit before the theme toggle, in the
+// order given.
+function addPageLink(header: HTMLElement, href: string, text: string, title: string): void {
+  if (header.querySelector(`.header-changes-link[href="${href}"]`)) return;
   const link = document.createElement('a');
   link.className = 'header-changes-link';
-  link.href = CHANGES_HREF;
-  link.textContent = "This week's changes";
-  link.title = 'What moved after the latest research run, with sources';
+  link.href = href;
+  link.textContent = text;
+  link.title = title;
   const right = header.querySelector('.header-right') ?? header;
   const themeToggle = right.querySelector(':scope > #theme-toggle');
   if (themeToggle) right.insertBefore(link, themeToggle);
   else right.append(link);
+}
+
+function addChangesLink(header: HTMLElement): void {
+  addPageLink(header, CHANGES_HREF, "This week's changes", 'What moved after the latest research run, with sources');
+  addPageLink(header, DRIFT_HREF, 'Drift', 'How much the dataset moves per run, and how confident it is');
 }
 
 export function initMenu(): void {

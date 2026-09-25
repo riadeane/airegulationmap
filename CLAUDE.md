@@ -134,6 +134,8 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
 | `src/controls/` | UI controls (search, score selector, filter, blocs, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip, "Show uncertainty" toggle) |
 | `src/data/digest.ts` | Weekly digest parsing + formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
+| `src/data/drift.ts` | Drift dashboard aggregations (pure): countries changed per run by dimension, delta bins, confidence by vintage, drift.json and `research_runs` parsing, per-bloc shares |
+| `src/charts/drift.ts` | The drift dashboard's D3 small multiples (token-driven palette, hover tooltips); `src/drift.ts` is the `drift.html` entry |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
 **State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
@@ -247,6 +249,27 @@ uncertainty" checkbox (filter popover, below "Reset filters", on by
 default) is a per-browser display preference in `localStorage`
 (`showUncertainty`); the URL does not carry it and "Reset filters" leaves
 it alone.
+
+### Drift dashboard (`drift.html`, `src/drift.ts`)
+
+A static report of how much the dataset moves per research run and how
+confident it is: countries changed per run stacked by the dimension that
+moved most, the distribution of score deltas per run (a run-by-quarter-point
+heat grid), confidence by research vintage, the gold-set agreement per run
+(when `public/data/drift.json` carries checks), and a bloc-by-run grid of the
+share of members changed. Below the figures, a "Latest run" section shows
+the run's provenance and gate tally from `research_runs` (Supabase, only when
+`VITE_SUPABASE_*` is set; otherwise what the files record) and the ten
+largest moves with app deep links. Sources: `history.json` (movement, via
+`computeChangelog`), `regulation_data.csv` (confidence), `data/drift.json`,
+`data/blocs.json`. Aggregations live in `src/data/drift.ts` (pure, tested in
+`tests/drift.test.js`); charts in `src/charts/drift.ts` read the tokens at
+render time (`cssVar`), use one single-hue ramp off `--score-high` for
+ordered series and neutral tints for the rest, and re-render on theme
+change and resize. Every figure has a caption with the key numbers and a
+"Show as a table" twin. The page renders with any source missing (each
+figure has an empty state). Linked from the app header menu, `data.html`
+and `changes.html`; listed in the sitemap.
 
 ### Static country pages (`scripts/build_pages.ts`)
 
