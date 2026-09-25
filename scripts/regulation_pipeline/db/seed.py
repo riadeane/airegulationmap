@@ -39,6 +39,7 @@ from ..config import Settings
 from ..names import CountryNames
 from ..repository import Dataset, split_subscores_entry
 from ..sources import classify_sources
+from .mirror import evidence_columns
 
 logger = logging.getLogger(__name__)
 
@@ -79,13 +80,10 @@ def build_seed(settings: Settings, names: CountryNames) -> SeedData:
     iso = json.loads(settings.country_iso_json.read_text(encoding="utf-8"))["countries"]
     history = json.loads(settings.history_json.read_text(encoding="utf-8"))["countries"]
     # subscores.json mixes v2 (integer) and v2.1 ({score, rationale}) entries;
-    # the DB keeps them in two columns.
-    subscores = {
-        country: split_subscores_entry(entry)
-        for country, entry in json.loads(
-            settings.subscores_json.read_text(encoding="utf-8")
-        )["countries"].items()
-    }
+    # the DB keeps them in two columns. The evidence block (PRD 14) maps to
+    # three more; an entry without one seeds nulls.
+    raw_subscores = json.loads(settings.subscores_json.read_text(encoding="utf-8"))["countries"]
+    subscores = {country: split_subscores_entry(entry) for country, entry in raw_subscores.items()}
 
     # country_names.json maps alias -> canonical; the countries table wants
     # the reverse (canonical -> [aliases]).
@@ -127,6 +125,7 @@ def build_seed(settings: Settings, names: CountryNames) -> SeedData:
             "confidence": _confidence(rrow.get("Confidence")),
             "data_version": int(srow.get("Data Version") or 1),
             "scored_at": srow.get("Last Updated") or None,
+            **evidence_columns(raw_subscores.get(country)),
         })
         seed.summaries.append({
             "country": country,
@@ -173,6 +172,10 @@ def _sql_num(value) -> str:
     return "null" if value is None else str(value)
 
 
+def _sql_bool(value: bool | None) -> str:
+    return "null" if value is None else ("true" if value else "false")
+
+
 def _sql_jsonb(value) -> str:
     if value is None:
         return "null"
@@ -207,12 +210,14 @@ def emit_sql(seed: SeedData) -> list[str]:
     for s in seed.scores:
         stmts.append(
             "insert into country_scores (country_id, regulation_status, policy_lever, governance_type, "
-            "actor_involvement, enforcement_level, avg_score, subscores, rationales, confidence, data_version, run_id, scored_at)\n"
+            "actor_involvement, enforcement_level, avg_score, subscores, rationales, confidence, data_version, run_id, scored_at, "
+            "grounded, initiatives_used, web_search)\n"
             f"select id, {_sql_num(s['regulation_status'])}, {_sql_num(s['policy_lever'])}, "
             f"{_sql_num(s['governance_type'])}, {_sql_num(s['actor_involvement'])}, "
             f"{_sql_num(s['enforcement_level'])}, {_sql_num(s['avg_score'])}, {_sql_jsonb(s['subscores'])}, "
             f"{_sql_jsonb(s['rationales'])}, "
-            f"{_sql_str(s['confidence'])}, {s['data_version']}, {_sql_str(SEED_RUN_ID)}, {_sql_str(s['scored_at'])}\n"
+            f"{_sql_str(s['confidence'])}, {s['data_version']}, {_sql_str(SEED_RUN_ID)}, {_sql_str(s['scored_at'])}, "
+            f"{_sql_bool(s['grounded'])}, {_sql_num(s['initiatives_used'])}, {_sql_bool(s['web_search'])}\n"
             f"from countries where name = {_sql_str(s['country'])}\n"
             "on conflict (country_id) do update set regulation_status = excluded.regulation_status, "
             "policy_lever = excluded.policy_lever, governance_type = excluded.governance_type, "
@@ -220,6 +225,8 @@ def emit_sql(seed: SeedData) -> list[str]:
             "avg_score = excluded.avg_score, subscores = excluded.subscores, rationales = excluded.rationales, "
             "confidence = excluded.confidence, "
             "data_version = excluded.data_version, run_id = excluded.run_id, scored_at = excluded.scored_at, "
+            "grounded = excluded.grounded, initiatives_used = excluded.initiatives_used, "
+            "web_search = excluded.web_search, "
             "updated_at = now();"
         )
 

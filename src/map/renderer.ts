@@ -303,7 +303,8 @@ export async function generateMap(): Promise<void> {
 }
 
 // Single opacity composition for the score-range filter and the
-// country-level filters (bloc - via the shared selector predicate).
+// country-level filters (bloc, confidence, official sources, evidence -
+// via the shared selector predicate).
 // (Search dimming stays class-based in CSS and intentionally wins over
 // this inline value while the user is mid-search.)
 //
@@ -326,8 +327,8 @@ function countryOpacity(
 ): number {
   if (!entry || entry[currentAttribute] == null) {
     // No data: keep the usual soft presence, but recede fully while a
-    // country-level filter (bloc/confidence/official) is highlighting a
-    // subset, so that subset reads cleanly.
+    // country-level filter (bloc/confidence/official/evidence) is
+    // highlighting a subset, so that subset reads cleanly.
     return countryFiltersActive ? 0.15 : 0.4;
   }
   const score = entry[currentAttribute]!;
@@ -338,7 +339,7 @@ function countryOpacity(
 export function updateMap(overrideScoreData?: MapScores): void {
   const {
     currentAttribute, filterMin, filterMax, scoreData, selectedBloc, blocsData,
-    filterConfidence, filterOfficialOnly,
+    filterConfidence, filterOfficialOnly, filterEvidence,
   } = getState();
   // No explicit override: resolve the timeline vintage ourselves, so a
   // filter change mid-scrub repaints the SAME historical date instead of
@@ -347,7 +348,8 @@ export function updateMap(overrideScoreData?: MapScores): void {
   const colorScale = makeColorScale();
   const countryFiltersActive = !!(selectedBloc && blocsData?.[selectedBloc])
     || filterConfidence != null
-    || filterOfficialOnly;
+    || filterOfficialOnly
+    || filterEvidence !== 'any';
 
   select('#map')
     .selectAll<SVGPathElement, CountryFeature>('.country')

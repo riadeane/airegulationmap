@@ -4,6 +4,7 @@ import {
   maturityRank,
   visibleCountrySet,
   passesCountryFilters,
+  evidenceOf,
   scoresAtDate,
   recentScoreChanges,
 } from '../src/state/selectors';
@@ -53,6 +54,8 @@ describe('visibleCountrySet selector', () => {
     blocsData: null,
     filterConfidence: null,
     filterOfficialOnly: false,
+    filterEvidence: 'any',
+    subscores: null,
   });
 
   it('includes every scored country when no filter is active', () => {
@@ -123,6 +126,7 @@ describe('passesCountryFilters selector', () => {
     setState({
       selectedBloc: null, blocsData: null, regulationData: {},
       filterConfidence: null, filterOfficialOnly: false,
+      filterEvidence: 'any', subscores: null,
     });
     expect(passesCountryFilters('Anywhere')).toBe(true);
     setState({
@@ -131,6 +135,140 @@ describe('passesCountryFilters selector', () => {
     });
     expect(passesCountryFilters('A')).toBe(true);
     expect(passesCountryFilters('C')).toBe(false);
+  });
+});
+
+// The evidence facet (PRD 14). Records live in subscores.json, normalized to
+// camelCase; A is grounded, B search-only (database consulted, nothing on
+// record), C search-only from a run that did not consult the database, D
+// researched without web search, and E has no run record at all.
+describe('evidence facet', () => {
+  const grounded = { grounded: true, initiativesUsed: 7, search: true, model: 'm', runId: 'r' };
+  const searchOnly = { grounded: false, initiativesUsed: 0, search: true, model: 'm', runId: 'r' };
+  const notConsulted = { grounded: false, initiativesUsed: null, search: true, model: 'm', runId: 'r' };
+  const noSearch = { grounded: false, initiativesUsed: 0, search: false, model: 'm', runId: 'r' };
+
+  const subscores = () => ({
+    schema_version: 1,
+    countries: {
+      A: { date: '2026-09-21', evidence: grounded },
+      B: { date: '2026-09-21', evidence: searchOnly },
+      C: { date: '2026-09-21', evidence: notConsulted },
+      D: { date: '2026-09-21', evidence: noSearch },
+      E: { date: '2026-06-13' },
+    },
+  });
+
+  const base = () => ({
+    scoreData: scores({ A: 5, B: 4, C: 3, D: 2, E: 1 }),
+    regulationData: {},
+    currentAttribute: 'averageScore',
+    filterMin: 1,
+    filterMax: 5,
+    selectedBloc: null,
+    blocsData: null,
+    filterConfidence: null,
+    filterOfficialOnly: false,
+    filterEvidence: 'any',
+    subscores: subscores(),
+  });
+
+  it('evidenceOf reads the record, null without one or before subscores load', () => {
+    setState(base());
+    expect(evidenceOf('A')).toEqual(grounded);
+    expect(evidenceOf('E')).toBeNull();
+    expect(evidenceOf('Nowhere')).toBeNull();
+    setState({ subscores: null });
+    expect(evidenceOf('A')).toBeNull();
+  });
+
+  it('"any" keeps every country, with or without a run record', () => {
+    setState(base());
+    expect([...visibleCountrySet()].sort()).toEqual(['A', 'B', 'C', 'D', 'E']);
+    expect(passesCountryFilters('E')).toBe(true);
+  });
+
+  it('"grounded" keeps only countries whose research embedded verified initiatives', () => {
+    setState({ ...base(), filterEvidence: 'grounded' });
+    expect([...visibleCountrySet()]).toEqual(['A']);
+    expect(passesCountryFilters('A')).toBe(true);
+    expect(passesCountryFilters('B')).toBe(false);
+    expect(passesCountryFilters('E')).toBe(false);
+  });
+
+  it('"search" keeps web search without initiatives and excludes countries with no record', () => {
+    setState({ ...base(), filterEvidence: 'search' });
+    expect([...visibleCountrySet()].sort()).toEqual(['B', 'C']);
+    expect(passesCountryFilters('D')).toBe(false); // no web search
+    expect(passesCountryFilters('E')).toBe(false); // no run record
+  });
+
+  it('composes with the confidence filter: a country must pass both', () => {
+    setState({
+      ...base(),
+      regulationData: {
+        A: { confidence: 'low' },
+        B: { confidence: 'high' },
+        C: { confidence: 'medium' },
+        E: { confidence: 'high' },
+      },
+      filterConfidence: ['high', 'medium'],
+      filterEvidence: 'search',
+    });
+    expect([...visibleCountrySet()].sort()).toEqual(['B', 'C']);
+    setState({ filterEvidence: 'grounded' });
+    // A is grounded but low confidence; B is high confidence but ungrounded.
+    expect([...visibleCountrySet()]).toEqual([]);
+  });
+
+  it('composes with the official-sources filter and the score range', () => {
+    setState({
+      ...base(),
+      regulationData: {
+        A: { sources: 'https://legislation.gov.uk/act' },
+        B: { sources: 'https://example.com/commentary' },
+        C: { sources: 'https://www.gov.uk/guidance' },
+      },
+      filterOfficialOnly: true,
+      filterEvidence: 'search',
+    });
+    expect([...visibleCountrySet()]).toEqual(['C']);
+    setState({ filterEvidence: 'grounded' });
+    expect([...visibleCountrySet()]).toEqual(['A']);
+    setState({ filterMax: 4 });
+    expect([...visibleCountrySet()]).toEqual([]);
+  });
+
+  it('composes with the bloc filter', () => {
+    setState({
+      ...base(),
+      blocsData: { G3: { name: 'Three', members: ['B', 'C', 'E'] } },
+      selectedBloc: 'G3',
+      filterEvidence: 'search',
+    });
+    expect([...visibleCountrySet()].sort()).toEqual(['B', 'C']);
+  });
+
+  it('invalidates the cache when the facet changes or subscores.json lands', () => {
+    // A deep link applies evidence=grounded before subscores.json loads:
+    // nobody passes yet, and the late load must not serve the stale set.
+    setState({ ...base(), subscores: null, filterEvidence: 'grounded' });
+    const before = visibleCountrySet();
+    expect([...before]).toEqual([]);
+    expect(visibleCountrySet()).toBe(before); // memoized
+
+    setState({ subscores: subscores() });
+    const loaded = visibleCountrySet();
+    expect(loaded).not.toBe(before);
+    expect([...loaded]).toEqual(['A']);
+
+    setState({ filterEvidence: 'search' });
+    const switched = visibleCountrySet();
+    expect(switched).not.toBe(loaded);
+    expect([...switched].sort()).toEqual(['B', 'C']);
+
+    setState({ filterEvidence: 'any' });
+    expect(visibleCountrySet().size).toBe(5);
   });
 });
 

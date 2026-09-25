@@ -10,20 +10,24 @@ outcome, the exit-code contract, or the saved files.
 from __future__ import annotations
 
 import json
+import re
 from datetime import date
+from pathlib import Path
 
 import httpx
 from conftest import full_result
 from regulation_pipeline.config import Settings
 from regulation_pipeline.db.client import SupabaseClient
-from regulation_pipeline.db.mirror import RunMeta, SupabaseMirror
+from regulation_pipeline.db.mirror import RunMeta, SupabaseMirror, evidence_columns
 from regulation_pipeline.errors import FatalAPIError
-from regulation_pipeline.models import ResearchResult
+from regulation_pipeline.models import ResearchProvenance, ResearchResult
 from regulation_pipeline.names import CountryNames
 from regulation_pipeline.repository import Dataset
 from regulation_pipeline.service import PipelineService
 from regulation_pipeline.staleness import StalenessPolicy
 
+REPO = Path(__file__).resolve().parents[2]
+MIGRATIONS = REPO / "supabase" / "migrations"
 TODAY = date(2026, 6, 11)
 META = RunMeta(trigger="manual", model="claude-x", strategy="sync", prompt_version="v2-test")
 
@@ -139,6 +143,51 @@ class TestSupabaseMirror:
         assert patch["input_tokens"] == 1000
         assert patch["notes"] == "gate: held=2 unchanged=1"
 
+    def test_evidence_columns_mirror_the_file(self):
+        # PRD 14: the entry's evidence block becomes three columns; the
+        # subscores and rationales jsonb columns never carry it.
+        fake = FakePostgrest()
+        mirror = make_mirror(fake)
+        evidence = {
+            "grounded": True, "initiatives_used": 7, "search": True,
+            "model": "claude-x", "run_id": mirror.run_id,
+        }
+        mirror.begin(attempted=1)
+        mirror.record("A", model(), TODAY, scores_row=SCORES_ROW,
+                      subscores={**SUBSCORES, "evidence": evidence}, history=[])
+        mirror.finish(updated=1, failed=0, fatal=False)
+        score_row = fake.of("POST", "country_scores")[0][0]
+        assert (score_row["grounded"], score_row["initiatives_used"], score_row["web_search"]) == (True, 7, True)
+        assert "evidence" not in score_row["subscores"]
+        assert "evidence" not in score_row["rationales"]
+        assert score_row["subscores"] == {"date": "2026-06-11", "regulation_status": {"binding_force": 4}}
+
+    def test_search_only_record_keeps_zero_and_null_apart(self):
+        fake = FakePostgrest()
+        mirror = make_mirror(fake)
+        mirror.begin(attempted=1)
+        for used in (0, None):
+            evidence = {"grounded": False, "initiatives_used": used, "search": True, "model": "m", "run_id": "r"}
+            mirror.record("A", model(), TODAY, scores_row=SCORES_ROW,
+                          subscores={**SUBSCORES, "evidence": evidence}, history=[])
+        mirror.finish(updated=2, failed=0, fatal=False)
+        rows = fake.of("POST", "country_scores")[0]
+        assert [(r["grounded"], r["initiatives_used"], r["web_search"]) for r in rows] == [
+            (False, 0, True), (False, None, True),
+        ]
+
+    def test_no_run_record_mirrors_nulls(self):
+        fake = FakePostgrest()
+        mirror = make_mirror(fake)
+        mirror.begin(attempted=1)
+        mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=[])
+        mirror.finish(updated=1, failed=0, fatal=False)
+        score_row = fake.of("POST", "country_scores")[0][0]
+        # Present and null, so the upsert clears a stale value.
+        assert {k: score_row[k] for k in ("grounded", "initiatives_used", "web_search")} == {
+            "grounded": None, "initiatives_used": None, "web_search": None,
+        }
+
     def test_held_row_mirrors_the_stored_scores_not_the_result(self):
         # The gate held the result: the dataset row still carries the old
         # scores (as CSV strings) and the mirror must replay THOSE.
@@ -247,7 +296,29 @@ def _service(tmp_path, mirror=None):
     return PipelineService(ds, StalenessPolicy(90, TODAY), TODAY, mirror=mirror), ds
 
 
+class SubscoresMirror(RecordingMirror):
+    """Keeps the subscores entry each record() call receives."""
+
+    def __init__(self):
+        super().__init__()
+        self.subscores: dict[str, dict] = {}
+
+    def record(self, country, result, today, *, scores_row, subscores, history):
+        self.subscores[country] = subscores
+
+
 class TestServiceMirrorSeam:
+    def test_record_receives_the_evidence_block_with_the_run_id(self, tmp_path):
+        mirror = SubscoresMirror()
+        ds = Dataset.load(Settings(root=tmp_path), CountryNames({}))
+        svc = PipelineService(ds, StalenessPolicy(90, TODAY), TODAY, mirror=mirror, run_id="run-9")
+        provenance = ResearchProvenance(initiatives_used=3, search=False, model="claude-x")
+        svc.run(ListStrategy([("A", model().with_provenance(provenance))]), ["A"])
+        assert mirror.subscores["A"]["evidence"] == {
+            "grounded": True, "initiatives_used": 3, "search": False,
+            "model": "claude-x", "run_id": "run-9",
+        }
+
     def test_calls_in_order_with_provenance_args(self, tmp_path):
         mirror = RecordingMirror()
         svc, _ = _service(tmp_path, mirror)
@@ -285,6 +356,61 @@ class TestServiceMirrorSeam:
         result = svc.run(ListStrategy([("A", model())]), ["A"])
         assert result.updated == 1
         assert ds.scores_row("A") is not None
+
+
+EVIDENCE_COLUMNS = ("grounded", "initiatives_used", "web_search")
+
+
+def _public_export_columns(sql: str) -> list[str]:
+    """The select list of the public_export view in a migration, in order."""
+    match = re.search(
+        r"create (?:or replace )?view public_export\s+with \(security_invoker = true\) as\s+"
+        r"select\s+(.*?)\s+from countries c",
+        sql, re.S,
+    )
+    assert match, "public_export view definition not found"
+    return [col.strip() for col in match.group(1).split(",")]
+
+
+class TestEvidenceMigration:
+    """PRD 14: migration 0008, the mirror's column names and the committed
+    OpenAPI snapshot must agree."""
+
+    sql = (MIGRATIONS / "0008_evidence_coverage.sql").read_text(encoding="utf-8")
+
+    def test_adds_the_three_nullable_columns_with_comments(self):
+        assert "add column grounded boolean," in self.sql
+        assert "add column initiatives_used integer" in self.sql
+        assert "check (initiatives_used is null or initiatives_used >= 0)" in self.sql
+        assert "add column web_search boolean;" in self.sql
+        assert "not null" not in self.sql
+        assert "grounded = (coalesce(initiatives_used, 0) > 0)" in self.sql
+        for column in EVIDENCE_COLUMNS:
+            assert f"comment on column country_scores.{column} is" in self.sql
+            assert f"comment on column public_export.{column} is" in self.sql
+
+    def test_view_keeps_the_0003_columns_and_appends_the_new_ones(self):
+        # create or replace view can only append columns: the old list must be
+        # an exact prefix, in order.
+        before = _public_export_columns((MIGRATIONS / "0003_views.sql").read_text(encoding="utf-8"))
+        after = _public_export_columns(self.sql)
+        assert after == before + [f"s.{column}" for column in EVIDENCE_COLUMNS]
+
+    def test_mirror_writes_exactly_the_migration_columns(self):
+        assert tuple(evidence_columns({})) == EVIDENCE_COLUMNS
+
+    def test_openapi_snapshot_documents_the_columns(self):
+        spec = json.loads((REPO / "public" / "openapi.json").read_text(encoding="utf-8"))
+        for table in ("country_scores", "public_export"):
+            properties = spec["definitions"][table]["properties"]
+            assert properties["grounded"]["type"] == "boolean"
+            assert properties["initiatives_used"]["type"] == "integer"
+            assert properties["web_search"]["type"] == "boolean"
+            get_params = [p.get("$ref") for p in spec["paths"][f"/{table}"]["get"]["parameters"]]
+            for column in EVIDENCE_COLUMNS:
+                assert properties[column]["description"]
+                assert f"rowFilter.{table}.{column}" in spec["parameters"]
+                assert f"#/parameters/rowFilter.{table}.{column}" in get_params
 
 
 class TestSelectAllPagination:

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { classifySources } from '../src/data/sources';
+import { normalizeSubscores } from '../src/data/subscores';
 import {
   SITE_ORIGIN,
   TOP_LEVEL_PATHS,
@@ -248,6 +249,54 @@ describe('renderCountryPage', () => {
     for (const m of buildModels(fixture())) {
       expect(pageDescription(m).length).toBeLessThanOrEqual(160);
     }
+  });
+});
+
+// Evidence coverage (PRD 14): the record comes from subscores.json in the
+// pipeline's snake_case shape, normalized the way loadInputs() does.
+describe('renderCountryPage evidence line', () => {
+  function inputsWithEvidence() {
+    const inputs = fixture();
+    inputs.subscores = normalizeSubscores({
+      schema_version: 1,
+      countries: {
+        Chile: {
+          ...inputs.subscores.countries.Chile,
+          evidence: { grounded: true, initiatives_used: 7, search: true, model: 'claude-opus-5-5', run_id: 'run-1' },
+        },
+        Argentina: {
+          date: '2026-06-13',
+          evidence: { grounded: false, initiatives_used: 0, search: true, model: 'claude-opus-5-5', run_id: 'run-1' },
+        },
+        "Côte d'Ivoire": {
+          date: '2026-06-13',
+          evidence: { grounded: false, initiatives_used: null, search: true, model: 'claude-opus-5-5', run_id: 'run-1' },
+        },
+      },
+    });
+    return inputs;
+  }
+
+  it('states the initiative count and web search for a grounded record, below the meta line', () => {
+    const html = renderCountryPage(modelFor('Chile', inputsWithEvidence()));
+    expect(html).toContain('<p class="entry-evidence">Grounded in 7 verified policy initiatives and web search</p>');
+    expect(html.indexOf('class="entry-meta"')).toBeLessThan(html.indexOf('class="entry-evidence"'));
+    expect(html.indexOf('class="entry-evidence"')).toBeLessThan(html.indexOf('class="entry-actions"'));
+    // Plain text: the static page has no initiatives section to link to.
+    expect(html).not.toContain('evidence-initiatives-link');
+  });
+
+  it('states search only for a record without initiatives', () => {
+    const html = renderCountryPage(modelFor('Argentina', inputsWithEvidence()));
+    expect(html).toContain('<p class="entry-evidence">Web search only; no verified initiatives on record</p>');
+    const cote = renderCountryPage(modelFor("Côte d'Ivoire", inputsWithEvidence()));
+    expect(cote).toContain('<p class="entry-evidence">Web search only; verified initiatives not consulted</p>');
+  });
+
+  it('shows nothing for a country without a run record', () => {
+    expect(renderCountryPage(modelFor('Nowhere', inputsWithEvidence()))).not.toContain('<p class="entry-evidence">');
+    // The base fixture's Chile entry has sub-scores but no evidence key.
+    expect(renderCountryPage(modelFor('Chile'))).not.toContain('<p class="entry-evidence">');
   });
 });
 

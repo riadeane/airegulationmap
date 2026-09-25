@@ -4,6 +4,7 @@ import { renderScoreBar, renderAllDots } from './scores';
 import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
 import { renderPeerRow } from './peers';
+import { renderEvidence } from './evidence';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { toggleComparison } from '../state/interactions';
 import { maturityRank, scoresAtDate } from '../state/selectors';
@@ -248,6 +249,7 @@ function renderPanel(countryName: string): void {
   document.getElementById('last-updated')!.textContent = dateStr
     ? `Data as of ${dateStr} · ${countText}`
     : countText;
+  renderEvidence();
 
   renderScores(countryName);
   updateDimensionHighlight();
@@ -393,6 +395,12 @@ export function initPanel(): void {
   on('timelineDate', () => {
     const { selectedCountry } = getState();
     if (selectedCountry) renderScores(selectedCountry);
+  });
+
+  // subscores.json arrives async and carries the evidence records - fill
+  // in the open entry's evidence line once it lands.
+  on('subscores', () => {
+    if (getState().selectedCountry) renderEvidence();
   });
 
   // Source metadata (titles) arrives async from the sources database -

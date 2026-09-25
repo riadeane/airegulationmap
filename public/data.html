@@ -274,7 +274,7 @@
         <tr><td><a href="/history.json" download>history.json</a></td>
             <td>Change-point score snapshots per country; the timeline's raw data.</td></tr>
         <tr><td><a href="/data/subscores.json" download>subscores.json</a></td>
-            <td>The four named sub-indicators behind each dimension score: an integer 1–5 and, since September 2026, the one-sentence rationale the model gave for it.</td></tr>
+            <td>The four named sub-indicators behind each dimension score: an integer 1–5 and, since September 2026, the one-sentence rationale the model gave for it. Researched countries also carry an <a href="#evidence">evidence record</a> of their latest research pass.</td></tr>
         <tr><td><a href="/data/country_iso.json" download>country_iso.json</a></td>
             <td>ISO 3166 alpha-2 / alpha-3 / numeric codes for every dataset country name.</td></tr>
         <tr><td><a href="/data/gold_set.json" download>gold_set.json</a></td>
@@ -297,11 +297,11 @@
       <thead><tr><th>Endpoint</th><th>Contents</th></tr></thead>
       <tbody>
         <tr><td><a href="/api-docs.html#/public_export">/public_export</a></td>
-            <td>The whole dataset flat: countries × scores × summaries.</td></tr>
+            <td>The whole dataset flat: countries × scores × summaries, with evidence coverage.</td></tr>
         <tr><td><a href="/api-docs.html#/countries">/countries</a></td>
             <td>Canonical names, ISO codes, and name aliases.</td></tr>
         <tr><td><a href="/api-docs.html#/country_scores">/country_scores</a></td>
-            <td>Current scores, incl. the sub-indicator breakdown (subscores).</td></tr>
+            <td>Current scores, incl. the sub-indicator breakdown (subscores) and evidence coverage (grounded, initiatives_used, web_search).</td></tr>
         <tr><td><a href="/api-docs.html#/country_summaries">/country_summaries</a></td>
             <td>Per-dimension prose, key legislation, raw source list.</td></tr>
         <tr><td><a href="/api-docs.html#/score_history">/score_history</a></td>
@@ -333,6 +333,47 @@
     <p>
       The API is infrastructure for research convenience. For archival reproducibility,
       cite the static files above or keep a copy of your extract.
+    </p>
+
+    <h2 id="evidence">Evidence coverage</h2>
+    <p>
+      Every researched country records how its latest research pass was grounded. In
+      grounded runs the research prompt embeds the country's verified policy initiatives
+      (OECD.AI Policy Navigator / GAIIN records, the ones <code>/policy_initiatives</code>
+      serves), up to 15 of them; a country with none on record is researched with the
+      plain prompt. The record sits beside the sub-scores in <code>subscores.json</code>,
+      under <code>countries.&lt;name&gt;.evidence</code>:
+    </p>
+    <table>
+      <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>grounded</code></td>
+            <td><code>true</code> when the prompt embedded at least one verified policy initiative. Always equal to <code>initiatives_used &gt; 0</code> with <code>null</code> counted as 0, so <code>false</code> when the run did not consult the evidence database.</td></tr>
+        <tr><td><code>initiatives_used</code></td>
+            <td>How many verified policy initiatives the prompt embedded, capped at 15. <code>0</code>: the run consulted the evidence database and it held none for the country. <code>null</code>: the run did not consult it (not a grounded run).</td></tr>
+        <tr><td><code>search</code></td>
+            <td><code>true</code> when the model had web search for the country.</td></tr>
+        <tr><td><code>model</code></td>
+            <td>The Claude model id the run researched with.</td></tr>
+        <tr><td><code>run_id</code></td>
+            <td>The run's id; equal to <code>research_runs.id</code> when the run was mirrored to the database.</td></tr>
+      </tbody>
+    </table>
+    <p>
+      The record describes the pass behind the entry's text, sources and confidence. It
+      updates on every pass, including one where the stability gate holds the scores
+      back. A country without an <code>evidence</code> key has no run record yet: it was
+      last researched before evidence coverage was recorded (September 2026).
+    </p>
+    <p>
+      In the API, <code>/country_scores</code> and <code>/public_export</code> carry the
+      record as three columns: <code>grounded</code>, <code>initiatives_used</code> and
+      <code>web_search</code> (the file's <code>search</code>), all null for a country with
+      no run record. The model is <code>research_runs.model</code>, reached through
+      <code>country_scores.run_id</code>. In the app, each country entry states the record
+      in one sentence under its confidence line, such as "Grounded in 7 verified policy
+      initiatives and web search" or "Web search only; no verified initiatives on record",
+      and the filter's Evidence facet narrows the map to grounded or search-only countries.
     </p>
 
     <h2 id="recipes">Recipes</h2>

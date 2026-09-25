@@ -1,7 +1,7 @@
 // Header "Share" popover - the citability affordance for ANY view, not
 // just a selected country. The URL layer already serializes dimension,
-// bloc, filter range, timeline date, scatter axes, comparison set, and
-// committed search; this surfaces that permalink (plus formatted
+// bloc, filter range and facets, timeline date, scatter axes, comparison
+// set, and committed search; this surfaces that permalink (plus formatted
 // citations) where the panel's Cite button can't reach: before any
 // selection, and for map-wide views like "Enforcement across the EU as
 // of March".
@@ -139,7 +139,7 @@ export function initShare(): void {
   for (const key of [
     'selectedCountry', 'comparisonCountries', 'mainView', 'currentAttribute',
     'timelineDate', 'selectedBloc', 'filterMin', 'filterMax',
-    'filterConfidence', 'filterOfficialOnly',
+    'filterConfidence', 'filterOfficialOnly', 'filterEvidence',
     'scatterX', 'scatterY', 'searchQuery',
   ] as const) {
     on(key, rerenderIfOpen);

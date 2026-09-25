@@ -1,6 +1,6 @@
 # PRD 14: Evidence coverage per country
 
-Status: Proposed. Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026). Owner: unassigned. Depends on: none.
 
 ## Problem
 
@@ -62,3 +62,39 @@ and whether web search was used. The map can filter by evidence coverage.
 
 - Should the map show evidence coverage as its own colour mode? Proposed: no,
   a filter is enough; the map stays about scores.
+
+## Implementation notes
+
+- The record is `countries.<name>.evidence = {grounded, initiatives_used,
+  search, model, run_id}` in `subscores.json`. `initiatives_used` counts the
+  initiatives embedded in the prompt (the prompt caps the block at 15), and
+  `grounded` is always `initiatives_used > 0`.
+- `initiatives_used` separates `0` from `null`. `0`: the run had an evidence
+  provider (`--grounded`) and it returned no records for the country, so the
+  plain prompt was used. `null`: the run had no evidence provider, so the
+  evidence database was not consulted. A non-grounded run must not claim "no
+  verified initiatives on record" when it simply did not look; in that case
+  the panel reads "Web search only; verified initiatives not consulted".
+- The record describes the most recent research pass, the one behind the
+  entry's text, sources and confidence, so it is written on every applied
+  result, including one the stability gate holds. Existing entries were not
+  backfilled: no `evidence` key means no run record yet, and the panel then
+  shows nothing.
+- Supabase: migration `0008_evidence_coverage.sql` adds the nullable
+  columns `grounded`, `initiatives_used` and `web_search` to
+  `country_scores`, with a check constraint tying `grounded` to the count,
+  and appends the same three columns to the `public_export` view. The model
+  is not duplicated: it is `research_runs.model` via `run_id`.
+- 0008 is applied to the live project (25 September 2026). The
+  `public/openapi.json` snapshot, first written by hand, is byte-identical
+  to the PostgREST output fetched after the migration with the curl command
+  in `CLAUDE.md`.
+- The static country pages show the same sentence as plain text, without
+  the link.
+- Open question answered as proposed: no evidence colour mode on the map;
+  the Evidence filter facet (URL parameter `evidence=grounded|search`) is
+  enough.
+- The JSON export carries the record under its own `Evidence` key, with the
+  file's field names, beside `Sub-indicators`; the CSV export is unchanged.
+  The "Report an issue" entry adds the sentence as an `**Evidence:**` line
+  under the confidence line when the country has a run record.

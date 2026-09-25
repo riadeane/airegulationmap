@@ -1,10 +1,12 @@
 // Floating summary card on the map while a bloc is selected: member
-// coverage, average, spread (how aligned the bloc is), and the
-// highest / lowest scoring members as jump links.
+// coverage, the share of members grounded in verified policy initiatives,
+// average, spread (how aligned the bloc is), and the highest / lowest
+// scoring members as jump links.
 
 import { getState, setState, on } from '../state/store';
 import { selectCountry } from '../state/interactions';
-import { computeBlocStats } from '../data/blocs';
+import { evidenceOf } from '../state/selectors';
+import { computeBlocStats, computeBlocEvidenceShare, blocEvidenceShareText } from '../data/blocs';
 import type { BlocMemberScore } from '../data/blocs';
 import { ATTRIBUTE_LABELS } from '../constants';
 
@@ -70,6 +72,16 @@ function render() {
     : `${bloc.members.length} members · no scores for this dimension`;
   card.appendChild(coverage);
 
+  // Independent of the current dimension, so it renders before the
+  // no-scores early return below.
+  const evidence = computeBlocEvidenceShare(bloc.members, evidenceOf);
+  if (evidence) {
+    const line = document.createElement('div');
+    line.className = 'bloc-summary-evidence';
+    line.textContent = blocEvidenceShareText(evidence);
+    card.appendChild(line);
+  }
+
   if (!stats) return;
 
   const dim = document.createElement('div');
@@ -125,5 +137,7 @@ function render() {
 export function initBlocSummary(): void {
   on('selectedBloc', render);
   on('currentAttribute', render);
+  // Evidence records arrive with subscores.json, possibly after the card.
+  on('subscores', render);
   render();
 }

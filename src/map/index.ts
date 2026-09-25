@@ -68,6 +68,11 @@ export function initMapSubscriptions() {
   on('selectedBloc', scheduleUpdateMap);
   on('filterConfidence', scheduleUpdateMap);
   on('filterOfficialOnly', scheduleUpdateMap);
+  on('filterEvidence', scheduleUpdateMap);
+  // The evidence facet reads its records from subscores.json, which loads
+  // after first paint: repaint when it lands so an evidence= deep link
+  // settles on the right set.
+  on('subscores', () => { if (getState().filterEvidence !== 'any') scheduleUpdateMap(); });
 
   // The map paints its own comparison markers. Colour slots are assigned by
   // the interactions orchestrator before this fires, so the indices are ready.

@@ -1,8 +1,16 @@
 import { getState, setState, on } from '../state/store';
 import type { ConfidenceLevel } from '../state/store';
 import { el } from '../dom';
+import { parseEvidenceFilter } from '../data/evidence';
+import type { EvidenceFilter } from '../data/evidence';
 
 const ALL_LEVELS: readonly ConfidenceLevel[] = ['high', 'medium', 'low'];
+
+// Title fragments for the active-filter tooltip, one per narrowing facet.
+const EVIDENCE_TITLE: Record<Exclude<EvidenceFilter, 'any'>, string> = {
+  grounded: 'grounded evidence',
+  search: 'search-only evidence',
+};
 
 export function initFilter(): void {
   const btn = document.getElementById('filter-btn')!;
@@ -15,6 +23,9 @@ export function initFilter(): void {
     document.querySelectorAll<HTMLInputElement>('#filter-confidence input[type="checkbox"]')
   );
   const officialBox = el<HTMLInputElement>('filter-official');
+  const evidenceRadios = Array.from(
+    document.querySelectorAll<HTMLInputElement>('#filter-evidence input[type="radio"]')
+  );
 
   btn.addEventListener('click', e => {
     e.stopPropagation();
@@ -51,6 +62,12 @@ export function initFilter(): void {
   officialBox.addEventListener('change', () => {
     setState({ filterOfficialOnly: officialBox.checked });
   });
+  // Evidence radios: 'any' is the default and the only value outside the
+  // URL's vocabulary, so anything unparseable falls back to it.
+  evidenceRadios.forEach(r => r.addEventListener('change', () => {
+    if (!r.checked) return;
+    setState({ filterEvidence: parseEvidenceFilter(r.value) ?? 'any' });
+  }));
 
   // Reset affordance - a narrowed map greys most countries, and there
   // was no one-click way back. Appended last so the async-loaded bloc
@@ -68,7 +85,7 @@ export function initFilter(): void {
     maxLabel.textContent = '5';
     setState({
       filterMin: 1, filterMax: 5, selectedBloc: null,
-      filterConfidence: null, filterOfficialOnly: false,
+      filterConfidence: null, filterOfficialOnly: false, filterEvidence: 'any',
     });
   });
   resetRow.appendChild(resetBtn);
@@ -82,11 +99,13 @@ export function initFilter(): void {
   function updateActiveState() {
     const {
       filterMin, filterMax, selectedBloc, blocsData, filterConfidence, filterOfficialOnly,
+      filterEvidence,
     } = getState();
     const rangeActive = filterMin > 1 || filterMax < 5;
     const blocActive = !!selectedBloc;
     const confActive = filterConfidence != null;
-    const active = rangeActive || blocActive || confActive || filterOfficialOnly;
+    const evidenceActive = filterEvidence !== 'any';
+    const active = rangeActive || blocActive || confActive || filterOfficialOnly || evidenceActive;
     btn.classList.toggle('has-filter', active);
     resetBtn.disabled = !active;
     const parts: string[] = [];
@@ -94,6 +113,7 @@ export function initFilter(): void {
     if (blocActive) parts.push(blocsData?.[selectedBloc!]?.name || selectedBloc!);
     if (confActive) parts.push(`${filterConfidence!.join('/')} confidence`);
     if (filterOfficialOnly) parts.push('official sources only');
+    if (filterEvidence !== 'any') parts.push(EVIDENCE_TITLE[filterEvidence]);
     btn.title = active ? `Active filter: ${parts.join(' · ')}` : '';
   }
 
@@ -101,7 +121,7 @@ export function initFilter(): void {
   // elsewhere (URL load, popstate, reset) - the input handler only covers
   // the user dragging the sliders themselves.
   function syncFromState() {
-    const { filterMin, filterMax, filterConfidence, filterOfficialOnly } = getState();
+    const { filterMin, filterMax, filterConfidence, filterOfficialOnly, filterEvidence } = getState();
     if (parseFloat(minSlider.value) !== filterMin) minSlider.value = String(filterMin);
     if (parseFloat(maxSlider.value) !== filterMax) maxSlider.value = String(filterMax);
     minLabel.textContent = String(filterMin);
@@ -110,12 +130,14 @@ export function initFilter(): void {
       b.checked = !filterConfidence || filterConfidence.includes(b.value as ConfidenceLevel);
     });
     officialBox.checked = filterOfficialOnly;
+    evidenceRadios.forEach(r => { r.checked = r.value === filterEvidence; });
   }
 
   on('filterMin', () => { syncFromState(); updateActiveState(); });
   on('filterMax', () => { syncFromState(); updateActiveState(); });
   on('filterConfidence', () => { syncFromState(); updateActiveState(); });
   on('filterOfficialOnly', () => { syncFromState(); updateActiveState(); });
+  on('filterEvidence', () => { syncFromState(); updateActiveState(); });
   on('selectedBloc', updateActiveState);
   on('blocsData', updateActiveState);
   syncFromState();

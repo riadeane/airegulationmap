@@ -59,6 +59,47 @@ describe('normalizeSubscores', () => {
   });
 });
 
+describe('normalizeSubscores - evidence record', () => {
+  const evidence = {
+    grounded: true, initiatives_used: 7, search: true,
+    model: 'claude-opus-5-5', run_id: '3f0c8a52-6c1e-4b9e-9a57-0d2a1f6b7e11',
+  };
+
+  it('keeps a valid evidence record beside the sub-scores', () => {
+    const data = normalizeSubscores({ schema_version: 1, methodology: 'v2.1', countries: {
+      Newland: { ...V21_ENTRY, evidence },
+    } });
+    expect(data.countries.Newland.evidence).toEqual({
+      grounded: true, initiativesUsed: 7, search: true,
+      model: 'claude-opus-5-5', runId: '3f0c8a52-6c1e-4b9e-9a57-0d2a1f6b7e11',
+    });
+    // The sub-scores are unaffected.
+    expect(data.countries.Newland.regulation_status.binding_force.score).toBe(5);
+  });
+
+  it('keeps a search-only record with a null count', () => {
+    const data = normalizeSubscores({ schema_version: 1, countries: {
+      Testland: { ...V2_ENTRY, evidence: { ...evidence, grounded: false, initiatives_used: null } },
+    } });
+    expect(data.countries.Testland.evidence.initiativesUsed).toBeNull();
+    expect(data.countries.Testland.evidence.grounded).toBe(false);
+  });
+
+  it('drops a malformed record, leaving the entry without one', () => {
+    const data = normalizeSubscores({ schema_version: 1, countries: {
+      Mismatch: { ...V2_ENTRY, evidence: { ...evidence, grounded: false } },
+      Typed: { ...V2_ENTRY, evidence: { ...evidence, initiatives_used: 'seven' } },
+      Scalar: { ...V2_ENTRY, evidence: true },
+      Absent: V2_ENTRY,
+    } });
+    for (const name of ['Mismatch', 'Typed', 'Scalar', 'Absent']) {
+      expect(data.countries[name].evidence).toBeUndefined();
+      expect('evidence' in data.countries[name]).toBe(false);
+      expect(data.countries[name].regulation_status.binding_force).toEqual({ score: 4, rationale: null });
+    }
+  });
+});
+
 describe('withSubindicators', () => {
   it('attaches the audit trail only for countries that have one', () => {
     const rows = [{ Country: 'Testland', 'Average Score': 4 }, { Country: 'Nowhere', 'Average Score': 1 }];
@@ -73,5 +114,26 @@ describe('withSubindicators', () => {
   it('is a no-op when subscores.json never loaded', () => {
     const rows = [{ Country: 'Testland' }];
     expect(withSubindicators(rows, undefined)).toEqual(rows);
+  });
+
+  it('exports the evidence record under its own key with the file field names', () => {
+    const rows = [{ Country: 'Newland' }, { Country: 'Testland' }];
+    const subscores = normalizeSubscores({ schema_version: 1, countries: {
+      Newland: {
+        ...V21_ENTRY,
+        evidence: { grounded: true, initiatives_used: 7, search: true, model: 'claude-opus-5-5', run_id: 'run-1' },
+      },
+      Testland: V2_ENTRY,
+    } }).countries;
+    const [grounded, plain] = withSubindicators(rows, subscores);
+    expect(grounded.Evidence).toEqual({
+      grounded: true, initiatives_used: 7, search: true, model: 'claude-opus-5-5', run_id: 'run-1',
+    });
+    // The audit trail holds the sub-indicators only.
+    expect(grounded['Sub-indicators'].evidence).toBeUndefined();
+    expect(grounded['Sub-indicators'].regulation_status.binding_force.score).toBe(5);
+    // No run record: no Evidence key at all.
+    expect('Evidence' in plain).toBe(false);
+    expect(plain['Sub-indicators'].date).toBe('2026-06-13');
   });
 });

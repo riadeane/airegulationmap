@@ -22,6 +22,7 @@ function appState(overrides = {}) {
     searchQuery: '',
     filterConfidence: null,
     filterOfficialOnly: false,
+    filterEvidence: 'any',
     mainView: 'map',
     scatterX: 'enforcementLevel',
     scatterY: 'regulationStatus',
@@ -124,5 +125,44 @@ describe('buildQueryString', () => {
     expect(parseUrl('?conf=bogus')).toEqual({});
     expect(parseUrl('?conf=HIGH,bogus')).toEqual({ filterConfidence: ['high'] });
     expect(parseUrl('?official=yes')).toEqual({});
+  });
+});
+
+describe('evidence filter param', () => {
+  it('parses evidence=grounded and evidence=search', () => {
+    expect(parseUrl('?evidence=grounded')).toEqual({ filterEvidence: 'grounded' });
+    expect(parseUrl('?evidence=search')).toEqual({ filterEvidence: 'search' });
+    expect(parseUrl('?evidence=Grounded')).toEqual({ filterEvidence: 'grounded' });
+  });
+
+  it('ignores "any", junk and empty values', () => {
+    expect(parseUrl('?evidence=any')).toEqual({});
+    expect(parseUrl('?evidence=search-only')).toEqual({});
+    expect(parseUrl('?evidence=1')).toEqual({});
+    expect(parseUrl('?evidence=')).toEqual({});
+  });
+
+  it('emits evidence only when the facet narrows', () => {
+    expect(buildQueryString(appState({ filterEvidence: 'any' }))).toBe('');
+    expect(buildQueryString(appState({ filterEvidence: 'grounded' }))).toBe('evidence=grounded');
+    expect(buildQueryString(appState({ filterEvidence: 'search' }))).toBe('evidence=search');
+  });
+
+  it('round-trips alongside the other country filters', () => {
+    const qs = buildQueryString(appState({
+      selectedBloc: 'EU',
+      filterConfidence: ['high'],
+      filterOfficialOnly: true,
+      filterEvidence: 'grounded',
+    }));
+    expect(qs).toBe('bloc=EU&conf=high&official=1&evidence=grounded');
+    expect(parseUrl('?' + qs)).toEqual({
+      bloc: 'EU',
+      filterConfidence: ['high'],
+      filterOfficialOnly: true,
+      filterEvidence: 'grounded',
+    });
+    expect(parseUrl('?' + buildQueryString(appState({ filterEvidence: 'search' }))))
+      .toEqual({ filterEvidence: 'search' });
   });
 });

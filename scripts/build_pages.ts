@@ -22,6 +22,7 @@ import type { RegulationData, RegulationEntry, ScoreData, ScoreEntry } from '../
 import { countryPagePath, countrySlug } from '../src/data/slug';
 import { classifySources } from '../src/data/sources';
 import type { ClassifiedSource } from '../src/data/sources';
+import { evidenceSentence } from '../src/data/evidence';
 import { DIMENSION_TO_SNAKE, SUBSCORE_LABELS, normalizeSubscores } from '../src/data/subscores';
 import type { SubscoreEntry, SubscoresData } from '../src/data/subscores';
 import { cleanRegulationText } from '../src/panel/normalize';
@@ -206,6 +207,12 @@ function dataAsOf(model: CountryPageModel): string | null {
 function confidenceLabel(model: CountryPageModel): string | null {
   const raw = model.regulation?.confidence?.trim().toLowerCase();
   return raw ? CONFIDENCE_LABELS[raw] ?? null : null;
+}
+
+/** The panel's evidence sentence as plain text; null without a run record. */
+function evidenceLine(model: CountryPageModel): string | null {
+  const record = model.subscores?.evidence;
+  return record ? evidenceSentence(record).text : null;
 }
 
 /** The one-paragraph summary used for the meta description and Open Graph. */
@@ -437,6 +444,14 @@ const STYLE = `
     .entry-codes abbr { text-decoration: none; }
 
     .entry-meta {
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+      margin-bottom: 18px;
+    }
+
+    /* Evidence coverage: the second line of the record, as in the panel. */
+    .entry-meta:has(+ .entry-evidence) { margin-bottom: 2px; }
+    .entry-evidence {
       font-size: 0.8rem;
       color: var(--text-tertiary);
       margin-bottom: 18px;
@@ -891,6 +906,10 @@ export function renderCountryPage(model: CountryPageModel): string {
     meta.push(`${model.sources.length} source${model.sources.length === 1 ? '' : 's'}${official > 0 ? `, ${official} official` : ''}`);
   }
 
+  // Plain text: the page has no Policy Initiatives section to link to.
+  const evidence = evidenceLine(model);
+  const evidenceHtml = evidence ? `      <p class="entry-evidence">${escapeHtml(evidence)}</p>\n` : '';
+
   const codes = model.iso
     ? `      <p class="entry-codes"><abbr title="ISO 3166-1 alpha-2">${escapeHtml(model.iso.iso2)}</abbr> &middot; <abbr title="ISO 3166-1 alpha-3">${escapeHtml(model.iso.iso3)}</abbr>${model.iso.numeric ? ` &middot; <abbr title="ISO 3166-1 numeric">${escapeHtml(model.iso.numeric)}</abbr>` : ''}</p>\n`
     : '';
@@ -915,7 +934,7 @@ export function renderCountryPage(model: CountryPageModel): string {
       <p class="entry-kicker">Country entry</p>
       <h1 class="doc-title">${escapeHtml(model.name)}</h1>
 ${codes}      <p class="entry-meta">${meta.join(' &middot; ')}</p>
-      <p class="entry-actions">
+${evidenceHtml}      <p class="entry-actions">
         <a class="btn" href="${escapeHtml(mapLink(model.name))}">Open on the map</a>
         <a href="/methodology.html">How scores are assigned</a>
       </p>
