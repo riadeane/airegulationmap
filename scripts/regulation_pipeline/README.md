@@ -460,10 +460,11 @@ provenance.
   provider had nothing). The mirror writes it to `country_scores.grounded`,
   `initiatives_used` and `web_search`
   (`supabase/migrations/0008_evidence_coverage.sql`), null when the entry
-  has no block; the model is `research_runs.model` via `run_id`. Apply
-  that migration before the next mirrored run: PostgREST rejects an upsert
-  with unknown columns, so the flush would stop at `country_scores` and
-  leave the run row unfinished (a warning, not a failed run).
+  has no block; the model is `research_runs.model` via `run_id`. The
+  migration is applied to the live project; a database without it rejects
+  the upsert for the unknown columns, so the flush would stop at
+  `country_scores` and leave the run row unfinished (a warning, not a
+  failed run).
 
 ## Weekly digest (`digest.py`)
 

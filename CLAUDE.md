@@ -316,9 +316,8 @@ parameter `evidence=grounded|search`) composes with the confidence and
 official-source filters in `passesCountryFilters`; the bloc summary shows the
 bloc's grounded share. The JSON export carries the record under its own
 `Evidence` key, and the issue report adds the sentence. There is no evidence
-colour mode on the map. Apply migration 0008 before the next mirrored run:
-until it lands the `country_scores` upsert is rejected for the unknown
-columns (the run itself still succeeds; the mirror only warns).
+colour mode on the map. Migration 0008 is applied to the live project
+(September 2026).
 
 ### Scoring Dimensions
 

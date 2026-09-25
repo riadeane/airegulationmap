@@ -85,10 +85,10 @@ and whether web search was used. The map can filter by evidence coverage.
   `country_scores`, with a check constraint tying `grounded` to the count,
   and appends the same three columns to the `public_export` view. The model
   is not duplicated: it is `research_runs.model` via `run_id`.
-- `public/openapi.json` was edited by hand, mirroring how PostgREST renders
-  existing boolean and integer columns, because the Supabase secret key was
-  not available. Once 0008 is applied, refresh it with the curl command in
-  `CLAUDE.md`.
+- 0008 is applied to the live project (25 September 2026). The
+  `public/openapi.json` snapshot, first written by hand, is byte-identical
+  to the PostgREST output fetched after the migration with the curl command
+  in `CLAUDE.md`.
 - The static country pages show the same sentence as plain text, without
   the link.
 - Open question answered as proposed: no evidence colour mode on the map;
