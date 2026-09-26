@@ -111,7 +111,9 @@ export function initFilter(): void {
     const parts: string[] = [];
     if (rangeActive) parts.push(`scores ${filterMin}–${filterMax}`);
     if (blocActive) parts.push(blocsData?.[selectedBloc!]?.name || selectedBloc!);
-    if (confActive) parts.push(`${filterConfidence!.join('/')} confidence`);
+    if (confActive) {
+      parts.push(filterConfidence!.length > 0 ? `${filterConfidence!.join('/')} confidence` : 'no confidence level');
+    }
     if (filterOfficialOnly) parts.push('official sources only');
     if (filterEvidence !== 'any') parts.push(EVIDENCE_TITLE[filterEvidence]);
     btn.title = active ? `Active filter: ${parts.join(' · ')}` : '';

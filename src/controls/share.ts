@@ -8,7 +8,7 @@
 
 import { getState, on } from '../state/store';
 import { buildPermalink } from './url';
-import { citationsFor } from './citation';
+import { citationsFor, citationViewOf } from './citation';
 import type { Citations } from './citation';
 import { writeClipboard } from './clipboard';
 import { maybeEl } from '../dom';
@@ -73,13 +73,7 @@ function render(popover: HTMLElement): void {
   citeHeading.textContent = 'Cite this view';
   popover.appendChild(citeHeading);
 
-  const citations = citationsFor({
-    country: state.selectedCountry,
-    compareCountries: state.comparisonCountries,
-    mode: state.currentAttribute,
-    timelineDate: state.timelineDate,
-    url: buildPermalink(state, { omitTheme: true }),
-  });
+  const citations = citationsFor(citationViewOf(state, buildPermalink(state, { omitTheme: true })));
 
   for (const { key, label } of FORMATS) {
     const row = document.createElement('div');
