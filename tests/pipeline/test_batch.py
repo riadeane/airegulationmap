@@ -295,9 +295,9 @@ def test_continuations_stop_at_the_round_cap():
     from regulation_pipeline.batch import MAX_CONTINUATION_ROUNDS
 
     params = {"A": {"messages": [{"role": "user", "content": "p"}]}}
-    paused = _Msg("pause_turn", ["x"])
+    # Each round's result is a new Message, as the Batches API returns.
     rounds = [
-        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("succeeded", paused)})}
+        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("succeeded", _Msg("pause_turn", ["x"]))})}
         for _ in range(MAX_CONTINUATION_ROUNDS + 1)
     ]
     batches = RecordingBatches(rounds)
@@ -321,3 +321,45 @@ def test_the_wait_budget_is_shared_across_batches():
     assert messages == {"A": msg}
     assert failed == ["B"]
     assert batches.create_calls == 1
+
+
+def test_a_failed_continuation_is_retried_without_duplicating_the_turn():
+    user = [{"role": "user", "content": "q"}]
+    params = {"A": {"messages": user}}
+    paused = _Msg("pause_turn", ["c1"])
+    done = _Msg("end_turn", ["answer"])
+    batches = RecordingBatches([
+        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("succeeded", paused)})},
+        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("errored", "overloaded_error")})},
+        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("succeeded", done)})},
+    ])
+    messages, failed = _runner(FakeClient(batches)).research(params)
+    assert messages == {"A": done}
+    assert failed == []
+    for submitted in batches.submitted[1:]:
+        assert submitted[0]["params"]["messages"] == user + [{"role": "assistant", "content": ["c1"]}]
+
+
+def test_an_interrupted_results_download_is_retried():
+    import httpx
+
+    params = {"A": {}}
+    msg = object()
+
+    class Dropping(FakeBatches):
+        drops = 1
+
+        def results(self, id):
+            if self.drops:
+                self.drops -= 1
+
+                def broken():
+                    yield from ()
+                    raise httpx.ReadError("connection reset")
+                return broken()
+            return super().results(id)
+
+    batches = Dropping([{"statuses": ["ended"], "results": _items(params, {"A": ("succeeded", msg)})}])
+    messages, failed = _runner(FakeClient(batches)).research(params)
+    assert messages == {"A": msg}
+    assert failed == []

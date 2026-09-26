@@ -59,10 +59,12 @@ def rubric_of(entry: dict) -> str | None:
 
 def calibration_due(breaks: list[dict], rubric: str) -> bool:
     """True when the newest recorded break is for an older rubric than
-    ``rubric``: the first full run on the new rubric must then run as a
-    calibration run. A history with no breaks at all (a fresh dataset) never
-    triggers it."""
+    ``rubric``, or when the newest break for ``rubric`` is marked incomplete:
+    the next full run must then run as a calibration run. A history with no
+    breaks at all (a fresh dataset) never triggers it."""
     if not breaks:
         return False
     latest = max(breaks, key=lambda entry: str(entry.get("date") or ""))
-    return rubric_of(latest) != rubric
+    # A break the run could not finish (some countries kept older-rubric
+    # scores) leaves the switch due; entries without the flag are complete.
+    return rubric_of(latest) != rubric or latest.get("complete") is False

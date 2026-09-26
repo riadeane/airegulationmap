@@ -112,9 +112,9 @@ def test_country_names_resolve_case_insensitively(monkeypatch, tmp_path):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
     _dataset_with(tmp_path, ["Germany", "France"], [])
     monkeypatch.setattr(cli, "Settings", lambda **kw: _TmpSettings(tmp_path, **kw))
-    result = runner.invoke(_app(), ["--dry-run", "--countries", "germany, FRANCE"])
+    result = runner.invoke(_app(), ["--dry-run", "--countries", "germany, FRANCE, Germany"])
     assert result.exit_code == 0
-    assert "Countries to update: 2 / 2" in result.output
+    assert "Countries to update: 2 / 2" in result.output  # Germany researched once
 
 
 def test_first_full_run_on_a_new_rubric_records_a_break(monkeypatch, tmp_path):
