@@ -427,8 +427,8 @@ provenance.
   mirror failure downgrades to a warning and can never change a run's
   outcome or exit code. The flush upserts `country_scores` /
   `country_summaries`, REPLACES `score_history` per recorded country
-  (`history.py` mutates the last snapshot's date in place, so append-only
-  would drift), and feeds every cited URL into `sources` /
+  (a same-day re-run supersedes that day's snapshot in `history.py`, so
+  append-only would drift), and feeds every cited URL into `sources` /
   `country_sources` with the run id. `research_runs` records trigger,
   model, strategy, prompt version, grounded flag, git SHA, counts, and
   cumulative token usage.
