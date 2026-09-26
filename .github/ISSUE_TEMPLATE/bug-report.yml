@@ -1,0 +1,78 @@
+# Software bugs in the app, the static pages, the pipeline or CI. Wrong
+# scores, laws or sources on a country entry go through data-error.yml
+# instead (the panel's "Report an issue" button opens that form).
+name: Bug report
+description: Something in the app, the pipeline or CI behaves wrongly.
+title: "<what goes wrong, in one line>"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a wrong score, law or source on a country, use the **Data error** form instead.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Map
+        - Country panel
+        - Comparison or scatter
+        - Controls (search, filter, timeline, share, export)
+        - Static country pages
+        - Other pages (methodology, data, changes, drift, API docs)
+        - Pipeline (scripts/regulation_pipeline)
+        - Supabase
+        - CI or workflows
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What goes wrong and who notices. Quote the wrong value next to the right one where you can.
+      placeholder: Opening /?conf=high draws every country at full opacity. Chad (low confidence) should be dimmed to 0.15.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps from a fresh load, with the URL, viewport and theme if they matter.
+      placeholder: |
+        1. Open /?conf=high
+        2. Inspect Chad's map path
+        3. Computed opacity is 1
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: Build or commit, and browser and OS if relevant.
+      placeholder: main at 493c9e1, Chrome 140, macOS, 1440 px, light theme
+    validations:
+      required: false
+  - type: textarea
+    id: cause
+    attributes:
+      label: Cause
+      description: Optional. The file and function at fault, if you know them.
+      placeholder: src/main.ts applies URL filters before generateMap(), whose first paint never sets opacity.
+    validations:
+      required: false
+  - type: textarea
+    id: fix
+    attributes:
+      label: Suggested fix
+      description: Optional. Options with their tradeoffs are welcome.
+    validations:
+      required: false
+  - type: textarea
+    id: test
+    attributes:
+      label: Test
+      description: Optional. The Vitest, pytest or Playwright check that would have caught it.
+    validations:
+      required: false
