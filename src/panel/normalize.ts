@@ -39,7 +39,10 @@ function tokens(s: string): string[] {
 function stripLeadingTemporal(text: string): string {
   const sentenceCount = (text.match(/[.!?](\s|$)/g) || []).length;
   if (sentenceCount < 2) return text;
-  return text.replace(LEADING_TEMPORAL_RE, '$1').replace(/^\s*,\s*/, '').trim();
+  const out = text.replace(LEADING_TEMPORAL_RE, '$1').replace(/^\s*,\s*/, '').trim();
+  if (out === text.trim()) return out;
+  // "As of June 2026, the EU AI Act …" loses its capital with the clause.
+  return out.charAt(0).toUpperCase() + out.slice(1);
 }
 
 // Heuristic: a run of sentences all starting with "No " is redundant if
@@ -56,8 +59,14 @@ function sharesVocab(sentences: string[]): boolean {
 }
 
 function collapseCascadingNegations(text: string): string {
-  const sentences = text.match(/[^.!?]+[.!?]+\s*/g);
+  // The second branch keeps a trailing fragment with no terminal
+  // punctuation ("… S.I. No. 366/2025 (2025), General Scheme … (2026)"),
+  // which the split used to drop, truncating the field.
+  const sentences = text.match(/[^.!?]+[.!?]+\s*|[^.!?]+$/g);
   if (!sentences || sentences.length < 3) return text;
+  // Only rework text the split covers exactly; anything it would skip
+  // (a leading ".5 million", say) must not vanish silently.
+  if (sentences.join('') !== text) return text;
 
   const out: string[] = [];
   let run: string[] = [];
