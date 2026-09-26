@@ -413,6 +413,35 @@ class TestEvidenceMigration:
                 assert f"#/parameters/rowFilter.{table}.{column}" in get_params
 
 
+class TestRationalesExportMigration:
+    """#74: migration 0009 appends country_scores.rationales to public_export,
+    and the committed OpenAPI snapshot lists it."""
+
+    sql = (MIGRATIONS / "0009_public_export_rationales.sql").read_text(encoding="utf-8")
+
+    def test_view_keeps_the_0008_columns_and_appends_rationales(self):
+        before = _public_export_columns((MIGRATIONS / "0008_evidence_coverage.sql").read_text(encoding="utf-8"))
+        assert _public_export_columns(self.sql) == before + ["s.rationales"]
+        assert "comment on column public_export.rationales is" in self.sql
+
+    def test_latest_view_definition_carries_rationales(self):
+        # Whichever migration last replaces the view must keep the column.
+        latest = [
+            path for path in sorted(MIGRATIONS.glob("*.sql"))
+            if "view public_export" in path.read_text(encoding="utf-8")
+        ][-1]
+        assert "s.rationales" in _public_export_columns(latest.read_text(encoding="utf-8"))
+
+    def test_openapi_snapshot_documents_the_column(self):
+        spec = json.loads((REPO / "public" / "openapi.json").read_text(encoding="utf-8"))
+        properties = spec["definitions"]["public_export"]["properties"]
+        assert properties["rationales"]["format"] == "jsonb"
+        assert properties["rationales"]["description"]
+        assert "rowFilter.public_export.rationales" in spec["parameters"]
+        get_params = [p.get("$ref") for p in spec["paths"]["/public_export"]["get"]["parameters"]]
+        assert "#/parameters/rowFilter.public_export.rationales" in get_params
+
+
 class TestSelectAllPagination:
     def test_paginates_past_the_postgrest_row_cap(self):
         # PostgREST caps responses at ~1,000 rows regardless of limit;

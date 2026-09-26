@@ -902,6 +902,9 @@
             "$ref": "#/parameters/rowFilter.public_export.web_search"
           },
           {
+            "$ref": "#/parameters/rowFilter.public_export.rationales"
+          },
+          {
             "$ref": "#/parameters/select"
           },
           {
@@ -2550,7 +2553,7 @@
       "type": "object"
     },
     "public_export": {
-      "description": "Flat research export: one row per country joining scores, sub-indicators, prose, and evidence coverage. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
+      "description": "Flat research export: one row per country joining scores, sub-indicators with their v2.1 rationales, prose, and evidence coverage. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
       "properties": {
         "country": {
           "description": "Canonical country name.",
@@ -2605,7 +2608,7 @@
           "type": "string"
         },
         "subscores": {
-          "description": "Methodology v2 integer sub-indicators only. The v2.1 rationale sentences are in country_scores.rationales.",
+          "description": "Methodology v2 integer sub-indicators only. The v2.1 rationale sentences are in the rationales column.",
           "format": "jsonb"
         },
         "data_version": {
@@ -2672,6 +2675,10 @@
           "description": "True when the model had web search for the country's latest research pass. Null when the country has no run record.",
           "format": "boolean",
           "type": "boolean"
+        },
+        "rationales": {
+          "description": "Methodology v2.1: one-sentence model rationale per sub-indicator, keyed dimension -> sub-indicator (same keys as subscores, no date). Null for countries not yet re-researched under v2.1.",
+          "format": "jsonb"
         }
       },
       "type": "object"
@@ -3764,6 +3771,13 @@
     "rowFilter.public_export.web_search": {
       "name": "web_search",
       "description": "True when the model had web search for the country's latest research pass. Null when the country has no run record.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.public_export.rationales": {
+      "name": "rationales",
+      "description": "Methodology v2.1: one-sentence model rationale per sub-indicator, keyed dimension -> sub-indicator (same keys as subscores, no date). Null for countries not yet re-researched under v2.1.",
       "required": false,
       "in": "query",
       "type": "string"
