@@ -17,11 +17,15 @@ npm run test:e2e   # Playwright smoke + accessibility checks against the build
 
 pip install -r requirements.txt -r requirements-dev.txt
 python -m pytest   # pipeline tests (tests/pipeline/)
+ruff check scripts tests/pipeline   # pipeline lint (install ruff separately)
 ```
 
-CI runs all of these on every push and pull request. Do not commit data
-files (`public/*.csv`, `public/history.json`, `public/data/subscores.json`)
-that a local pipeline run changed; the weekly workflow owns them.
+CI runs all of these on every push and pull request, plus a check for
+circular imports (`madge --circular --extensions ts src/`). Do not commit
+data files that a local pipeline run changed (`public/*.csv`,
+`public/history.json`, `public/data/subscores.json`,
+`public/data/pending.json`, `public/data/drift.json`, `public/digest/`);
+the weekly workflow owns them.
 
 Found a problem outside what you are working on? File an issue (the rules
 are in `CLAUDE.md` under "Found something off? File an issue").
@@ -55,9 +59,9 @@ checks the evidence against the [methodology](public/methodology.html),
 and then takes one of two routes:
 
 1. **Re-research the country.** The pipeline redoes the entry with web
-   search, updates all four stores together (`scores.csv`,
-   `regulation_data.csv`, `history.json`, `subscores.json`), and mirrors to
-   Supabase when configured:
+   search, updates all five stores together (`scores.csv`,
+   `regulation_data.csv`, `history.json`, `subscores.json`, `pending.json`),
+   and mirrors to Supabase when configured:
 
    ```bash
    python scripts/update_data.py --countries "<name>"
@@ -66,7 +70,9 @@ and then takes one of two routes:
    The stability gate holds a score change until it repeats on the next
    run or arrives with new evidence; pass `--no-gate` to land it at once
    when the report's evidence settles the question. `--no-batch` gives a
-   synchronous run for a single country; `--dry-run` previews the result.
+   synchronous run for a single country. `--dry-run` makes no API call and
+   writes nothing: it lists the countries the run would research and the
+   gate's standing for each (no prior scores, gate on, or held since a date).
 
 2. **Edit by hand.** For a wrong law, description, or source URL, edit
    `public/regulation_data.csv` directly. For a score, edit
