@@ -6,6 +6,7 @@ import { renderChangelog } from './changelog';
 import { renderPeerRow } from './peers';
 import { renderEvidence } from './evidence';
 import { highlightCountry, clearHighlight } from '../map/index';
+import { onThemeChange } from '../map/cssColors';
 import { toggleComparison } from '../state/interactions';
 import { maturityRank, scoresAtDate } from '../state/selectors';
 import { MAX_COMPARISON } from '../constants';
@@ -416,6 +417,13 @@ export function initPanel(): void {
   // and the map always show the same date. Only the score block re-renders -
   // no scroll reset, no sheet re-open.
   on('timelineDate', () => {
+    const { selectedCountry } = getState();
+    if (selectedCountry) renderScores(selectedCountry);
+  });
+
+  // The maturity bar and the dots carry colours resolved from the ramp,
+  // which a theme switch changes - repaint them, as the map does.
+  onThemeChange(() => {
     const { selectedCountry } = getState();
     if (selectedCountry) renderScores(selectedCountry);
   });

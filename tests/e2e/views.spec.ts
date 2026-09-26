@@ -83,6 +83,40 @@ test('arrow-stepping in the comparison view, then Esc, shows the stepped country
   await expect(page.locator('#country-name')).not.toHaveText('');
 });
 
+// Regression: the comparison chips, table header and radar, and the
+// panel's maturity bar, resolved their colours once at render time, so a
+// theme switch left the dark theme's colours on the light theme.
+test('comparison and panel colours follow a theme switch', async ({ page }) => {
+  await page.goto('/?compare=France,Japan&theme=dark');
+  await expect(page.locator('#comparison-panel')).toBeVisible({ timeout: 15_000 });
+  await page.click('#theme-toggle');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+
+  const colours = await page.evaluate(() => {
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--comparison-1)';
+    document.body.append(probe);
+    const token = getComputedStyle(probe).color;
+    probe.remove();
+    const header = document.querySelector<HTMLElement>('#comparison-table th.ct-country')!;
+    const polygon = document.querySelector<SVGPathElement>('#radar-chart .radar-polygons path')!;
+    return { token, header: getComputedStyle(header).color, stroke: getComputedStyle(polygon).stroke };
+  });
+  expect(colours.header).toBe(colours.token);
+  expect(colours.stroke).toBe(colours.token);
+
+  // The panel's maturity bar repaints with the new theme's ramp.
+  await page.click('#comparison-back-btn');
+  await page.fill('#country-search', 'Germany');
+  await page.waitForSelector('#search-suggestions li[role="option"]');
+  await page.keyboard.press('Enter');
+  const fill = page.locator('#overall-bar-fill');
+  const before = await fill.evaluate(el => (el as HTMLElement).style.getPropertyValue('--fill-color'));
+  await page.click('#theme-toggle');
+  await expect.poll(() => fill.evaluate(el => (el as HTMLElement).style.getPropertyValue('--fill-color')))
+    .not.toBe(before);
+});
+
 // Regression (phones): closing an overlay dropped the bottom sheet, and
 // re-selecting the still-selected country is a store no-op, so there was
 // no way back to the sheet short of picking another country.
