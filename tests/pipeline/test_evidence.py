@@ -162,8 +162,8 @@ class TestSyncEvidence:
         existing = [
             # Same instant as the fixture's updatedAt for record 2437, in
             # PostgREST's returned form.
-            {"external_id": "2437", "updated_at": "2026-07-01T08:59:54+00:00"},
-            {"external_id": "900001", "updated_at": "2020-01-01T00:00:00+00:00"},
+            {"external_id": "2437", "updated_at": "2026-07-01T08:59:54+00:00", "country_id": "c-de"},
+            {"external_id": "900001", "updated_at": "2020-01-01T00:00:00+00:00", "country_id": None},
         ]
         db = FakeDb(existing_initiatives=existing)
         report = sync_evidence(db, make_adapter(), make_resolver(), full=False)
@@ -173,6 +173,18 @@ class TestSyncEvidence:
         assert report.new == 2
         ext_ids = {r["external_id"] for r in db._rows_for("policy_initiatives")}
         assert "2437" not in ext_ids        # unchanged → not re-upserted
+
+    def test_delta_relinks_an_unchanged_record_that_now_resolves(self):
+        # Stored unlinked before an alias or ISO entry existed; upstream has
+        # not changed it since. The delta sync must re-link it anyway.
+        existing = [
+            {"external_id": "2437", "updated_at": "2026-07-01T08:59:54+00:00", "country_id": None},
+        ]
+        db = FakeDb(existing_initiatives=existing)
+        report = sync_evidence(db, make_adapter(), make_resolver(), full=False)
+        by_ext = {r["external_id"]: r for r in db._rows_for("policy_initiatives")}
+        assert by_ext["2437"]["country_id"] == "c-de"
+        assert report.unchanged == 0
 
     def test_never_deletes(self):
         db = FakeDb()
