@@ -14,6 +14,7 @@ import type { AppState } from '../state/store';
 import { maybeEl } from '../dom';
 import { citationsFor } from './citation';
 import { countryPagePath } from '../data/slug';
+import { localIsoDate } from '../data/localDate';
 import { renderAllBreakdowns } from '../panel/subscores';
 
 export const PRINT_BRIEF_CLASS = 'print-brief';
@@ -46,13 +47,9 @@ export function briefPermalink(
   return origin + countryPagePath(country);
 }
 
-function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function prepare(): void {
   // The @page footer reads this string on every print, brief or not.
-  document.documentElement.style.setProperty('--print-date', `"${isoToday()}"`);
+  document.documentElement.style.setProperty('--print-date', `"${localIsoDate()}"`);
 
   const state = getState();
   const { selectedCountry: country, timelineDate } = state;

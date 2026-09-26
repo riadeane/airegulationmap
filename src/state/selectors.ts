@@ -18,6 +18,7 @@ import type { EvidenceFilter, EvidenceRecord } from '../data/evidence';
 import type { HistoryData, HistorySnapshot } from '../data/history';
 import { buildScoresAtDate, extractSortedDates } from '../data/history';
 import { classifySources } from '../data/sources';
+import { localIsoDate } from '../data/localDate';
 import { computeRecentChanges } from '../data/changelog';
 import type { RecentChange } from '../data/changelog';
 import type { AttributeKey } from '../constants';
@@ -238,13 +239,6 @@ export function scoresAtDate(): Record<string, HistorySnapshot> | null {
 
 // ---------------------------------------------------------------------------
 // "This week" - the countries whose scores moved in the last seven days.
-
-/** Today's date as YYYY-MM-DD in the viewer's local time zone. */
-function localIsoDate(): string {
-  const d = new Date();
-  const pad = (n: number): string => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
 
 const NO_CHANGES: readonly RecentChange[] = [];
 

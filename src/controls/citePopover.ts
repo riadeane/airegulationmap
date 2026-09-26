@@ -6,7 +6,7 @@
 // fresh every open so scoped views stay citeable.
 
 import { getState, on } from '../state/store';
-import { citationsFor } from './citation';
+import { citationsFor, citationViewOf } from './citation';
 import { writeClipboard } from './clipboard';
 import type { Citations } from './citation';
 import { buildPermalink } from './url';
@@ -49,13 +49,7 @@ async function copyToClipboard(text: string, confirmBtn: HTMLButtonElement): Pro
 function renderRows() {
   const state = getState();
   const url = buildPermalink(state, { omitTheme: true });
-  const citations = citationsFor({
-    country: state.selectedCountry,
-    compareCountries: state.comparisonCountries,
-    mode: state.currentAttribute,
-    timelineDate: state.timelineDate,
-    url,
-  });
+  const citations = citationsFor(citationViewOf(state, url));
 
   removeAllChildren(popoverEl!);
 
@@ -158,6 +152,7 @@ export function initCitePopover(): void {
   const rerenderIfOpen = () => { if (isOpen) renderRows(); };
   on('selectedCountry', rerenderIfOpen);
   on('comparisonCountries', rerenderIfOpen);
+  on('mainView', rerenderIfOpen);
   on('currentAttribute', rerenderIfOpen);
   on('timelineDate', rerenderIfOpen);
 }

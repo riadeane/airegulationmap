@@ -5,6 +5,7 @@
 // OECD.ai / IAPP / law-firm trackers are secondary.
 
 import { PLACEHOLDER_RE } from '../constants';
+import { localIsoDate } from './localDate';
 
 export type SourceKind = 'official' | 'other';
 
@@ -82,7 +83,7 @@ export function classifySources(raw: string | null | undefined): ClassifiedSourc
 export function formatSourcesForCopy(
   sources: ClassifiedSource[],
   country: string,
-  accessed: string = new Date().toISOString().slice(0, 10)
+  accessed: string = localIsoDate()
 ): string {
   const lines = sources.map(
     (s, i) => `${i + 1}. ${s.url}${s.kind === 'official' ? ' (official)' : ''}`
