@@ -20,6 +20,7 @@ class StubResearchClient:
         self.initiatives = initiatives or {}
         self.calls: list[tuple[str, bool]] = []
         self.requested: list[str] = []
+        self.resumed: list[str] = []
 
     def _provenance(self, country, use_search):
         return ResearchProvenance(self.initiatives.get(country), use_search, "claude-test")
@@ -27,6 +28,12 @@ class StubResearchClient:
     def research(self, country, existing, *, use_search):
         self.calls.append((country, use_search))
         return self.results.get(country), self._provenance(country, use_search)
+
+    def resume(self, params, message, label):
+        # A paused batch result resumes synchronously; the stub finishes it
+        # with the message stored under ``finish`` (or returns it as is).
+        self.resumed.append(label)
+        return getattr(message, "finish", message)
 
     def request(self, country, existing, *, use_search):
         self.requested.append(country)
@@ -147,6 +154,18 @@ class TestBatchStrategy:
         client = StubResearchClient({}, initiatives={"A": 4})
         runner = StubRunner({}, ["A"])
         assert dict(BatchStrategy(client, runner, lambda c: True).research(["A"], {})) == {"A": None}
+
+    def test_paused_result_is_resumed_before_parsing(self):
+        client = StubResearchClient({})
+        paused = text_message("Searching for the AI act...")
+        paused.stop_reason = "pause_turn"
+        paused.finish = text_message(json.dumps(full_result()))
+        runner = StubRunner({"A": paused}, ["B"])
+        out = dict(BatchStrategy(client, runner, lambda c: True).research(["A", "B"], {}))
+        assert isinstance(out["A"], ResearchResult)
+        assert out["B"] is None
+        # Only results that came back are offered for resumption.
+        assert client.resumed == ["A"]
 
 
 def _drain_until_fatal(gen):

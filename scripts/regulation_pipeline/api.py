@@ -37,6 +37,11 @@ _SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search", "max_uses":
 # Thinking tokens count toward max_tokens, and the default model thinks before
 # it answers. Leave room so the structured answer is never truncated.
 _MAX_TOKENS = 16000
+# Web search runs in a server-side sampling loop. When that loop reaches its
+# iteration limit the API stops with stop_reason "pause_turn" and no answer
+# yet; sending the paused turn back resumes it where it left off. The cap
+# bounds the cost of a model that keeps searching.
+MAX_CONTINUATIONS = 3
 
 
 @dataclass(frozen=True)
@@ -146,7 +151,33 @@ class ResearchClient:
         if response is None:
             return None, request.provenance
         self._track_usage(response)
+        response = self.resume(request.params, response, country)
+        if response is None:
+            return None, request.provenance
         return parse_message(response, country), request.provenance
+
+    def resume(self, params: dict, message, label: str):
+        """Continue a turn the server paused (``stop_reason == "pause_turn"``)
+        until it finishes, at most :data:`MAX_CONTINUATIONS` times. Each paused
+        turn goes back as an assistant message; the API picks up from its
+        trailing server tool call. Returns the final Message (still paused if
+        the cap ran out, which :func:`parse_message` then rejects), or ``None``
+        when a continuation request failed. The Batches path calls this for
+        paused batch results too, synchronously."""
+        messages = list(params["messages"])
+        for attempt in range(1, MAX_CONTINUATIONS + 1):
+            if getattr(message, "stop_reason", None) != "pause_turn":
+                return message
+            logger.info("%s: resuming a paused turn (%d/%d)", label, attempt, MAX_CONTINUATIONS)
+            messages.append({"role": "assistant", "content": message.content})
+            resumed = {**params, "messages": list(messages)}
+            message = call_with_retries(
+                lambda: self._client.messages.create(**resumed), label=label
+            )
+            if message is None:
+                return None
+            self._track_usage(message)
+        return message
 
     def _track_usage(self, response) -> None:
         usage = getattr(response, "usage", None)
@@ -156,13 +187,24 @@ class ResearchClient:
         self._usage["output"] += getattr(usage, "output_tokens", 0) or 0
 
 
+# Stop reasons that mean the response carries no complete answer.
+_UNFINISHED = frozenset({"pause_turn", "max_tokens", "refusal"})
+
+
 def parse_message(message, label: str) -> dict | None:
     """Extract and parse the JSON answer from a Message. Returns a dict or
     ``None``.
 
     With web search enabled, responses interleave text and ``server_tool_use``
     blocks - the constrained JSON answer is the LAST text block, not the first.
+    A response that stopped before its answer (paused, cut off at
+    ``max_tokens``, or refused) is rejected with its stop reason logged, rather
+    than parsed from whatever interim text it carries.
     """
+    stop_reason = getattr(message, "stop_reason", None)
+    if stop_reason in _UNFINISHED:
+        logger.warning("no answer for %s: the response stopped with %s", label, stop_reason)
+        return None
     text = next(
         (block.text for block in reversed(message.content) if block.type == "text"),
         None,

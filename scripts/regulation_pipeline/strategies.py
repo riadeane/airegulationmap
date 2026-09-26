@@ -137,6 +137,10 @@ class BatchStrategy(ResearchStrategy):
 
         for country in countries:
             message = messages.get(country)
+            if message is not None:
+                # A batch result can come back paused mid-search; finish it
+                # synchronously rather than lose the country.
+                message = self._client.resume(requests[country].params, message, country)
             raw = parse_message(message, country) if message is not None else None
             yield country, _validate(country, raw, requests[country].provenance)
 
