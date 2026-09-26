@@ -34,9 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
           cache: pip
@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload probe artifact
         if: inputs.mode == 'probe'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: oecd-probe
           path: probe-output/
@@ -60,11 +60,16 @@ jobs:
 
       - name: Sync initiatives
         if: inputs.mode != 'probe'
-        run: >
-          python -m regulation_pipeline.evidence sync --source oecd
-          ${{ inputs.mode == 'sync-full' && '--full' || '' }}
-          ${{ inputs.endpoint != '' && format('--endpoint {0}', inputs.endpoint) || '' }}
+        # Inputs reach the shell through env, never interpolated into the
+        # script, so an endpoint value cannot inject commands.
+        run: |
+          args=(sync --source oecd)
+          if [ "$MODE" = "sync-full" ]; then args+=(--full); fi
+          if [ -n "$ENDPOINT" ]; then args+=(--endpoint "$ENDPOINT"); fi
+          python -m regulation_pipeline.evidence "${args[@]}"
         env:
+          MODE: ${{ inputs.mode }}
+          ENDPOINT: ${{ inputs.endpoint }}
           PYTHONPATH: scripts
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
