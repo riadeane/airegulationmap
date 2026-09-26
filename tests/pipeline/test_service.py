@@ -95,6 +95,20 @@ class TestRun:
         assert result.updated == 1
         assert _saved_countries(tmp_path) == {"A"}  # partial data persisted
 
+    def test_unexpected_error_saves_partial_progress(self, tmp_path):
+        # A network error the strategy did not absorb must not throw away the
+        # countries already applied (and paid for).
+        class Broken:
+            def research(self, countries, reg_rows):
+                yield "A", model()
+                raise ConnectionError("network down")
+
+        svc, _ = _service(tmp_path)
+        result = svc.run(Broken(), ["A", "B"])
+        assert result.fatal is True
+        assert result.updated == 1
+        assert _saved_countries(tmp_path) == {"A"}
+
     def test_all_failures_still_writes_unchanged_data(self, tmp_path):
         # Mirrors the old behavior: the run always writes at the end, even with
         # zero updates. With an empty dataset that means a header-only CSV.

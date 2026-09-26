@@ -124,8 +124,9 @@ class PipelineService:
     def run(self, strategy: ResearchStrategy, to_update: list[str]) -> RunResult:
         """Research ``to_update`` with ``strategy``, folding each valid answer
         into the dataset, then validate and persist. A
-        :class:`~regulation_pipeline.errors.FatalAPIError` aborts the run but the
-        work completed so far is still saved."""
+        :class:`~regulation_pipeline.errors.FatalAPIError`, or any unexpected
+        error from the strategy, aborts the run but the work completed so far is
+        still saved."""
         reg_rows = {country: self._dataset.regulation_row(country) or {} for country in to_update}
 
         updated = 0
@@ -150,8 +151,14 @@ class PipelineService:
                     tally.add(country, decision)
                     changes.append(change)
                     self._mirror_record(country, result)
-        except FatalAPIError as exc:
-            logger.error("FATAL: %s", exc)
+        except Exception as exc:
+            # FatalAPIError is the expected abort; anything else (a network
+            # error the strategy did not absorb, a bug) must not throw away
+            # the countries already applied and paid for either.
+            if isinstance(exc, FatalAPIError):
+                logger.error("FATAL: %s", exc)
+            else:
+                logger.exception("FATAL: unexpected error during research")
             logger.error("Aborting. %d countries updated before failure.", updated)
             if updated:
                 logger.info("Saving partial progress...")

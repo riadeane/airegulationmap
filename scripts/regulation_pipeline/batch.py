@@ -15,16 +15,26 @@ from collections.abc import Callable
 import anthropic
 
 from .errors import FatalAPIError
+from .retry import call_with_retries
 
 logger = logging.getLogger(__name__)
 
 POLL_INTERVAL_SECONDS = 30
 # Most batches complete within an hour; the API allows up to 24h. The GitHub
-# Actions job would die long before that, so give up earlier.
+# Actions job dies at 6h (update-data.yml sets timeout-minutes), and a killed
+# job saves nothing, so this budget covers ALL batches of a run together (the
+# first one, the transient-failure retry, and pause_turn continuations) and
+# leaves time to apply, mirror, write the digest and commit.
 MAX_WAIT_SECONDS = 4 * 60 * 60
 # After canceling a timed-out batch, how long to wait for it to reach a terminal
 # state so we can still collect the requests that already succeeded.
-CANCEL_GRACE_SECONDS = 5 * 60
+CANCEL_GRACE_SECONDS = 10 * 60
+# A follow-up batch (retry or continuation) is only worth submitting with at
+# least this much of the wait budget left.
+MIN_ROUND_SECONDS = 15 * 60
+# pause_turn continuations per country, as in the synchronous path
+# (api.MAX_CONTINUATIONS).
+MAX_CONTINUATION_ROUNDS = 3
 
 
 def build_batch_requests(params_by_country: dict[str, dict]):
@@ -62,6 +72,8 @@ class BatchRunner:
         self._max_wait = max_wait
         self._cancel_grace_seconds = cancel_grace_seconds
         self._sleep = sleep
+        # Seconds spent polling so far, across every batch of the run.
+        self._waited = 0
         # Cumulative token usage over succeeded requests (best-effort
         # provenance; batches bill these at 50%).
         self._usage = {"input": 0, "output": 0}
@@ -70,60 +82,101 @@ class BatchRunner:
         return dict(self._usage)
 
     def research(self, params_by_country: dict[str, dict]) -> tuple[dict, list[str]]:
-        """Run the batch, then retry transient failures once in a second,
-        smaller batch. Returns ``(messages, failed_countries)`` where messages
-        maps country -> Message for succeeded requests."""
+        """Run the batch, then follow-up rounds in smaller batches: transient
+        failures are resubmitted once, and a result the server paused mid-search
+        (``stop_reason == "pause_turn"``) is continued by sending the paused turn
+        back, up to :data:`MAX_CONTINUATION_ROUNDS` times. Returns ``(messages,
+        failed_countries)`` where messages maps country -> Message for succeeded
+        requests (a result still paused after the last round stays in, and the
+        parser rejects it)."""
         messages, errors = self._run_once(params_by_country)
+        retry = {c for c, kind in errors.items() if kind == "retryable"}
+        conversations: dict[str, list] = {}
 
-        retryable = {c for c, kind in errors.items() if kind == "retryable"}
-        if retryable:
-            logger.info("Retrying %d transient failures in a second batch...", len(retryable))
-            retry_params = {c: params_by_country[c] for c in retryable}
-            retry_messages, retry_errors = self._run_once(retry_params)
-            messages.update(retry_messages)
-            errors = {c: k for c, k in errors.items() if c not in retry_messages}
-            errors.update(retry_errors)
+        for _ in range(MAX_CONTINUATION_ROUNDS):
+            paused = {
+                c: m for c, m in messages.items()
+                if getattr(m, "stop_reason", None) == "pause_turn"
+            }
+            if not paused and not retry:
+                break
+            if self._max_wait - self._waited < MIN_ROUND_SECONDS:
+                logger.warning(
+                    "Batch wait budget nearly spent - not resubmitting %d transient "
+                    "failures or continuing %d paused results", len(retry), len(paused),
+                )
+                break
+            round_params = {c: params_by_country[c] for c in retry}
+            for country, message in paused.items():
+                turns = conversations.setdefault(country, list(params_by_country[country]["messages"]))
+                turns.append({"role": "assistant", "content": message.content})
+                round_params[country] = {**params_by_country[country], "messages": list(turns)}
+            logger.info(
+                "Follow-up batch: %d transient failures, %d paused results to continue...",
+                len(retry), len(paused),
+            )
+            round_messages, round_errors = self._run_once(round_params)
+            messages.update(round_messages)
+            errors = {c: k for c, k in errors.items() if c not in round_messages}
+            errors.update(round_errors)
+            # Transient failures get one resubmission; later rounds only
+            # continue paused results.
+            retry = set()
 
         return messages, sorted(errors)
 
     def _run_once(self, params_by_country: dict[str, dict]) -> tuple[dict, dict]:
         """Submit one batch and wait for it to end. Returns ``(messages,
-        errors)`` where ``errors`` maps country -> "retryable" | "fatal"."""
+        errors)`` where ``errors`` maps country -> "retryable" | "fatal".
+
+        Every API call goes through the transient-error retry policy: one
+        connection blip on a poll must never cost a run whose results are
+        already paid for."""
         requests, id_map = build_batch_requests(params_by_country)
 
-        try:
-            batch = self._client.messages.batches.create(requests=requests)
-        except anthropic.AuthenticationError as exc:
-            raise FatalAPIError(f"Authentication failed (invalid API key): {exc}") from exc
-        except anthropic.PermissionDeniedError as exc:
-            raise FatalAPIError(f"Permission denied (check credits/permissions): {exc}") from exc
+        batch = self._call(
+            lambda: self._client.messages.batches.create(requests=requests), "batch submit"
+        )
+        if batch is None:
+            logger.error("Could not submit a batch of %d requests", len(requests))
+            return {}, {country: "retryable" for country in id_map.values()}
 
         logger.info("Batch %s submitted (%d requests, 50%% token pricing)", batch.id, len(requests))
 
-        waited = 0
         while batch.processing_status != "ended":
-            if waited >= self._max_wait:
+            if self._waited >= self._max_wait:
                 # Don't discard already-succeeded (already-billed) work: cancel
                 # the batch, let it reach a terminal state, then collect whatever
                 # completed. Requests still in flight come back as "canceled" and
                 # are retried/reported by the caller.
                 logger.warning(
-                    "Batch %s still processing after %ds - canceling and collecting "
-                    "partial results", batch.id, self._max_wait,
+                    "Batch %s still processing after the %ds wait budget - canceling and "
+                    "collecting partial results", batch.id, self._max_wait,
                 )
-                self._client.messages.batches.cancel(batch.id)
+                self._call(lambda: self._client.messages.batches.cancel(batch.id), "batch cancel")
                 batch = self._drain_after_cancel(batch)
                 break
             self._sleep(self._poll_interval)
-            waited += self._poll_interval
-            batch = self._client.messages.batches.retrieve(batch.id)
+            self._waited += self._poll_interval
+            refreshed = self._call(
+                lambda: self._client.messages.batches.retrieve(batch.id), f"batch poll {batch.id}"
+            )
+            if refreshed is None:
+                continue  # keep polling; the wait budget bounds this
+            batch = refreshed
             counts = batch.request_counts
             logger.info(
                 "... %s: %d processing, %d succeeded, %d errored (%ds)",
-                batch.processing_status, counts.processing, counts.succeeded, counts.errored, waited,
+                batch.processing_status, counts.processing, counts.succeeded, counts.errored,
+                self._waited,
             )
 
         return self._collect(batch, id_map)
+
+    def _call(self, call, label: str):
+        """One batch API call under :func:`~regulation_pipeline.retry.call_with_retries`.
+        Returns ``None`` once transient retries are exhausted."""
+        return call_with_retries(call, label=label, sleep=self._sleep)
 
     def _drain_after_cancel(self, batch):
         """Poll a canceled batch until it ends, so succeeded results are
@@ -133,19 +186,38 @@ class BatchRunner:
         while batch.processing_status != "ended" and grace < self._cancel_grace_seconds:
             self._sleep(self._poll_interval)
             grace += self._poll_interval
-            batch = self._client.messages.batches.retrieve(batch.id)
+            refreshed = self._call(
+                lambda: self._client.messages.batches.retrieve(batch.id), f"batch poll {batch.id}"
+            )
+            if refreshed is not None:
+                batch = refreshed
         return batch
 
     def _collect(self, batch, id_map: dict[str, str]) -> tuple[dict, dict]:
         messages: dict = {}
         errors: dict = {}
         if batch.processing_status != "ended":
-            # Couldn't reach a terminal state to read results - treat everything
-            # not already collected as retryable rather than losing the run.
-            logger.warning("Batch %s did not end; treating all requests as retryable", batch.id)
-            return messages, {country: "retryable" for country in id_map.values()}
+            # Results can't be read until the batch ends. Resubmitting would pay
+            # again for requests that already succeeded, so these countries fail
+            # this run; the batch id lets someone fetch the results later.
+            logger.error(
+                "Batch %s did not end; its results are unreadable for now. %d countries "
+                "fail this run.", batch.id, len(id_map),
+            )
+            return messages, {country: "fatal" for country in id_map.values()}
 
-        for result in self._client.messages.batches.results(batch.id):
+        results = self._call(
+            lambda: list(self._client.messages.batches.results(batch.id)), f"batch results {batch.id}"
+        )
+        if results is None:
+            logger.error(
+                "Could not read the results of batch %s; %d countries fail this run. "
+                "The results stay available from the Batches API for 29 days.",
+                batch.id, len(id_map),
+            )
+            return messages, {country: "fatal" for country in id_map.values()}
+
+        for result in results:
             country = id_map[result.custom_id]
             kind = result.result.type
             if kind == "succeeded":
@@ -155,13 +227,25 @@ class BatchRunner:
                     self._usage["input"] += getattr(usage, "input_tokens", 0) or 0
                     self._usage["output"] += getattr(usage, "output_tokens", 0) or 0
             elif kind == "errored":
-                error_type = result.result.error.type
+                error_type = _error_type(result.result.error)
                 # invalid_request means the request itself is malformed -
                 # resubmitting the same thing can't succeed.
-                errors[country] = "fatal" if error_type == "invalid_request" else "retryable"
+                errors[country] = "fatal" if error_type in _FATAL_ERRORS else "retryable"
                 logger.warning("batch request for %s errored (%s)", country, error_type)
             else:  # canceled / expired
                 errors[country] = "retryable"
                 logger.warning("batch request for %s %s", country, kind)
 
         return messages, errors
+
+
+# Batch error kinds that resubmitting cannot fix.
+_FATAL_ERRORS = frozenset({"invalid_request_error", "invalid_request"})
+
+
+def _error_type(error) -> str | None:
+    """The error kind of an errored batch result. The SDK wraps it: the result
+    carries an ``ErrorResponse`` (``type == "error"``) whose ``error.type`` is
+    the kind, such as ``"invalid_request_error"`` or ``"overloaded_error"``."""
+    inner = getattr(error, "error", None)
+    return getattr(inner, "type", None) or getattr(error, "type", None)
