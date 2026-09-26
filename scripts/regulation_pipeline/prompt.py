@@ -18,6 +18,12 @@ from datetime import date
 # unchanged, so this bump is a structure change, not a calibration break.
 PROMPT_VERSION = "v3.1-2026-09"
 
+# The rubric generation alone (the part of PROMPT_VERSION a calibration
+# break is about). Bump it with the rubric: the first full run on a new
+# rubric then records a calibration break and runs ungated automatically
+# (history.calibration_due), so a scale change never lands as silent drift.
+RUBRIC_VERSION = "v3"
+
 # The evidence-grounded variant (same rubric + output schema, plus a
 # verified-records block). Grounded prompts are LONGER than plain ones -
 # pair grounded runs with --batch for the 50% token pricing.

@@ -20,13 +20,14 @@ import anthropic
 import typer
 
 from . import gate
+from . import history as history_mod
 from .api import ResearchClient
 from .batch import BatchRunner
 from .config import DEFAULT_MODEL, Settings
 from .digest import write_run_digest
 from .gold import check_run, markdown_summary
 from .names import CountryNames
-from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
+from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION, RUBRIC_VERSION
 from .repository import Dataset
 from .service import PipelineService, RunResult
 from .staleness import StalenessPolicy
@@ -159,6 +160,36 @@ def _run(
 
     logger.info("Loading existing data...")
     dataset = Dataset.load(settings, names)
+
+    targets = None
+    if not full_run:
+        targets, unknown = [], []
+        for raw_name in (c for c in countries.split(",") if c.strip()):
+            resolved = names.resolve(raw_name, dataset.countries())
+            (targets if resolved else unknown).append(resolved or raw_name.strip())
+        if unknown:
+            logger.error(
+                "Unknown countries (not in scores.csv or the alias map): %s. Nothing was "
+                "researched.", ", ".join(unknown),
+            )
+            raise typer.Exit(code=1)
+
+    # The first full run on a new rubric is a calibration run: record the
+    # break and apply every score, so the scale change is labelled rather
+    # than landing as evidence-backed "policy change".
+    calibration_due = history_mod.calibration_due(dataset.breaks(), RUBRIC_VERSION)
+    if calibration_due and gate_enabled and full_run and force:
+        gate_enabled = False
+        break_reason = f"Switch to scoring rubric {RUBRIC_VERSION} (model {model})"
+        logger.warning(
+            "First full run on rubric %s: running as a calibration run (gate off, break "
+            "recorded)", RUBRIC_VERSION,
+        )
+    elif calibration_due and gate_enabled:
+        logger.warning(
+            "Rubric %s has no recorded break yet; this partial or gated run stays gated. "
+            "The next full run records the break.", RUBRIC_VERSION,
+        )
     supabase_mirror = _build_mirror(
         mirror, settings, model=model, batch=batch, grounded=grounded,
         research_client=research_client, batch_runner=batch_runner,
@@ -170,6 +201,7 @@ def _run(
             "date": today.isoformat(),
             "model": model,
             "prompt_version": prompt_version,
+            "rubric": RUBRIC_VERSION,
             "reason": break_reason.strip(),
         }
     service = PipelineService(
@@ -180,10 +212,6 @@ def _run(
         run_id=supabase_mirror.run_id if supabase_mirror is not None else None,
     )
     write_digest = digest if digest is not None else _is_scheduled()
-
-    targets = None
-    if not full_run:
-        targets = [names.canonical(c) for c in countries.split(",") if c.strip()]
 
     all_targets, to_update = service.select(targets, force=force)
     logger.info("Countries to update: %d / %d", len(to_update), len(all_targets))

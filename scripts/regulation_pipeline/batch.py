@@ -14,7 +14,6 @@ from collections.abc import Callable
 
 import anthropic
 
-from .errors import FatalAPIError
 from .retry import call_with_retries
 
 logger = logging.getLogger(__name__)
@@ -153,13 +152,13 @@ class BatchRunner:
                     "Batch %s still processing after the %ds wait budget - canceling and "
                     "collecting partial results", batch.id, self._max_wait,
                 )
-                self._call(lambda: self._client.messages.batches.cancel(batch.id), "batch cancel")
+                self._call(lambda b=batch.id: self._client.messages.batches.cancel(b), "batch cancel")
                 batch = self._drain_after_cancel(batch)
                 break
             self._sleep(self._poll_interval)
             self._waited += self._poll_interval
             refreshed = self._call(
-                lambda: self._client.messages.batches.retrieve(batch.id), f"batch poll {batch.id}"
+                lambda b=batch.id: self._client.messages.batches.retrieve(b), f"batch poll {batch.id}"
             )
             if refreshed is None:
                 continue  # keep polling; the wait budget bounds this
@@ -187,7 +186,7 @@ class BatchRunner:
             self._sleep(self._poll_interval)
             grace += self._poll_interval
             refreshed = self._call(
-                lambda: self._client.messages.batches.retrieve(batch.id), f"batch poll {batch.id}"
+                lambda b=batch.id: self._client.messages.batches.retrieve(b), f"batch poll {batch.id}"
             )
             if refreshed is not None:
                 batch = refreshed

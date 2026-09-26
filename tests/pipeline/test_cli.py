@@ -76,3 +76,66 @@ def _TmpSettings(root, **kw):
     from regulation_pipeline.config import Settings
 
     return Settings(root=root, **kw)
+
+
+def _dataset_with(tmp_path, countries, breaks):
+    """A temp dataset with the given countries (identical scores) and breaks."""
+    import json
+
+    from regulation_pipeline.config import Settings
+
+    settings = Settings(root=tmp_path)
+    settings.scores_csv.parent.mkdir(parents=True, exist_ok=True)
+    header = (
+        "Country,Regulation Status,Policy Lever,Governance Type,Actor Involvement,"
+        "Enforcement Level,Average Score,Last Updated,Data Version\n"
+    )
+    rows = "".join(f"{c},2,2,2,2,2,2,2026-09-01,1\n" for c in countries)
+    settings.scores_csv.write_text(header + rows, encoding="utf-8")
+    settings.history_json.write_text(
+        json.dumps({"schema_version": 1, "countries": {}, "breaks": breaks}), encoding="utf-8",
+    )
+    return settings
+
+
+def test_unknown_country_names_exit_before_any_research(monkeypatch, tmp_path):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    _dataset_with(tmp_path, ["Germany", "France"], [])
+    monkeypatch.setattr(cli, "Settings", lambda **kw: _TmpSettings(tmp_path, **kw))
+    result = runner.invoke(_app(), ["--dry-run", "--countries", "germany, Germny"])
+    assert result.exit_code == 1
+    assert "Germny" in result.output
+    assert "Germany" not in result.output.split("Unknown countries")[1].split(".")[0]
+
+
+def test_country_names_resolve_case_insensitively(monkeypatch, tmp_path):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    _dataset_with(tmp_path, ["Germany", "France"], [])
+    monkeypatch.setattr(cli, "Settings", lambda **kw: _TmpSettings(tmp_path, **kw))
+    result = runner.invoke(_app(), ["--dry-run", "--countries", "germany, FRANCE"])
+    assert result.exit_code == 0
+    assert "Countries to update: 2 / 2" in result.output
+
+
+def test_first_full_run_on_a_new_rubric_records_a_break(monkeypatch, tmp_path):
+    from regulation_pipeline.prompt import RUBRIC_VERSION
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    june = {"date": "2026-06-13", "prompt_version": "v2-2026-06", "reason": "v2"}
+    _dataset_with(tmp_path, ["Germany"], [june])
+    monkeypatch.setattr(cli, "Settings", lambda **kw: _TmpSettings(tmp_path, **kw))
+    result = runner.invoke(_app(), ["--dry-run"])
+    assert result.exit_code == 0
+    assert f"First full run on rubric {RUBRIC_VERSION}" in result.output
+    assert "would record break: Switch to scoring rubric" in result.output
+
+
+def test_a_partial_run_on_a_new_rubric_stays_gated(monkeypatch, tmp_path):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    june = {"date": "2026-06-13", "prompt_version": "v2-2026-06", "reason": "v2"}
+    _dataset_with(tmp_path, ["Germany", "France"], [june])
+    monkeypatch.setattr(cli, "Settings", lambda **kw: _TmpSettings(tmp_path, **kw))
+    result = runner.invoke(_app(), ["--dry-run", "--countries", "Germany"])
+    assert result.exit_code == 0
+    assert "stays gated" in result.output
+    assert "would record break" not in result.output
