@@ -355,5 +355,16 @@ describe('goldTooltip', () => {
     expect(html).toContain('&lt;i&gt;C&lt;/i&gt;');
     expect(html).toContain('&lt;svg onload=x&gt;');
   });
+
+  it('leaves out the location parts drift.json does not give', () => {
+    const [check] = parseDriftChecks({
+      checks: [{
+        date: '2026-09-28', within_one: 0.9, countries_compared: 10, max_dev: 2,
+        max_dev_at: { gold: 1, run: 3 },
+      }],
+    });
+    expect(goldTooltip(check)).not.toContain('( , )');
+    expect(goldTooltip(check)).not.toMatch(/\(\s*,/);
+  });
 });
 

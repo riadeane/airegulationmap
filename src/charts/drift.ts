@@ -553,9 +553,11 @@ export function goldTooltip(check: DriftCheck): string {
   ];
   if (check.model) parts.push(`${escapeHtml(check.model)}${check.promptVersion ? `, prompt ${escapeHtml(check.promptVersion)}` : ''}`);
   if (check.maxDev != null) {
-    const at = check.maxDevAt
-      ? ` (${escapeHtml(check.maxDevAt.country)}, ${escapeHtml(snakeDimensionLabel(check.maxDevAt.dimension))})`
-      : '';
+    const where = check.maxDevAt
+      ? [check.maxDevAt.country, check.maxDevAt.dimension && snakeDimensionLabel(check.maxDevAt.dimension)]
+        .filter(Boolean).map(part => escapeHtml(String(part)))
+      : [];
+    const at = where.length ? ` (${where.join(', ')})` : '';
     parts.push(`largest deviation: ${check.maxDev}${at}`);
   }
   parts.push(`${check.countriesCompared} countries compared`);

@@ -221,7 +221,12 @@ function openSheet(): void {
   if (!wasOpen) openSheetDialog();
 }
 
-function renderPanel(countryName: string): void {
+/**
+ * Render the selected country's entry. `refresh` re-renders the same
+ * selection in place (new data under it, e.g. a Supabase hydration): it
+ * keeps the reader's scroll position and leaves a closed phone sheet closed.
+ */
+function renderPanel(countryName: string, { refresh = false }: { refresh?: boolean } = {}): void {
   const { scoreData, regulationData, mainView } = getState();
   const score = scoreData[countryName];
   const reg = regulationData[countryName];
@@ -275,12 +280,11 @@ function renderPanel(countryName: string): void {
   // On phones the panel is a bottom sheet layered over the map. Selecting
   // a country slides it up (the transition lives in CSS); on desktop the
   // class is inert. Skip while the full comparison view owns the screen.
-  if (!comparisonOpen) {
+  if (!comparisonOpen && !refresh) {
     // Reset to the top for every fresh country - otherwise, after
     // scrolling one country's sheet/panel, the next selection opens
-    // mid-content with the name and score off-screen. renderPanel only
-    // runs on a selection change, so this never clobbers a deliberate
-    // scroll mid-read.
+    // mid-content with the name and score off-screen. A refresh of the
+    // same selection skips this, so it never clobbers a scroll mid-read.
     document.getElementById('country-panel')?.scrollTo({ top: 0 });
     // Only take over focus on the initial open, not when switching
     // countries with the sheet already up (that would steal focus on
@@ -445,7 +449,7 @@ export function initPanel(): void {
   // with the fresh prose, sources, and confidence.
   on('regulationData', () => {
     const { selectedCountry } = getState();
-    if (selectedCountry) renderPanel(selectedCountry);
+    if (selectedCountry) renderPanel(selectedCountry, { refresh: true });
   });
   updateCiteButton();
 
