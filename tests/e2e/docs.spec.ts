@@ -104,3 +104,41 @@ test('api-docs.html renders Swagger UI from the committed spec snapshot', async 
   // The schemas section doubles as the column reference: present, collapsed.
   await expect(page.locator('#swagger-ui section.models')).toBeVisible();
 });
+
+// Regression: at 360px the latest-run "largest moves" table sat outside a
+// scroll box and widened the whole page.
+test('drift.html fits a 360px phone without horizontal scroll', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto('/drift.html');
+  await expect(page.locator('#drift-run table a[href^="/?country="]').first()).toBeAttached();
+  const overflow = await page.evaluate(() =>
+    document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
+// Regression: the calibration callout read "Calibration break.This run",
+// and "Also changed" listed a confidence-only change as "Germany: ".
+test('changes.html spaces the calibration callout and states confidence changes', async ({ page }) => {
+  await page.route('**/digest/index.json', route => route.fulfill({
+    json: { weeks: [{ week: '2026-W39', date: '2026-09-21', file: '2026-W39.json', change_count: 1 }] },
+  }));
+  await page.route('**/digest/2026-W39.json', route => route.fulfill({
+    json: {
+      schema_version: 1,
+      week: '2026-W39',
+      date: '2026-09-21',
+      model: 'claude-opus-5-5',
+      lead: 'One country moved.',
+      calibration_break: { date: '2026-09-21', model: 'claude-opus-5-5', reason: 'Model switch' },
+      items: [],
+      changes: [{
+        country: 'Germany', scores: {}, laws: null,
+        confidence: { old: 'medium', new: 'high' }, sources: [], new_sources: [],
+      }],
+    },
+  }));
+  await page.goto('/changes.html');
+  await expect(page.locator('.callout')).toContainText('Calibration break. This run re-scored every country');
+  await expect(page.locator('.change-uncovered li')).toHaveText('Germany: confidence medium → high');
+});
+
