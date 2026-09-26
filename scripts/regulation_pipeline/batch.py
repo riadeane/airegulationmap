@@ -14,6 +14,7 @@ from collections.abc import Callable
 
 import anthropic
 
+from .api import add_usage
 from .retry import call_with_retries
 
 logger = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ class BatchRunner:
         self._waited = 0
         # Cumulative token usage over succeeded requests (best-effort
         # provenance; batches bill these at 50%).
-        self._usage = {"input": 0, "output": 0}
+        self._usage = {"input": 0, "output": 0, "searches": 0}
 
     def usage(self) -> dict[str, int]:
         return dict(self._usage)
@@ -221,10 +222,7 @@ class BatchRunner:
             kind = result.result.type
             if kind == "succeeded":
                 messages[country] = result.result.message
-                usage = getattr(result.result.message, "usage", None)
-                if usage is not None:
-                    self._usage["input"] += getattr(usage, "input_tokens", 0) or 0
-                    self._usage["output"] += getattr(usage, "output_tokens", 0) or 0
+                add_usage(self._usage, getattr(result.result.message, "usage", None))
             elif kind == "errored":
                 error_type = _error_type(result.result.error)
                 # invalid_request means the request itself is malformed -
