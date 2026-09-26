@@ -99,7 +99,10 @@ after three diverging copies let the export forget the bloc filter entirely.
 `passesCountryFilters()` is its score-independent half (the map range-checks
 per-datum because timeline playback filters historical snapshots), and
 `scoresAtDate()` memoizes the snapshot resolution the map and the panel share
-while the timeline is scrubbed.
+while the timeline is scrubbed. `isLowConfidenceAtDate()` builds on it: the
+map's low-confidence hatch follows the snapshot's recorded confidence at the
+scrubbed date, else the current rating (`confidenceFallsBackAtDate()` tells
+the legend when that fallback is in play).
 
 ### Mapper / repository - `data/*`
 `loader.ts` maps CSV rows to typed domain objects (`ScoreEntry`,
@@ -130,6 +133,9 @@ Params: `country`, `compare`, `mode`, `date`, `bloc`, `min`/`max` (score
 range), `conf`/`official`/`evidence` (country filters), `q` (committed search),
 `scatter`, `theme`. The header Share popover (`controls/share.ts`) surfaces
 the permalink + formatted citations for ANY view, no selection required.
+`showUncertainty` (the map hatch toggle) is a per-browser preference in
+`localStorage` and, unlike `theme`, is not carried in the URL, so a shared
+link opens with the reader's own setting.
 
 ### Static-first + Supabase hydration - `data/supabase.ts`, `data/hydrate.ts`
 The app boots from the static files, always. Supabase is progressive

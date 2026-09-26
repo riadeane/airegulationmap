@@ -7,7 +7,17 @@ import { range } from 'd3-array';
 
 import { LEGEND_ENDPOINTS } from '../constants';
 import { getState } from '../state/store';
+import { confidenceFallsBackAtDate } from '../state/selectors';
 import { cssVar } from './cssColors';
+import { appendHatchPattern } from './hatch';
+
+// The legend's own copy of the hatch: the map's pattern counter-scales with
+// the zoom, and the legend sits outside the zoomed group.
+const LEGEND_HATCH_ID = 'hatch-low-legend';
+
+const FALLBACK_NOTE_TITLE =
+  'History records no confidence for this date, so the hatch shows each '
+  + "country's current confidence.";
 
 export type ColorScale = ScaleLinear<string, string>;
 
@@ -102,6 +112,58 @@ export function addLegend(
     .attr('y', 0)
     .attr('text-anchor', 'start')
     .text('No data');
+
+  // Uncertainty key (PRD 13) - a mid-ramp swatch under the same hatch the
+  // map draws. Its row sits above "No data"; updateLegendUncertainty shows
+  // it only while "Show uncertainty" is on, and adds the fallback note
+  // when a past date is shown without recorded confidence.
+  appendHatchPattern(legend.select<SVGDefsElement>('defs'), LEGEND_HATCH_ID);
+  const uncertainty = legend.append('g')
+    .attr('class', 'legend-uncertainty');
+
+  for (const fill of [colorScale(3), `url(#${LEGEND_HATCH_ID})`]) {
+    uncertainty.append('rect')
+      .attr('x', -0.5)
+      .attr('y', -8.5)
+      .attr('width', 9)
+      .attr('height', 9)
+      .attr('rx', 1.5)
+      .style('fill', fill);
+  }
+
+  uncertainty.append('text')
+    .attr('class', 'legend-label')
+    .attr('x', 14)
+    .attr('y', 0)
+    .attr('text-anchor', 'start')
+    .text('Hatched: low confidence');
+
+  const note = uncertainty.append('text')
+    .attr('class', 'legend-label legend-uncertainty-note')
+    .attr('x', 14)
+    .attr('y', 11)
+    .attr('text-anchor', 'start')
+    .text('(current rating)');
+  note.append('title').text(FALLBACK_NOTE_TITLE);
+
+  updateLegendUncertainty();
+}
+
+/**
+ * Show the uncertainty key while "Show uncertainty" is on. While a past
+ * date is shown and history records no confidence for it, the hatch uses
+ * current confidence and a second line says so; the row moves up a line
+ * to make room above "No data".
+ */
+export function updateLegendUncertainty(): void {
+  const key = select('#map .legend-uncertainty');
+  if (key.empty()) return;
+  const { showUncertainty } = getState();
+  const fallback = showUncertainty && confidenceFallsBackAtDate();
+  key
+    .attr('display', showUncertainty ? null : 'none')
+    .attr('transform', `translate(0, ${fallback ? -36 : -25})`);
+  key.select('.legend-uncertainty-note').attr('display', fallback ? null : 'none');
 }
 
 export function updateLegendLabels(): void {

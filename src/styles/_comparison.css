@@ -484,15 +484,21 @@ body.view-compare .radar-chart svg {
   background: var(--accent-muted);
 }
 
-/* Map highlighting for compared countries */
-.country.in-comparison {
+/* Map highlighting for compared countries (.country-hatch: a hatched
+   country's outline repeated above its texture, see _map.css) */
+.country.in-comparison,
+.country-hatch.in-comparison {
   stroke-width: 2 !important;
 }
 
-.country.in-comparison[data-comparison-index="0"] { stroke: var(--comparison-1); }
-.country.in-comparison[data-comparison-index="1"] { stroke: var(--comparison-2); }
-.country.in-comparison[data-comparison-index="2"] { stroke: var(--comparison-3); }
-.country.in-comparison[data-comparison-index="3"] { stroke: var(--comparison-4); }
+.country.in-comparison[data-comparison-index="0"],
+.country-hatch.in-comparison[data-comparison-index="0"] { stroke: var(--comparison-1); }
+.country.in-comparison[data-comparison-index="1"],
+.country-hatch.in-comparison[data-comparison-index="1"] { stroke: var(--comparison-2); }
+.country.in-comparison[data-comparison-index="2"],
+.country-hatch.in-comparison[data-comparison-index="2"] { stroke: var(--comparison-3); }
+.country.in-comparison[data-comparison-index="3"],
+.country-hatch.in-comparison[data-comparison-index="3"] { stroke: var(--comparison-4); }
 
 @media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {
   #comparison-panel {

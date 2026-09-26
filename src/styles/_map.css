@@ -149,6 +149,16 @@
   font-weight: 500;
 }
 
+/* "low confidence" beside the country name on hatched countries. */
+.tooltip-flag {
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-left: 3px;
+  white-space: nowrap;
+}
+
 /* Country path interaction - hover is a stroke change (cheap) rather
    than a filter (repaints). filter: brightness/saturate on SVG paths
    is measurably slower on large countries. */
@@ -157,12 +167,18 @@
   cursor: pointer;
 }
 
-.country:hover {
+/* Each emphasis rule also names .country-hatch: a hatched country's hatch
+   path repeats its country's outline above the texture (renderer.ts,
+   syncHatchEmphasis). Hover can't cross the pointer-events:none layer,
+   so the renderer mirrors it as .hovered. */
+.country:hover,
+.country-hatch.hovered {
   stroke: var(--accent);
   stroke-width: 1px;
 }
 
-.country.selected {
+.country.selected,
+.country-hatch.selected {
   stroke: var(--accent) !important;
   stroke-width: 1.8px !important;
 }
@@ -173,9 +189,33 @@
   opacity: 0.08 !important;
 }
 
-.country.search-highlighted {
+.country.search-highlighted,
+.country-hatch.search-highlighted {
   stroke: var(--accent) !important;
   stroke-width: 1.5px !important;
+}
+
+/* Low-confidence hatch (PRD 13) - the second fill layer over the country
+   paths. Pointer events pass through to the country underneath; no
+   stroke of its own, so borders stay exactly as the country paths draw
+   them (emphasis outlines are repeated above). The opacity mirrors the
+   country's (filters inline, search dimming here). */
+.hatch-layer {
+  pointer-events: none;
+}
+
+.hatch-mark {
+  fill: var(--map-stroke);
+  fill-opacity: var(--hatch-opacity);
+}
+
+.country-hatch {
+  stroke: none;
+  transition: stroke 0.15s var(--ease-out), stroke-width 0.15s var(--ease-out), opacity 0.3s var(--ease-out);
+}
+
+.country-hatch.search-dimmed {
+  opacity: 0.08 !important;
 }
 
 /* Graticule */
