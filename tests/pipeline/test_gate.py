@@ -113,6 +113,15 @@ class TestDecide:
         }
         assert "regulation_status up" in decision.reason
 
+    def test_a_stale_candidate_does_not_confirm_a_move(self):
+        # The persistence rule means "repeats on the next run": a candidate
+        # from months ago (a failed or skipped stretch) is held again, anew.
+        scores, reg = existing_rows()
+        stale = gate.decide(scores, reg, bumped(), None, date(2026, 6, 1)).pending
+        decision = gate.decide(scores, reg, bumped(), stale, RUN_2)
+        assert decision.rule == gate.HELD
+        assert decision.pending["first_seen"] == RUN_2.isoformat()
+
     def test_held_then_persisted_applies(self):
         scores, reg = existing_rows()
         first = gate.decide(scores, reg, bumped(), None, RUN_1)

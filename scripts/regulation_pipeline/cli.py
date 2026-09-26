@@ -235,7 +235,11 @@ def _run(
         logger.warning(line)
     _write_step_summary(gate.markdown_summary(result.gate, calibration_break))
     _gold_check(result, settings, model, prompt_version, today, supabase_mirror)
-    if write_digest:
+    if write_digest and result.fatal:
+        # An aborted run's changes are partial; a digest would publish them
+        # (or "no changes") as the week's story.
+        logger.warning("digest: skipped because the run aborted")
+    elif write_digest:
         _write_digest(result, client, settings, model, today)
     if result.fatal:
         raise typer.Exit(code=2)
@@ -321,13 +325,15 @@ def _build_evidence_provider(evidence_file: str) -> Callable[[str], list[dict]] 
     with SupabaseClient(url, key) as client:
         names_by_id = {
             r["id"]: r["name"]
-            for r in client.select_all("countries", {"select": "id,name"})
+            for r in client.select_all("countries", {"select": "id,name", "order": "id"})
         }
         by_country: dict[str, list[dict]] = {}
         rows = client.select_all("policy_initiatives", {
             "select": "country_id,name,start_year,initiative_type,binding,status,overview,source_url",
             "country_id": "not.is.null",
-            "order": "start_year.desc.nullslast",
+            # id breaks ties: offset paging over a non-unique order can skip
+            # or repeat rows past the first page.
+            "order": "start_year.desc.nullslast,id",
         })
         for row in rows:
             country = names_by_id.get(row.pop("country_id"))

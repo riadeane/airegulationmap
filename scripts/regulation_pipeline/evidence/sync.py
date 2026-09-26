@@ -52,11 +52,12 @@ def sync_evidence(client, adapter, resolver: CountryResolver, *, full: bool = Fa
         for row in client.select_all("policy_initiatives", {
             "select": "external_id,updated_at",
             "source": f"eq.{adapter.name}",
+            "order": "id",
         })
     }
     country_ids = {
         row["name"]: row["id"]
-        for row in client.select_all("countries", {"select": "id,name"})
+        for row in client.select_all("countries", {"select": "id,name", "order": "id"})
     }
 
     rows: list[dict] = []
@@ -127,7 +128,7 @@ def _sync_source_links(client, links: list[tuple[str, str]], country_ids: dict[s
     client.upsert("sources", list(by_url.values()), on_conflict="url", batch_size=200)
     source_ids = {
         row["url"]: row["id"]
-        for row in client.select_all("sources", {"select": "id,url"})
+        for row in client.select_all("sources", {"select": "id,url", "order": "id"})
     }
     link_rows = [
         {

@@ -48,11 +48,22 @@ def _retry_after(exc: Exception) -> float | None:
     return value if value > 0 else None
 
 
+# Upper bound on a server-requested delay, so one odd Retry-After header
+# cannot stall a run for hours.
+MAX_RETRY_AFTER_SECONDS = 120.0
+
+# 4xx responses that concern this one request (malformed, too large, not
+# processable): the request fails, the run goes on. Other 4xx (a wrong model
+# id, a revoked key) would fail every request, so they stay fatal. A sync run
+# still aborts after five failed countries in a row.
+_REQUEST_ERRORS = frozenset({400, 413, 422})
+
+
 def _backoff(attempt: int, exc: Exception) -> float:
     """Exponential backoff with jitter, overridden by ``Retry-After``."""
     server = _retry_after(exc)
     if server is not None:
-        return server
+        return min(server, MAX_RETRY_AFTER_SECONDS)
     return 2 * (2 ** attempt) + random.uniform(0, 1)
 
 
@@ -88,6 +99,9 @@ def call_with_retries(
             )
             sleep(delay)
         except anthropic.APIStatusError as exc:
+            if exc.status_code in _REQUEST_ERRORS:
+                logger.warning("API error %s for %s - skipping: %s", exc.status_code, label, exc)
+                return None
             if exc.status_code < 500:
                 raise FatalAPIError(f"API error {exc.status_code}: {exc}") from exc
             if last_attempt:

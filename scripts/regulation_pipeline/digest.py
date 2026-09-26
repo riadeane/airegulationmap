@@ -50,7 +50,10 @@ SCHEMA_VERSION = 1
 # produced it. Bump when the prompt changes.
 DIGEST_PROMPT_VERSION = "digest-v1-2026-09"
 
-_MAX_TOKENS = 8192
+# One request covers every changed country (a full weekly run can move
+# 40-55), and the model thinks first. 20k stays under the SDK's threshold for
+# non-streaming requests.
+_MAX_TOKENS = 20000
 _MAX_FEED_ENTRIES = 52
 _MAX_LAWS_CHARS = 800
 _NO_CHANGES_LEAD = "No gated score or law changes in this run."
@@ -428,6 +431,12 @@ def write_run_digest(
             run_id=result.run_id, model=model, run_date=run_date, generated_at=generated_at,
             calibration_break=calibration_break,
         )
+        existing = settings.digest_dir / f"{digest['week']}.json"
+        if existing.exists() and json.loads(existing.read_text(encoding="utf-8")).get("items"):
+            # A later run in the same week with nothing to report must not
+            # replace that week's digest with "no changes".
+            logger.info("digest: kept %s; this run changed nothing", existing.name)
+            return existing
     else:
         if client is None:
             raise DigestError("an Anthropic client is required when there are changes")

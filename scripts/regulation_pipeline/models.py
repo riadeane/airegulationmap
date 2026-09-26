@@ -31,6 +31,7 @@ by the strategy from the request it sent, never parsed from the model's answer.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Annotated, Any, ClassVar, Literal
 
@@ -42,6 +43,8 @@ from pydantic import (
     PrivateAttr,
     model_validator,
 )
+
+logger = logging.getLogger(__name__)
 
 # Tag written to subscores.json and bumped whenever the audit-trail shape
 # changes. v2 = integer sub-scores; v2.1 = ``{score, rationale}`` per sub-indicator.
@@ -73,12 +76,19 @@ _STRICT: ConfigDict = ConfigDict(extra="forbid")
 
 def _check_rationale(value: str) -> str:
     """One sentence, 1-200 characters after trimming. A blank rationale is a
-    missing rationale; an over-long one is an explanation, not a fact."""
+    missing rationale and fails. An over-long one is shortened at a word
+    boundary with an ellipsis: failing it would throw away the whole
+    country's paid-for result over one sentence."""
     value = value.strip()
-    if not RATIONALE_MIN_CHARS <= len(value) <= RATIONALE_MAX_CHARS:
-        raise ValueError(
-            f"rationale must be {RATIONALE_MIN_CHARS}-{RATIONALE_MAX_CHARS} characters, got {len(value)}"
-        )
+    if len(value) < RATIONALE_MIN_CHARS:
+        raise ValueError(f"rationale must be at least {RATIONALE_MIN_CHARS} character")
+    if len(value) > RATIONALE_MAX_CHARS:
+        logger.warning("rationale over %d characters shortened: %r", RATIONALE_MAX_CHARS, value)
+        cut = value[: RATIONALE_MAX_CHARS - 1]
+        space = cut.rfind(" ")
+        if space > RATIONALE_MAX_CHARS // 2:
+            cut = cut[:space]
+        value = cut.rstrip(" ,;:") + "\u2026"
     return value
 
 
@@ -288,8 +298,12 @@ class ResearchResult(BaseModel):
         An unsourced claim is not citable, so it cannot carry more than "low"
         confidence - enforce that at validation time, not only on write, so an
         in-memory result never advertises a confidence its sources don't
-        support. (Using ``object.__setattr__`` to avoid re-triggering validation.)"""
-        if self.confidence != "low" and not self.sources.strip():
+        support. "Unsourced" means no citable URL: a Sources field of "N/A"
+        or "-" counts as empty. Placeholder segments ("-", "N/A") are dropped
+        from the field. (``object.__setattr__`` avoids re-triggering
+        validation.)"""
+        object.__setattr__(self, "sources", _drop_placeholder_sources(self.sources))
+        if self.confidence != "low" and not _has_citable_url(self.sources):
             object.__setattr__(self, "confidence", "low")
         return self
 
@@ -297,7 +311,7 @@ class ResearchResult(BaseModel):
         """Unsourced claims are not citable - cap confidence at "low" so the UI
         flags them and staleness re-researches them. The model validator above
         already applies this, so this is now a stable, idempotent accessor."""
-        return self.confidence if self.sources.strip() else "low"
+        return self.confidence if _has_citable_url(self.sources) else "low"
 
     @classmethod
     def output_schema(cls) -> dict[str, Any]:
@@ -321,3 +335,18 @@ def strip_titles(node: Any) -> Any:
         for value in node:
             strip_titles(value)
     return node
+
+
+def _drop_placeholder_sources(sources: str) -> str:
+    """Drop Sources segments that name nothing ("-", "N/A"), keeping the rest
+    in order."""
+    from .sources import is_placeholder  # local: keeps models free of import cycles
+
+    segments = [segment.strip() for segment in sources.split("|")]
+    return " | ".join(segment for segment in segments if not is_placeholder(segment))
+
+
+def _has_citable_url(sources: str) -> bool:
+    from .sources import classify_sources
+
+    return bool(classify_sources(sources))
