@@ -6,19 +6,23 @@ import { initTheme } from './controls/theme';
 import {
   changesByCountry,
   changesWithoutItems,
+  confidenceChanged,
   countryHref,
   dimensionLabel,
+  formatConfidenceChange,
   formatDelta,
   parseDigest,
   parseDigestIndex,
   pickWeek,
   sourceHost,
+  uncoveredFacts,
   weekLabel,
   type Digest,
   type DigestChange,
   type DigestItem,
   type DigestWeek,
 } from './data/digest';
+import { safeHttpUrl } from './data/sources';
 
 const DIGEST_BASE = '/digest/';
 
@@ -78,14 +82,10 @@ function renderChangeFacts(change: DigestChange): HTMLElement {
       ]),
     );
   }
-  if (change.confidence.new && change.confidence.old !== change.confidence.new) {
+  if (confidenceChanged(change)) {
     dl.append(
       el('dt', {}, ['Confidence']),
-      el('dd', {}, [
-        change.confidence.old
-          ? `${change.confidence.old} → ${change.confidence.new}`
-          : change.confidence.new,
-      ]),
+      el('dd', {}, [formatConfidenceChange(change.confidence)]),
     );
   }
   return dl;
@@ -94,7 +94,9 @@ function renderChangeFacts(change: DigestChange): HTMLElement {
 function renderSources(urls: string[], newSources: Set<string>): HTMLElement {
   const list = el('ul', { class: 'change-sources' });
   for (const url of urls) {
-    const item = el('li', {}, [link(url, sourceHost(url), true)]);
+    // Only http(s) sources become links; anything else shows as text.
+    const href = safeHttpUrl(url);
+    const item = el('li', {}, [href ? link(href, sourceHost(href), true) : url]);
     if (newSources.has(url)) item.append(' ', el('span', { class: 'change-new' }, ['new this run']));
     list.append(item);
   }
@@ -107,7 +109,7 @@ function renderItem(item: DigestItem, change: DigestChange | undefined): HTMLEle
     el('p', { class: 'change-headline' }, [item.headline]),
     el('p', { class: 'change-summary' }, [item.summary]),
   ]);
-  if (change && (Object.keys(change.scores).length || change.laws)) {
+  if (change && (Object.keys(change.scores).length || change.laws || confidenceChanged(change))) {
     article.append(renderChangeFacts(change));
   }
   article.append(
@@ -127,13 +129,11 @@ function renderUncovered(changes: DigestChange[]): HTMLElement {
   ]);
   const list = el('ul');
   for (const change of changes) {
-    const deltas = Object.values(change.scores);
-    const firstScored = deltas.length > 0 && deltas.every((d) => d.old === null);
-    const facts = firstScored
-      ? ['first scored in this run']
-      : Object.entries(change.scores).map(([key, delta]) => `${dimensionLabel(key)} ${formatDelta(delta)}`);
-    if (change.laws && !firstScored) facts.push('specific laws updated');
-    list.append(el('li', {}, [link(countryHref(change.country), change.country), `: ${facts.join('; ')}`]));
+    const facts = uncoveredFacts(change);
+    list.append(el('li', {}, [
+      link(countryHref(change.country), change.country),
+      facts.length ? `: ${facts.join('; ')}` : '',
+    ]));
   }
   section.append(list);
   return section;
@@ -172,7 +172,7 @@ function renderDigest(root: HTMLElement, digest: Digest, weeks: DigestWeek[], la
   if (digest.calibrationBreak) {
     root.append(el('div', { class: 'callout' }, [
       el('strong', {}, ['Calibration break.']),
-      `This run re-scored every country with ${digest.calibrationBreak.model || 'a new model'} `,
+      ` This run re-scored every country with ${digest.calibrationBreak.model || 'a new model'} `,
       `(${digest.calibrationBreak.reason}). Score movements dated ${digest.calibrationBreak.date} `,
       'are a recalibration, not policy change, so only law and confidence changes are listed.',
     ]));

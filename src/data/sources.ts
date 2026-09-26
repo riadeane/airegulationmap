@@ -5,6 +5,7 @@
 // OECD.ai / IAPP / law-firm trackers are secondary.
 
 import { PLACEHOLDER_RE } from '../constants';
+import { localIsoDate } from './localDate';
 
 export type SourceKind = 'official' | 'other';
 
@@ -79,6 +80,23 @@ function isOfficialHost(hostname: string): boolean {
   return OFFICIAL_HOSTS.some(h => host === h || host.endsWith(`.${h}`));
 }
 
+/**
+ * The URL, trimmed, when it is an absolute http(s) link; otherwise null.
+ * Source cells come from model output and outside databases, so only
+ * these schemes may become an href - a javascript: or data: URL renders
+ * as plain text instead.
+ */
+export function safeHttpUrl(url: string | null | undefined): string | null {
+  const trimmed = url?.trim();
+  if (!trimmed) return null;
+  try {
+    const { protocol } = new URL(trimmed);
+    return protocol === 'http:' || protocol === 'https:' ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function classifySource(url: string): ClassifiedSource {
   let hostname: string;
   try {
@@ -109,7 +127,7 @@ export function classifySources(raw: string | null | undefined): ClassifiedSourc
 export function formatSourcesForCopy(
   sources: ClassifiedSource[],
   country: string,
-  accessed: string = new Date().toISOString().slice(0, 10)
+  accessed: string = localIsoDate()
 ): string {
   const lines = sources.map(
     (s, i) => `${i + 1}. ${s.url}${s.kind === 'official' ? ' (official)' : ''}`

@@ -91,12 +91,14 @@ export function renderRadar(containerEl: Element, countries: readonly string[], 
     const values = RADAR_AXES.map(k => (scores[k] == null ? 0 : scores[k]!));
     const color = getColorFor(name);
     const pathD = polyGen(values);
+    // Inline styles, not presentation attributes, so the var() colour
+    // resolves (and follows a theme switch) in every engine.
     polyGroup.append('path')
       .attr('d', pathD)
       .attr('transform', `translate(${CENTER}, ${CENTER})`)
-      .attr('fill', color)
+      .style('fill', color)
       .attr('fill-opacity', 0.18)
-      .attr('stroke', color)
+      .style('stroke', color)
       .attr('stroke-width', 2)
       .attr('stroke-linejoin', 'round');
 
@@ -108,7 +110,7 @@ export function renderRadar(containerEl: Element, countries: readonly string[], 
         .attr('cx', CENTER + rr * Math.cos(angle))
         .attr('cy', CENTER + rr * Math.sin(angle))
         .attr('r', 2.5)
-        .attr('fill', color);
+        .style('fill', color);
     });
   });
 

@@ -5,6 +5,7 @@ import {
   visibleCountrySet,
   passesCountryFilters,
   evidenceOf,
+  evidenceFacetCounts,
   scoresAtDate,
   recentScoreChanges,
 } from '../src/state/selectors';
@@ -180,6 +181,18 @@ describe('evidence facet', () => {
     expect(evidenceOf('Nowhere')).toBeNull();
     setState({ subscores: null });
     expect(evidenceOf('A')).toBeNull();
+  });
+
+  // Regression: before the first research run records evidence, the
+  // narrowing facets emptied the map; the popover disables an option whose
+  // count is 0.
+  it('counts the countries each narrowing facet would keep', () => {
+    setState(base());
+    expect(evidenceFacetCounts()).toEqual({ grounded: 1, search: 2 });
+    setState({ subscores: { schema_version: 1, countries: { A: { date: '2026-06-13' } } } });
+    expect(evidenceFacetCounts()).toEqual({ grounded: 0, search: 0 });
+    setState({ subscores: null });
+    expect(evidenceFacetCounts()).toEqual({ grounded: 0, search: 0 });
   });
 
   it('"any" keeps every country, with or without a run record', () => {

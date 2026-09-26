@@ -272,7 +272,7 @@ export function renderChangesChart(host: HTMLElement, weeks: WeekChanges[], pale
         .attr('d', segmentPath(x0, y0, barWidth, h, isTop))
         .attr('fill', s.color);
       hover(seg, () =>
-        `<strong>${formatDate(week.date)}</strong>`
+        `<strong>${escapeHtml(formatDate(week.date))}</strong>`
         + `${escapeHtml(s.label)}: <b>${s.count}</b> ${s.label === 'First scored' ? 'countries' : 'countries moved most here'}<br>`
         + `${week.changed} changed, ${week.firstScored} first scored`
         + (week.recalibration ? `<br>Recalibration: ${escapeHtml(week.recalibration)}` : ''));
@@ -361,7 +361,7 @@ export function renderDeltaChart(host: HTMLElement, weeks: WeekChanges[], palett
         .attr('rx', 2)
         .attr('fill', count === 0 ? palette.surface : palette.sequential(0.08 + 0.92 * Math.sqrt(count / maxCount)));
       hover(cell, () =>
-        `<strong>${formatDate(run.date)}</strong>`
+        `<strong>${escapeHtml(formatDate(run.date))}</strong>`
         + `${formatSignedDelta(r)}: <b>${count}</b> of ${run.total} moves`
         + (run.recalibration ? `<br>Recalibration: ${escapeHtml(run.recalibration)}` : ''));
     }
@@ -408,7 +408,7 @@ export function renderConfidenceChart(host: HTMLElement, cohorts: ConfidenceCoho
         .attr('d', segmentPath(x0, y0, barWidth, h, isTop))
         .attr('fill', s.color);
       hover(seg, () =>
-        `<strong>${formatDate(cohort.date)}</strong>`
+        `<strong>${escapeHtml(formatDate(cohort.date))}</strong>`
         + CONFIDENCE_LEVELS.map(level =>
           `${level}: <b>${cohort.counts[level]}</b> (${percent(cohort.counts[level], cohort.total)}%)`).join('<br>')
         + `<br>${cohort.total} ${cohort.total === 1 ? 'country' : 'countries'} last updated on this run`);
@@ -531,7 +531,7 @@ export function renderGoldChart(host: HTMLElement, checks: DriftCheck[], palette
         .attr('r', 4)
         .attr('fill', palette.high)
         .attr('stroke', palette.bg);
-      hover(dot, () => `<strong>${formatDate(c.date)}</strong>${snakeDimensionLabel(dim)} MAE: <b>${c.maeByDimension[dim].toFixed(2)}</b>`);
+      hover(dot, () => `<strong>${escapeHtml(formatDate(c.date))}</strong>${escapeHtml(snakeDimensionLabel(dim))} MAE: <b>${c.maeByDimension[dim].toFixed(2)}</b>`);
     }
     const end = points[points.length - 1];
     if (end) {
@@ -543,15 +543,18 @@ export function renderGoldChart(host: HTMLElement, checks: DriftCheck[], palette
   return legend;
 }
 
-function goldTooltip(check: DriftCheck): string {
+// Tooltips are HTML: every value from a data file goes through escapeHtml
+// (drift.json dates, models and dimension keys are free text, and
+// formatDate passes an unparseable date through unchanged).
+export function goldTooltip(check: DriftCheck): string {
   const parts = [
-    `<strong>${formatDate(check.date)}</strong>`,
+    `<strong>${escapeHtml(formatDate(check.date))}</strong>`,
     `within one point: <b>${Math.round(check.withinOne * 100)}%</b>`,
   ];
   if (check.model) parts.push(`${escapeHtml(check.model)}${check.promptVersion ? `, prompt ${escapeHtml(check.promptVersion)}` : ''}`);
   if (check.maxDev != null) {
     const at = check.maxDevAt
-      ? ` (${escapeHtml(check.maxDevAt.country)}, ${snakeDimensionLabel(check.maxDevAt.dimension)})`
+      ? ` (${escapeHtml(check.maxDevAt.country)}, ${escapeHtml(snakeDimensionLabel(check.maxDevAt.dimension))})`
       : '';
     parts.push(`largest deviation: ${check.maxDev}${at}`);
   }
@@ -586,7 +589,7 @@ export function renderBlocChart(host: HTMLElement, blocs: BlocDrift[], palette: 
         .attr('rx', 2)
         .attr('fill', week.changed === 0 ? palette.surface : palette.sequential(0.08 + 0.92 * week.share));
       hover(cell, () =>
-        `<strong>${escapeHtml(bloc.name)}</strong>${formatDate(week.date)}: <b>${week.changed}</b> of ${bloc.members} members changed (${percent(week.changed, bloc.members)}%)`);
+        `<strong>${escapeHtml(bloc.name)}</strong>${escapeHtml(formatDate(week.date))}: <b>${week.changed}</b> of ${bloc.members} members changed (${percent(week.changed, bloc.members)}%)`);
     }
   }
   xDateLabels(f, x, x.bandwidth(), dates, new Set());

@@ -18,6 +18,7 @@ import type { EvidenceFilter, EvidenceRecord } from '../data/evidence';
 import type { HistoryData, HistorySnapshot } from '../data/history';
 import { buildScoresAtDate, extractSortedDates } from '../data/history';
 import { classifySources } from '../data/sources';
+import { localIsoDate } from '../data/localDate';
 import { computeRecentChanges } from '../data/changelog';
 import type { RecentChange } from '../data/changelog';
 import type { AttributeKey } from '../constants';
@@ -111,6 +112,32 @@ function confidenceOf(country: string): ConfidenceLevel | null {
  */
 export function evidenceOf(country: string): EvidenceRecord | null {
   return getState().subscores?.countries[country]?.evidence ?? null;
+}
+
+let facetCache: {
+  scoreData: ScoreData;
+  subscores: SubscoresData | null;
+  counts: Readonly<Record<Exclude<EvidenceFilter, 'any'>, number>>;
+} | null = null;
+
+/**
+ * How many dataset countries each narrowing Evidence facet would keep.
+ * Until a research run records evidence, both are 0 - the filter popover
+ * disables such an option rather than let it empty the map.
+ */
+export function evidenceFacetCounts(): Readonly<Record<Exclude<EvidenceFilter, 'any'>, number>> {
+  const { scoreData, subscores } = getState();
+  if (facetCache && facetCache.scoreData === scoreData && facetCache.subscores === subscores) {
+    return facetCache.counts;
+  }
+  const counts = { grounded: 0, search: 0 };
+  for (const name of Object.keys(scoreData)) {
+    const record = evidenceOf(name);
+    if (matchesEvidenceFilter(record, 'grounded')) counts.grounded++;
+    if (matchesEvidenceFilter(record, 'search')) counts.search++;
+  }
+  facetCache = { scoreData, subscores, counts };
+  return counts;
 }
 
 /**
@@ -238,13 +265,6 @@ export function scoresAtDate(): Record<string, HistorySnapshot> | null {
 
 // ---------------------------------------------------------------------------
 // "This week" - the countries whose scores moved in the last seven days.
-
-/** Today's date as YYYY-MM-DD in the viewer's local time zone. */
-function localIsoDate(): string {
-  const d = new Date();
-  const pad = (n: number): string => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
 
 const NO_CHANGES: readonly RecentChange[] = [];
 
