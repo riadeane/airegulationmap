@@ -300,6 +300,18 @@ describe('renderCountryPage evidence line', () => {
   });
 });
 
+describe('renderCountryPage sources', () => {
+  it('links only http(s) sources and shows anything else as text', () => {
+    const inputs = fixture();
+    inputs.regulation.Chile.sources = 'https://www.gob.cl/ai|javascript:alert(1)';
+    const html = renderCountryPage(modelFor('Chile', inputs));
+    const sources = html.slice(html.indexOf('<ol class="sources">'), html.indexOf('</ol>'));
+    expect(sources).toContain('<a href="https://www.gob.cl/ai"');
+    expect(sources).not.toContain('href="javascript:');
+    expect(sources).toContain('<li>javascript:alert(1)</li>');
+  });
+});
+
 describe('renderCountryIndex', () => {
   it('lists every country with a link to its page', () => {
     const html = renderCountryIndex(buildModels(fixture()));

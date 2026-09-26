@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifySource, classifySources, formatSourcesForCopy } from '../src/data/sources';
+import { classifySource, classifySources, formatSourcesForCopy, safeHttpUrl } from '../src/data/sources';
 
 describe('classifySource', () => {
   it.each([
@@ -65,3 +65,27 @@ describe('formatSourcesForCopy', () => {
     );
   });
 });
+
+// Defence in depth: source cells come from model output and outside
+// databases, so only http(s) URLs may become an href.
+describe('safeHttpUrl', () => {
+  it('passes absolute http(s) URLs through, trimmed', () => {
+    expect(safeHttpUrl(' https://gov.uk/a ')).toBe('https://gov.uk/a');
+    expect(safeHttpUrl('http://example.org/x?y=1')).toBe('http://example.org/x?y=1');
+  });
+
+  it.each([
+    'javascript:alert(1)',
+    ' JavaScript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)',
+    '//evil.example/x',
+    'not a url',
+    '',
+    null,
+    undefined,
+  ])('refuses %s', url => {
+    expect(safeHttpUrl(url)).toBeNull();
+  });
+});
+

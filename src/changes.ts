@@ -19,6 +19,7 @@ import {
   type DigestItem,
   type DigestWeek,
 } from './data/digest';
+import { safeHttpUrl } from './data/sources';
 
 const DIGEST_BASE = '/digest/';
 
@@ -94,7 +95,9 @@ function renderChangeFacts(change: DigestChange): HTMLElement {
 function renderSources(urls: string[], newSources: Set<string>): HTMLElement {
   const list = el('ul', { class: 'change-sources' });
   for (const url of urls) {
-    const item = el('li', {}, [link(url, sourceHost(url), true)]);
+    // Only http(s) sources become links; anything else shows as text.
+    const href = safeHttpUrl(url);
+    const item = el('li', {}, [href ? link(href, sourceHost(href), true) : url]);
     if (newSources.has(url)) item.append(' ', el('span', { class: 'change-new' }, ['new this run']));
     list.append(item);
   }
