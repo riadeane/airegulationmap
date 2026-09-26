@@ -3,7 +3,7 @@
 > Sibling to `docs/plans/2026-04-17-citability-and-resilience.md` (already shipped). Does not duplicate.
 
 **Date:** 2026-04-17
-**Status:** Design approved, pending plan generation
+**Status:** Shipped in #12 (April 2026) via the [implementation plan](./2026-04-17-polish-and-onramp.md). Kept as the design record; the code is the source of truth.
 
 ## Goal
 

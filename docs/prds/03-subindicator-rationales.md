@@ -1,6 +1,6 @@
 # PRD 03: Rationale sentences per sub-indicator
 
-Status: Implemented (September 2026). Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026, #45). Owner: unassigned. Depends on: none.
 
 ## Problem
 
