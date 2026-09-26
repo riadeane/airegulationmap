@@ -21,6 +21,34 @@ npm test           # Vitest unit tests (tests/*.test.js)
 
 Pipeline tests: `pip install -r requirements-dev.txt && python -m pytest` (configured in `pyproject.toml`, tests in `tests/pipeline/`). CI (`.github/workflows/ci.yml`) runs lint + tests + build on every push/PR.
 
+## Found something off? File an issue
+
+If you notice anything wrong outside your task, file a GitHub issue for it
+before you finish, even mid-way through other work: a bug, a flaky or
+skipped test, a doc that no longer matches the code, odd data, a manual step
+nobody did, a follow-up a PR promised. Notes left only in PR descriptions,
+commit messages or chat replies get lost: #74 was a listed PR follow-up that
+nobody picked up, and #59 and #61 to #64 were noticed during PRD work well
+before anyone filed them.
+
+- **Search first.** Check open and closed issues and open PRs. If it is
+  already there, comment with the new evidence instead of filing a duplicate.
+- **Verify, then file.** Reproduce it, or cite `file:line` and the input
+  that breaks it. Say plainly when you could not reproduce it.
+- **Use the bug form's sections** (`.github/ISSUE_TEMPLATE/bug-report.yml`):
+  Problem, Steps to reproduce, Where (commit), Cause, Suggested fix, Test.
+- **Label it** `bug`, `documentation` or `enhancement`. Add `decision` when
+  the fix needs the maintainer to choose (a layout, a cost, a policy), and
+  list the options with their tradeoffs and a recommended default. Add
+  `maintainer-action` when only the maintainer can do it (a secret or repo
+  variable, applying a migration to the live project, a workflow dispatch,
+  a third-party account).
+- **Fix in scope, file out of scope.** A small fix inside the files you are
+  already changing goes in your PR with `Fixes #N`. Anything else gets an
+  issue, and your PR stays the size it was.
+- **No orphaned follow-ups.** Every "follow-up", "known limitation" or
+  "not done" line in a PR description links an issue.
+
 ## Data Update Script
 
 The defaults are the weekly run: every country, web search on, Message

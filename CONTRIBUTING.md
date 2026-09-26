@@ -23,6 +23,9 @@ CI runs all of these on every push and pull request. Do not commit data
 files (`public/*.csv`, `public/history.json`, `public/data/subscores.json`)
 that a local pipeline run changed; the weekly workflow owns them.
 
+Found a problem outside what you are working on? File an issue (the rules
+are in `CLAUDE.md` under "Found something off? File an issue").
+
 ## Data issues
 
 A reader who knows a country's law better than the model is the cheapest

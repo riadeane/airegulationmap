@@ -35,3 +35,6 @@ quality that every other PRD assumes.
   `public/data/subscores.json`) that a local pipeline run changed.
 - Ship both themes. Use the existing tokens in `src/styles/_tokens.css`.
 - British English in user-facing copy. No em dashes.
+- File a GitHub issue for anything wrong you notice outside the PRD's scope,
+  and link an issue from every follow-up your PR lists (see "Found something
+  off? File an issue" in `CLAUDE.md`).
