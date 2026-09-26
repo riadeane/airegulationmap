@@ -1,5 +1,5 @@
 import { on, getState } from '../state/store';
-import { generateMap, updateMap, markComparisonCountries } from './renderer';
+import { generateMap, updateMap, markComparisonCountries, displayedEntry } from './renderer';
 import { updateLegendLabels } from './legend';
 import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../constants';
 
@@ -30,11 +30,12 @@ function announceCountry(name: string | null) {
     region.textContent = 'Selection cleared.';
     return;
   }
-  const { scoreData, currentAttribute } = getState();
+  const { currentAttribute } = getState();
   const label = ATTRIBUTE_LABELS[currentAttribute] || currentAttribute;
-  const score = scoreData[name]?.[currentAttribute];
+  const { entry, vintage } = displayedEntry(name);
+  const score = entry?.[currentAttribute];
   region.textContent = score != null
-    ? `Selected ${name}. ${label}: ${score} of 5.`
+    ? `Selected ${name}. ${label}: ${score} of 5${vintage ? ` as of ${vintage}` : ''}.`
     : `Selected ${name}. No ${label} data.`;
 }
 

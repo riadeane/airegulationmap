@@ -54,6 +54,30 @@ def test_numeric_matches_topojson_geometry_ids():
     assert mismatches == []
 
 
+def test_scored_countries_resolve_to_atlas_geometries():
+    """The map joins geometry to data by name, then by ISO numeric id
+    (src/map/geometryNames.ts). Every scored country in the atlas must be
+    reachable one way or the other, and the id path is pinned so a new
+    atlas/dataset name split shows up here instead of as a grey country."""
+    by_name = _topojson_ids()
+    by_id = {str(i).lstrip("0"): n for n, i in by_name.items() if i is not None}
+    via_id = {}
+    for name in _scores_countries():
+        if name in by_name:
+            continue
+        numeric = ISO[name]["numeric"]
+        atlas_name = by_id.get(numeric.lstrip("0")) if numeric else None
+        if atlas_name is not None:
+            via_id[atlas_name] = name
+    assert via_id == {
+        "Dominican Rep.": "Dominican Republic",
+        "Eq. Guinea": "Equatorial Guinea",
+        "Solomon Is.": "Solomon Islands",
+        "Timor-Leste": "East Timor",
+        "eSwatini": "Swaziland",
+    }
+
+
 def test_known_special_cases():
     assert ISO["Kosovo"] == {"iso3": "XKX", "iso2": "XK", "numeric": None}
     assert ISO["Taiwan"]["iso3"] == "TWN"

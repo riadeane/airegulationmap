@@ -22,6 +22,8 @@ import { toggleComparison, selectCountry } from '../state/interactions';
 import { passesCountryFilters, scoresAtDate } from '../state/selectors';
 import { getColorIndex } from '../comparison/colorSlots';
 import { cssVar, onThemeChange } from './cssColors';
+import { resolveFeatureNames } from './geometryNames';
+import { loadIsoNumericIndex } from '../data/countryIso';
 
 /** A world-atlas country geometry with its bound name property. */
 export type CountryFeature = Feature<Geometry, { name: string }>;
@@ -187,8 +189,15 @@ export async function generateMap(): Promise<void> {
 
   // Self-hosted from /public/data so there's no third-party request on
   // page load and offline dev works. Source: world-atlas@2 (Natural Earth).
-  const world = (await json<Topology>('/data/countries-110m.json'))!;
-  const countries = (feature(world, world.objects.countries) as FeatureCollection<Geometry, { name: string }>).features;
+  const [world, byNumeric] = await Promise.all([
+    json<Topology>('/data/countries-110m.json'),
+    loadIsoNumericIndex(),
+  ]);
+  const countries = resolveFeatureNames(
+    (feature(world!, world!.objects.countries) as FeatureCollection<Geometry, { name: string }>).features,
+    new Set(Object.keys(scoreData)),
+    byNumeric
+  );
 
   const mapGroup = g.append<SVGGElement>('g').attr('class', 'map-group');
   mapGroupRef = mapGroup;
@@ -222,7 +231,7 @@ export async function generateMap(): Promise<void> {
     .on('mouseover', function (event: MouseEvent, d) {
       const countryName = d.properties.name;
       const { currentAttribute: attr, comparisonCountries } = getState();
-      const entry = getState().scoreData[countryName];
+      const { entry, vintage } = displayedEntry(countryName);
       const score = entry ? entry[attr] : null;
       const label = ATTRIBUTE_LABELS[attr] || attr;
       const inComparison = comparisonCountries.includes(countryName);
@@ -231,7 +240,7 @@ export async function generateMap(): Promise<void> {
         : '<br><em>Shift+click to add to comparison</em>';
       showTooltip(event,
         `<strong>${countryName}</strong>` +
-        (score != null ? `<br>${label}: ${score} / 5` : '<br>No data') +
+        (score != null ? `<br>${label}: ${score} / 5${vintage ? ` (${vintage})` : ''}` : '<br>No data') +
         hint
       );
     })
@@ -268,12 +277,13 @@ export async function generateMap(): Promise<void> {
   });
 
   onThemeChange(() => {
+    // Repaint through updateMap: it recomputes fills with the new theme's
+    // scale for the displayed vintage and carries opacity with them. A
+    // separate fill-only transition here would interrupt an in-flight
+    // filter fade and strand countries half dimmed.
+    updateMap();
     const refreshed = makeColorScale();
-    const { scoreData: sd, currentAttribute: attr } = getState();
-    selectAll<SVGPathElement, CountryFeature>('#map .country')
-      .transition().duration(220)
-      .attr('fill', d => fillFor(sd[d.properties.name], attr, refreshed))
-      .attr('stroke', cssVar('--map-stroke'));
+    selectAll('#map .country').attr('stroke', cssVar('--map-stroke'));
     select('#map .sphere').attr('fill', cssVar('--ocean'));
     select('#map .graticule').attr('stroke', cssVar('--text-tertiary'));
     select('#map .legend').remove();
@@ -330,6 +340,18 @@ function countryOpacity(
   const score = entry[currentAttribute]!;
   const inRange = score >= filterMin && score <= filterMax;
   return (inRange && passesCountryFilters(country)) ? 1 : 0.15;
+}
+
+/**
+ * The entry the map is painting for a country: the timeline snapshot on a
+ * past date (with that date as `vintage`), else the latest row. Mirrors
+ * updateMap's resolution so the tooltip and live region report the value
+ * behind the colour.
+ */
+export function displayedEntry(name: string): { entry: MapScoreEntry | undefined; vintage: string | null } {
+  const past = scoresAtDate();
+  if (past) return { entry: past[name], vintage: getState().timelineDate };
+  return { entry: getState().scoreData[name], vintage: null };
 }
 
 export function updateMap(overrideScoreData?: MapScores): void {

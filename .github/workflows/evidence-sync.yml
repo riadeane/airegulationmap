@@ -6,7 +6,7 @@ name: Evidence Sync (OECD)
 #                shape change).
 #   sync-delta - upsert initiatives whose updatedAt moved (plus new ones).
 #   sync-full  - upsert every record.
-# The monthly update-data workflow runs a delta sync automatically once the
+# The weekly update-data workflow runs a delta sync automatically once the
 # repository variable EVIDENCE_SYNC_ENABLED is "true".
 
 on:
