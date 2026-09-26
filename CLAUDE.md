@@ -231,7 +231,7 @@ Python package that calls the Claude API to research regulation status per count
 |------|---------|
 | `public/scores.csv` | Numeric scores (1–5) for 6 dimensions per country |
 | `public/regulation_data.csv` | Text descriptions, laws, source URLs, confidence, last_updated |
-| `public/history.json` | Change-point score snapshots per country (a snapshot's `date` is the run that produced those scores; the timeline, changelog, "This week" strip and drift dashboard all read it that way), plus `breaks` (calibration breaks: `{date, model, prompt_version, rubric, reason}`; the June 2026 methodology v2 break is the first) |
+| `public/history.json` | Change-point score snapshots per country (a snapshot's `date` is the run that produced those scores; the timeline, changelog, "This week" strip and drift dashboard all read it that way), plus `breaks` (calibration breaks: `{date, model, prompt_version, rubric, reason, complete}`, recorded only when the run applied something; `complete: false` means some countries kept older-rubric scores, so the rubric guard still treats the switch as due; the June 2026 methodology v2 break is the first) |
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
 | `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1), plus the `evidence` record of each country's latest research pass (PRD 14; absent = no run record yet) |
