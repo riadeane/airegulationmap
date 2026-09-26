@@ -119,7 +119,7 @@ class TestResume:
         done.usage = Usage()
         client, _ = self._client(first, done)
         client.research("Testland", None, use_search=True)
-        assert client.usage() == {"input": 20, "output": 4}
+        assert client.usage() == {"input": 20, "output": 4, "searches": 0}
 
 
 class _FakeMessages:
@@ -277,3 +277,30 @@ class TestResearch:
         raw, provenance = rc.research("Germany", None, use_search=True)
         assert raw is None
         assert provenance == ResearchProvenance(initiatives_used=0, search=True, model="m")
+
+
+class TestUsage:
+    def test_web_search_requests_are_counted(self):
+        from regulation_pipeline.api import add_usage
+
+        class ServerTools:
+            web_search_requests = 11
+
+        class Usage:
+            input_tokens = 140_000
+            output_tokens = 6_000
+            server_tool_use = ServerTools()
+
+        totals = {"input": 0, "output": 0, "searches": 0}
+        add_usage(totals, Usage())
+        add_usage(totals, None)
+        assert totals == {"input": 140_000, "output": 6_000, "searches": 11}
+
+    def test_cost_estimate(self):
+        from regulation_pipeline.config import estimate_cost_usd
+
+        batch = {"input": 1_000_000, "output": 100_000, "searches": 1000}
+        # Opus 5: (5 + 2.5) / 2 for batch tokens, plus $10 for 1,000 searches.
+        assert estimate_cost_usd("claude-opus-5", {}, batch) == 13.75
+        assert estimate_cost_usd("claude-opus-5", {"input": 1_000_000}, {}) == 5.0
+        assert estimate_cost_usd("some-unlisted-model", {}, batch) is None

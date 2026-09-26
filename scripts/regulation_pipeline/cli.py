@@ -23,7 +23,7 @@ from . import gate
 from . import history as history_mod
 from .api import ResearchClient
 from .batch import BatchRunner
-from .config import DEFAULT_MODEL, Settings
+from .config import DEFAULT_MODEL, Settings, estimate_cost_usd
 from .digest import write_run_digest
 from .gold import check_run, markdown_summary
 from .names import CountryNames
@@ -376,14 +376,19 @@ def _build_mirror(
     from .db.client import SupabaseClient
     from .db.mirror import RunMeta, SupabaseMirror
 
-    def usage_totals() -> dict[str, int]:
-        totals = research_client.usage()
-        if batch_runner is not None:
-            batch_usage = batch_runner.usage()
-            totals = {
-                "input": totals["input"] + batch_usage["input"],
-                "output": totals["output"] + batch_usage["output"],
-            }
+    def usage_totals() -> dict:
+        sync_usage = research_client.usage()
+        batch_usage = batch_runner.usage() if batch_runner is not None else {}
+        totals = {
+            key: sync_usage.get(key, 0) + batch_usage.get(key, 0)
+            for key in ("input", "output", "searches")
+        }
+        totals["est_cost_usd"] = estimate_cost_usd(model, sync_usage, batch_usage)
+        logger.info(
+            "usage: %d input / %d output tokens, %d web searches, estimated cost %s",
+            totals["input"], totals["output"], totals["searches"],
+            f"${totals['est_cost_usd']:.2f}" if totals["est_cost_usd"] is not None else "unknown",
+        )
         return totals
 
     meta = RunMeta(

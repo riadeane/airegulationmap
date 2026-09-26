@@ -87,7 +87,7 @@ class ResearchClient:
         self._evidence_provider = evidence_provider
         # Cumulative token usage across the run - best-effort provenance for
         # the research_runs audit row (the batch path tracks its own).
-        self._usage = {"input": 0, "output": 0}
+        self._usage = {"input": 0, "output": 0, "searches": 0}
 
     def usage(self) -> dict[str, int]:
         return dict(self._usage)
@@ -180,11 +180,17 @@ class ResearchClient:
         return message
 
     def _track_usage(self, response) -> None:
-        usage = getattr(response, "usage", None)
-        if usage is None:
-            return
-        self._usage["input"] += getattr(usage, "input_tokens", 0) or 0
-        self._usage["output"] += getattr(usage, "output_tokens", 0) or 0
+        add_usage(self._usage, getattr(response, "usage", None))
+
+
+def add_usage(totals: dict[str, int], usage) -> None:
+    """Add one response's token and web-search counts to ``totals``."""
+    if usage is None:
+        return
+    totals["input"] += getattr(usage, "input_tokens", 0) or 0
+    totals["output"] += getattr(usage, "output_tokens", 0) or 0
+    server_tools = getattr(usage, "server_tool_use", None)
+    totals["searches"] += getattr(server_tools, "web_search_requests", 0) or 0
 
 
 # Stop reasons that mean the response carries no complete answer.

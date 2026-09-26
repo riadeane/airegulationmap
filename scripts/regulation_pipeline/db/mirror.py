@@ -136,7 +136,8 @@ class SupabaseMirror:
             "countries_succeeded": updated,
             "input_tokens": usage.get("input"),
             "output_tokens": usage.get("output"),
-            "notes": _notes(fatal, gate_counts),
+            "est_cost_usd": usage.get("est_cost_usd"),
+            "notes": _notes(fatal, gate_counts, usage.get("searches")),
         }, {"id": f"eq.{self._run_id}"})
         logger.info(
             "mirror: run %s recorded (%d countries mirrored, fatal=%s)",
@@ -256,12 +257,16 @@ class SupabaseMirror:
 # -- row projections (DB shape; the CSV shape lives in repository.py) ----------
 
 
-def _notes(fatal: bool, gate_counts: dict[str, int] | None) -> str | None:
+def _notes(
+    fatal: bool, gate_counts: dict[str, int] | None, searches: int | None = None,
+) -> str | None:
     parts = []
     if fatal:
         parts.append("aborted on fatal API error; partial results mirrored")
     if gate_counts:
         parts.append("gate: " + " ".join(f"{k}={v}" for k, v in gate_counts.items()))
+    if searches:
+        parts.append(f"web searches: {searches}")
     return "; ".join(parts) or None
 
 

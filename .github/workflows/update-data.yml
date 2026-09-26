@@ -140,7 +140,7 @@ jobs:
           {
             echo "## Data update"
             echo '```'
-            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:|digest:|gold:|rubric|Batch .* submitted|Follow-up batch|FATAL" run.log | tail -30 || true
+            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:|digest:|gold:|usage:|rubric|Batch .* submitted|Follow-up batch|FATAL" run.log | tail -30 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 

@@ -100,7 +100,9 @@ SUBSCORES = {
 class TestSupabaseMirror:
     def test_full_flush_sequence(self):
         fake = FakePostgrest()
-        mirror = make_mirror(fake, usage=lambda: {"input": 1000, "output": 200})
+        mirror = make_mirror(
+            fake, usage=lambda: {"input": 1000, "output": 200, "searches": 11, "est_cost_usd": 0.12},
+        )
 
         mirror.begin(attempted=2)
         mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=HISTORY)
@@ -141,7 +143,8 @@ class TestSupabaseMirror:
         patch = fake.of("PATCH", "research_runs")[0]
         assert patch["countries_succeeded"] == 1
         assert patch["input_tokens"] == 1000
-        assert patch["notes"] == "gate: held=2 unchanged=1"
+        assert patch["est_cost_usd"] == 0.12
+        assert patch["notes"] == "gate: held=2 unchanged=1; web searches: 11"
 
     def test_evidence_columns_mirror_the_file(self):
         # PRD 14: the entry's evidence block becomes three columns; the
