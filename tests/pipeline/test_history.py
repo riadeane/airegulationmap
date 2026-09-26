@@ -26,12 +26,41 @@ def test_changed_scores_append_new_snapshot():
     assert history["countries"]["Fiji"][1]["policyLever"] == 3
 
 
-def test_unchanged_scores_refresh_date_without_appending():
+def test_unchanged_scores_leave_the_change_point_date_alone():
+    # A snapshot's date is when the scores changed. Moving it to the latest
+    # unchanged re-research would re-date the change on the timeline.
     history = {"schema_version": 1, "countries": {}}
     append_snapshot(history, "Fiji", snap())
+    append_snapshot(history, "Fiji", snap(date="2026-07-01", policyLever=3))
+    assert append_snapshot(history, "Fiji", snap(date="2026-08-01", policyLever=3)) is False
+    assert append_snapshot(history, "Fiji", snap(date="2026-09-01", policyLever=3)) is False
+    assert [s["date"] for s in history["countries"]["Fiji"]] == ["2026-06-01", "2026-07-01"]
+
+
+def test_same_day_rerun_replaces_that_days_snapshot():
+    history = {"schema_version": 1, "countries": {}}
+    append_snapshot(history, "Fiji", snap())
+    append_snapshot(history, "Fiji", snap(date="2026-07-01", policyLever=3))
+    assert append_snapshot(history, "Fiji", snap(date="2026-07-01", policyLever=4)) is True
+    snapshots = history["countries"]["Fiji"]
+    assert [s["date"] for s in snapshots] == ["2026-06-01", "2026-07-01"]
+    assert snapshots[-1]["policyLever"] == 4
+
+
+def test_same_day_rerun_back_to_the_previous_scores_drops_the_day():
+    history = {"schema_version": 1, "countries": {}}
+    append_snapshot(history, "Fiji", snap())
+    append_snapshot(history, "Fiji", snap(date="2026-07-01", policyLever=3))
     assert append_snapshot(history, "Fiji", snap(date="2026-07-01")) is False
+    assert [s["date"] for s in history["countries"]["Fiji"]] == ["2026-06-01"]
+
+
+def test_same_day_first_snapshot_is_replaced():
+    history = {"schema_version": 1, "countries": {}}
+    append_snapshot(history, "Fiji", snap())
+    assert append_snapshot(history, "Fiji", snap(policyLever=4)) is True
     assert len(history["countries"]["Fiji"]) == 1
-    assert history["countries"]["Fiji"][0]["date"] == "2026-07-01"
+    assert history["countries"]["Fiji"][0]["policyLever"] == 4
 
 
 def test_average_change_alone_does_not_append():

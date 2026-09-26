@@ -240,7 +240,8 @@ class TestServiceGate:
 
         assert run.gate.counts[gate.UNCHANGED] == 1
         assert _pending_file(tmp_path)["pending"] == []
-        assert ds.history_for("A")[0]["date"] == "2026-09-21"
+        # Unchanged scores leave the change-point where it was.
+        assert [s["date"] for s in ds.history_for("A")] == ["2026-09-07"]
 
     def test_no_gate_applies_everything_and_records_break(self, tmp_path):
         svc, _ = _service(tmp_path, RUN_1)

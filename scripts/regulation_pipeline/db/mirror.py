@@ -186,8 +186,9 @@ class SupabaseMirror:
 
     def _prior_run_ids(self, country_id: str) -> dict[str, str]:
         """Map ``scores json -> run_id`` for the country's existing snapshot
-        rows. Keyed by scores, not date: an unchanged snapshot's date advances
-        on every re-research, but its scores identify the same change point."""
+        rows. Keyed by scores, not date: before September 2026 an unchanged
+        snapshot's date advanced on every re-research, so rows written then
+        can carry a different date from the file's."""
         rows = self._client.select_all("score_history", {
             "select": "scores,run_id",
             "country_id": f"eq.{country_id}",
