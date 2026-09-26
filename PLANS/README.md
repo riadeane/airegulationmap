@@ -29,4 +29,4 @@ as the source of truth.
 
 - All features are independent - no feature requires another to be built first
 - Feature 08 is frontend-only; feature 07 is backend/pipeline only
-- All plans follow the project's architecture: vanilla JS + D3, centralized state store, Vite build
+- The plans were written for the project's architecture at the time: vanilla JS + D3, centralised state store, Vite build. The frontend is now vanilla TypeScript (strict, no framework), with state writes going through the intents in `src/state/interactions.ts`

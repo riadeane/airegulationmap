@@ -70,10 +70,14 @@ carries an invariant lives here as a named intent, and **intents are the only
 callers of `setState` for view/selection/comparison state**:
 
 - selection - `selectCountry`, `stepCountry` (arrow nav with wraparound)
+- committed search - `commitSearch` / `clearSearch`
 - comparison membership - `addToComparison` / `removeFromComparison` /
-  `toggleComparison` / `clearComparison` / `restoreComparison`
-- the view FSM - `showMap` / `openScatter` / `toggleScatter` /
-  `openComparison` / `escapeMainView`
+  `toggleComparison` / `clearComparison` / `restoreComparison` /
+  `startComparison` (a fresh set from the panel's "Compare with" chips,
+  capped at `MAX_COMPARISON`, opened at once)
+- the view FSM - `setMainView` (the single writer of `mainView`) /
+  `showMap` / `openScatter` / `toggleScatter` / `openComparison` /
+  `escapeMainView`
 
 Because it depends only on the store, constants, and the colour-slot leaf, it
 never forms a cycle with the features that call it. The rules that used to be
@@ -137,8 +141,9 @@ enhancement behind `restGet()` (null on any failure): post-boot hydration
 replaces store data only when the database is STRICTLY newer than the static
 snapshot; source titles (`data/sourceMeta.ts`) and the per-country Policy
 Initiatives section (`panel/initiatives.ts`) render only when their fetches
-succeed. Unconfigured builds skip the network entirely - which is what keeps
-CI hermetic (`tests/e2e/supabase.spec.ts` proves both halves with route
+succeed (no code writes `sources.title` yet, so sources still render as
+hostnames). Unconfigured builds skip the network entirely - which is what
+keeps CI hermetic (`tests/e2e/supabase.spec.ts` proves both halves with route
 mocks).
 
 ### Committed search - `searchQuery` + `panel/searchResults.ts`
@@ -178,12 +183,18 @@ sequenceDiagram
 | `constants.ts` | labels, `MainView`, `MAX_COMPARISON` | shared contract |
 | `dom.ts` | typed element access | seam |
 | `data/*` | CSV/JSON → typed domain | Mapper / repository |
+| `data/countryIso.ts` | `country_iso.json`: ISO codes for the panel, ISO numeric → dataset name for the map join | Mapper |
 | `map/*` | choropleth render, zoom, tooltip, legend | imperative D3 |
+| `map/geometryNames.ts` | gives world-atlas geometries the dataset's country names via their ISO numeric ids | Mapper |
 | `panel/*` | country detail | subscriber view |
 | `comparison/*` | staging strip + full comparison | subscriber view (+ `colorSlots` leaf) |
 | `scatter/*` | dimension explorer | subscriber view |
-| `controls/*` | search, filter, blocs, export, timeline, url, theme, menu, help, cite, this-week strip | subscriber views |
+| `controls/*` | search, filter, blocs, export, timeline, url, theme, menu, help, cite, share, print brief, issue report, this-week strip | subscriber views |
+| `charts/*` | the drift dashboard's D3 small multiples (`charts/drift.ts`) | imperative D3 |
 | `main.ts` | boot + wiring | composition root |
+| `changes.ts` | `changes.html` entry: renders the weekly digest from `public/digest/` | page entry |
+| `drift.ts` | `drift.html` entry: the drift dashboard | page entry |
+| `apiDocs.ts` | `api-docs.html` entry: self-hosted Swagger UI over `public/openapi.json` | page entry |
 
 ## Where the rules live
 

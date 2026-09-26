@@ -1,6 +1,6 @@
 # PRD 13: Uncertainty on the map
 
-Status: Proposed. Owner: unassigned. Depends on: none.
+Status: Proposed; implementation in PR #58, not merged. Owner: unassigned. Depends on: none.
 
 ## Problem
 

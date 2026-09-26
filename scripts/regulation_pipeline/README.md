@@ -1,13 +1,14 @@
 # `regulation_pipeline` - backend architecture
 
 The pipeline researches AI-regulation status for every country via the Claude API
-and writes the four data files the frontend renders. It runs weekly from GitHub
-Actions and on demand from the CLI.
+and writes the five data files the frontend reads (`scores.csv`,
+`regulation_data.csv`, `history.json`, `subscores.json`, `pending.json`). It runs
+weekly from GitHub Actions and on demand from the CLI.
 
 ```bash
 python scripts/update_data.py                      # full run: every country, web search, Batches API
 python scripts/update_data.py --countries "Germany,France"
-python scripts/update_data.py --dry-run            # preview, no writes
+python scripts/update_data.py --dry-run            # list the selection and gate standing; no API call, no writes
 python -m regulation_pipeline --help               # (or: update-regulation-data, after pip install -e .)
 ```
 
@@ -73,15 +74,18 @@ flowchart TD
 | `retry.py` | Reusable transient-error retry policy |
 | `prompt.py` | The research prompt template + rendering |
 | `models.py` | `ResearchResult` pydantic model - schema, validation, projections |
-| `repository.py` | `Dataset` - load/apply/validate/atomic-save the four stores |
+| `repository.py` | `Dataset` - load/apply/validate/atomic-save the five stores |
 | `history.py` | History snapshot append + change detection |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - decides whether a result's scores may land |
 | `digest.py` | Weekly digest: change selection, one structured-output request, `public/digest/` writers (week JSON, index, Atom), `--run <id>` regeneration |
 | `gold.py` | Gold set and drift check: the gold file's contract, the pure agreement metrics, the `drift.json` record, the step-summary block, `--model <id>` comparison CLI |
 | `names.py` | `CountryNames` - country-name normalization |
-| `config.py` | `Settings` (repo-root paths) + field/threshold/priority constants |
+| `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
+| `config.py` | `Settings` (repo-root paths) + constants (CSV fields, staleness threshold, site URL, default model) |
 | `errors.py` | `FatalAPIError` |
+| `db/` | Supabase layer: `client.py` (httpx PostgREST wrapper), `mirror.py` (dual-write with run provenance), `seed.py` (one-shot bootstrap CLI); see "Supabase layer" below |
+| `evidence/` | Evidence layer: OECD/GAIIN adapter (`oecd.py`), the normalised record (`records.py`), conservative country matching (`matching.py`), sync (`sync.py`) and its CLI (`__main__.py`: `python -m regulation_pipeline.evidence probe\|sync`), HTML stripping (`htmlstrip.py`) |
 
 ---
 
@@ -123,7 +127,7 @@ sequenceDiagram
 
     SVC->>DS: validate()
     SVC->>DS: save() - atomic temp + os.replace
-    DS-->>U: scores.csv, regulation_data.csv, history.json, subscores.json
+    DS-->>U: scores.csv, regulation_data.csv, history.json, subscores.json, pending.json
 ```
 
 Exit codes: `0` success, `1` some countries failed, `2` fatal (systemic) - with
@@ -249,17 +253,20 @@ flowchart LR
         R["regulation"]
         H["history"]
         SS["subscores"]
+        P["pending"]
     end
 
     DS -->|save · atomic| F1["public/scores.csv"]
     DS -->|save · atomic| F2["public/regulation_data.csv"]
     DS -->|save · atomic| F3["public/history.json"]
     DS -->|save · atomic| F4["public/data/subscores.json"]
+    DS -->|save · atomic| F5["public/data/pending.json"]
 
     F1 --> FE["Frontend loaders<br/>src/data/*.ts"]
     F2 --> FE
     F3 --> FE
     F4 --> FE
+    F5 --> GATE["Next run's stability gate<br/>(also published for readers)"]
 ```
 
 > **Byte-format is a contract.** CSVs use the csv module's `\r\n`; the JSON files
@@ -367,7 +374,9 @@ flowchart TD
 
 `BatchRunner` submits, polls to completion, and classifies each result. On timeout
 it **cancels and salvages** the requests that already succeeded (and were already
-billed) instead of discarding the run.
+billed) instead of discarding the run. Submit, poll, cancel and results calls go
+through the retry policy below, and one wait budget (`max_wait`, 4 hours) covers
+every batch of a run.
 
 ```mermaid
 stateDiagram-v2
@@ -375,17 +384,19 @@ stateDiagram-v2
     Submitted --> Polling
     Polling --> Polling: retrieve · in_progress
     Polling --> Ended: status == ended
-    Polling --> Canceling: waited >= max_wait
+    Polling --> Canceling: total wait of the run >= max_wait
     Canceling --> Ended: drain within grace
-    Canceling --> AllRetryable: grace exhausted
+    Canceling --> Unreadable: grace exhausted
     Ended --> Classify: results()
     Classify --> [*]: succeeded to messages<br/>invalid_request to fatal<br/>canceled/expired to retryable
-    AllRetryable --> [*]
+    Unreadable --> [*]: countries fail this run<br/>(never resubmitted)
 
     note right of Classify
-        research() then retries the
-        retryable set once in a
-        second, smaller batch
+        research() then runs follow-up
+        batches while 15 min of the
+        budget remain: the retryable set
+        once, and pause_turn results
+        continued for up to 3 rounds
     end note
 ```
 
@@ -503,12 +514,14 @@ Claude for the prose once, and writes `public/digest/`.
 
 Nothing else measures whether the pipeline scores correctly, or whether a
 model or prompt change moved the calibration. `public/data/gold_set.json`
-holds ten countries across the maturity range with a hand-checked score for
-each of the 20 sub-indicators (five dimensions times four), a one-line
-justification per dimension, the sources used, and a `status` of `draft` or
-`verified` (with `verified_on`). `load_gold_set` validates the file against
-the sub-indicator names in `models.py`, so a typo in the gold file fails
-loudly.
+holds ten countries across the maturity range with a score for each of the
+20 sub-indicators (five dimensions times four), a one-line justification per
+dimension, the sources used, and a `status` of `draft` or `verified` (with
+`verified_on`). All ten entries are drafts: an agent drafted them in
+September 2026 for hand-checking, and none is verified until the maintainer
+has checked it against its sources. `load_gold_set` validates the file
+against the sub-indicator names in `models.py`, so a typo in the gold file
+fails loudly.
 
 - **What is compared.** `PipelineService.run` keeps every validated result
   in `RunResult.raw_results`, before the stability gate, so the check reads
@@ -537,13 +550,18 @@ loudly.
 ## Testing & tooling
 
 ```bash
-python -m pytest        # tests/pipeline/ - 90+ tests, no network (fakes throughout)
-ruff check scripts/regulation_pipeline
-pip install -e .        # installs the package + update-regulation-data console script
+python -m pytest                    # tests/pipeline/ - about 300 tests, no network (fakes throughout)
+ruff check scripts tests/pipeline   # lint; rules in pyproject.toml ([tool.ruff])
+pip install -e .                    # installs the package + update-regulation-data console script
 ```
+
+Ruff is configured in `pyproject.toml` but is not in `requirements-dev.txt`;
+install it separately to run it locally. CI (`.github/workflows/ci.yml`) runs
+`python -m pytest` and `ruff check scripts tests/pipeline` on every push and
+pull request.
 
 Every layer has a seam for testing: `Settings(root=tmp_path)` redirects all I/O,
 strategies take a stub `ResearchClient`, the batch poll loop takes an injected
-`sleep`, and the retry policy takes an injected clock. The CI workflow
+`sleep`, and the retry policy takes an injected clock. The data workflow
 (`.github/workflows/update-data.yml`) commits whatever data completed even when a
-run reports failures, so a single failed country never discards the month's work.
+run reports failures, so a single failed country never discards the week's work.

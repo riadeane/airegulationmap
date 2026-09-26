@@ -1,5 +1,7 @@
 # Polish & On-ramp Implementation Plan
 
+**Status:** Shipped in #12 (April 2026). Kept as written; the `.js` paths predate the TypeScript migration (#13), and the code is the source of truth.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task.
 
 **Goal:** A weekend-scoped polish pass on `airegulationmap.org` — a display-layer copy normalizer, a compressed first-visit on-ramp in the empty country panel, a source-count signal in the per-country date line, and a `?` keyboard-shortcut help overlay. No new data, no new dependencies, no framework migration.

@@ -1,6 +1,6 @@
 # PRD 11: Drift dashboard
 
-Status: Implemented (September 2026). Owner: unassigned. Depends on: 08 (optional, for gold metrics). The confidence figure is a cross-section by research vintage until the pipeline records confidence per run (see the implementation note at the end).
+Status: Implemented (September 2026, #56). Owner: unassigned. Depends on: 08 (optional, for gold metrics). The confidence figure is a cross-section by research vintage until the pipeline records confidence per run (see the implementation note at the end).
 
 ## Problem
 

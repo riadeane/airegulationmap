@@ -1,5 +1,7 @@
 # UI/UX Redesign Implementation Plan
 
+**Status:** Shipped in #2 (March 2026): tasks 1 to 8 landed as the dark-dashboard restructure, panel, score dropdown, filter popover and search-dimming commits. Superseded by the editorial redesign in #6 and the design overhaul in #10 (light and dark themes, Literata), so little of this layout remains. Kept as written for the record.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Redesign the AI Regulation Map into a professional dark-dashboard experience with a two-column layout, structured country panel, custom controls, and a gray-to-amber choropleth.
