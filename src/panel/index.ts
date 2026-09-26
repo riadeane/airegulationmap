@@ -204,6 +204,22 @@ function renderScores(countryName: string): void {
   }
 }
 
+// Swap the empty state for the entry. renderPanel skips this while the
+// full comparison view owns the screen, so leaving that view calls it too.
+function revealEntry(): void {
+  const fallback = document.getElementById('no-selection-message');
+  if (fallback) fallback.hidden = true;
+  document.getElementById('panel-content')!.style.display = '';
+}
+
+// Slide the mobile bottom sheet up (the class is inert on desktop) and,
+// on the initial open only, give it dialog semantics and focus.
+function openSheet(): void {
+  const wasOpen = document.body.classList.contains('sheet-open');
+  document.body.classList.add('sheet-open');
+  if (!wasOpen) openSheetDialog();
+}
+
 function renderPanel(countryName: string): void {
   const { scoreData, regulationData, mainView } = getState();
   const score = scoreData[countryName];
@@ -213,11 +229,7 @@ function renderPanel(countryName: string): void {
   // The full comparison view owns the main area; don't reveal the
   // single-country panel underneath it. While merely staging a set
   // (view closed), the panel stays usable so the user keeps browsing.
-  if (!comparisonOpen) {
-    const fallback = document.getElementById('no-selection-message');
-    if (fallback) fallback.hidden = true;
-    document.getElementById('panel-content')!.style.display = '';
-  }
+  if (!comparisonOpen) revealEntry();
 
   document.getElementById('country-name')!.textContent = countryName;
   renderIsoCodes(countryName);
@@ -269,12 +281,10 @@ function renderPanel(countryName: string): void {
     // runs on a selection change, so this never clobbers a deliberate
     // scroll mid-read.
     document.getElementById('country-panel')?.scrollTo({ top: 0 });
-    const wasOpen = document.body.classList.contains('sheet-open');
-    document.body.classList.add('sheet-open');
     // Only take over focus on the initial open, not when switching
     // countries with the sheet already up (that would steal focus on
     // every tap).
-    if (!wasOpen) openSheetDialog();
+    openSheet();
   }
 }
 
@@ -327,6 +337,15 @@ export function initPanel(): void {
   // Tapping a dot re-selects a country, which re-opens the sheet over scatter.
   on('mainView', (view) => {
     if (view !== 'map') document.body.classList.remove('sheet-open');
+    const { selectedCountry } = getState();
+    if (!selectedCountry) return;
+    // A country selected while the comparison view owned the screen was
+    // rendered but left hidden (renderPanel skips the reveal), so leaving
+    // the view must reveal it - or the panel comes back blank.
+    if (view !== 'comparison') revealEntry();
+    // Back on the map, the selection's sheet returns: re-selecting the
+    // same country is a store no-op, so tapping it could not reopen it.
+    if (view === 'map') openSheet();
   });
 
   // Copy the full source list as a numbered, paste-ready block -
