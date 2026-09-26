@@ -47,3 +47,17 @@ comment on column public_export.subscores is
   'Methodology v2 integer sub-indicators only. The v2.1 rationale sentences are in the rationales column.';
 comment on column public_export.rationales is
   'Methodology v2.1: one-sentence model rationale per sub-indicator, keyed dimension -> sub-indicator (same keys as subscores, no date). Null for countries not yet re-researched under v2.1.';
+
+-- Corrections to 0004's comments, which the API reference shows verbatim:
+-- the source list is pipe-separated, the evidence source id the code writes
+-- is "oecd", and data_version counts a country's research passes.
+comment on column country_summaries.sources_raw is
+  'Verbatim source URL list from the research response (pipe separated, as in regulation_data.csv).';
+comment on column public_export.sources_raw is
+  'Verbatim source URL list (pipe separated, as in regulation_data.csv).';
+comment on column policy_initiatives.source is
+  'Evidence source identifier (currently oecd: the OECD.AI Policy Navigator / GAIIN).';
+comment on column country_scores.data_version is
+  'Per-country revision counter: 1 for the first entry, incremented on every research pass that updates the row.';
+comment on column public_export.data_version is
+  'Per-country revision counter: 1 for the first entry, incremented on every research pass that updates the row.';

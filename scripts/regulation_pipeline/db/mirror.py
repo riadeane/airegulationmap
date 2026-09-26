@@ -191,6 +191,7 @@ class SupabaseMirror:
         can carry a different date from the file's."""
         rows = self._client.select_all("score_history", {
             "select": "scores,run_id",
+            "order": "id",
             "country_id": f"eq.{country_id}",
         })
         return {
@@ -200,14 +201,14 @@ class SupabaseMirror:
         }
 
     def _resolve_country_ids(self, names: list[str]) -> dict[str, str]:
-        rows = self._client.select_all("countries", {"select": "id,name"})
+        rows = self._client.select_all("countries", {"select": "id,name", "order": "id"})
         ids = {r["name"]: r["id"] for r in rows}
         missing = [n for n in names if n not in ids]
         if missing:
             self._client.upsert("countries", [
                 {"name": n, **_iso_columns(self._iso.get(n))} for n in missing
             ], on_conflict="name")
-            rows = self._client.select_all("countries", {"select": "id,name"})
+            rows = self._client.select_all("countries", {"select": "id,name", "order": "id"})
             ids = {r["name"]: r["id"] for r in rows}
         return ids
 
@@ -229,7 +230,7 @@ class SupabaseMirror:
         self._client.upsert("sources", list(by_url.values()), on_conflict="url")
         source_ids = {
             r["url"]: r["id"]
-            for r in self._client.select_all("sources", {"select": "id,url"})
+            for r in self._client.select_all("sources", {"select": "id,url", "order": "id"})
         }
         link_rows = []
         for country, url in links:

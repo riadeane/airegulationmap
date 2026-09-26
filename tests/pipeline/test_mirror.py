@@ -441,6 +441,14 @@ class TestRationalesExportMigration:
         get_params = [p.get("$ref") for p in spec["paths"]["/public_export"]["get"]["parameters"]]
         assert "#/parameters/rowFilter.public_export.rationales" in get_params
 
+    def test_corrected_column_comments_reach_the_snapshot(self):
+        # 0004 described sources_raw as newline separated (it is pipe
+        # separated) and data_version as a schema version.
+        raw = (REPO / "public" / "openapi.json").read_text(encoding="utf-8")
+        for wrong in ("newline separated", "oecd_gaiin", "Dataset schema version"):
+            assert wrong not in raw
+        assert "comment on column country_summaries.sources_raw is" in self.sql
+
 
 class TestSelectAllPagination:
     def test_paginates_past_the_postgrest_row_cap(self):

@@ -163,7 +163,7 @@ def decide(
         return Decision(APPLIED_EVIDENCE, True, "specific laws changed", large_moves=moves)
 
     directions = _directions(old, candidate)
-    if pending is not None:
+    if pending is not None and _is_recent(pending, today):
         stored = _directions(old, pending.get("candidate_scores", {}))
         if stored == directions:
             return Decision(
@@ -203,14 +203,31 @@ def standing(existing_scores: dict | None, pending: dict | None) -> str:
     return f"held since {pending.get('first_seen')} ({moved}): applies if the same move repeats"
 
 
+# A held candidate confirms a move only on the NEXT run. Weekly runs are 7
+# days apart; the slack covers a delayed or skipped week, not a stale
+# candidate from months ago.
+PENDING_MAX_AGE_DAYS = 14
+
+
+def _is_recent(pending: dict, today: date) -> bool:
+    try:
+        first_seen = date.fromisoformat(str(pending.get("first_seen")))
+    except ValueError:
+        return False
+    return 0 <= (today - first_seen).days <= PENDING_MAX_AGE_DAYS
+
+
 # -- evidence helpers ------------------------------------------------------------
 
 
 def normalise_url(url: str) -> str:
     """Strip scheme, ``www.``, and a trailing slash, like ``sources.py``."""
     text = url.strip()
-    parsed = urlparse(text if "://" in text else "//" + text)
-    host = (parsed.hostname or "").lower().removeprefix("www.")
+    try:
+        parsed = urlparse(text if "://" in text else "//" + text)
+        host = (parsed.hostname or "").lower().removeprefix("www.")
+    except ValueError:  # e.g. an unclosed IPv6 bracket; sources.py tolerates it too
+        return text.lower()
     path = parsed.path.rstrip("/")
     query = f"?{parsed.query}" if parsed.query else ""
     return f"{host}{path}{query}"

@@ -63,6 +63,12 @@ _ACADEMIC_RE = re.compile(r"(^|\.)(edu|ac\.[a-z]{2,3})$", re.IGNORECASE)
 _PLACEHOLDER_RE = re.compile(r"^(na|n/a|idem|unknown|none|\s*[-–—]\s*|\.\s*)$", re.IGNORECASE)
 
 
+def is_placeholder(segment: str) -> bool:
+    """A Sources segment that names nothing ("N/A", "-", "unknown")."""
+    text = segment.strip()
+    return not any(ch.isalnum() for ch in text) or bool(_PLACEHOLDER_RE.match(text))
+
+
 @dataclass(frozen=True)
 class ClassifiedSource:
     url: str

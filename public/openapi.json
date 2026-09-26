@@ -2240,7 +2240,7 @@
         },
         "source": {
           "default": "oecd",
-          "description": "Evidence source identifier (currently oecd_gaiin).",
+          "description": "Evidence source identifier (currently oecd: the OECD.AI Policy Navigator / GAIIN).",
           "format": "text",
           "type": "string"
         },
@@ -2404,7 +2404,7 @@
         },
         "data_version": {
           "default": 1,
-          "description": "Dataset schema version of the row.",
+          "description": "Per-country revision counter: 1 for the first entry, incremented on every research pass that updates the row.",
           "format": "integer",
           "type": "integer"
         },
@@ -2612,7 +2612,7 @@
           "format": "jsonb"
         },
         "data_version": {
-          "description": "Dataset schema version of the row.",
+          "description": "Per-country revision counter: 1 for the first entry, incremented on every research pass that updates the row.",
           "format": "integer",
           "type": "integer"
         },
@@ -2652,7 +2652,7 @@
           "type": "string"
         },
         "sources_raw": {
-          "description": "Verbatim source URL list (newline separated).",
+          "description": "Verbatim source URL list (pipe separated, as in regulation_data.csv).",
           "format": "text",
           "type": "string"
         },
@@ -2913,7 +2913,7 @@
           "type": "string"
         },
         "sources_raw": {
-          "description": "Verbatim source URL list from the research response (newline separated).",
+          "description": "Verbatim source URL list from the research response (pipe separated, as in regulation_data.csv).",
           "format": "text",
           "type": "string"
         },
@@ -3209,7 +3209,7 @@
     },
     "rowFilter.policy_initiatives.source": {
       "name": "source",
-      "description": "Evidence source identifier (currently oecd_gaiin).",
+      "description": "Evidence source identifier (currently oecd: the OECD.AI Policy Navigator / GAIIN).",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3421,7 +3421,7 @@
     },
     "rowFilter.country_scores.data_version": {
       "name": "data_version",
-      "description": "Dataset schema version of the row.",
+      "description": "Per-country revision counter: 1 for the first entry, incremented on every research pass that updates the row.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3686,7 +3686,7 @@
     },
     "rowFilter.public_export.data_version": {
       "name": "data_version",
-      "description": "Dataset schema version of the row.",
+      "description": "Per-country revision counter: 1 for the first entry, incremented on every research pass that updates the row.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -3742,7 +3742,7 @@
     },
     "rowFilter.public_export.sources_raw": {
       "name": "sources_raw",
-      "description": "Verbatim source URL list (newline separated).",
+      "description": "Verbatim source URL list (pipe separated, as in regulation_data.csv).",
       "required": false,
       "in": "query",
       "type": "string"
@@ -4065,7 +4065,7 @@
     },
     "rowFilter.country_summaries.sources_raw": {
       "name": "sources_raw",
-      "description": "Verbatim source URL list from the research response (newline separated).",
+      "description": "Verbatim source URL list from the research response (pipe separated, as in regulation_data.csv).",
       "required": false,
       "in": "query",
       "type": "string"

@@ -352,6 +352,22 @@ class TestWrite:
         assert week["lead"] == "No gated score or law changes in this run."
         assert client.messages.calls == []
 
+    def test_a_later_empty_run_keeps_the_weeks_digest(self, tmp_path):
+        settings = Settings(root=tmp_path)
+        items = [{"country": "Germany", "headline": "H", "summary": "S",
+                  "sources": ["https://example.gov/new"]}]
+        first = write_run_digest(
+            two_country_run(), client=FakeClient(payload(items)), settings=settings,
+            model="m", run_date=TODAY, now=NOW,
+        )
+        before = first.read_text()
+        again = write_run_digest(
+            RunResult(updated=1, failed=[], run_id="run-2", changes=(unchanged("France"),)),
+            client=FakeClient(payload([])), settings=settings, model="m", run_date=TODAY, now=NOW,
+        )
+        assert again == first
+        assert first.read_text() == before
+
     def test_feed_escapes_markup_in_prose(self):
         digest = {
             "week": "2026-W37", "date": "2026-09-07", "generated_at": NOW.isoformat(),

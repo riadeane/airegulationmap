@@ -139,3 +139,21 @@ def test_a_partial_run_on_a_new_rubric_stays_gated(monkeypatch, tmp_path):
     assert result.exit_code == 0
     assert "stays gated" in result.output
     assert "would record break" not in result.output
+
+
+def test_an_aborted_run_writes_no_digest(monkeypatch, tmp_path):
+    from regulation_pipeline.service import RunResult
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    _dataset_with(tmp_path, ["Germany"], [])
+    monkeypatch.setattr(cli, "Settings", lambda **kw: _TmpSettings(tmp_path, **kw))
+    monkeypatch.setattr(
+        cli.PipelineService, "run",
+        lambda self, strategy, to_update: RunResult(updated=0, failed=["Germany"], fatal=True),
+    )
+    written = []
+    monkeypatch.setattr(cli, "write_run_digest", lambda *a, **k: written.append(1))
+    result = runner.invoke(_app(), ["--digest", "--no-mirror", "--countries", "Germany"])
+    assert result.exit_code == 2
+    assert written == []
+    assert "digest: skipped because the run aborted" in result.output
