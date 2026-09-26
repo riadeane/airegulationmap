@@ -162,8 +162,8 @@ class ResearchClient:
         turn goes back as an assistant message; the API picks up from its
         trailing server tool call. Returns the final Message (still paused if
         the cap ran out, which :func:`parse_message` then rejects), or ``None``
-        when a continuation request failed. The Batches path calls this for
-        paused batch results too, synchronously."""
+        when a continuation request failed. The Batches path continues paused
+        results in follow-up batches instead (``BatchRunner.research``)."""
         messages = list(params["messages"])
         for attempt in range(1, MAX_CONTINUATIONS + 1):
             if getattr(message, "stop_reason", None) != "pause_turn":
