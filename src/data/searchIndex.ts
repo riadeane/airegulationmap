@@ -1,6 +1,13 @@
 // Full-text search over the regulation text fields. ~196 countries ×
 // 6 fields ≈ 1000 short entries - plain substring scan is plenty fast,
 // no tokenization or library needed. Pure module, unit-tested.
+//
+// Matching ignores case and diacritics (see fold.ts): the index holds the
+// folded text plus a map back to the original, so snippets and <mark>
+// offsets still point into the prose as written.
+
+import { foldText, foldWithMap, originalIndex } from './fold';
+import type { FoldedText } from './fold';
 
 export const SEARCHABLE_FIELDS = [
   'regulationStatus',
@@ -28,8 +35,11 @@ type SearchableText = { [K in SearchableField]?: string | null };
 export interface IndexEntry {
   country: string;
   field: SearchableField;
+  /** Folded (lower-case, accent-free) text the query is matched against. */
   text: string;
   original: string;
+  /** Folded index -> original index; null when folding kept positions. */
+  map: number[] | null;
 }
 
 export interface SearchMatch {
@@ -46,12 +56,8 @@ export function buildSearchIndex(regulationData: Record<string, SearchableText>)
     for (const field of SEARCHABLE_FIELDS) {
       const text = data[field];
       if (!text || text.length < 10) continue;
-      index.push({
-        country,
-        field,
-        text: text.toLowerCase(),
-        original: text,
-      });
+      const { folded, map } = foldWithMap(text);
+      index.push({ country, field, text: folded, original: text, map });
     }
   }
   return index;
@@ -71,7 +77,8 @@ export function searchRegulationText(
   maxResults = 20
 ): SearchMatch[] {
   if (!query || query.length < 3) return [];
-  const q = query.toLowerCase();
+  const q = foldText(query);
+  if (!q) return [];
   const results: SearchMatch[] = [];
   const seen = new Set<string>();
 
@@ -81,8 +88,13 @@ export function searchRegulationText(
     if (pos === -1) continue;
     seen.add(entry.country);
 
-    const start = Math.max(0, pos - SNIPPET_CONTEXT);
-    const end = Math.min(entry.original.length, pos + q.length + SNIPPET_CONTEXT);
+    // Back to original offsets: the snippet and the mark cut the prose as
+    // written, not its folded form.
+    const folded: FoldedText = { folded: entry.text, map: entry.map };
+    const matchFrom = originalIndex(folded, pos);
+    const matchTo = originalIndex(folded, pos + q.length);
+    const start = Math.max(0, matchFrom - SNIPPET_CONTEXT);
+    const end = Math.min(entry.original.length, matchTo + SNIPPET_CONTEXT);
     const leadingEllipsis = start > 0;
     const snippet = (leadingEllipsis ? '…' : '')
       + entry.original.slice(start, end)
@@ -92,8 +104,8 @@ export function searchRegulationText(
       country: entry.country,
       field: entry.field,
       snippet,
-      matchStart: pos - start + (leadingEllipsis ? 1 : 0),
-      matchLength: q.length,
+      matchStart: matchFrom - start + (leadingEllipsis ? 1 : 0),
+      matchLength: matchTo - matchFrom,
     });
 
     if (results.length >= maxResults) break;

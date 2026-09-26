@@ -72,7 +72,7 @@ export function initSearch(): void {
       return;
     }
 
-    const { sortedCountryNames } = getState();
+    const { sortedCountryNames, countryAliases } = getState();
     if (!textIndex) textIndex = buildSearchIndex(getState().regulationData);
 
     // One uncapped pass each; the dropdown shows capped slices but the
@@ -80,6 +80,7 @@ export function initSearch(): void {
     // the committed results panel will report - the two must agree.
     const allNameMatches = matchCountryNames(sortedCountryNames, query, {
       limit: sortedCountryNames.length,
+      aliases: countryAliases,
     });
     const allTextMatches = query.length >= 3
       ? searchAllMatches(textIndex, query).filter(m => !allNameMatches.includes(m.country))

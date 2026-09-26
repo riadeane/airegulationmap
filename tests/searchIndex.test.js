@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { buildSearchIndex, searchRegulationText, searchAllMatches } from '../src/data/searchIndex';
-import { matchCountryNames } from '../src/data/countryMatch';
+import { matchCountryNames, parseCountryAliases, BUILTIN_ALIASES } from '../src/data/countryMatch';
+import { findFolded, foldText } from '../src/data/fold';
+import { parseScoresCsv } from '../src/data/loader';
 
 const regulationData = {
   France: {
@@ -96,5 +99,88 @@ describe('matchCountryNames', () => {
 
   it('returns [] for an empty query', () => {
     expect(matchCountryNames(names, '')).toEqual([]);
+  });
+});
+
+// Regression: the matcher was a plain toLowerCase().includes(), so "cote",
+// "turkiye" and every official or everyday name the dataset spells
+// differently found nothing. Checked against the real dataset names.
+describe('country search ignores diacritics and knows aliases', () => {
+  const datasetNames = Object.keys(
+    parseScoresCsv(readFileSync(new URL('../public/scores.csv', import.meta.url), 'utf8'))
+  ).sort();
+  const fileAliases = parseCountryAliases(
+    JSON.parse(readFileSync(new URL('../public/data/country_names.json', import.meta.url), 'utf8'))
+  );
+
+  const cases = [
+    ['cote', "Côte d'Ivoire"],
+    ['ivory coast', "Côte d'Ivoire"],
+    ['turkiye', 'Turkey'],
+    ['türkiye', 'Turkey'],
+    ['czech republic', 'Czechia'],
+    ['north macedonia', 'Macedonia'],
+    ['eswatini', 'Swaziland'],
+    ['south sudan', 'S. Sudan'],
+    ['bosnia and herzegovina', 'Bosnia and Herz.'],
+    ['usa', 'United States of America'],
+    ['timor-leste', 'East Timor'],
+    ['cabo verde', 'Cape Verde'],
+    ['democratic republic of the congo', 'Dem. Rep. Congo'],
+    ['central african republic', 'Central African Rep.'],
+  ];
+
+  it.each(cases)('"%s" finds %s on the built-in aliases alone', (query, name) => {
+    expect(matchCountryNames(datasetNames, query)).toContain(name);
+  });
+
+  it.each(cases)('"%s" finds %s with the country_names.json aliases merged', (query, name) => {
+    expect(matchCountryNames(datasetNames, query, { aliases: fileAliases })).toContain(name);
+  });
+
+  it('ranks an alias prefix match first and returns the dataset name', () => {
+    expect(matchCountryNames(datasetNames, 'us')[0]).toBe('United States of America');
+    expect(matchCountryNames(datasetNames, 'CÔTE')).toEqual(["Côte d'Ivoire"]);
+  });
+
+  it('keys every built-in alias to a name in scores.csv', () => {
+    for (const name of Object.keys(BUILTIN_ALIASES)) expect(datasetNames).toContain(name);
+  });
+
+  it('inverts country_names.json (alias -> canonical) and skips junk', () => {
+    expect(parseCountryAliases({ aliases: { 'Viet Nam': 'Vietnam', 'Czech Republic': 'Czechia', Bad: 7 } }))
+      .toEqual({ Vietnam: ['Viet Nam'], Czechia: ['Czech Republic'] });
+    expect(parseCountryAliases(null)).toBeNull();
+  });
+});
+
+describe('full-text search ignores diacritics', () => {
+  const index = buildSearchIndex({
+    Ghana: { regulationStatus: "Trade talks with Côte d'Ivoire covered a shared data-protection code." },
+    Iceland: { policyLever: 'Persónuvernd has published AI-and-data-protection guidance.' },
+  });
+
+  it('matches an unaccented query and marks the accented original', () => {
+    const [r] = searchRegulationText(index, 'cote d');
+    expect(r.country).toBe('Ghana');
+    expect(r.snippet.slice(r.matchStart, r.matchStart + r.matchLength)).toBe('Côte d');
+  });
+
+  it('matches an accented query against accented text', () => {
+    const [r] = searchRegulationText(index, 'PERSÓNU');
+    expect(r.snippet.slice(r.matchStart, r.matchStart + r.matchLength)).toBe('Persónu');
+  });
+
+  it('keeps offsets aligned when folding shifts positions', () => {
+    // A decomposed "é" (e + U+0301) folds to one character.
+    const text = 'Cafe\u0301 rules and a sandbox regime.';
+    const idx = buildSearchIndex({ X: { regulationStatus: text } });
+    const [r] = searchRegulationText(idx, 'sandbox');
+    expect(r.snippet.slice(r.matchStart, r.matchStart + r.matchLength)).toBe('sandbox');
+    expect(findFolded(text, 'cafe rules')).toEqual({ start: 0, end: text.indexOf(' and') });
+  });
+
+  it('folds case, marks and curly apostrophes', () => {
+    expect(foldText('Côte d’Ivoire')).toBe("cote d'ivoire");
   });
 });
