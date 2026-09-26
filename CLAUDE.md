@@ -92,10 +92,20 @@ python scripts/update_data.py --grounded
 # --no-mirror. Mirror failures never fail a run.
 
 # Stability gate (default on): a score change lands only with new
-# evidence or when it repeats on the next run; held candidates live in
-# public/data/pending.json. --no-gate applies every score; on a full run
-# it needs a reason, recorded as a calibration break in history.json.
+# evidence or when it repeats on the next run (a held candidate counts for
+# 14 days); held candidates live in public/data/pending.json. --no-gate
+# applies every score; on a full run it needs a reason, recorded as a
+# calibration break in history.json.
 python scripts/update_data.py --no-gate --break-reason "Model switch to Opus 5"
+
+# Rubric guard: prompt.RUBRIC_VERSION names the rubric generation. When the
+# newest break in history.json is for an older rubric, the first full forced
+# run records a break ("Switch to scoring rubric v3 (model ...)") and runs
+# ungated by itself; partial runs stay gated and log that the break is due.
+# Bump RUBRIC_VERSION only when the rubric changes (not for prompt context).
+
+# --countries names resolve exactly, through the alias map, or
+# case-insensitively; an unknown name exits 1 before any API call.
 
 # Weekly changes digest (public/digest/): auto-on for scheduled runs
 # (GITHUB_EVENT_NAME=schedule); force with --digest. One Claude request on
@@ -157,7 +167,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/data/subscores.ts` | subscores.json loading + sub-indicator labels (methodology v2) |
 | `src/data/evidence.ts` | Evidence coverage (pure): `normalizeEvidence` for the subscores.json `evidence` record, `evidenceSentence` (panel and country pages), `matchesEvidenceFilter` / `parseEvidenceFilter` for the Evidence facet |
 | `src/data/supabase.ts` | Thin PostgREST reader (env-gated; null on any failure) |
-| `src/data/hydrate.ts` | Post-boot dataset hydration when the database is strictly newer |
+| `src/data/hydrate.ts` | Post-boot dataset hydration when the database is strictly newer: scores, text and the evidence record (overlaid on `subscores` for countries with a newer pass, whichever of the two loads first); sub-indicators stay from the static file |
 | `src/data/sourceMeta.ts` | Source titles/types from the sources database |
 | `src/data/slug.ts` | Country page slug and path (`/country/<slug>/`), shared by the app and the page generator |
 | `src/data/countryIso.ts` | `country_iso.json` loading: ISO alpha-2/alpha-3 codes for the panel and print brief, and the ISO numeric -> dataset name index for the map join |
@@ -197,16 +207,16 @@ Python package that calls the Claude API to research regulation status per count
 | `models.py` | Pydantic `ResearchResult` - schema + validation + score projections |
 | `repository.py` | `Dataset` repository - load/apply/validate/atomic-save the five stores |
 | `strategies.py` | `ResearchStrategy` ABC + `SyncStrategy` / `BatchStrategy` |
-| `api.py` | `ResearchClient` - request params + response parsing (Claude transport) |
-| `batch.py` | `BatchRunner` - Message Batches submit/poll/classify (50% token pricing) |
-| `retry.py` | Reusable transient-error retry policy (backoff, Retry-After, fatal classification) |
+| `api.py` | `ResearchClient` - request params + response parsing (Claude transport); resumes `pause_turn` responses (web search's server-side loop limit) up to 3 times, and rejects `max_tokens`/`refusal` answers with the stop reason logged |
+| `batch.py` | `BatchRunner` - Message Batches submit/poll/classify (50% token pricing). Every call goes through the retry policy; one 4h wait budget covers all batches of a run (the job has 355 min); follow-up batches resubmit transient failures once and continue `pause_turn` results (up to 3 rounds); already-billed results are never resubmitted |
+| `retry.py` | Reusable transient-error retry policy (backoff, Retry-After capped at 120s; 400/413/422 fail the one request, other 4xx are fatal) |
 | `prompt.py` | Research prompt template + rendering |
 | `config.py` | `Settings` (repo-root paths) + constants (CSV fields, staleness threshold, site URL, default model) |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - evidence and persistence rules for score changes |
 | `digest.py` | Weekly digest: selects a run's gate-applied changes, one structured-output Claude request, writes `public/digest/` (week JSON, index, Atom feed); `python -m regulation_pipeline.digest --run <id>` regenerates from Supabase |
 | `gold.py` | Gold set and drift check: loads `gold_set.json`, compares a run's raw (ungated) results with it (`compare`, pure), appends `drift.json`, mirrors `gold_checks`, step-summary block; `python -m regulation_pipeline.gold --model <id>` is the model-comparison CLI |
-| `history.py` | History snapshot append/change-detection |
+| `history.py` | History snapshot append/change-detection: a snapshot is a change-point (an unchanged re-research leaves history alone; a same-day re-run supersedes that day's snapshot); `calibration_due` for the rubric guard |
 | `names.py` | `CountryNames` - country-name normalization via alias map |
 | `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
 | `db/` | Supabase layer: `client.py` (httpx PostgREST wrapper), `mirror.py` (dual-write with run provenance), `seed.py` (one-shot bootstrap CLI) |
@@ -221,7 +231,7 @@ Python package that calls the Claude API to research regulation status per count
 |------|---------|
 | `public/scores.csv` | Numeric scores (1–5) for 6 dimensions per country |
 | `public/regulation_data.csv` | Text descriptions, laws, source URLs, confidence, last_updated |
-| `public/history.json` | Timestamped snapshots of score data for timeline playback |
+| `public/history.json` | Change-point score snapshots per country (a snapshot's `date` is the run that produced those scores; the timeline, changelog, "This week" strip and drift dashboard all read it that way), plus `breaks` (calibration breaks: `{date, model, prompt_version, rubric, reason}`; the June 2026 methodology v2 break is the first) |
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
 | `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1), plus the `evidence` record of each country's latest research pass (PRD 14; absent = no run record yet) |
@@ -366,13 +376,13 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 - **actor_involvement** - narrow↔broad participation (descriptive - excluded from the composite)
 - **enforcement_level** - enforcement rigor (normative)
 
-**Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` was `v3-2026-09` for the rubric switch (now `v3.1-2026-09`, since the v2.1 rationale field changed the output structure but not the rubric); the switch is recorded as a calibration break in `history.json` (`breaks`), which the timeline marks and the changelog labels as "Recalibration".
+**Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` was `v3-2026-09` for the rubric switch, `v3.1-2026-09` once the v2.1 rationale field changed the output structure, and is `v3.2-2026-09` since the existing-data block also shows the Enforcement Level text (context only; same rubric). `RUBRIC_VERSION = "v3"` is what the rubric guard compares. The switch is recorded as a calibration break in `history.json` (`breaks`) by the first full v3 run (automatically, via the guard), which the timeline marks and the changelog labels as "Recalibration". Until that run lands, all scores are rubric v2.
 
-**Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/prompt.py` and modeled in `models.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. **Methodology v2.1 (September 2026):** every sub-indicator also carries a one-sentence `rationale` (1–200 characters, validated in pydantic; the structured-output schema requires the field but cannot express length). The file stores `{score, rationale}` per sub-indicator and a top-level `methodology: "v2.1"` tag; the frontend loader (`src/data/subscores.ts`) accepts both v2 integers and v2.1 objects. Supabase mirrors rationales into `country_scores.rationales` (jsonb). governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
+**Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/prompt.py` and modeled in `models.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. **Methodology v2.1 (September 2026):** every sub-indicator also carries a one-sentence `rationale` (1–200 characters, validated in pydantic; the structured-output schema requires the field but cannot express length). The pipeline writes `{score, rationale}` per sub-indicator and a top-level `methodology: "v2.1"` tag from the first v2.1 run on (entries researched before keep v2 integers); the frontend loader (`src/data/subscores.ts`) accepts both v2 integers and v2.1 objects. Supabase mirrors rationales into `country_scores.rationales` (jsonb). governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
 
 ### Automated Updates
 
-`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`); with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
+`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`). If main moved during the run the commit is rebased and retried, and if it still fails every output file is uploaded as a workflow artifact; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
 
 ### Deployment
 
