@@ -11,6 +11,7 @@ import { getState, on } from '../state/store';
 import { restGet, isConfigured } from '../data/supabase';
 import { showSection } from './sections';
 import { renderEvidence } from './evidence';
+import { safeHttpUrl } from '../data/sources';
 
 interface Initiative {
   name: string;
@@ -48,11 +49,13 @@ function render(list: HTMLElement, attribution: HTMLElement, initiatives: Initia
   for (const init of initiatives) {
     const li = document.createElement('li');
 
-    const name = document.createElement(init.source_url ? 'a' : 'span');
+    // Only an http(s) source_url becomes a link.
+    const href = safeHttpUrl(init.source_url);
+    const name = document.createElement(href ? 'a' : 'span');
     name.className = 'initiative-name';
     name.textContent = init.name;
-    if (init.source_url && name instanceof HTMLAnchorElement) {
-      name.href = init.source_url;
+    if (href && name instanceof HTMLAnchorElement) {
+      name.href = href;
       name.target = '_blank';
       name.rel = 'noopener noreferrer';
     }

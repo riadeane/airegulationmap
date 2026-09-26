@@ -80,6 +80,23 @@ function isOfficialHost(hostname: string): boolean {
   return OFFICIAL_HOSTS.some(h => host === h || host.endsWith(`.${h}`));
 }
 
+/**
+ * The URL, trimmed, when it is an absolute http(s) link; otherwise null.
+ * Source cells come from model output and outside databases, so only
+ * these schemes may become an href - a javascript: or data: URL renders
+ * as plain text instead.
+ */
+export function safeHttpUrl(url: string | null | undefined): string | null {
+  const trimmed = url?.trim();
+  if (!trimmed) return null;
+  try {
+    const { protocol } = new URL(trimmed);
+    return protocol === 'http:' || protocol === 'https:' ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function classifySource(url: string): ClassifiedSource {
   let hostname: string;
   try {

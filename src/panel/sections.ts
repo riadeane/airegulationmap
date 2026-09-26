@@ -1,7 +1,7 @@
 import { maybeEl } from '../dom';
 import type { DimensionKey } from '../constants';
 import { cleanRegulationText } from './normalize';
-import { classifySources } from '../data/sources';
+import { classifySources, safeHttpUrl } from '../data/sources';
 import { findFolded } from '../data/fold';
 import type { ClassifiedSource, SourceMeta } from '../data/sources';
 import type { RegulationEntry } from '../data/loader';
@@ -33,10 +33,14 @@ export function renderSources(
   container.replaceChildren();
   for (const source of sources) {
     const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = source.url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
+    // Only http(s) sources become links; anything else shows as text.
+    const href = safeHttpUrl(source.url);
+    const a = document.createElement(href ? 'a' : 'span');
+    if (href && a instanceof HTMLAnchorElement) {
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+    }
     a.title = source.url;
     const title = meta?.[source.url]?.title?.trim();
     if (title) {
