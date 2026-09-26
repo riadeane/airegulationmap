@@ -7,6 +7,9 @@ to live inside ``cli.main``. It has no argparse/exit-code/credential concerns, s
 it is unit-testable with a fake strategy and a temp dataset. Answers arrive
 already validated (as :class:`~regulation_pipeline.models.ResearchResult`), so the
 service only orchestrates applying, validating the dataset, and saving.
+
+Every applied result also records its research provenance (PRD 14) in the
+country's subscores.json entry, tagged with this run's id.
 """
 
 from __future__ import annotations
@@ -200,6 +203,14 @@ class PipelineService:
                 country, result, self._today, apply_scores=decision.apply_scores,
             )
             self._dataset.set_pending(country, decision.pending)
+            # The evidence record describes the pass behind the text, sources
+            # and confidence, which always land, so it is written for a held
+            # result too. No provenance (a result built outside a strategy)
+            # means no record rather than a stale one.
+            provenance = result.provenance
+            self._dataset.set_evidence(
+                country, provenance.record(self._run_id) if provenance is not None else None,
+            )
         except Exception:
             logger.exception("failed to apply result for %s", country)
             return None

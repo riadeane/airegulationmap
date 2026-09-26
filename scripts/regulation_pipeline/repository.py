@@ -7,6 +7,11 @@ owns all five, folds a validated
 and persists them with atomic writes so an interrupted run can't leave a
 half-written CSV behind. ``pending.json`` holds the score candidates the
 stability gate (:mod:`gate`) held back for one run.
+
+Each researched country's ``subscores.json`` entry also carries an
+``evidence`` block (PRD 14, :meth:`Dataset.set_evidence`): how the most recent
+research pass was done. It is metadata beside the dimension blocks, not a
+dimension, so :func:`split_subscores_entry` leaves it out.
 """
 
 from __future__ import annotations
@@ -32,6 +37,10 @@ _SCORE_COLUMNS = (
     "Actor Involvement", "Enforcement Level", "Average Score",
 )
 
+# Key of the per-country research record inside a subscores.json entry:
+# ``{grounded, initiatives_used, search, model, run_id}``.
+EVIDENCE_KEY = "evidence"
+
 
 @dataclass(frozen=True)
 class ApplyOutcome:
@@ -44,7 +53,7 @@ class ApplyOutcome:
 
 
 class Dataset:
-    """In-memory view of the four data stores, keyed by canonical country name."""
+    """In-memory view of the five data stores, keyed by canonical country name."""
 
     def __init__(
         self,
@@ -93,7 +102,8 @@ class Dataset:
         return [dict(s) for s in self._history.get("countries", {}).get(country, [])]
 
     def subscores_for(self, country: str) -> dict | None:
-        """The stored sub-score entry (file shape), as a copy."""
+        """The stored sub-score entry (file shape, including any ``evidence``
+        block), as a copy."""
         entry = self._subscores.get("countries", {}).get(country)
         return dict(entry) if entry is not None else None
 
@@ -114,6 +124,21 @@ class Dataset:
             kept.append({"country": country, **entry})
         kept.sort(key=lambda e: e["country"])
         self._pending["pending"] = kept
+
+    def set_evidence(self, country: str, record: dict | None) -> None:
+        """Store (or with ``None`` remove) the research record for
+        ``country`` under its subscores.json entry: ``{grounded,
+        initiatives_used, search, model, run_id}``, describing the pass behind
+        the entry's text, sources and confidence. It is written for a held
+        result too, so an entry whose sub-scores are older than its text can
+        exist; an absent entry is created."""
+        countries = self._subscores.setdefault("countries", {})
+        if record is None:
+            entry = countries.get(country)
+            if entry is not None:
+                entry.pop(EVIDENCE_KEY, None)
+            return
+        countries.setdefault(country, {})[EVIDENCE_KEY] = dict(record)
 
     def record_break(self, entry: dict) -> None:
         """Append a calibration break ``{date, model, prompt_version, reason}``
@@ -277,10 +302,13 @@ def split_subscores_entry(entry: dict) -> tuple[dict, dict | None]:
     """Split one subscores.json country entry into the integer sub-scores
     (with ``date``) and the rationales (without). Accepts both file shapes:
     v2 (``"binding_force": 4``) and v2.1 (``"binding_force": {"score": 4,
-    "rationale": "..."}``). Returns ``None`` rationales for a v2 entry."""
+    "rationale": "..."}``). Returns ``None`` rationales for a v2 entry. The
+    ``evidence`` block is not a dimension and appears in neither."""
     scores: dict = {}
     rationales: dict = {}
     for key, block in entry.items():
+        if key == EVIDENCE_KEY:
+            continue
         if not isinstance(block, dict):
             scores[key] = block  # "date" and any future scalar metadata
             continue

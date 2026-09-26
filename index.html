@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://airegulationmap.org/og-image.png">
 
   <!-- General meta -->
-  <meta name="description" content="Interactive map tracking AI governance and regulation status across every country. Scores, legislation, and policy details updated monthly.">
+  <meta name="description" content="Interactive map tracking AI governance and regulation status across every country. Scores, legislation, and policy details updated weekly.">
   <link rel="canonical" href="https://airegulationmap.org/">
   <link rel="alternate" type="application/atom+xml" title="AI Regulation Map: weekly changes" href="/digest/feed.xml">
   <!-- Browser-chrome tint: hex equivalents of --surface per theme -->
@@ -52,8 +52,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
   <noscript>
@@ -68,7 +67,7 @@
         <li>read the <a href="/methodology.html">methodology page</a> (plain HTML, works offline)</li>
         <li>browse the raw data on
           <a href="https://github.com/riadeane/airegulationmap/tree/main/public" rel="noopener noreferrer">GitHub</a>:
-          `scores.csv`, `regulation_data.csv`, and monthly `history.json` snapshots.</li>
+          `scores.csv`, `regulation_data.csv`, and `history.json` snapshots (one per score change).</li>
       </ul>
     </div>
   </noscript>
@@ -145,6 +144,12 @@
             <input type="checkbox" id="filter-official">
             Official sources only
           </label>
+          <fieldset class="filter-conf-row filter-evidence-row" id="filter-evidence">
+            <legend class="filter-label">Evidence</legend>
+            <label><input type="radio" name="filter-evidence" value="any" checked> Any</label>
+            <label title="Research drew on verified policy initiatives (OECD.AI / GAIIN)"><input type="radio" name="filter-evidence" value="grounded"> Grounded</label>
+            <label title="Web search, no verified policy initiatives"><input type="radio" name="filter-evidence" value="search"> Search only</label>
+          </fieldset>
         </div>
       </div>
       <button id="scatter-btn" aria-pressed="false" title="Dimension explorer: plot every country across two score dimensions">Scatter</button>
@@ -268,6 +273,7 @@
             <button id="panel-close" class="panel-close" type="button" aria-label="Close country details">&times;</button>
           </div>
           <small id="last-updated" class="data-freshness"></small>
+          <small id="evidence-coverage" class="data-freshness evidence-coverage" hidden></small>
           <a class="panel-methodology-link" href="/methodology.html">How scores are assigned →</a>
           <p id="panel-history-notice" class="panel-history-notice" hidden>
             Viewing scores as of <span id="panel-history-date"></span>.
@@ -464,7 +470,7 @@
   </div>
 
   <footer>
-    <p>Scores researched and assigned by <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>. Updated monthly.</p>
+    <p>Scores researched and assigned by <a href="https://claude.ai/" target="_blank" rel="noopener noreferrer">Claude</a>. Updated weekly.</p>
     <p>Methodology: <a href="/methodology.html">How countries are scored</a> &nbsp;&middot;&nbsp;
        Researchers: <a href="/data.html">Data &amp; API</a> &nbsp;&middot;&nbsp;
        <a href="/api-docs.html">API reference</a> &nbsp;&middot;&nbsp;

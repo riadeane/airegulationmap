@@ -274,8 +274,8 @@ def _build_evidence_provider(evidence_file: str) -> Callable[[str], list[dict]] 
 
     Prefetching (rather than a per-country select at prompt-build time) is a
     correctness property, not an optimization: the provider runs inside
-    request_params, deep in the research loop, where the service only knows
-    how to handle FatalAPIError - a transient Supabase error there would
+    ResearchClient.request, deep in the research loop, where the service
+    only knows how to handle FatalAPIError - a transient Supabase error there would
     crash the run AFTER countries were researched but BEFORE dataset.save(),
     losing paid-for results. Failing here, before any research starts, is
     cheap and loud."""

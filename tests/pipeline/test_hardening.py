@@ -12,10 +12,11 @@ from datetime import date
 
 import pytest
 from conftest import full_result
+from regulation_pipeline.api import ResearchRequest
 from regulation_pipeline.batch import CANCEL_GRACE_SECONDS, BatchRunner
 from regulation_pipeline.config import Settings
 from regulation_pipeline.errors import FatalAPIError
-from regulation_pipeline.models import ResearchResult
+from regulation_pipeline.models import ResearchProvenance, ResearchResult
 from regulation_pipeline.names import CountryNames
 from regulation_pipeline.repository import Dataset, _write_text
 from regulation_pipeline.strategies import SyncStrategy
@@ -27,11 +28,14 @@ class StubResearchClient:
     def __init__(self, results: dict):
         self.results = results
 
-    def research(self, country, existing, *, use_search):
-        return self.results.get(country)
+    def _provenance(self, use_search):
+        return ResearchProvenance(initiatives_used=None, search=use_search, model="m")
 
-    def request_params(self, country, existing, *, use_search):
-        return {"country": country}
+    def research(self, country, existing, *, use_search):
+        return self.results.get(country), self._provenance(use_search)
+
+    def request(self, country, existing, *, use_search):
+        return ResearchRequest({"country": country}, self._provenance(use_search))
 
 
 class TestConfidenceValidator:

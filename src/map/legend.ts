@@ -94,13 +94,17 @@ export function addLegend(
     .attr('class', 'legend-nodata')
     .attr('transform', 'translate(0, -11)');
 
-  // A filled dot (no outline) reads as a colour key; the old bordered
-  // square read as an unchecked checkbox.
+  // A filled dot reads as a colour key; the old bordered square read as
+  // an unchecked checkbox. The thin ring keeps the dot visible in the
+  // light theme, where --no-data is nearly the ocean colour and the
+  // legend sits over Antarctica (itself no data).
   noData.append('circle')
     .attr('cx', 4)
     .attr('cy', -4)
     .attr('r', 4.5)
-    .style('fill', cssVar('--no-data'));
+    .style('fill', cssVar('--no-data'))
+    .style('stroke', cssVar('--text-tertiary'))
+    .style('stroke-width', 1);
 
   noData.append('text')
     .attr('class', 'legend-label')

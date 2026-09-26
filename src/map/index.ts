@@ -1,5 +1,5 @@
 import { on, getState } from '../state/store';
-import { generateMap, updateMap, markComparisonCountries, isHatched } from './renderer';
+import { generateMap, updateMap, markComparisonCountries, displayedEntry, isHatched } from './renderer';
 import { updateLegendLabels, updateLegendUncertainty } from './legend';
 import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../constants';
 
@@ -30,13 +30,14 @@ function announceCountry(name: string | null) {
     region.textContent = 'Selection cleared.';
     return;
   }
-  const { scoreData, currentAttribute } = getState();
+  const { currentAttribute } = getState();
   const label = ATTRIBUTE_LABELS[currentAttribute] || currentAttribute;
-  const score = scoreData[name]?.[currentAttribute];
+  const { entry, vintage } = displayedEntry(name);
+  const score = entry?.[currentAttribute];
   // The hatch is visual; say it too, as the tooltip does.
   const flag = isHatched(name) ? ' Low confidence.' : '';
   region.textContent = score != null
-    ? `Selected ${name}. ${label}: ${score} of 5.${flag}`
+    ? `Selected ${name}. ${label}: ${score} of 5${vintage ? ` as of ${vintage}` : ''}.${flag}`
     : `Selected ${name}. No ${label} data.`;
 }
 
@@ -70,6 +71,11 @@ export function initMapSubscriptions() {
   on('selectedBloc', scheduleUpdateMap);
   on('filterConfidence', scheduleUpdateMap);
   on('filterOfficialOnly', scheduleUpdateMap);
+  on('filterEvidence', scheduleUpdateMap);
+  // The evidence facet reads its records from subscores.json, which loads
+  // after first paint: repaint when it lands so an evidence= deep link
+  // settles on the right set.
+  on('subscores', () => { if (getState().filterEvidence !== 'any') scheduleUpdateMap(); });
 
   // The low-confidence hatch: its toggle, and confidence itself (a
   // hydrated dataset can carry new ratings). The legend key follows the

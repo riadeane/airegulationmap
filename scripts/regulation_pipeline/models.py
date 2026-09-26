@@ -22,13 +22,26 @@ are descriptive scales and are excluded. See ``public/methodology.html``.
 Methodology v2.1 (2026-09): every sub-indicator carries a one-sentence
 ``rationale`` that states the fact the score rests on, so a reader can check a
 score without repeating the research.
+
+Evidence coverage (PRD 14): a validated result can carry a
+:class:`ResearchProvenance` - how many verified policy initiatives the prompt
+embedded, whether the model had web search, and the model id. It is attached
+by the strategy from the request it sent, never parsed from the model's answer.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Annotated, Any, ClassVar, Literal
 
-from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    PrivateAttr,
+    model_validator,
+)
 
 # Tag written to subscores.json and bumped whenever the audit-trail shape
 # changes. v2 = integer sub-scores; v2.1 = ``{score, rationale}`` per sub-indicator.
@@ -176,11 +189,51 @@ class EnforcementLevel(Dimension):
     text: str
 
 
+@dataclass(frozen=True)
+class ResearchProvenance:
+    """How one country was researched: the facts of the request, not of the
+    answer.
+
+    ``initiatives_used`` is the number of verified policy initiatives the
+    prompt embedded (capped at ``prompt.MAX_GROUNDED_INITIATIVES``). ``0``
+    means the run consulted the evidence database and it held none for the
+    country; ``None`` means the run had no evidence provider, so nothing was
+    consulted. The frontend relies on that difference to never claim "no
+    verified initiatives on record" when the run simply did not look.
+    """
+
+    initiatives_used: int | None
+    search: bool
+    model: str
+
+    @property
+    def grounded(self) -> bool:
+        """The prompt embedded at least one initiative. Always derived from
+        the count, so the two can never disagree."""
+        return (self.initiatives_used or 0) > 0
+
+    def record(self, run_id: str) -> dict[str, Any]:
+        """The ``evidence`` block written into the country's subscores.json
+        entry: ``{grounded, initiatives_used, search, model, run_id}``."""
+        return {
+            "grounded": self.grounded,
+            "initiatives_used": self.initiatives_used,
+            "search": self.search,
+            "model": self.model,
+            "run_id": run_id,
+        }
+
+
 class ResearchResult(BaseModel):
     """The full research answer for one country: five scored dimensions plus
     named laws, sources, and self-reported confidence."""
 
     model_config = _STRICT
+
+    # How the answer was obtained (PRD 14). A private attribute: it stays out
+    # of ``output_schema()`` and no key in the model's JSON answer can set it.
+    # The strategy attaches it with ``with_provenance`` after validation.
+    _provenance: ResearchProvenance | None = PrivateAttr(default=None)
 
     regulation_status: RegulationStatus
     policy_lever: PolicyLever
@@ -199,6 +252,17 @@ class ResearchResult(BaseModel):
         ActorInvolvement,
         EnforcementLevel,
     )
+
+    @property
+    def provenance(self) -> ResearchProvenance | None:
+        """The request facts behind this answer, or ``None`` when none were
+        attached (a result validated outside a strategy)."""
+        return self._provenance
+
+    def with_provenance(self, provenance: ResearchProvenance | None) -> ResearchResult:
+        """Attach ``provenance`` and return this result (for chaining)."""
+        self._provenance = provenance
+        return self
 
     def dimensions(self) -> dict[str, Dimension]:
         """Map ``dimension key -> Dimension instance`` in canonical order."""

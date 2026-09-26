@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeCountryIso, formatIsoCodes } from '../src/data/countryIso';
+import { normalizeCountryIso, formatIsoCodes, isoNumericIndex } from '../src/data/countryIso';
+import { resolveFeatureNames } from '../src/map/geometryNames';
 
 const FILE = {
   _comment: 'ISO 3166-1 codes',
@@ -40,5 +41,48 @@ describe('formatIsoCodes', () => {
   it('is empty when the country has no codes', () => {
     expect(formatIsoCodes(null)).toBe('');
     expect(formatIsoCodes(undefined)).toBe('');
+  });
+});
+
+describe('isoNumericIndex', () => {
+  it('maps each ISO numeric (leading zeros dropped) to the dataset name', () => {
+    const index = isoNumericIndex({
+      countries: {
+        'Solomon Islands': { iso3: 'SLB', iso2: 'SB', numeric: '090' },
+        Germany: { iso3: 'DEU', iso2: 'DE', numeric: '276' },
+        Kosovo: { iso3: 'XKX', iso2: 'XK', numeric: null },
+      },
+    });
+    expect(index).toEqual({ 90: 'Solomon Islands', 276: 'Germany' });
+  });
+
+  it('returns an empty index for a missing file', () => {
+    expect(isoNumericIndex(null)).toEqual({});
+  });
+});
+
+describe('resolveFeatureNames', () => {
+  const geo = (name, id) => ({ type: 'Feature', id, properties: { name }, geometry: null });
+
+  it('renames atlas geometries to the dataset name through the ISO id', () => {
+    const features = [
+      geo('Eq. Guinea', '226'),
+      geo('Solomon Is.', '090'),
+      geo('Germany', '276'),
+      geo('Antarctica', '010'),
+      geo('Somaliland', undefined),
+    ];
+    const datasetNames = new Set(['Equatorial Guinea', 'Solomon Islands', 'Germany']);
+    const byNumeric = { 226: 'Equatorial Guinea', 90: 'Solomon Islands', 276: 'Germany' };
+    resolveFeatureNames(features, datasetNames, byNumeric);
+    expect(features.map(f => f.properties.name)).toEqual([
+      'Equatorial Guinea', 'Solomon Islands', 'Germany', 'Antarctica', 'Somaliland',
+    ]);
+  });
+
+  it('keeps an atlas name that already matches the dataset', () => {
+    const features = [geo('Kosovo', undefined)];
+    resolveFeatureNames(features, new Set(['Kosovo']), {});
+    expect(features[0].properties.name).toBe('Kosovo');
   });
 });

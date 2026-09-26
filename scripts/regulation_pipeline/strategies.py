@@ -7,6 +7,11 @@ as answers arrive - ``None`` means the answer failed for *any* reason (transient
 error, unparseable JSON, or schema-invalid response). Validating here (rather than
 downstream) keeps the sync circuit-breaker able to count invalid responses, and
 lets the service deal only in validated domain objects.
+
+Each validated result carries the provenance of the request that produced it
+(initiatives embedded, web search, model; see
+:class:`~regulation_pipeline.models.ResearchProvenance`), taken from the
+request the client built, so the evidence provider is asked once per country.
 """
 
 from __future__ import annotations
@@ -21,7 +26,7 @@ from pydantic import ValidationError
 from .api import ResearchClient, parse_message
 from .batch import BatchRunner
 from .errors import FatalAPIError
-from .models import ResearchResult
+from .models import ResearchProvenance, ResearchResult
 
 logger = logging.getLogger(__name__)
 
@@ -81,10 +86,10 @@ class SyncStrategy(ResearchStrategy):
                         f"after {i - 1}/{len(countries)} countries - aborting"
                     )
             logger.info("[%d/%d] Researching %s...", i, len(countries), country)
-            raw = self._client.research(
+            raw, provenance = self._client.research(
                 country, reg_rows.get(country), use_search=self._use_search_for(country)
             )
-            result = _validate(country, raw)
+            result = _validate(country, raw, provenance)
             if result is None:
                 consecutive += 1
                 yield country, None
@@ -105,7 +110,8 @@ class BatchStrategy(ResearchStrategy):
     """Submit every country in one batch (with a transient-failure retry batch),
     then yield the validated answer for each. The Batches API returns per-request
     results, so there is no consecutive-failure abort - a bad request costs one
-    country, not the run."""
+    country, not the run. Requests are built once, before submission; each
+    answer gets the provenance of its own request."""
 
     def __init__(
         self,
@@ -118,31 +124,37 @@ class BatchStrategy(ResearchStrategy):
         self._use_search_for = use_search_for
 
     def research(self, countries: list[str], reg_rows: dict[str, dict]) -> Iterator[Answer]:
-        params_by_country = {
-            country: self._client.request_params(
+        requests = {
+            country: self._client.request(
                 country, reg_rows.get(country), use_search=self._use_search_for(country)
             )
             for country in countries
         }
-        logger.info("Submitting batch of %d requests...", len(params_by_country))
-        messages, _failed = self._runner.research(params_by_country)
+        logger.info("Submitting batch of %d requests...", len(requests))
+        messages, _failed = self._runner.research(
+            {country: request.params for country, request in requests.items()}
+        )
 
         for country in countries:
             message = messages.get(country)
             raw = parse_message(message, country) if message is not None else None
-            yield country, _validate(country, raw)
+            yield country, _validate(country, raw, requests[country].provenance)
 
 
-def _validate(country: str, raw: dict | None) -> ResearchResult | None:
-    """Validate a raw answer into a typed result. Returns ``None`` (with a logged
-    warning) for a missing or schema-invalid answer."""
+def _validate(
+    country: str, raw: dict | None, provenance: ResearchProvenance | None = None,
+) -> ResearchResult | None:
+    """Validate a raw answer into a typed result carrying ``provenance``.
+    Returns ``None`` (with a logged warning) for a missing or schema-invalid
+    answer."""
     if raw is None:
         return None
     try:
-        return ResearchResult.model_validate(raw)
+        result = ResearchResult.model_validate(raw)
     except ValidationError as exc:
         logger.warning("invalid response for %s: %s", country, _summarize(exc))
         return None
+    return result.with_provenance(provenance)
 
 
 def _summarize(exc: ValidationError) -> str:

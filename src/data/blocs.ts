@@ -1,9 +1,11 @@
 // Bloc membership data + aggregate statistics.
-// computeBlocStats is pure and unit-tested; loadBlocs mirrors
-// loadHistory's contract (null on any failure, callers degrade).
+// computeBlocStats and the evidence-share helpers are pure and unit-tested;
+// loadBlocs mirrors loadHistory's contract (null on any failure, callers
+// degrade).
 
 import type { AttributeKey } from '../constants';
 import type { ScoreData } from './loader';
+import type { EvidenceRecord } from './evidence';
 
 export interface Bloc {
   name: string;
@@ -26,6 +28,17 @@ export interface BlocStats {
   scoredCount: number;
   highest: BlocMemberScore;
   lowest: BlocMemberScore;
+}
+
+/** How many of a bloc's members were researched with verified initiatives. */
+export interface BlocEvidenceShare {
+  memberCount: number;
+  /** Members with a run record (an `evidence` entry in subscores.json). */
+  recorded: number;
+  /** Recorded members whose research embedded verified initiatives. */
+  grounded: number;
+  /** grounded / recorded, 0..1. */
+  share: number;
 }
 
 export async function loadBlocs(knownCountries: string[] | null = null): Promise<BlocsData | null> {
@@ -93,4 +106,37 @@ export function computeBlocStats(
     highest,
     lowest,
   };
+}
+
+/**
+ * Share of a bloc's members whose latest research was grounded in verified
+ * policy initiatives (PRD 14). The denominator is the members with a run
+ * record, not the whole bloc: a member researched before the record existed
+ * is unknown, not ungrounded. Returns null when no member has a record.
+ */
+export function computeBlocEvidenceShare(
+  members: readonly string[],
+  evidenceOf: (country: string) => EvidenceRecord | null | undefined
+): BlocEvidenceShare | null {
+  let recorded = 0;
+  let grounded = 0;
+  for (const name of members) {
+    const record = evidenceOf(name);
+    if (!record) continue;
+    recorded++;
+    if (record.grounded) grounded++;
+  }
+  if (recorded === 0) return null;
+  return { memberCount: members.length, recorded, grounded, share: grounded / recorded };
+}
+
+/**
+ * The bloc card's evidence line: grounded members out of those with a run
+ * record, percentage rounded to an integer. The "with a run record"
+ * qualifier appears only while some members have no record yet.
+ */
+export function blocEvidenceShareText(share: BlocEvidenceShare): string {
+  const scope = share.recorded === share.memberCount ? 'members' : 'members with a run record';
+  const pct = Math.round(share.share * 100);
+  return `Grounded in verified initiatives: ${share.grounded} of ${share.recorded} ${scope} (${pct}%)`;
 }

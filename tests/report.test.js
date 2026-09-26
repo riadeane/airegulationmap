@@ -148,6 +148,23 @@ describe('buildReportBody', () => {
     expect(body).not.toContain('more not listed');
   });
 
+  it('states the evidence coverage line only when the country has a run record', () => {
+    expect(buildReportBody(base)).not.toContain('**Evidence:**');
+    const withRecord = normalizeSubscores({
+      schema_version: 1,
+      countries: {
+        Chile: {
+          date: '2026-09-01',
+          evidence: { grounded: true, initiatives_used: 7, search: true, model: 'claude-opus-5-5', run_id: 'r1' },
+        },
+      },
+    }).countries.Chile;
+    const body = buildReportBody({ ...base, subscores: withRecord });
+    expect(body).toContain(
+      '**Confidence:** Medium\n**Evidence:** Grounded in 7 verified policy initiatives and web search\n'
+    );
+  });
+
   it('degrades when the entry has no text row or no scores row', () => {
     const body = buildReportBody({ ...base, score: null, regulation: null });
     expect(body).toContain('**Confidence:** Not stated');

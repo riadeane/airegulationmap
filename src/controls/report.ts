@@ -4,7 +4,8 @@
 // cheapest data-quality signal the project has, so this removes every
 // step between "that score is wrong" and a filed issue. One click opens
 // the data-error issue form on GitHub with the entry as the panel shows
-// it already filled in: the six scores, confidence, last updated, data
+// it already filled in: the six scores, confidence, the evidence coverage
+// sentence (once the country has a run record), last updated, data
 // version, the citation string a reader would quote, the app URL, the
 // source list and, once the audit trail carries rationales (methodology
 // v2.1), the sub-indicator rows in a collapsed block. The reader adds
@@ -30,6 +31,7 @@ import { buildPermalink } from './url';
 import { classifySources } from '../data/sources';
 import { DIMENSION_TO_SNAKE, SUBSCORE_LABELS } from '../data/subscores';
 import type { SubscoreEntry } from '../data/subscores';
+import { evidenceSentence } from '../data/evidence';
 import type { ScoreEntry, RegulationEntry } from '../data/loader';
 
 export const ISSUE_NEW_URL = 'https://github.com/riadeane/airegulationmap/issues/new';
@@ -96,7 +98,7 @@ function fits(body: string): boolean {
 }
 
 function headerBlock(entry: ReportEntry): string[] {
-  const { country, score, regulation, url, timelineDate, accessed } = entry;
+  const { country, score, regulation, subscores, url, timelineDate, accessed } = entry;
   const lastUpdated = score?.lastUpdated || regulation?.lastUpdated || 'unknown';
   // The same string the Cite popover offers, so the issue and a footnote
   // that quotes the entry name the same version.
@@ -106,9 +108,14 @@ function headerBlock(entry: ReportEntry): string[] {
     url,
     ...(accessed ? { accessed } : {}),
   }).apa;
+  // The panel's evidence line (PRD 14), only when the country has a run record.
+  const evidence = subscores?.evidence
+    ? [`**Evidence:** ${evidenceSentence(subscores.evidence).text}`]
+    : [];
   const lines = [
     `**Country:** ${country}`,
     `**Confidence:** ${formatConfidence(regulation?.confidence)}`,
+    ...evidence,
     `**Last updated:** ${lastUpdated}`,
     `**Data version:** ${score ? score.dataVersion : 'unknown'}`,
     `**Cite as:** ${citation}`,

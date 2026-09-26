@@ -70,7 +70,8 @@
   color: var(--accent);
 }
 
-.bloc-summary-coverage {
+.bloc-summary-coverage,
+.bloc-summary-evidence {
   font-size: 0.68rem;
   color: var(--text-tertiary);
   margin-top: 2px;

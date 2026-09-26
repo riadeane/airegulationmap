@@ -25,6 +25,8 @@ import {
 } from '../state/selectors';
 import { getColorIndex } from '../comparison/colorSlots';
 import { cssVar, onThemeChange } from './cssColors';
+import { resolveFeatureNames } from './geometryNames';
+import { loadIsoNumericIndex } from '../data/countryIso';
 
 /** A world-atlas country geometry with its bound name property. */
 export type CountryFeature = Feature<Geometry, { name: string }>;
@@ -245,10 +247,6 @@ export async function generateMap(): Promise<void> {
     .attr('viewBox', [0, 0, size.w, size.h])
     .attr('preserveAspectRatio', 'xMidYMid meet');
 
-  // Some screen readers prefer <title> to aria-label on SVG, so set
-  // both. The title must be the first child to be announced correctly.
-  svg.append('title').text('World map showing AI regulation scores by country');
-
   const defs = svg.append('defs');
   defs.append('clipPath')
     .attr('id', 'clip')
@@ -276,8 +274,15 @@ export async function generateMap(): Promise<void> {
 
   // Self-hosted from /public/data so there's no third-party request on
   // page load and offline dev works. Source: world-atlas@2 (Natural Earth).
-  const world = (await json<Topology>('/data/countries-110m.json'))!;
-  const countries = (feature(world, world.objects.countries) as FeatureCollection<Geometry, { name: string }>).features;
+  const [world, byNumeric] = await Promise.all([
+    json<Topology>('/data/countries-110m.json'),
+    loadIsoNumericIndex(),
+  ]);
+  const countries = resolveFeatureNames(
+    (feature(world!, world!.objects.countries) as FeatureCollection<Geometry, { name: string }>).features,
+    new Set(Object.keys(scoreData)),
+    byNumeric
+  );
   countryFeaturesRef = countries;
 
   const mapGroup = g.append<SVGGElement>('g').attr('class', 'map-group');
@@ -312,7 +317,7 @@ export async function generateMap(): Promise<void> {
     .on('mouseover', function (event: MouseEvent, d) {
       const countryName = d.properties.name;
       const { currentAttribute: attr, comparisonCountries } = getState();
-      const entry = getState().scoreData[countryName];
+      const { entry, vintage } = displayedEntry(countryName);
       const score = entry ? entry[attr] : null;
       const label = ATTRIBUTE_LABELS[attr] || attr;
       const inComparison = comparisonCountries.includes(countryName);
@@ -327,7 +332,7 @@ export async function generateMap(): Promise<void> {
       const confidence = confidenceAtDate(countryName);
       showTooltip(event,
         `<strong>${countryName}${flag}</strong>` +
-        (score != null ? `<br>${label}: ${score} / 5` : '<br>No data') +
+        (score != null ? `<br>${label}: ${score} / 5${vintage ? ` (${vintage})` : ''}` : '<br>No data') +
         (confidence ? `<br>Confidence: ${confidence}` : '') +
         hint
       );
@@ -391,12 +396,13 @@ export async function generateMap(): Promise<void> {
   });
 
   onThemeChange(() => {
+    // Repaint through updateMap: it recomputes fills with the new theme's
+    // scale for the displayed vintage and carries opacity with them. A
+    // separate fill-only transition here would interrupt an in-flight
+    // filter fade and strand countries half dimmed.
+    updateMap();
     const refreshed = makeColorScale();
-    const { scoreData: sd, currentAttribute: attr } = getState();
-    selectAll<SVGPathElement, CountryFeature>('#map .country')
-      .transition().duration(220)
-      .attr('fill', d => fillFor(sd[d.properties.name], attr, refreshed))
-      .attr('stroke', cssVar('--map-stroke'));
+    selectAll('#map .country').attr('stroke', cssVar('--map-stroke'));
     select('#map .sphere').attr('fill', cssVar('--ocean'));
     select('#map .graticule').attr('stroke', cssVar('--text-tertiary'));
     select('#map .legend').remove();
@@ -422,7 +428,8 @@ export async function generateMap(): Promise<void> {
 }
 
 // Single opacity composition for the score-range filter and the
-// country-level filters (bloc - via the shared selector predicate).
+// country-level filters (bloc, confidence, official sources, evidence -
+// via the shared selector predicate).
 // (Search dimming stays class-based in CSS and intentionally wins over
 // this inline value while the user is mid-search.)
 //
@@ -445,8 +452,8 @@ function countryOpacity(
 ): number {
   if (!entry || entry[currentAttribute] == null) {
     // No data: keep the usual soft presence, but recede fully while a
-    // country-level filter (bloc/confidence/official) is highlighting a
-    // subset, so that subset reads cleanly.
+    // country-level filter (bloc/confidence/official/evidence) is
+    // highlighting a subset, so that subset reads cleanly.
     return countryFiltersActive ? 0.15 : 0.4;
   }
   const score = entry[currentAttribute]!;
@@ -454,10 +461,22 @@ function countryOpacity(
   return (inRange && passesCountryFilters(country)) ? 1 : 0.15;
 }
 
+/**
+ * The entry the map is painting for a country: the timeline snapshot on a
+ * past date (with that date as `vintage`), else the latest row. Mirrors
+ * updateMap's resolution so the tooltip and live region report the value
+ * behind the colour.
+ */
+export function displayedEntry(name: string): { entry: MapScoreEntry | undefined; vintage: string | null } {
+  const past = scoresAtDate();
+  if (past) return { entry: past[name], vintage: getState().timelineDate };
+  return { entry: getState().scoreData[name], vintage: null };
+}
+
 export function updateMap(overrideScoreData?: MapScores): void {
   const {
     currentAttribute, filterMin, filterMax, scoreData, selectedBloc, blocsData,
-    filterConfidence, filterOfficialOnly,
+    filterConfidence, filterOfficialOnly, filterEvidence,
   } = getState();
   // No explicit override: resolve the timeline vintage ourselves, so a
   // filter change mid-scrub repaints the SAME historical date instead of
@@ -466,7 +485,8 @@ export function updateMap(overrideScoreData?: MapScores): void {
   const colorScale = makeColorScale();
   const countryFiltersActive = !!(selectedBloc && blocsData?.[selectedBloc])
     || filterConfidence != null
-    || filterOfficialOnly;
+    || filterOfficialOnly
+    || filterEvidence !== 'any';
 
   select('#map')
     .selectAll<SVGPathElement, CountryFeature>('.country')

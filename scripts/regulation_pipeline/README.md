@@ -186,6 +186,12 @@ structured outputs don't support `minimum`/`maximum`) with a `BeforeValidator` t
 rejects booleans - so a malformed response raises instead of landing an empty CSV
 cell.
 
+A validated result also carries a `ResearchProvenance` (initiatives embedded in
+the prompt, web search on or off, model id), held in a pydantic private
+attribute: it is not in `output_schema()`, and no key in the model's answer can
+set it. `ResearchClient.request` builds it beside the request params from the
+one evidence lookup, and the strategy attaches it with `with_provenance`.
+
 ---
 
 ## Strategy pattern
@@ -261,6 +267,29 @@ flowchart LR
 > preserves snapshot key order. An unchanged run re-writes every file byte-for-byte
 > identically (there's a test that asserts exactly this). Preserve this when
 > touching `repository.py`.
+
+**Evidence record (PRD 14).** After every applied result the service calls
+`Dataset.set_evidence`, which writes an `evidence` block into the country's
+`subscores.json` entry, beside `date` and the five dimension blocks:
+
+```json
+"evidence": {"grounded": true, "initiatives_used": 7, "search": true,
+             "model": "claude-opus-5", "run_id": "<research_runs.id>"}
+```
+
+- `initiatives_used` is the number of verified initiatives the prompt embedded
+  (at most 15). `0` means the run had an evidence provider (`--grounded`) and
+  it held none for the country, so the plain prompt was used. `null` means the
+  run had no evidence provider, so nothing was consulted. The panel relies on
+  the difference: only `0` supports "no verified initiatives on record".
+- `grounded` is always `initiatives_used > 0`; `search` is the strategy's web
+  search decision; `run_id` is the service's run id.
+- The block describes the pass behind the entry's text, sources and
+  confidence, so it is written for a held result too (the sub-scores stay).
+  A result without provenance removes it. No block means no run record yet;
+  entries from before PRD 14 are not backfilled.
+- `split_subscores_entry` skips the block, so the mirror's and the seed's
+  `subscores` / `rationales` columns never carry it.
 
 ---
 
@@ -421,9 +450,21 @@ provenance.
 - **Grounded mode** - `prompt.render_grounded_prompt` injects a capped
   verified-evidence block (≤15 most recent initiatives, overviews ≤400
   chars); the rubric and structured-output schema are identical to the
-  plain prompt, so `models.py` and everything downstream are untouched.
+  plain prompt, so the answer contract is untouched.
   `ResearchClient` takes an `evidence_provider`; countries without
   evidence fall back to the plain prompt. Enable with `--grounded`.
+  `ResearchClient._prompt_for` returns a `ResearchPrompt(text,
+  initiatives_used)`, and the count travels with the request as
+  `ResearchProvenance` into the `evidence` block of `subscores.json` (see
+  "Evidence record" above; `null` without a provider, `0` when the
+  provider had nothing). The mirror writes it to `country_scores.grounded`,
+  `initiatives_used` and `web_search`
+  (`supabase/migrations/0008_evidence_coverage.sql`), null when the entry
+  has no block; the model is `research_runs.model` via `run_id`. The
+  migration is applied to the live project; a database without it rejects
+  the upsert for the unknown columns, so the flush would stop at
+  `country_scores` and leave the run row unfinished (a warning, not a
+  failed run).
 
 ## Weekly digest (`digest.py`)
 

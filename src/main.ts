@@ -103,6 +103,9 @@ async function main(): Promise<void> {
   }
   if (urlState.filterConfidence) setState({ filterConfidence: urlState.filterConfidence });
   if (urlState.filterOfficialOnly) setState({ filterOfficialOnly: true });
+  // The evidence records arrive with subscores.json (below); the map and
+  // scatter repaint on 'subscores', so the facet can apply before they land.
+  if (urlState.filterEvidence) setState({ filterEvidence: urlState.filterEvidence });
 
   // Wire up UI controls
   initTheme();
@@ -137,6 +140,10 @@ async function main(): Promise<void> {
   try {
     await generateMap();
     removeMapSkeleton();
+    // The first paint sets fills only; opacity (the score-range and
+    // country filters) is updateMap's job. Run it once so filters from
+    // the URL (?conf=, ?min=, ?max=, ?official=) show on load.
+    updateMap();
   } catch (err) {
     showLoadError(err);
     return;

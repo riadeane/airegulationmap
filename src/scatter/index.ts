@@ -165,8 +165,8 @@ function updateChart(): void {
   svg.select('#scatter-x-label').text(ATTRIBUTE_LABELS[scatterX]);
   svg.select('#scatter-y-label').text(ATTRIBUTE_LABELS[scatterY]);
 
-  // The shared visibility predicate (score range + bloc) - identical to the
-  // map's dimming and the export's "filtered view" scope.
+  // The shared visibility predicate (score range + every country filter) -
+  // identical to the map's dimming and the export's "filtered view" scope.
   const visibleSet = visibleCountrySet();
 
   const countries = Object.entries(scoreData)
@@ -341,6 +341,10 @@ export function initScatter(): void {
   on('selectedBloc', refreshIfOpen);
   on('filterConfidence', refreshIfOpen);
   on('filterOfficialOnly', refreshIfOpen);
+  on('filterEvidence', refreshIfOpen);
+  // visibleCountrySet() reads the evidence records from subscores.json,
+  // which may land after the scatter opened from a deep link.
+  on('subscores', () => { if (getState().filterEvidence !== 'any') refreshIfOpen(); });
   onThemeChange(refreshIfOpen);
 
   setVisible(getState().mainView === 'scatter');

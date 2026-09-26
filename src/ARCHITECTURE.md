@@ -15,7 +15,7 @@ Derived values are read through *selectors*, never recomputed inline.
 ## Layering
 
 Dependencies point downward. Nothing below the orchestrator imports a feature,
-so there are no import cycles (`madge --circular src/` is clean).
+so there are no import cycles (`madge --circular --extensions ts src/` is clean).
 
 ```mermaid
 flowchart TD
@@ -93,9 +93,9 @@ instead of the panel rebuilding an O(n²) scan on every selection. New
 derivations used in more than one place belong here.
 
 `visibleCountrySet()` is the single definition of "which countries pass the
-active filters" (score range + bloc + confidence + official-sources) - the
-export scope, scatter dimming, and map opacity all read it, after three
-diverging copies let the export forget the bloc filter entirely.
+active filters" (score range + bloc + confidence + official-sources +
+evidence) - the export scope, scatter dimming, and map opacity all read it,
+after three diverging copies let the export forget the bloc filter entirely.
 `passesCountryFilters()` is its score-independent half (the map range-checks
 per-datum because timeline playback filters historical snapshots), and
 `scoresAtDate()` memoizes the snapshot resolution the map and the panel share
@@ -108,10 +108,12 @@ the legend when that fallback is in play).
 `loader.ts` maps CSV rows to typed domain objects (`ScoreEntry`,
 `RegulationEntry`) and validates at the boundary (non-numeric/out-of-range →
 `null`, never `NaN`). `history.ts`, `blocs.ts`, `subscores.ts`, and
-`searchIndex.ts` are the other read models; `peers.ts` derives the panel's
-peer sets (bloc, similar maturity, similar profile) as pure functions over
-the score rows. This is the layer that most
-resembles the backend's `Dataset` repository.
+`searchIndex.ts` are the other read models; `evidence.ts` normalizes the
+per-country evidence record `subscores.ts` carries (PRD 14) and derives the
+panel sentence and the Evidence filter predicate; `peers.ts` derives the
+panel's peer sets (bloc, similar maturity, similar profile) as pure
+functions over the score rows. This is the layer that most resembles the
+backend's `Dataset` repository.
 
 ### Facade barrels - `map/index.ts`, `comparison/index.ts`, `scatter/index.ts`
 Each feature exposes a curated surface and hides its internals (the D3 renderer,
@@ -128,7 +130,7 @@ State ⇄ URL query string, so any view is a shareable link. `buildPermalink`
 omits defaults (and the theme, for citations); `applyUrlState` restores through
 the same intents, with an explicit precedence (comparison > scatter > country).
 Params: `country`, `compare`, `mode`, `date`, `bloc`, `min`/`max` (score
-range), `conf`/`official` (country filters), `q` (committed search),
+range), `conf`/`official`/`evidence` (country filters), `q` (committed search),
 `scatter`, `theme`. The header Share popover (`controls/share.ts`) surfaces
 the permalink + formatted citations for ANY view, no selection required.
 `showUncertainty` (the map hatch toggle) is a per-browser preference in

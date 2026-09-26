@@ -44,13 +44,40 @@ function buildExportRows(countries: string[]) {
 // export is unchanged.
 type ExportRow = ReturnType<typeof buildExportRows>[number];
 
+/** The evidence record (PRD 14) as subscores.json and the data page name it. */
+export interface EvidenceExport {
+  grounded: boolean;
+  initiatives_used: number | null;
+  search: boolean;
+  model: string | null;
+  run_id: string | null;
+}
+
+type SubindicatorAudit = Omit<SubscoreEntry, 'evidence'>;
+
+// The evidence record rides in the subscores.json entry but is research
+// metadata, not a sub-indicator, so the export gives it its own key and
+// the file's field names.
 export function withSubindicators(
   rows: ExportRow[],
   subscores: Record<string, SubscoreEntry> | undefined
-): (ExportRow & { 'Sub-indicators'?: SubscoreEntry })[] {
+): (ExportRow & { 'Sub-indicators'?: SubindicatorAudit; 'Evidence'?: EvidenceExport })[] {
   return rows.map(row => {
     const entry = subscores?.[row.Country];
-    return entry ? { ...row, 'Sub-indicators': entry } : row;
+    if (!entry) return row;
+    const { evidence, ...audit } = entry;
+    if (!evidence) return { ...row, 'Sub-indicators': audit };
+    return {
+      ...row,
+      'Sub-indicators': audit,
+      'Evidence': {
+        grounded: evidence.grounded,
+        initiatives_used: evidence.initiativesUsed,
+        search: evidence.search,
+        model: evidence.model,
+        run_id: evidence.runId,
+      },
+    };
   });
 }
 

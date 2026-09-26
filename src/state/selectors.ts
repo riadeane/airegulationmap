@@ -12,6 +12,9 @@ import { getState } from './store';
 import type { ConfidenceLevel } from './store';
 import type { ScoreData, RegulationData } from '../data/loader';
 import type { BlocsData } from '../data/blocs';
+import type { SubscoresData } from '../data/subscores';
+import { matchesEvidenceFilter } from '../data/evidence';
+import type { EvidenceFilter, EvidenceRecord } from '../data/evidence';
 import type { HistoryData, HistorySnapshot } from '../data/history';
 import { buildScoresAtDate, extractSortedDates } from '../data/history';
 import { classifySources } from '../data/sources';
@@ -107,23 +110,34 @@ function confidenceOf(country: string): ConfidenceLevel | null {
 }
 
 /**
+ * A country's evidence record (PRD 14): how its latest research pass was
+ * grounded. Null until subscores.json loads, and for a country with no run
+ * record yet.
+ */
+export function evidenceOf(country: string): EvidenceRecord | null {
+  return getState().subscores?.countries[country]?.evidence ?? null;
+}
+
+/**
  * Score-INDEPENDENT country filters: bloc membership, confidence level,
- * official-sources-only. Split from visibleCountrySet() because the map
- * filters historical snapshots during timeline playback - its score-range
- * check runs against the snapshot, not live data, so only this half is
- * shareable there.
+ * official-sources-only, evidence coverage. Split from visibleCountrySet()
+ * because the map filters historical snapshots during timeline playback -
+ * its score-range check runs against the snapshot, not live data, so only
+ * this half is shareable there.
  */
 export function passesCountryFilters(country: string): boolean {
   const blocSet = blocMemberSet();
   if (blocSet && !blocSet.has(country)) return false;
 
-  const { filterConfidence, filterOfficialOnly } = getState();
+  const { filterConfidence, filterOfficialOnly, filterEvidence } = getState();
   if (filterConfidence) {
     const level = confidenceOf(country);
     // Unknown confidence can't satisfy a confidence filter.
     if (!level || !filterConfidence.includes(level)) return false;
   }
   if (filterOfficialOnly && !officialSourceCountries().has(country)) return false;
+  // No run record (or subscores.json not loaded yet) satisfies only 'any'.
+  if (!matchesEvidenceFilter(evidenceOf(country), filterEvidence)) return false;
   return true;
 }
 
@@ -136,6 +150,10 @@ let visibleCache: {
   blocSet: ReadonlySet<string> | null;
   confidence: readonly ConfidenceLevel[] | null;
   officialOnly: boolean;
+  evidence: EvidenceFilter;
+  // subscores.json carries the evidence records and loads async, so a
+  // deep-linked evidence filter applies before it lands: key on it too.
+  subscores: SubscoresData | null;
   set: ReadonlySet<string>;
 } | null = null;
 
@@ -149,7 +167,7 @@ let visibleCache: {
 export function visibleCountrySet(): ReadonlySet<string> {
   const {
     scoreData, regulationData, currentAttribute, filterMin, filterMax,
-    filterConfidence, filterOfficialOnly,
+    filterConfidence, filterOfficialOnly, filterEvidence, subscores,
   } = getState();
   const blocSet = blocMemberSet();
   if (
@@ -162,6 +180,8 @@ export function visibleCountrySet(): ReadonlySet<string> {
     && visibleCache.blocSet === blocSet
     && visibleCache.confidence === filterConfidence
     && visibleCache.officialOnly === filterOfficialOnly
+    && visibleCache.evidence === filterEvidence
+    && visibleCache.subscores === subscores
   ) {
     return visibleCache.set;
   }
@@ -175,7 +195,8 @@ export function visibleCountrySet(): ReadonlySet<string> {
   }
   visibleCache = {
     scoreData, regulationData, attr: currentAttribute, min: filterMin, max: filterMax,
-    blocSet, confidence: filterConfidence, officialOnly: filterOfficialOnly, set,
+    blocSet, confidence: filterConfidence, officialOnly: filterOfficialOnly,
+    evidence: filterEvidence, subscores, set,
   };
   return set;
 }
