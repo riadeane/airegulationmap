@@ -333,6 +333,17 @@ describe('buildSitemap', () => {
     expect(xml).toContain(`<url><loc>${SITE_ORIGIN}/country/cote-divoire/</loc></url>`);
     expect((xml.match(/<url>/g) || []).length).toBe(TOP_LEVEL_PATHS.length + 4);
   });
+
+  // Cloudflare Pages 308-redirects /x.html to /x and /x/index.html to /x/;
+  // a sitemap must list the final URLs.
+  it('lists only extensionless URLs', () => {
+    const xml = buildSitemap(buildModels(fixture()));
+    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+    expect(locs.length).toBeGreaterThan(0);
+    for (const loc of locs) expect(loc).not.toMatch(/\.html$/);
+    expect(locs).toContain(`${SITE_ORIGIN}/changes`);
+    expect(locs).toContain(`${SITE_ORIGIN}/drift`);
+  });
 });
 
 describe('buildSlugMap', () => {
