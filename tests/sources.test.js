@@ -16,6 +16,25 @@ describe('classifySource', () => {
     ['https://www.legifrance.gouv.fr/jorf/id/X', 'legifrance.gouv.fr'],
     ['https://www.parliament.uk/business/ai', 'parliament.uk'],
     ['https://www.govt.nz/ai-strategy', 'govt.nz'],
+    // Government domains without a naming convention (#94).
+    ['https://valtioneuvosto.fi/en/-/ai', 'valtioneuvosto.fi'],
+    ['https://tem.fi/en/artificial-intelligence', 'tem.fi'],
+    ['https://www.cnil.fr/en/ai', 'cnil.fr'],
+    ['https://autoriteitpersoonsgegevens.nl/en/ai', 'autoriteitpersoonsgegevens.nl'],
+    ['https://eimin.lrv.lt/en/ai', 'eimin.lrv.lt'],
+    ['https://cnpd.public.lu/en/ai.html', 'cnpd.public.lu'],
+    ['https://www.regjeringen.no/en/ai', 'regjeringen.no'],
+    ['https://www.stjornarradid.is/ai', 'stjornarradid.is'],
+    ['https://www.riigikantselei.ee/en/ai', 'riigikantselei.ee'],
+    ['https://www.regierung.li/ai', 'regierung.li'],
+    ['https://ised-isde.canada.ca/site/ai', 'ised-isde.canada.ca'],
+    ['https://inforegulator.org.za/ai', 'inforegulator.org.za'],
+    ['https://privacy.rks-gov.net/ai', 'privacy.rks-gov.net'],
+    ['https://www.agesic.gub.uy/ia', 'agesic.gub.uy'],
+    ['https://www.legisquebec.gouv.qc.ca/fr/document/lc/P-39.1', 'legisquebec.gouv.qc.ca'],
+    ['https://www.ris.bka.gv.at/x', 'ris.bka.gv.at'],
+    ['https://www.parlamento.pt/ai', 'parlamento.pt'],
+    ['https://www.senado.leg.br/ia', 'senado.leg.br'],
   ])('classifies %s as official', (url, hostname) => {
     const s = classifySource(url);
     expect(s.kind).toBe('official');
@@ -28,6 +47,7 @@ describe('classifySource', () => {
     'https://www.dlapiper.com/ai-tracker',
     'https://en.wikipedia.org/wiki/AI_Act',
     'https://carnegieendowment.org/research',
+    'https://notcanada.ca/ai', // an allowlisted host needs a label boundary
     'https://www.governance.com/report', // "gov" substring must not match
   ])('classifies %s as other', url => {
     expect(classifySource(url).kind).toBe('other');
