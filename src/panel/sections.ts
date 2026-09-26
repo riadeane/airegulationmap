@@ -2,6 +2,7 @@ import { maybeEl } from '../dom';
 import type { DimensionKey } from '../constants';
 import { cleanRegulationText } from './normalize';
 import { classifySources } from '../data/sources';
+import { findFolded } from '../data/fold';
 import type { ClassifiedSource, SourceMeta } from '../data/sources';
 import type { RegulationEntry } from '../data/loader';
 
@@ -137,15 +138,16 @@ export function highlightPanelField(field: string, query: string): void {
   if (!section || !detail) return;
 
   const text = detail.textContent || '';
-  const idx = text.toLowerCase().indexOf(query.toLowerCase());
-  if (idx >= 0) {
+  // Accent-insensitive, like the search that produced the match.
+  const hit = findFolded(text, query);
+  if (hit) {
     const mark = document.createElement('mark');
     mark.className = 'panel-field-mark';
-    mark.textContent = text.slice(idx, idx + query.length);
+    mark.textContent = text.slice(hit.start, hit.end);
     detail.replaceChildren(
-      document.createTextNode(text.slice(0, idx)),
+      document.createTextNode(text.slice(0, hit.start)),
       mark,
-      document.createTextNode(text.slice(idx + query.length))
+      document.createTextNode(text.slice(hit.end))
     );
   }
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });

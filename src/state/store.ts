@@ -6,6 +6,7 @@ import type { SubscoresData } from '../data/subscores';
 import type { SourceMeta } from '../data/sources';
 import type { CountryIsoData } from '../data/countryIso';
 import type { EvidenceFilter } from '../data/evidence';
+import type { CountryAliases } from '../data/countryMatch';
 
 /** Research-confidence levels as recorded per country in regulation data. */
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
@@ -56,6 +57,10 @@ export interface AppState {
   // ISO 3166-1 codes per country (country_iso.json) - loaded async;
   // null until then / on failure. The panel shows them beside the name.
   countryIso: CountryIsoData | null;
+  // Alternative country names for search (country_names.json aliases,
+  // canonical -> aliases) - loaded async; null until then / on failure.
+  // Search works without it on the matcher's built-in alias list.
+  countryAliases: CountryAliases | null;
   // A COMMITTED full-text search ('' = none). Typing in the search box is
   // ephemeral (dropdown-local); committing ("See all results" / Enter on the
   // row / ?q= deep link) persists the query here, which drives the results
@@ -89,6 +94,7 @@ const state: AppState = {
   subscores: null,
   sourceMeta: null,
   countryIso: null,
+  countryAliases: null,
   searchQuery: '',
   mainView: 'map',
   scatterX: 'enforcementLevel',

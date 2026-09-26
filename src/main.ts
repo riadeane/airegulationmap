@@ -7,6 +7,7 @@ import { loadHistory } from './data/history';
 import { loadBlocs } from './data/blocs';
 import { loadSubscores } from './data/subscores';
 import { loadCountryIso } from './data/countryIso';
+import { loadCountryAliases } from './data/countryMatch';
 import { initBlocSelector } from './controls/blocSelector';
 import { initBlocSummary } from './controls/blocSummary';
 import { initSubscores } from './panel/subscores';
@@ -180,6 +181,11 @@ async function main(): Promise<void> {
 
   // ISO codes for the panel name row and the printed brief - non-blocking.
   loadCountryIso().then(countryIso => setState({ countryIso }));
+
+  // Alternative country names for search ("Ivory Coast", "Czech
+  // Republic") - non-blocking; the matcher's built-in list covers the
+  // common ones until it lands.
+  loadCountryAliases().then(countryAliases => setState({ countryAliases }));
 
   // Load bloc membership non-blocking; the bloc filter and summary
   // appear once the data exists. URL bloc is applied late, same as
