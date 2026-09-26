@@ -4524,5 +4524,14 @@
         "averageScore": 1.58
       }
     ]
-  }
+  },
+  "breaks": [
+    {
+      "date": "2026-06-13",
+      "model": "claude-sonnet-4-6",
+      "prompt_version": "v2-2026-06",
+      "rubric": "v2",
+      "reason": "Methodology v2: each dimension became the mean of four sub-indicators, and the Maturity Index the mean of the three normative dimensions"
+    }
+  ]
 }

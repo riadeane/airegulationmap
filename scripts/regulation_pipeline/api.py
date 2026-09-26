@@ -172,7 +172,7 @@ class ResearchClient:
             messages.append({"role": "assistant", "content": message.content})
             resumed = {**params, "messages": list(messages)}
             message = call_with_retries(
-                lambda: self._client.messages.create(**resumed), label=label
+                lambda params=resumed: self._client.messages.create(**params), label=label
             )
             if message is None:
                 return None

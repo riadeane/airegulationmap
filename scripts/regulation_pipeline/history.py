@@ -8,6 +8,8 @@ snapshot the repository builds.
 
 from __future__ import annotations
 
+import re
+
 from .models import ResearchResult
 
 # The five dimension keys in the history JSON (camelCase). averageScore and date
@@ -44,3 +46,23 @@ def append_snapshot(history: dict, country: str, snapshot: dict) -> bool:
 
     snapshots.append(snapshot)
     return True
+
+
+def rubric_of(entry: dict) -> str | None:
+    """The rubric generation a calibration break was recorded for: its
+    ``rubric`` field, else the leading ``vN`` of its ``prompt_version``."""
+    if entry.get("rubric"):
+        return str(entry["rubric"])
+    match = re.match(r"(v\d+)", str(entry.get("prompt_version") or ""))
+    return match.group(1) if match else None
+
+
+def calibration_due(breaks: list[dict], rubric: str) -> bool:
+    """True when the newest recorded break is for an older rubric than
+    ``rubric``: the first full run on the new rubric must then run as a
+    calibration run. A history with no breaks at all (a fresh dataset) never
+    triggers it."""
+    if not breaks:
+        return False
+    latest = max(breaks, key=lambda entry: str(entry.get("date") or ""))
+    return rubric_of(latest) != rubric
