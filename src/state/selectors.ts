@@ -114,6 +114,32 @@ export function evidenceOf(country: string): EvidenceRecord | null {
   return getState().subscores?.countries[country]?.evidence ?? null;
 }
 
+let facetCache: {
+  scoreData: ScoreData;
+  subscores: SubscoresData | null;
+  counts: Readonly<Record<Exclude<EvidenceFilter, 'any'>, number>>;
+} | null = null;
+
+/**
+ * How many dataset countries each narrowing Evidence facet would keep.
+ * Until a research run records evidence, both are 0 - the filter popover
+ * disables such an option rather than let it empty the map.
+ */
+export function evidenceFacetCounts(): Readonly<Record<Exclude<EvidenceFilter, 'any'>, number>> {
+  const { scoreData, subscores } = getState();
+  if (facetCache && facetCache.scoreData === scoreData && facetCache.subscores === subscores) {
+    return facetCache.counts;
+  }
+  const counts = { grounded: 0, search: 0 };
+  for (const name of Object.keys(scoreData)) {
+    const record = evidenceOf(name);
+    if (matchesEvidenceFilter(record, 'grounded')) counts.grounded++;
+    if (matchesEvidenceFilter(record, 'search')) counts.search++;
+  }
+  facetCache = { scoreData, subscores, counts };
+  return counts;
+}
+
 /**
  * Score-INDEPENDENT country filters: bloc membership, confidence level,
  * official-sources-only, evidence coverage. Split from visibleCountrySet()

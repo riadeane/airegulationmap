@@ -737,6 +737,13 @@ input[type="range"] {
   margin-top: 10px;
 }
 
+/* An Evidence option with no matching country (filter.ts); the label's
+   tooltip says why. */
+.filter-evidence-row label:has(input:disabled) {
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
 .filter-conf-row input,
 .filter-official-row input {
   accent-color: var(--accent);
