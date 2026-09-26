@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       countries:
-        description: 'Comma-separated countries to update (leave empty for auto-select based on staleness)'
+        description: 'Comma-separated countries to update (leave empty for every country; with force off, only stale or low-confidence ones)'
         required: false
         default: ''
       force_update:
@@ -58,6 +58,10 @@ permissions:
 jobs:
   update-data:
     runs-on: ubuntu-latest
+    # Just under GitHub's 6h cap, stated so the budget is explicit: the batch
+    # wait budget (batch.MAX_WAIT_SECONDS, 4h across all batches) plus
+    # applying, mirroring, the digest and the commit must fit inside it.
+    timeout-minutes: 355
     permissions:
       contents: write  # Required to commit updated CSV/JSON files back to repo
 
@@ -97,7 +101,6 @@ jobs:
           # mirror failures never fail the run).
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          IS_SCHEDULED: ${{ github.event_name == 'schedule' }}
           INPUT_COUNTRIES: ${{ github.event.inputs.countries || '' }}
           # The pipeline defaults (force, search, batch) are the scheduled run.
           # Dispatch inputs only ever opt out of them.
@@ -137,7 +140,7 @@ jobs:
           {
             echo "## Data update"
             echo '```'
-            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:|digest:|gold:" run.log | tail -20 || true
+            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:|digest:|gold:|rubric|Batch .* submitted|Follow-up batch|FATAL" run.log | tail -30 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -161,6 +164,7 @@ jobs:
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push updated data
+        id: commit
         # Only ever push from the default branch - a manual dispatch on some
         # other ref must not write data commits there.
         if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' }}
@@ -168,4 +172,36 @@ jobs:
           git config user.name "AI Regulation Bot"
           git config user.email "bot@github-actions"
           git commit -m "chore: automated data update $(date -u +%Y-%m-%d)"
-          git push origin HEAD:main
+          # A merge to main during the (hours-long) run makes a plain push
+          # non-fast-forward, and the week's data would be lost with the
+          # runner. Rebase the data commit onto main and retry.
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then exit 0; fi
+            echo "Push rejected (attempt $attempt); rebasing onto origin/main"
+            if ! git pull --rebase origin main; then
+              git rebase --abort || true
+              echo "::error::Rebase onto main failed; the data files are uploaded as an artifact"
+              exit 1
+            fi
+            sleep $((attempt * 10))
+          done
+          echo "::error::Could not push the data commit; the data files are uploaded as an artifact"
+          exit 1
+
+      # Last resort so a paid run is never lost with the runner: if the
+      # commit or push failed, keep every file the pipeline writes.
+      - name: Upload data files if the commit failed
+        if: ${{ !cancelled() && steps.commit.outcome == 'failure' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: data-update-${{ github.run_id }}
+          path: |
+            public/scores.csv
+            public/regulation_data.csv
+            public/history.json
+            public/data/subscores.json
+            public/data/pending.json
+            public/data/drift.json
+            public/digest/
+            run.log
+          retention-days: 30
