@@ -376,10 +376,14 @@ export function initPanel(): void {
   });
 
   // history.json arrives async - a URL-deep-linked country may already
-  // be rendered by then, so backfill its changelog section.
+  // be rendered by then, so backfill its changelog section, and its
+  // scores: a ?date= vintage only resolves once history exists, so until
+  // now the score block showed the latest data under a past-dated map.
   on('history', () => {
     const { selectedCountry } = getState();
-    if (selectedCountry) renderChangelog(selectedCountry);
+    if (!selectedCountry) return;
+    renderScores(selectedCountry);
+    renderChangelog(selectedCountry);
   });
 
   // blocs.json arrives async - a URL-deep-linked country may already be

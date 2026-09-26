@@ -62,38 +62,49 @@ export function initTimeline(history: HistoryData | null): void {
   renderBreakMarkers(historyBreaks(history), sortedDates);
 
   const dateLabel = document.getElementById('timeline-date-label')!;
+  const lastIdx = sortedDates.length - 1;
+
+  // The visible label and the slider's spoken value: without
+  // aria-valuetext a screen reader announces the index ("2"), not the date.
+  const labelFor = (idx: number): void => {
+    const text = idx === lastIdx ? 'Latest' : sortedDates[idx];
+    dateLabel.textContent = text;
+    slider.setAttribute('aria-valuetext', text);
+  };
 
   // Position the slider based on initial state - URL may have supplied
   // a `date` param before we got here. If the URL's date isn't in the
-  // snapshot list, fall back to latest rather than erroring.
+  // snapshot list, fall back to latest rather than erroring. The latest
+  // snapshot's own date IS Latest (the slider's last stop writes null):
+  // keeping it left the slider reading "Latest" while the panel stayed in
+  // historical mode and date= stuck in the URL.
   const { timelineDate: initialDate } = getState();
-  let initialIdx = sortedDates.length - 1;
+  let initialIdx = lastIdx;
   if (initialDate) {
     const i = sortedDates.indexOf(initialDate);
-    if (i >= 0) initialIdx = i;
-    else setState({ timelineDate: null }); // sanitize unknown date
+    if (i >= 0 && i < lastIdx) initialIdx = i;
+    else setState({ timelineDate: null }); // sanitize unknown or latest date
   }
   slider.value = String(initialIdx);
-  dateLabel.textContent = initialIdx === sortedDates.length - 1 ? 'Latest' : sortedDates[initialIdx];
+  labelFor(initialIdx);
 
   // If we loaded in on a historic date, kick a re-render now. The map
   // subscription (below) would only fire on *changes*, so the initial
   // paint still shows latest scores without this.
-  if (initialDate && sortedDates.includes(initialDate)) {
-    updateMap(scoresForDate(initialDate));
+  if (initialIdx < lastIdx) {
+    updateMap(scoresForDate(sortedDates[initialIdx]));
   }
 
   slider.addEventListener('input', function () {
     const idx = parseInt(this.value);
-    const isLatest = idx === sortedDates.length - 1;
-    const selectedDate = sortedDates[idx];
-    dateLabel.textContent = isLatest ? 'Latest' : selectedDate;
-    setState({ timelineDate: isLatest ? null : selectedDate });
+    const isLatest = idx === lastIdx;
+    labelFor(idx);
+    setState({ timelineDate: isLatest ? null : sortedDates[idx] });
   });
 
   document.getElementById('timeline-reset')!.addEventListener('click', () => {
-    slider.value = String(sortedDates.length - 1);
-    dateLabel.textContent = 'Latest';
+    slider.value = String(lastIdx);
+    labelFor(lastIdx);
     setState({ timelineDate: null });
   });
 
@@ -106,10 +117,10 @@ export function initTimeline(history: HistoryData | null): void {
     // Also keep the slider position and label in sync when the change
     // comes from elsewhere (popstate / URL). The input handler would
     // otherwise read its own value as stale on external writes.
-    const idx = date ? sortedDates.indexOf(date) : sortedDates.length - 1;
+    const idx = date ? sortedDates.indexOf(date) : lastIdx;
     if (idx >= 0 && parseInt(slider.value) !== idx) {
       slider.value = String(idx);
-      dateLabel.textContent = idx === sortedDates.length - 1 ? 'Latest' : sortedDates[idx];
+      labelFor(idx);
     }
   });
 }

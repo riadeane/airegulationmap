@@ -63,6 +63,13 @@ export function initMapSubscriptions() {
   });
 
   on('selectedCountry', announceCountry);
+  // A ?date= deep link announces the selection before history.json
+  // lands, so with the latest score; say it again once the vintage the
+  // map paints has resolved.
+  on('history', () => {
+    const { selectedCountry, timelineDate } = getState();
+    if (selectedCountry && timelineDate) announceCountry(selectedCountry);
+  });
 
   on('filterMin', scheduleUpdateMap);
   on('filterMax', scheduleUpdateMap);

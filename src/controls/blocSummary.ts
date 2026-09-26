@@ -5,7 +5,7 @@
 
 import { getState, setState, on } from '../state/store';
 import { selectCountry } from '../state/interactions';
-import { evidenceOf } from '../state/selectors';
+import { evidenceOf, scoresAtDate } from '../state/selectors';
 import { computeBlocStats, computeBlocEvidenceShare, blocEvidenceShareText } from '../data/blocs';
 import type { BlocMemberScore } from '../data/blocs';
 import { ATTRIBUTE_LABELS } from '../constants';
@@ -35,7 +35,7 @@ function render() {
   const card = document.getElementById('bloc-summary');
   if (!card) return;
 
-  const { selectedBloc, blocsData, scoreData, currentAttribute } = getState();
+  const { selectedBloc, blocsData, scoreData, currentAttribute, timelineDate } = getState();
   const bloc = selectedBloc && blocsData ? blocsData[selectedBloc] : null;
 
   if (!bloc) {
@@ -44,7 +44,10 @@ function render() {
     return;
   }
 
-  const stats = computeBlocStats(bloc.members, scoreData, currentAttribute);
+  // The vintage the map is painting: a scrubbed timeline date's snapshot,
+  // else the latest rows (scoresAtDate() is null for Latest).
+  const past = scoresAtDate();
+  const stats = computeBlocStats(bloc.members, past ?? scoreData, currentAttribute);
   card.replaceChildren();
   card.hidden = false;
 
@@ -86,7 +89,8 @@ function render() {
 
   const dim = document.createElement('div');
   dim.className = 'bloc-summary-dim';
-  dim.textContent = ATTRIBUTE_LABELS[currentAttribute] || currentAttribute;
+  const label = ATTRIBUTE_LABELS[currentAttribute] || currentAttribute;
+  dim.textContent = past && timelineDate ? `${label} · as of ${timelineDate}` : label;
   card.appendChild(dim);
 
   const statRow = document.createElement('div');
@@ -137,6 +141,11 @@ function render() {
 export function initBlocSummary(): void {
   on('selectedBloc', render);
   on('currentAttribute', render);
+  // Follow the timeline (and the history that resolves a ?date= vintage)
+  // and a dataset replacement, like the map beneath the card.
+  on('timelineDate', render);
+  on('history', render);
+  on('scoreData', render);
   // Evidence records arrive with subscores.json, possibly after the card.
   on('subscores', render);
   render();
