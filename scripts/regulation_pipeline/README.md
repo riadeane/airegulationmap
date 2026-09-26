@@ -85,7 +85,7 @@ flowchart TD
 | `config.py` | `Settings` (repo-root paths) + constants (CSV fields, staleness threshold, site URL, default model) |
 | `errors.py` | `FatalAPIError` |
 | `db/` | Supabase layer: `client.py` (httpx PostgREST wrapper), `mirror.py` (dual-write with run provenance), `seed.py` (one-shot bootstrap CLI); see "Supabase layer" below |
-| `evidence/` | Evidence layer: OECD/GAIIN adapter (`oecd.py`), the normalized record (`records.py`), conservative country matching (`matching.py`), sync (`sync.py`) and its CLI (`__main__.py`: `python -m regulation_pipeline.evidence probe\|sync`), HTML stripping (`htmlstrip.py`) |
+| `evidence/` | Evidence layer: OECD/GAIIN adapter (`oecd.py`), the normalised record (`records.py`), conservative country matching (`matching.py`), sync (`sync.py`) and its CLI (`__main__.py`: `python -m regulation_pipeline.evidence probe\|sync`), HTML stripping (`htmlstrip.py`) |
 
 ---
 
@@ -550,7 +550,7 @@ fails loudly.
 ## Testing & tooling
 
 ```bash
-python -m pytest                    # tests/pipeline/ - about 290 tests, no network (fakes throughout)
+python -m pytest                    # tests/pipeline/ - about 300 tests, no network (fakes throughout)
 ruff check scripts tests/pipeline   # lint; rules in pyproject.toml ([tool.ruff])
 pip install -e .                    # installs the package + update-regulation-data console script
 ```
