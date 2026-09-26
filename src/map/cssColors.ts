@@ -70,6 +70,16 @@ export function cssVar(name: string): string {
     : `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
 }
 
+// The user's explicit theme choice, or null. Storage access throws in some
+// private modes and with site data blocked; that reads as "no choice".
+function storedTheme(): string | null {
+  try {
+    return localStorage.getItem('theme');
+  } catch {
+    return null;
+  }
+}
+
 // Invalidate any cached results on theme change. Call from the theme
 // toggle path. Re-renders the map with fresh colors.
 export function onThemeChange(callback: () => void): void {
@@ -85,7 +95,7 @@ export function onThemeChange(callback: () => void): void {
   // Also re-run when system color scheme changes if user has no explicit choice.
   if (window.matchMedia) {
     const mq = window.matchMedia('(prefers-color-scheme: light)');
-    const listener = () => { if (!localStorage.getItem('theme')) callback(); };
+    const listener = () => { if (!storedTheme()) callback(); };
     if (mq.addEventListener) mq.addEventListener('change', listener);
     else if (mq.addListener) mq.addListener(listener);
   }

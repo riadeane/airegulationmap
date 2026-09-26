@@ -39,6 +39,7 @@ export function getColorIndex(name: string): number {
   return colorSlots.get(name) ?? 0;
 }
 
+/** The country's slot colour as a CSS value (a var() that follows the theme). */
 export function getColorFor(name: string): string {
   return comparisonColor(getColorIndex(name));
 }
