@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { goldTooltip } from '../src/charts/drift';
 import {
   binDeltas,
   computeBlocDrift,
@@ -329,3 +330,41 @@ describe('snakeDimensionLabel', () => {
     expect(snakeDimensionLabel('something_else')).toBe('something_else');
   });
 });
+
+// Regression: drift tooltips are HTML, and drift.json values reached them
+// unescaped (a date formatDate cannot parse passes through as-is, and an
+// unknown dimension key passes through snakeDimensionLabel).
+describe('goldTooltip', () => {
+  it('escapes every value that comes from drift.json', () => {
+    const [check] = parseDriftChecks({
+      checks: [{
+        date: '<img src=x onerror=alert(1)>',
+        model: '<b>m</b>',
+        prompt_version: '"v"',
+        within_one: 0.9,
+        countries_compared: 10,
+        max_dev: 2,
+        max_dev_at: { country: '<i>C</i>', dimension: '<svg onload=x>', subindicator: 's', gold: 1, run: 3 },
+      }],
+    });
+    const html = goldTooltip(check);
+    // The tooltip's own markup (<strong>, <b>, <br>) stays; data never adds tags.
+    expect(html).not.toMatch(/<(img|i|svg)\b|<b>m/);
+    expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
+    expect(html).toContain('&lt;b&gt;m&lt;/b&gt;');
+    expect(html).toContain('&lt;i&gt;C&lt;/i&gt;');
+    expect(html).toContain('&lt;svg onload=x&gt;');
+  });
+
+  it('leaves out the location parts drift.json does not give', () => {
+    const [check] = parseDriftChecks({
+      checks: [{
+        date: '2026-09-28', within_one: 0.9, countries_compared: 10, max_dev: 2,
+        max_dev_at: { gold: 1, run: 3 },
+      }],
+    });
+    expect(goldTooltip(check)).not.toContain('( , )');
+    expect(goldTooltip(check)).not.toMatch(/\(\s*,/);
+  });
+});
+

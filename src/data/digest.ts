@@ -205,6 +205,32 @@ export function formatDelta(delta: ScoreDelta): string {
   return `${delta.old} → ${delta.new}`;
 }
 
+/** The run moved the country's confidence level. */
+export function confidenceChanged(change: DigestChange): boolean {
+  return !!change.confidence.new && change.confidence.old !== change.confidence.new;
+}
+
+/** Confidence movement for display: 'medium → high', or 'high' when new. */
+export function formatConfidenceChange(confidence: DigestChange['confidence']): string {
+  return confidence.old ? `${confidence.old} → ${confidence.new}` : confidence.new;
+}
+
+/**
+ * The facts listed for a country that changed but has no written item
+ * ("Also changed"): its score movements, law and confidence changes, or
+ * "first scored in this run". A run whose only change was confidence
+ * used to list the country with nothing after the colon.
+ */
+export function uncoveredFacts(change: DigestChange): string[] {
+  const deltas = Object.values(change.scores);
+  const firstScored = deltas.length > 0 && deltas.every((d) => d.old === null);
+  if (firstScored) return ['first scored in this run'];
+  const facts = Object.entries(change.scores).map(([key, delta]) => `${dimensionLabel(key)} ${formatDelta(delta)}`);
+  if (change.laws) facts.push('specific laws updated');
+  if (confidenceChanged(change)) facts.push(`confidence ${formatConfidenceChange(change.confidence)}`);
+  return facts;
+}
+
 /** The host of a source URL, without www., for compact link text. */
 export function sourceHost(url: string): string {
   try {

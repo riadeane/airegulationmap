@@ -54,4 +54,35 @@ describe('normalizeRegulationText', () => {
       'No procurement rules mention algorithmic transparency requirements anywhere.';
     expect(normalizeRegulationText(input)).toBe(input);
   });
+
+  // Regression: the sentence split dropped a trailing fragment without
+  // terminal punctuation, so abbreviations like "S.I. No." cut Key
+  // Legislation short for a dozen countries. Ireland's field, verbatim
+  // from public/regulation_data.csv.
+  it('keeps a trailing fragment that has no terminal punctuation', () => {
+    const ireland = 'EU Artificial Intelligence Act / Regulation (EU) 2024/1689 (2024), '
+      + 'Artificial Intelligence Act (Governance and Enforcement) Regulations 2025 / '
+      + 'S.I. No. 366/2025 (2025), General Scheme of the Regulation of Artificial '
+      + 'Intelligence Bill 2026 (2026)';
+    expect(normalizeRegulationText(ireland)).toBe(ireland);
+  });
+
+  it('keeps the trailing fragment when a "No …" run is collapsed', () => {
+    const lead = 'The ministry has acknowledged the topic in public statements but taken few concrete actions. ';
+    const cascade =
+      'No AI-specific legislation or regulatory framework exists. ' +
+      'No regulatory framework for AI has been formally established. ' +
+      'No AI-specific legislation has been proposed in the legislature. ';
+    const out = normalizeRegulationText(lead + cascade + 'Draft guidance is expected in 2027');
+    expect(out).toContain('No AI-specific legislation, governance body, or enforcement mechanism exists.');
+    expect(out.endsWith('Draft guidance is expected in 2027')).toBe(true);
+  });
+
+  it('capitalises the text once a leading "As of Month YYYY," is stripped', () => {
+    // Iceland's Regulation Status opens this way in the dataset.
+    const input = "As of June 2026, the EU AI Act (Regulation 2024/1689) remains 'under scrutiny' "
+      + 'for EEA incorporation. Iceland relies on the GDPR via Act No. 90/2018.';
+    const out = normalizeRegulationText(input);
+    expect(out.startsWith("The EU AI Act (Regulation 2024/1689) remains 'under scrutiny'")).toBe(true);
+  });
 });

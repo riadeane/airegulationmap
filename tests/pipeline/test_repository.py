@@ -108,7 +108,8 @@ class TestApply:
         outcome = ds.apply("Germany", result_model(), date(2026, 7, 1))
         assert outcome.history_added is False
         assert len(ds._history["countries"]["Germany"]) == 1
-        assert ds._history["countries"]["Germany"][0]["date"] == "2026-07-01"
+        # The snapshot dates the change, not the latest confirmation.
+        assert ds._history["countries"]["Germany"][0]["date"] == "2026-06-01"
 
 
 class TestSetEvidence:

@@ -1,47 +1,117 @@
 import { SCORE_OPTIONS, ATTRIBUTE_LABELS } from '../constants';
 import type { AttributeKey } from '../constants';
-import { getState, setState } from '../state/store';
+import { getState, setState, on } from '../state/store';
+
+// The score-type button opens a listbox (the ARIA "select-only combobox"
+// pattern's popup): options carry role="option" and aria-selected, focus
+// roves across them with the arrow keys, Home and End, Enter or Space
+// picks one, and Esc or Tab closes the list. Focus returns to the button
+// when the list closes by keyboard.
+
+// Label and aria-selected follow the state, whoever wrote it (a dimension
+// row, a URL, popstate).
+function syncSelected(attr: AttributeKey): void {
+  document.getElementById('score-btn-label')!.textContent = ATTRIBUTE_LABELS[attr];
+  document.querySelectorAll<HTMLLIElement>('#score-dropdown li').forEach(li => {
+    const selected = li.dataset.value === attr;
+    li.classList.toggle('selected', selected);
+    li.setAttribute('aria-selected', String(selected));
+  });
+}
 
 export function switchAttribute(attr: AttributeKey): void {
   setState({ currentAttribute: attr });
-  document.getElementById('score-btn-label')!.textContent = ATTRIBUTE_LABELS[attr];
-  document.querySelectorAll<HTMLLIElement>('#score-dropdown li').forEach(li => {
-    li.classList.toggle('selected', li.dataset.value === attr);
-  });
 }
 
 export function buildScoreSelector(): void {
   const btn = document.getElementById('score-btn')!;
   const dropdown = document.getElementById('score-dropdown')!;
+  btn.setAttribute('aria-controls', 'score-dropdown');
 
-  // Set initial button label from state so a URL-provided `?mode=` or
-  // a future persisted preference shows up correctly without a click.
-  const { currentAttribute } = getState();
-  document.getElementById('score-btn-label')!.textContent =
-    ATTRIBUTE_LABELS[currentAttribute] || ATTRIBUTE_LABELS.averageScore;
-
-  for (const opt of SCORE_OPTIONS) {
+  const options = SCORE_OPTIONS.map(opt => {
     const li = document.createElement('li');
+    li.id = `score-option-${opt.value}`;
+    li.setAttribute('role', 'option');
+    li.tabIndex = -1;
     li.textContent = opt.text;
     li.dataset.value = opt.value;
-    if (opt.value === getState().currentAttribute) li.classList.add('selected');
-    li.addEventListener('click', () => {
-      switchAttribute(opt.value);
-      dropdown.classList.remove('open');
-      btn.classList.remove('active');
-      btn.setAttribute('aria-expanded', 'false');
-    });
+    li.addEventListener('click', () => pick(opt.value));
     dropdown.appendChild(li);
+    return li;
+  });
+
+  // Set the initial label from state so a URL-provided `?mode=` shows up
+  // correctly without a click.
+  syncSelected(getState().currentAttribute);
+  on('currentAttribute', syncSelected);
+
+  const isOpen = (): boolean => dropdown.classList.contains('open');
+  const selectedIndex = (): number =>
+    Math.max(0, options.findIndex(li => li.dataset.value === getState().currentAttribute));
+
+  function setOpen(open: boolean): void {
+    dropdown.classList.toggle('open', open);
+    btn.classList.toggle('active', open);
+    btn.setAttribute('aria-expanded', String(open));
+  }
+
+  function open(focusIndex: number = selectedIndex()): void {
+    setOpen(true);
+    document.getElementById('filter-popover')!.classList.remove('open');
+    document.getElementById('filter-btn')!.classList.remove('active');
+    document.getElementById('filter-btn')!.setAttribute('aria-expanded', 'false');
+    options[focusIndex].focus();
+  }
+
+  function close(returnFocus: boolean): void {
+    setOpen(false);
+    if (returnFocus) btn.focus();
+  }
+
+  function pick(attr: AttributeKey): void {
+    switchAttribute(attr);
+    close(true);
   }
 
   btn.addEventListener('click', e => {
     e.stopPropagation();
-    const isOpen = dropdown.classList.toggle('open');
-    btn.classList.toggle('active', isOpen);
-    btn.setAttribute('aria-expanded', String(isOpen));
-    document.getElementById('filter-popover')!.classList.remove('open');
-    document.getElementById('filter-btn')!.classList.remove('active');
-    document.getElementById('filter-btn')!.setAttribute('aria-expanded', 'false');
+    if (isOpen()) close(false);
+    else open();
+  });
+
+  // Arrow keys on the closed button open the list, as a native select does.
+  btn.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    e.stopPropagation();
+    open(e.key === 'ArrowUp' ? options.length - 1 : selectedIndex());
+  });
+
+  dropdown.addEventListener('keydown', e => {
+    const i = options.indexOf(document.activeElement as HTMLLIElement);
+    const last = options.length - 1;
+    switch (e.key) {
+      case 'ArrowDown': options[Math.min(i + 1, last)].focus(); break;
+      case 'ArrowUp': options[Math.max(i - 1, 0)].focus(); break;
+      case 'Home': options[0].focus(); break;
+      case 'End': options[last].focus(); break;
+      case 'Enter':
+      case ' ':
+        if (i >= 0) pick(options[i].dataset.value as AttributeKey);
+        break;
+      case 'Escape': close(true); break;
+      // Left/Right mean nothing here, but must not reach the global
+      // arrow-key country navigation either.
+      case 'ArrowLeft':
+      case 'ArrowRight': break;
+      case 'Tab':
+        // Tab moves on from the button, with the list closed.
+        close(false);
+        return;
+      default: return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
   });
 }
 

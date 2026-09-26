@@ -18,6 +18,7 @@ import { snippetNode } from '../controls/snippet';
 import { highlightPanelField } from './sections';
 import { exportCountries } from '../controls/export';
 import { matchCountryNames } from '../data/countryMatch';
+import type { CountryAliases } from '../data/countryMatch';
 
 interface ResultSet {
   nameMatches: string[];
@@ -27,24 +28,35 @@ interface ResultSet {
 }
 
 let indexCache: { regulationData: RegulationData; index: IndexEntry[] } | null = null;
-let resultCache: { regulationData: RegulationData; query: string; results: ResultSet } | null = null;
+let resultCache: {
+  regulationData: RegulationData;
+  aliases: CountryAliases | null;
+  query: string;
+  results: ResultSet;
+} | null = null;
 
 function resultsFor(query: string): ResultSet {
-  const { regulationData, sortedCountryNames } = getState();
-  if (resultCache && resultCache.regulationData === regulationData && resultCache.query === query) {
+  const { regulationData, sortedCountryNames, countryAliases } = getState();
+  if (
+    resultCache && resultCache.regulationData === regulationData
+    && resultCache.aliases === countryAliases && resultCache.query === query
+  ) {
     return resultCache.results;
   }
   if (!indexCache || indexCache.regulationData !== regulationData) {
     indexCache = { regulationData, index: buildSearchIndex(regulationData) };
   }
   const q = query.toLowerCase();
-  const nameMatches = matchCountryNames(sortedCountryNames, q, { limit: sortedCountryNames.length });
+  const nameMatches = matchCountryNames(sortedCountryNames, q, {
+    limit: sortedCountryNames.length,
+    aliases: countryAliases,
+  });
   const textMatches = q.length >= 3
     ? searchAllMatches(indexCache.index, q).filter(m => !nameMatches.includes(m.country))
     : [];
   const countries = [...new Set([...nameMatches, ...textMatches.map(m => m.country)])];
   const results = { nameMatches, textMatches, countries };
-  resultCache = { regulationData, query, results };
+  resultCache = { regulationData, aliases: countryAliases, query, results };
   return results;
 }
 
@@ -205,6 +217,8 @@ export function initSearchResults(): void {
 
   on('searchQuery', render);
   on('selectedCountry', render);
-  // A fresh dataset (rare - e.g. hydration) invalidates the derived list.
+  // A fresh dataset (rare - e.g. hydration) invalidates the derived list,
+  // and so does the alias list landing after a ?q= deep link.
   on('regulationData', () => { if (getState().searchQuery) render(); });
+  on('countryAliases', () => { if (getState().searchQuery) render(); });
 }

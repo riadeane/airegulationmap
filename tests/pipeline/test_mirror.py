@@ -100,7 +100,9 @@ SUBSCORES = {
 class TestSupabaseMirror:
     def test_full_flush_sequence(self):
         fake = FakePostgrest()
-        mirror = make_mirror(fake, usage=lambda: {"input": 1000, "output": 200})
+        mirror = make_mirror(
+            fake, usage=lambda: {"input": 1000, "output": 200, "searches": 11, "est_cost_usd": 0.12},
+        )
 
         mirror.begin(attempted=2)
         mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=HISTORY)
@@ -141,7 +143,8 @@ class TestSupabaseMirror:
         patch = fake.of("PATCH", "research_runs")[0]
         assert patch["countries_succeeded"] == 1
         assert patch["input_tokens"] == 1000
-        assert patch["notes"] == "gate: held=2 unchanged=1"
+        assert patch["est_cost_usd"] == 0.12
+        assert patch["notes"] == "gate: held=2 unchanged=1; web searches: 11"
 
     def test_evidence_columns_mirror_the_file(self):
         # PRD 14: the entry's evidence block becomes three columns; the
@@ -411,6 +414,43 @@ class TestEvidenceMigration:
                 assert properties[column]["description"]
                 assert f"rowFilter.{table}.{column}" in spec["parameters"]
                 assert f"#/parameters/rowFilter.{table}.{column}" in get_params
+
+
+class TestRationalesExportMigration:
+    """#74: migration 0009 appends country_scores.rationales to public_export,
+    and the committed OpenAPI snapshot lists it."""
+
+    sql = (MIGRATIONS / "0009_public_export_rationales.sql").read_text(encoding="utf-8")
+
+    def test_view_keeps_the_0008_columns_and_appends_rationales(self):
+        before = _public_export_columns((MIGRATIONS / "0008_evidence_coverage.sql").read_text(encoding="utf-8"))
+        assert _public_export_columns(self.sql) == before + ["s.rationales"]
+        assert "comment on column public_export.rationales is" in self.sql
+
+    def test_latest_view_definition_carries_rationales(self):
+        # Whichever migration last replaces the view must keep the column.
+        latest = [
+            path for path in sorted(MIGRATIONS.glob("*.sql"))
+            if "view public_export" in path.read_text(encoding="utf-8")
+        ][-1]
+        assert "s.rationales" in _public_export_columns(latest.read_text(encoding="utf-8"))
+
+    def test_openapi_snapshot_documents_the_column(self):
+        spec = json.loads((REPO / "public" / "openapi.json").read_text(encoding="utf-8"))
+        properties = spec["definitions"]["public_export"]["properties"]
+        assert properties["rationales"]["format"] == "jsonb"
+        assert properties["rationales"]["description"]
+        assert "rowFilter.public_export.rationales" in spec["parameters"]
+        get_params = [p.get("$ref") for p in spec["paths"]["/public_export"]["get"]["parameters"]]
+        assert "#/parameters/rowFilter.public_export.rationales" in get_params
+
+    def test_corrected_column_comments_reach_the_snapshot(self):
+        # 0004 described sources_raw as newline separated (it is pipe
+        # separated) and data_version as a schema version.
+        raw = (REPO / "public" / "openapi.json").read_text(encoding="utf-8")
+        for wrong in ("newline separated", "oecd_gaiin", "Dataset schema version"):
+            assert wrong not in raw
+        assert "comment on column country_summaries.sources_raw is" in self.sql
 
 
 class TestSelectAllPagination:

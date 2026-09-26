@@ -100,3 +100,43 @@ test('mocked Supabase responses light up initiatives and source titles', async (
   const serious = results.violations.filter(v => v.impact === 'serious' || v.impact === 'critical');
   expect(serious, JSON.stringify(serious.map(v => v.id))).toEqual([]);
 });
+
+test('a hydration under an open entry keeps the reader where they were', async ({ page }) => {
+  // The database is "newer", and its full export lands after the reader has
+  // scrolled the Germany entry: the refresh must not jump back to the top.
+  let release: () => void = () => {};
+  const held = new Promise<void>(resolve => { release = resolve; });
+  // Playwright tries the most recently added route first: the catch-all
+  // goes in before the public_export handler.
+  await page.route(REST, route => route.fulfill({ json: [] }));
+  await page.route('**/rest/v1/public_export*', async route => {
+    const url = route.request().url();
+    if (url.includes('limit=1&') || url.endsWith('limit=1')) {
+      await route.fulfill({ json: [{ scored_at: '2099-01-01' }] });
+      return;
+    }
+    await held;
+    await route.fulfill({
+      json: [{
+        country: 'Germany', regulation_status: 4, policy_lever: 4, governance_type: 3,
+        actor_involvement: 4, enforcement_level: 4, avg_score: 4, confidence: 'high',
+        data_version: 9, scored_at: '2099-01-01',
+        regulation_status_text: 'Hydrated regulation text.', policy_lever_text: 'x',
+        governance_type_text: 'x', actor_involvement_text: 'x', enforcement_level_text: 'x',
+        specific_laws: 'AI Act', sources_raw: 'https://www.bundesregierung.de/ki',
+        summarized_at: '2099-01-01',
+      }],
+    });
+  });
+  await page.goto('/?country=Germany');
+  await expect(page.locator('#country-name')).toHaveText('Germany');
+
+  const panel = page.locator('#country-panel');
+  await panel.evaluate(el => el.scrollTo({ top: 400 }));
+  const before = await panel.evaluate(el => el.scrollTop);
+  expect(before).toBeGreaterThan(0);
+
+  release();
+  await expect(page.locator('#panel-content')).toContainText('Hydrated regulation text.');
+  expect(await panel.evaluate(el => el.scrollTop)).toBe(before);
+});

@@ -7,6 +7,7 @@ import { loadHistory } from './data/history';
 import { loadBlocs } from './data/blocs';
 import { loadSubscores } from './data/subscores';
 import { loadCountryIso } from './data/countryIso';
+import { loadCountryAliases } from './data/countryMatch';
 import { initBlocSelector } from './controls/blocSelector';
 import { initBlocSummary } from './controls/blocSummary';
 import { initSubscores } from './panel/subscores';
@@ -27,7 +28,7 @@ import { initCitePopover } from './controls/citePopover';
 import { initPrintBrief } from './controls/printBrief';
 import { initReport } from './controls/report';
 import { initInitiatives } from './panel/initiatives';
-import { hydrateFromSupabase } from './data/hydrate';
+import { hydrateFromSupabase, withHydratedEvidence } from './data/hydrate';
 import { loadSourceMeta } from './data/sourceMeta';
 import { initHelpOverlay } from './controls/helpOverlay';
 import { initMenu } from './controls/menu';
@@ -175,10 +176,16 @@ async function main(): Promise<void> {
 
   // Sub-indicator audit trail (methodology v2) - non-blocking; the
   // dimension-row breakdown appears once it loads.
-  loadSubscores().then(subscores => setState({ subscores }));
+  // A Supabase hydration that lands first overlays its evidence records.
+  loadSubscores().then(subscores => setState({ subscores: withHydratedEvidence(subscores) }));
 
   // ISO codes for the panel name row and the printed brief - non-blocking.
   loadCountryIso().then(countryIso => setState({ countryIso }));
+
+  // Alternative country names for search ("Ivory Coast", "Czech
+  // Republic") - non-blocking; the matcher's built-in list covers the
+  // common ones until it lands.
+  loadCountryAliases().then(countryAliases => setState({ countryAliases }));
 
   // Load bloc membership non-blocking; the bloc filter and summary
   // appear once the data exists. URL bloc is applied late, same as

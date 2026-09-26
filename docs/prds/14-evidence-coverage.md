@@ -1,6 +1,6 @@
 # PRD 14: Evidence coverage per country
 
-Status: Implemented (September 2026). Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026, #57). Owner: unassigned. Depends on: none.
 
 ## Problem
 

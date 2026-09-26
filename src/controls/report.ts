@@ -23,6 +23,7 @@
 // `title` and `labels`. The builders are pure so Vitest covers them.
 
 import { getState } from '../state/store';
+import { scoresAtDate } from '../state/selectors';
 import { maybeEl } from '../dom';
 import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants';
 import type { DimensionKey } from '../constants';
@@ -33,6 +34,7 @@ import { DIMENSION_TO_SNAKE, SUBSCORE_LABELS } from '../data/subscores';
 import type { SubscoreEntry } from '../data/subscores';
 import { evidenceSentence } from '../data/evidence';
 import type { ScoreEntry, RegulationEntry } from '../data/loader';
+import type { HistorySnapshot } from '../data/history';
 
 export const ISSUE_NEW_URL = 'https://github.com/riadeane/airegulationmap/issues/new';
 export const ISSUE_TEMPLATE = 'data-error.yml';
@@ -61,6 +63,12 @@ export interface ReportEntry {
   /** The app URL of the current view (the permalink, theme dropped). */
   url: string;
   timelineDate?: string | null;
+  /**
+   * The scores on screen while the timeline is scrubbed to a past date:
+   * that date's snapshot (null when the country has none). Absent at
+   * Latest, when the table shows `score`.
+   */
+  vintage?: { date: string; scores: HistorySnapshot | null } | null;
   /** Injected for tests; callers leave it to today. */
   accessed?: string;
 }
@@ -98,7 +106,7 @@ function fits(body: string): boolean {
 }
 
 function headerBlock(entry: ReportEntry): string[] {
-  const { country, score, regulation, subscores, url, timelineDate, accessed } = entry;
+  const { country, score, regulation, subscores, url, timelineDate, vintage, accessed } = entry;
   const lastUpdated = score?.lastUpdated || regulation?.lastUpdated || 'unknown';
   // The same string the Cite popover offers, so the issue and a footnote
   // that quotes the entry name the same version.
@@ -120,12 +128,18 @@ function headerBlock(entry: ReportEntry): string[] {
     `**Data version:** ${score ? score.dataVersion : 'unknown'}`,
     `**Cite as:** ${citation}`,
     `**App URL:** ${url}`,
+    // On a past timeline date the panel shows that date's scores; the
+    // text, sources and confidence have no history and stay the latest.
+    ...(vintage
+      ? [`**Scores as of:** ${vintage.date} (timeline snapshot; text, sources and confidence are the latest entry)`]
+      : []),
     '',
     '| Dimension | Score |',
     '| --- | --- |',
   ];
+  const shown = vintage ? vintage.scores : score;
   for (const { value, text } of SCORE_OPTIONS) {
-    lines.push(`| ${text} | ${formatScore(score?.[value])} |`);
+    lines.push(`| ${text} | ${formatScore(shown?.[value])} |`);
   }
   return lines;
 }
@@ -248,12 +262,17 @@ export function initReport(): void {
     const state = getState();
     const country = state.selectedCountry;
     if (!country) return;
+    // The vintage the panel shows (null at Latest or for an unknown date).
+    const past = scoresAtDate();
     const url = buildReportUrl({
       country,
       score: state.scoreData[country] ?? null,
       regulation: state.regulationData[country] ?? null,
       subscores: state.subscores?.countries[country] ?? null,
       timelineDate: state.timelineDate,
+      vintage: past && state.timelineDate
+        ? { date: state.timelineDate, scores: past[country] ?? null }
+        : null,
       url: buildPermalink(state, { omitTheme: true }),
     });
     window.open(url, '_blank', 'noopener,noreferrer');

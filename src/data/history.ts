@@ -36,7 +36,10 @@ export async function loadHistory(): Promise<HistoryData | null> {
   try {
     const response = await fetch('/history.json');
     if (!response.ok) return null;
-    return response.json() as Promise<HistoryData>;
+    // Awaited so a malformed body (or an HTML error page) rejects inside
+    // this try: returned bare, the rejection escaped the catch and the
+    // drift page hung on "Loading the figures…".
+    return (await response.json()) as HistoryData;
   } catch {
     console.warn('history.json not available, timeline disabled');
     return null;

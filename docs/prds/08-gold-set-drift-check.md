@@ -1,6 +1,6 @@
 # PRD 08: Gold set and drift check
 
-Status: Implemented (September 2026). Owner: unassigned. Depends on: none. The gold entries are drafts until the maintainer verifies them.
+Status: Implemented (September 2026, #53). Owner: unassigned. Depends on: none. The gold entries are drafts until the maintainer verifies them.
 
 ## Problem
 

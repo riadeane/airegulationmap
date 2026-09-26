@@ -4,8 +4,10 @@
 // degrade).
 
 import type { AttributeKey } from '../constants';
-import type { ScoreData } from './loader';
 import type { EvidenceRecord } from './evidence';
+
+/** Per-country scores: the latest rows (ScoreData) or a timeline snapshot. */
+export type AttributeScores = Readonly<Record<string, { readonly [K in AttributeKey]?: number | null }>>;
 
 export interface Bloc {
   name: string;
@@ -73,8 +75,8 @@ export async function loadBlocs(knownCountries: string[] | null = null): Promise
  * memberCount. Returns null when no member has a score.
  */
 export function computeBlocStats(
-  members: string[],
-  scoreData: ScoreData,
+  members: readonly string[],
+  scoreData: AttributeScores,
   attribute: AttributeKey
 ): BlocStats | null {
   const scored: BlocMemberScore[] = [];

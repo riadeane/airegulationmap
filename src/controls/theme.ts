@@ -45,7 +45,9 @@ export function initTheme(): void {
   if (window.matchMedia) {
     const mq = window.matchMedia('(prefers-color-scheme: light)');
     const listener = () => {
-      if (!localStorage.getItem(STORAGE_KEY)) updateToggleLabel(currentTheme());
+      let stored: string | null = null;
+      try { stored = localStorage.getItem(STORAGE_KEY); } catch (e) { /* storage blocked */ }
+      if (!stored) updateToggleLabel(currentTheme());
     };
     if (mq.addEventListener) mq.addEventListener('change', listener);
     else if (mq.addListener) mq.addListener(listener);

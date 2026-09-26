@@ -1,5 +1,6 @@
 import { getState, setState, on } from '../state/store';
 import type { ConfidenceLevel } from '../state/store';
+import { evidenceFacetCounts } from '../state/selectors';
 import { el } from '../dom';
 import { parseEvidenceFilter } from '../data/evidence';
 import type { EvidenceFilter } from '../data/evidence';
@@ -10,6 +11,13 @@ const ALL_LEVELS: readonly ConfidenceLevel[] = ['high', 'medium', 'low'];
 const EVIDENCE_TITLE: Record<Exclude<EvidenceFilter, 'any'>, string> = {
   grounded: 'grounded evidence',
   search: 'search-only evidence',
+};
+
+// Why a narrowing Evidence option is disabled: no country's latest
+// research pass has that kind of record yet.
+const EVIDENCE_EMPTY_TITLE: Record<Exclude<EvidenceFilter, 'any'>, string> = {
+  grounded: 'No country has a research record grounded in verified policy initiatives yet',
+  search: 'No country has a search-only research record yet',
 };
 
 export function initFilter(): void {
@@ -69,6 +77,26 @@ export function initFilter(): void {
     setState({ filterEvidence: parseEvidenceFilter(r.value) ?? 'any' });
   }));
 
+  // An Evidence option that would keep no country is disabled, with the
+  // reason as its tooltip: until the first research run records evidence,
+  // "Grounded" and "Search only" would empty the map. A deep-linked value
+  // still applies (its radio shows checked); "Any" clears it.
+  function updateEvidenceAvailability() {
+    const counts = evidenceFacetCounts();
+    for (const radio of evidenceRadios) {
+      const facet = parseEvidenceFilter(radio.value);
+      if (!facet || facet === 'any') continue;
+      const label = radio.closest('label');
+      if (label && label.dataset.title === undefined) label.dataset.title = label.title;
+      const empty = counts[facet] === 0;
+      radio.disabled = empty;
+      if (label) label.title = empty ? EVIDENCE_EMPTY_TITLE[facet] : label.dataset.title ?? '';
+    }
+  }
+  on('subscores', updateEvidenceAvailability);
+  on('scoreData', updateEvidenceAvailability);
+  updateEvidenceAvailability();
+
   // Reset affordance - a narrowed map greys most countries, and there
   // was no one-click way back. Appended last so the async-loaded bloc
   // row (blocSelector.ts) can insert itself above it.
@@ -111,7 +139,9 @@ export function initFilter(): void {
     const parts: string[] = [];
     if (rangeActive) parts.push(`scores ${filterMin}–${filterMax}`);
     if (blocActive) parts.push(blocsData?.[selectedBloc!]?.name || selectedBloc!);
-    if (confActive) parts.push(`${filterConfidence!.join('/')} confidence`);
+    if (confActive) {
+      parts.push(filterConfidence!.length > 0 ? `${filterConfidence!.join('/')} confidence` : 'no confidence level');
+    }
     if (filterOfficialOnly) parts.push('official sources only');
     if (filterEvidence !== 'any') parts.push(EVIDENCE_TITLE[filterEvidence]);
     btn.title = active ? `Active filter: ${parts.join(' · ')}` : '';

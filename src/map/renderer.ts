@@ -224,6 +224,9 @@ export async function generateMap(): Promise<void> {
     .data(countries)
     .enter().append('path')
     .attr('class', 'country')
+    // Territories without a dataset row are not selectable (the intents
+    // ignore them); drop the pointer cursor that promises otherwise.
+    .classed('no-data', d => !scoreData[d.properties.name])
     .attr('d', path)
     .attr('fill', d => fillFor(scoreData[d.properties.name], currentAttribute, colorScale))
     .attr('stroke', cssVar('--map-stroke'))

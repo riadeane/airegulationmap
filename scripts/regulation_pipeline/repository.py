@@ -96,6 +96,10 @@ class Dataset:
     def regulation_row(self, country: str) -> dict | None:
         return self._regulation.get(country)
 
+    def breaks(self) -> list[dict]:
+        """Recorded calibration breaks (``history.json`` ``breaks``), as copies."""
+        return [dict(entry) for entry in self._history.get("breaks", [])]
+
     def history_for(self, country: str) -> list[dict]:
         """A country's history snapshots (file shape), as copies - read-only
         access for the Supabase mirror's replace-per-country sync."""
@@ -141,12 +145,14 @@ class Dataset:
         countries.setdefault(country, {})[EVIDENCE_KEY] = dict(record)
 
     def record_break(self, entry: dict) -> None:
-        """Append a calibration break ``{date, model, prompt_version, reason}``
-        to ``history.json``. A repeat of the same date and reason is a no-op so
-        a re-run on the same day records one break."""
+        """Append a calibration break ``{date, model, prompt_version, rubric,
+        reason, complete}`` to ``history.json``. A repeat of the same date and
+        reason replaces the entry, so a re-run on the same day records one
+        break."""
         breaks = self._history.setdefault("breaks", [])
-        for existing in breaks:
+        for i, existing in enumerate(breaks):
             if existing.get("date") == entry["date"] and existing.get("reason") == entry["reason"]:
+                breaks[i] = dict(entry)  # a same-day re-run updates it (e.g. complete)
                 return
         breaks.append(dict(entry))
 

@@ -66,7 +66,28 @@ class TestRationale:
             ResearchResult.model_validate(result)
         assert "rationale" in str(exc.value)
 
-    @pytest.mark.parametrize("bad", ["", "   ", "x" * 201])
+    def test_overlong_rationale_is_shortened_not_rejected(self):
+        # Failing one sentence would throw away the country's paid result.
+        long = "The AI Act applies directly, " + "with obligations phased in over time " * 8
+        result = full_result()
+        result["enforcement_level"]["actions_taken"]["rationale"] = long
+        kept = ResearchResult.model_validate(result).enforcement_level.actions_taken.rationale
+        assert len(kept) <= 200
+        assert kept.endswith("\u2026")
+        assert long.startswith(kept[:-1])
+        assert not kept[:-1].endswith(" ")
+
+    def test_placeholder_sources_cap_confidence_and_are_dropped(self):
+        model = ResearchResult.model_validate(full_result(sources="N/A", confidence="high"))
+        assert model.confidence == "low"
+        assert model.effective_confidence() == "low"
+        mixed = ResearchResult.model_validate(
+            full_result(sources="https://a.gov/x | - | https://b.org/y", confidence="high")
+        )
+        assert mixed.sources == "https://a.gov/x | https://b.org/y"
+        assert mixed.confidence == "high"
+
+    @pytest.mark.parametrize("bad", ["", "   "])
     def test_length_bounds(self, bad):
         result = full_result()
         result["enforcement_level"]["actions_taken"]["rationale"] = bad

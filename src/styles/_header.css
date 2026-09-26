@@ -371,9 +371,15 @@ h1 {
   border-bottom: none;
 }
 
-#score-dropdown li:hover {
+#score-dropdown li:hover,
+#score-dropdown li:focus-visible {
   background: var(--accent-muted);
   color: var(--text-primary);
+}
+
+#score-dropdown li:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 #score-dropdown li.selected {
@@ -729,6 +735,13 @@ input[type="range"] {
    same gap the confidence row leaves above that checkbox. */
 .filter-evidence-row {
   margin-top: 10px;
+}
+
+/* An Evidence option with no matching country (filter.ts); the label's
+   tooltip says why. */
+.filter-evidence-row label:has(input:disabled) {
+  color: var(--text-tertiary);
+  cursor: not-allowed;
 }
 
 .filter-conf-row input,

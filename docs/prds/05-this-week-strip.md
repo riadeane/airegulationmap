@@ -1,6 +1,6 @@
 # PRD 05: "This week" strip on the map
 
-Status: Proposed. Owner: unassigned. Depends on: 01 (stability gate).
+Status: Implemented (September 2026, #46). Owner: unassigned. Depends on: 01 (stability gate).
 
 ## Problem
 

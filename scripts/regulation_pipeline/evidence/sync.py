@@ -48,15 +48,16 @@ def sync_evidence(client, adapter, resolver: CountryResolver, *, full: bool = Fa
     report = SyncReport()
 
     existing = {
-        row["external_id"]: row["updated_at"]
+        row["external_id"]: (row["updated_at"], row.get("country_id"))
         for row in client.select_all("policy_initiatives", {
-            "select": "external_id,updated_at",
+            "select": "external_id,updated_at,country_id",
             "source": f"eq.{adapter.name}",
+            "order": "id",
         })
     }
     country_ids = {
         row["name"]: row["id"]
-        for row in client.select_all("countries", {"select": "id,name"})
+        for row in client.select_all("countries", {"select": "id,name", "order": "id"})
     }
 
     rows: list[dict] = []
@@ -78,7 +79,12 @@ def sync_evidence(client, adapter, resolver: CountryResolver, *, full: bool = Fa
         prior = existing.get(record.external_id, _MISSING)
         if prior is _MISSING:
             report.new += 1
-        elif _normalize_ts(prior) != _normalize_ts(record.updated_at):
+        elif _normalize_ts(prior[0]) != _normalize_ts(record.updated_at):
+            report.updated += 1
+        elif prior[1] != country_id:
+            # Unchanged upstream, but it resolves to a different country now
+            # (a new alias or ISO entry): re-link it, or it would stay
+            # unlinked until someone runs a full sync.
             report.updated += 1
         else:
             report.unchanged += 1
@@ -127,7 +133,7 @@ def _sync_source_links(client, links: list[tuple[str, str]], country_ids: dict[s
     client.upsert("sources", list(by_url.values()), on_conflict="url", batch_size=200)
     source_ids = {
         row["url"]: row["id"]
-        for row in client.select_all("sources", {"select": "id,url"})
+        for row in client.select_all("sources", {"select": "id,url", "order": "id"})
     }
     link_rows = [
         {

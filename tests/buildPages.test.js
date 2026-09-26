@@ -36,7 +36,7 @@ const CHILE_SOURCES = [
   'https://oecd.ai/en/dashboards/x',
   'https://www.gob.cl/ai',            // official (gob.cl) - listed second in the CSV
   'https://www.bcn.cl/leychile',
-  'https://www.senado.cl/ai-bill',    // not an official pattern
+  'https://www.senado.cl/ai-bill',    // official (senado keyword) - listed fourth
 ].join('|');
 
 function fixture() {
@@ -110,11 +110,11 @@ describe('orderSources', () => {
     const ordered = orderSources(classifySources(CHILE_SOURCES));
     expect(ordered.map(s => s.url)).toEqual([
       'https://www.gob.cl/ai',
+      'https://www.senado.cl/ai-bill',
       'https://oecd.ai/en/dashboards/x',
       'https://www.bcn.cl/leychile',
-      'https://www.senado.cl/ai-bill',
     ]);
-    expect(ordered.map(s => s.kind)).toEqual(['official', 'other', 'other', 'other']);
+    expect(ordered.map(s => s.kind)).toEqual(['official', 'official', 'other', 'other']);
   });
 
   it('returns [] for no sources', () => {
@@ -222,7 +222,7 @@ describe('renderCountryPage', () => {
     const urls = [...sources.matchAll(/href="([^"]+)"/g)].map(m => m[1]);
     expect(urls[0]).toBe('https://www.gob.cl/ai');
     expect(sources.indexOf('source-tag')).toBeLessThan(sources.indexOf('oecd.ai'));
-    expect(html).toContain('1 of 4 sources are official');
+    expect(html).toContain('2 of 4 sources are official');
   });
 
   it('links into the app and to neighbouring entries', () => {
@@ -300,6 +300,18 @@ describe('renderCountryPage evidence line', () => {
   });
 });
 
+describe('renderCountryPage sources', () => {
+  it('links only http(s) sources and shows anything else as text', () => {
+    const inputs = fixture();
+    inputs.regulation.Chile.sources = 'https://www.gob.cl/ai|javascript:alert(1)';
+    const html = renderCountryPage(modelFor('Chile', inputs));
+    const sources = html.slice(html.indexOf('<ol class="sources">'), html.indexOf('</ol>'));
+    expect(sources).toContain('<a href="https://www.gob.cl/ai"');
+    expect(sources).not.toContain('href="javascript:');
+    expect(sources).toContain('<li>javascript:alert(1)</li>');
+  });
+});
+
 describe('renderCountryIndex', () => {
   it('lists every country with a link to its page', () => {
     const html = renderCountryIndex(buildModels(fixture()));
@@ -320,6 +332,17 @@ describe('buildSitemap', () => {
     expect(xml).toContain(`<url><loc>${SITE_ORIGIN}/country/chile/</loc><lastmod>2026-06-13</lastmod></url>`);
     expect(xml).toContain(`<url><loc>${SITE_ORIGIN}/country/cote-divoire/</loc></url>`);
     expect((xml.match(/<url>/g) || []).length).toBe(TOP_LEVEL_PATHS.length + 4);
+  });
+
+  // Cloudflare Pages 308-redirects /x.html to /x and /x/index.html to /x/;
+  // a sitemap must list the final URLs.
+  it('lists only extensionless URLs', () => {
+    const xml = buildSitemap(buildModels(fixture()));
+    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+    expect(locs.length).toBeGreaterThan(0);
+    for (const loc of locs) expect(loc).not.toMatch(/\.html$/);
+    expect(locs).toContain(`${SITE_ORIGIN}/changes`);
+    expect(locs).toContain(`${SITE_ORIGIN}/drift`);
   });
 });
 

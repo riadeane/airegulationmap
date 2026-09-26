@@ -23,12 +23,48 @@ def test_permission_error_is_fatal(anthropic_errors):
         call_with_retries(call, label="x", sleep=lambda s: None)
 
 
-def test_4xx_is_fatal(anthropic_errors):
+def test_a_bad_request_fails_that_request_only(anthropic_errors):
+    # A 400 concerns the one request (too large, malformed): the country
+    # fails and the run goes on, with no retry of the same request.
+    calls = []
+
     def call():
+        calls.append(1)
         raise anthropic_errors["bad_request"]()
+
+    assert call_with_retries(call, label="x", sleep=lambda s: None) is None
+    assert len(calls) == 1
+
+
+def test_other_4xx_is_fatal():
+    import anthropic
+    import httpx
+
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+
+    def call():
+        raise anthropic.NotFoundError(
+            "no such model", response=httpx.Response(404, request=request), body=None,
+        )
 
     with pytest.raises(FatalAPIError):
         call_with_retries(call, label="x", sleep=lambda s: None)
+
+
+def test_retry_after_is_capped(anthropic_errors):
+    from regulation_pipeline.retry import MAX_RETRY_AFTER_SECONDS
+
+    slept = []
+    attempts = iter([anthropic_errors["rate_limit"](retry_after=86400)])
+
+    def call():
+        exc = next(attempts, None)
+        if exc:
+            raise exc
+        return "ok"
+
+    assert call_with_retries(call, label="x", sleep=slept.append) == "ok"
+    assert slept == [MAX_RETRY_AFTER_SECONDS]
 
 
 def test_transient_then_success(anthropic_errors):

@@ -1,6 +1,6 @@
 # PRD 02: Weekly digest and RSS feed
 
-Status: Proposed. Owner: unassigned. Depends on: 01 (stability gate).
+Status: Implemented (September 2026, #44). Owner: unassigned. Depends on: 01 (stability gate).
 
 ## Problem
 

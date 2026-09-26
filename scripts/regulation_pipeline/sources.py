@@ -33,8 +33,11 @@ _OFFICIAL_HOST_RE = re.compile(
     r"|(?:(^|\.)mil$)"
     r"|(?:(^|\.)gouv\.[a-z]{2,3}$)"
     r"|(?:(^|\.)gob\.[a-z]{2,3}$)"
+    r"|(?:(^|\.)gub\.[a-z]{2,3}$)"
     r"|(?:(^|\.)go\.[a-z]{2,3}$)"
     r"|(?:(^|\.)govt\.[a-z]{2,3}$)"
+    r"|(?:(^|\.)(gov|gouv)\.[a-z]{2}\.[a-z]{2}$)"
+    r"|(?:(^|\.)gv\.at$)"
     r"|(?:(^|\.)gc\.ca$)"
     r"|(?:(^|\.)bund\.de$)"
     r"|(?:(^|\.)admin\.ch$)"
@@ -44,10 +47,32 @@ _OFFICIAL_HOST_RE = re.compile(
 
 # Mirrors OFFICIAL_KEYWORD_RE in src/data/sources.ts.
 _OFFICIAL_KEYWORD_RE = re.compile(
-    r"(^|\.)(parliament|parlament|legislation|legifrance|riksdagen|bundestag"
-    r"|assemblee-nationale|camera|senato|gazette|boe)\.",
+    r"(^|\.)(parliament|parlament|parlamento|legislation|legifrance|riksdagen|bundestag"
+    r"|assemblee-nationale|camera|senato|senado|congreso|gazette|boe)\.",
     re.IGNORECASE,
 )
+
+# Mirrors OFFICIAL_HOSTS in src/data/sources.ts (a test keeps the two lists
+# identical). National governments, legislatures, official gazettes and
+# regulators whose domains follow no government naming convention. A host
+# matches itself and its subdomains.
+OFFICIAL_HOSTS = (
+    "althingi.is", "autoriteitpersoonsgegevens.nl", "belgium.be", "bundesregierung.de",
+    "canada.ca", "chinhphu.vn", "cnil.fr", "dataprotection.ie", "datatilsynet.dk",
+    "datatilsynet.no", "digst.dk", "dre.pt", "eduskunta.fi", "fgov.be", "finlex.fi",
+    "ft.dk", "garanteprivacy.it", "gouvernement.lu", "government.bg", "government.ru",
+    "governo.it", "ico.org.uk", "imy.se", "inforegulator.org.za", "irishstatutebook.ie",
+    "kormany.hu", "kremlin.ru", "leg.br", "likumi.lv", "llv.li", "lrs.lt", "lrv.lt",
+    "naih.hu", "nic.in", "nn.hr", "normattiva.it", "oireachtas.ie", "overheid.nl",
+    "public.lu", "regeringen.se", "regierung.li", "regjeringen.no", "retsinformation.dk",
+    "riigikantselei.ee", "riigiteataja.ee", "rijksoverheid.nl", "rks-gov.net",
+    "stjornarradid.is", "stortinget.no", "tem.fi", "traficom.fi", "tweedekamer.nl",
+    "u.ae", "valitsus.ee", "valtioneuvosto.fi",
+)
+
+
+def _is_official_host(host: str) -> bool:
+    return any(host == h or host.endswith("." + h) for h in OFFICIAL_HOSTS)
 
 # Intergovernmental-organisation domains (DB taxonomy refinement).
 _INTERGOV_SUFFIXES = (
@@ -61,6 +86,12 @@ _ACADEMIC_RE = re.compile(r"(^|\.)(edu|ac\.[a-z]{2,3})$", re.IGNORECASE)
 # Mirrors PLACEHOLDER_RE in src/constants.ts - research results occasionally
 # emit filler like "N/A" instead of a URL.
 _PLACEHOLDER_RE = re.compile(r"^(na|n/a|idem|unknown|none|\s*[-–—]\s*|\.\s*)$", re.IGNORECASE)
+
+
+def is_placeholder(segment: str) -> bool:
+    """A Sources segment that names nothing ("N/A", "-", "unknown")."""
+    text = segment.strip()
+    return not any(ch.isalnum() for ch in text) or bool(_PLACEHOLDER_RE.match(text))
 
 
 @dataclass(frozen=True)
@@ -86,7 +117,10 @@ def classify_source(url: str) -> ClassifiedSource:
     if host is None:
         return ClassifiedSource(url=url, domain=url, kind="other", source_type="other")
 
-    official = bool(_OFFICIAL_HOST_RE.search(host) or _OFFICIAL_KEYWORD_RE.search(host))
+    official = bool(
+        _OFFICIAL_HOST_RE.search(host) or _OFFICIAL_KEYWORD_RE.search(host)
+        or _is_official_host(host)
+    )
     kind = "official" if official else "other"
 
     if any(host == s or host.endswith("." + s) for s in _INTERGOV_SUFFIXES):

@@ -136,7 +136,8 @@ class SupabaseMirror:
             "countries_succeeded": updated,
             "input_tokens": usage.get("input"),
             "output_tokens": usage.get("output"),
-            "notes": _notes(fatal, gate_counts),
+            "est_cost_usd": usage.get("est_cost_usd"),
+            "notes": _notes(fatal, gate_counts, usage.get("searches")),
         }, {"id": f"eq.{self._run_id}"})
         logger.info(
             "mirror: run %s recorded (%d countries mirrored, fatal=%s)",
@@ -186,10 +187,12 @@ class SupabaseMirror:
 
     def _prior_run_ids(self, country_id: str) -> dict[str, str]:
         """Map ``scores json -> run_id`` for the country's existing snapshot
-        rows. Keyed by scores, not date: an unchanged snapshot's date advances
-        on every re-research, but its scores identify the same change point."""
+        rows. Keyed by scores, not date: before September 2026 an unchanged
+        snapshot's date advanced on every re-research, so rows written then
+        can carry a different date from the file's."""
         rows = self._client.select_all("score_history", {
             "select": "scores,run_id",
+            "order": "id",
             "country_id": f"eq.{country_id}",
         })
         return {
@@ -199,14 +202,14 @@ class SupabaseMirror:
         }
 
     def _resolve_country_ids(self, names: list[str]) -> dict[str, str]:
-        rows = self._client.select_all("countries", {"select": "id,name"})
+        rows = self._client.select_all("countries", {"select": "id,name", "order": "id"})
         ids = {r["name"]: r["id"] for r in rows}
         missing = [n for n in names if n not in ids]
         if missing:
             self._client.upsert("countries", [
                 {"name": n, **_iso_columns(self._iso.get(n))} for n in missing
             ], on_conflict="name")
-            rows = self._client.select_all("countries", {"select": "id,name"})
+            rows = self._client.select_all("countries", {"select": "id,name", "order": "id"})
             ids = {r["name"]: r["id"] for r in rows}
         return ids
 
@@ -228,7 +231,7 @@ class SupabaseMirror:
         self._client.upsert("sources", list(by_url.values()), on_conflict="url")
         source_ids = {
             r["url"]: r["id"]
-            for r in self._client.select_all("sources", {"select": "id,url"})
+            for r in self._client.select_all("sources", {"select": "id,url", "order": "id"})
         }
         link_rows = []
         for country, url in links:
@@ -254,12 +257,16 @@ class SupabaseMirror:
 # -- row projections (DB shape; the CSV shape lives in repository.py) ----------
 
 
-def _notes(fatal: bool, gate_counts: dict[str, int] | None) -> str | None:
+def _notes(
+    fatal: bool, gate_counts: dict[str, int] | None, searches: int | None = None,
+) -> str | None:
     parts = []
     if fatal:
         parts.append("aborted on fatal API error; partial results mirrored")
     if gate_counts:
         parts.append("gate: " + " ".join(f"{k}={v}" for k, v in gate_counts.items()))
+    if searches:
+        parts.append(f"web searches: {searches}")
     return "; ".join(parts) or None
 
 

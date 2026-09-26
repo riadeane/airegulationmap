@@ -3,7 +3,7 @@
   "countries": {
     "Afghanistan": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -92,7 +92,7 @@
     ],
     "Angola": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -112,7 +112,7 @@
     ],
     "Antigua and Barbuda": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -121,7 +121,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-07-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -259,7 +259,7 @@
     ],
     "Bahamas": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -268,7 +268,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-07-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -346,7 +346,7 @@
     ],
     "Barbados": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -355,7 +355,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -415,7 +415,7 @@
     ],
     "Belize": [
       {
-        "date": "2026-05-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -444,7 +444,7 @@
         "averageScore": 1.75
       },
       {
-        "date": "2026-05-01",
+        "date": "2026-04-01",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -540,7 +540,7 @@
     ],
     "Bosnia and Herz.": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -667,7 +667,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -678,7 +678,7 @@
     ],
     "Burundi": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -689,7 +689,7 @@
     ],
     "Cambodia": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -709,7 +709,7 @@
     ],
     "Cameroon": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -758,7 +758,7 @@
     ],
     "Cape Verde": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -767,7 +767,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -778,7 +778,7 @@
     ],
     "Central African Rep.": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -807,7 +807,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-05-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -896,7 +896,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -907,7 +907,7 @@
     ],
     "Congo": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -958,7 +958,7 @@
     ],
     "Cuba": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1047,7 +1047,7 @@
     ],
     "Dem. Rep. Congo": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1065,7 +1065,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -1096,7 +1096,7 @@
     ],
     "Djibouti": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1107,7 +1107,7 @@
     ],
     "Dominica": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1116,7 +1116,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -1127,7 +1127,7 @@
     ],
     "Dominican Republic": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -1147,7 +1147,7 @@
     ],
     "East Timor": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1207,7 +1207,7 @@
     ],
     "El Salvador": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1227,7 +1227,7 @@
     ],
     "Equatorial Guinea": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1238,7 +1238,7 @@
     ],
     "Eritrea": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1376,7 +1376,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -1405,7 +1405,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -1505,7 +1505,7 @@
     ],
     "Grenada": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1514,7 +1514,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-07-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -1523,7 +1523,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-08-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -1534,7 +1534,7 @@
     ],
     "Guatemala": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1572,7 +1572,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -1601,7 +1601,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -1612,7 +1612,7 @@
     ],
     "Guyana": [
       {
-        "date": "2026-05-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1632,7 +1632,7 @@
     ],
     "Haiti": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1643,7 +1643,7 @@
     ],
     "Honduras": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1770,7 +1770,7 @@
         "averageScore": 2.0
       },
       {
-        "date": "2026-08-01",
+        "date": "2026-07-01",
         "regulationStatus": 2.0,
         "policyLever": 1.75,
         "governanceType": 1.25,
@@ -1817,7 +1817,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -1888,7 +1888,7 @@
     ],
     "Jamaica": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -1988,7 +1988,7 @@
     ],
     "Kiribati": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -2093,7 +2093,7 @@
         "averageScore": 1.17
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.5,
         "governanceType": 1.0,
@@ -2104,7 +2104,7 @@
     ],
     "Laos": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -2113,7 +2113,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2153,7 +2153,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -2191,7 +2191,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2220,7 +2220,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-07-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2229,7 +2229,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-08-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2258,7 +2258,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2394,7 +2394,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2423,7 +2423,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2474,7 +2474,7 @@
     ],
     "Mali": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -2505,7 +2505,7 @@
     ],
     "Marshall Islands": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -2534,7 +2534,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2594,7 +2594,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2761,7 +2761,7 @@
     ],
     "Myanmar": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -2808,7 +2808,7 @@
         "averageScore": 1.08
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.25,
         "governanceType": 1.0,
@@ -2828,7 +2828,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-07-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2837,7 +2837,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-08-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2908,7 +2908,7 @@
     ],
     "Nicaragua": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -2946,7 +2946,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -2977,7 +2977,7 @@
     ],
     "North Korea": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -3066,7 +3066,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3151,7 +3151,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3162,7 +3162,7 @@
     ],
     "Paraguay": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -3180,7 +3180,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-08-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3360,7 +3360,7 @@
     ],
     "S. Sudan": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -3371,7 +3371,7 @@
     ],
     "Saint Kitts and Nevis": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -3382,7 +3382,7 @@
     ],
     "Saint Lucia": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -3391,7 +3391,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3411,7 +3411,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-05-01",
+        "date": "2026-04-01",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 2,
@@ -3420,7 +3420,7 @@
         "averageScore": 1.5
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3487,7 +3487,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3525,7 +3525,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3556,7 +3556,7 @@
     ],
     "Senegal": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -3596,7 +3596,7 @@
     ],
     "Seychelles": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -3605,7 +3605,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3723,7 +3723,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3734,7 +3734,7 @@
     ],
     "Somalia": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -3843,7 +3843,7 @@
     ],
     "Sudan": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -3854,7 +3854,7 @@
     ],
     "Suriname": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -3863,7 +3863,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -3961,7 +3961,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -4010,7 +4010,7 @@
         "averageScore": 2.75
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.25,
         "policyLever": 1.25,
         "governanceType": 1.0,
@@ -4048,7 +4048,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -4079,7 +4079,7 @@
     ],
     "Togo": [
       {
-        "date": "2026-05-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -4088,7 +4088,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -4117,7 +4117,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -4128,7 +4128,7 @@
     ],
     "Trinidad and Tobago": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -4188,7 +4188,7 @@
     ],
     "Turkmenistan": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -4208,7 +4208,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -4417,7 +4417,7 @@
     ],
     "Venezuela": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -4426,7 +4426,7 @@
         "averageScore": 1.25
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-06-13",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -4457,7 +4457,7 @@
     ],
     "Yemen": [
       {
-        "date": "2026-09-01",
+        "date": "2026-03-21",
         "regulationStatus": 1,
         "policyLever": 1,
         "governanceType": 1,
@@ -4468,7 +4468,7 @@
     ],
     "Zambia": [
       {
-        "date": "2026-04-01",
+        "date": "2026-03-21",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -4486,7 +4486,7 @@
         "averageScore": 1.0
       },
       {
-        "date": "2026-09-01",
+        "date": "2026-07-01",
         "regulationStatus": 1.0,
         "policyLever": 1.0,
         "governanceType": 1.0,
@@ -4506,7 +4506,7 @@
         "averageScore": 1.75
       },
       {
-        "date": "2026-05-01",
+        "date": "2026-04-01",
         "regulationStatus": 2,
         "policyLever": 2,
         "governanceType": 2,
@@ -4524,5 +4524,14 @@
         "averageScore": 1.58
       }
     ]
-  }
+  },
+  "breaks": [
+    {
+      "date": "2026-06-13",
+      "model": "claude-sonnet-4-6",
+      "prompt_version": "v2-2026-06",
+      "rubric": "v2",
+      "reason": "Methodology v2: each dimension became the mean of four sub-indicators, and the Maturity Index the mean of the three normative dimensions"
+    }
+  ]
 }

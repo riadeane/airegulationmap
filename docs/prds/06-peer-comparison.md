@@ -1,6 +1,6 @@
 # PRD 06: Peer comparison shortcuts
 
-Status: Implemented (September 2026). Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026, #47). Owner: unassigned. Depends on: none.
 
 ## Problem
 
