@@ -1,6 +1,6 @@
 # PRD 09: Error reporting from the panel
 
-Status: Implemented (September 2026). Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026, #52). Owner: unassigned. Depends on: none.
 
 ## Problem
 
