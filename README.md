@@ -1,22 +1,28 @@
 # AI Regulation Map
 
-An interactive world map showing the current state of AI regulation in every country. Explore how nations are approaching AI governance across six dimensions — from enforcement rigor to the types of policy instruments in use.
+An interactive world map showing the current state of AI regulation in every country. Explore how nations are approaching AI governance across six dimensions, from enforcement rigour to the types of policy instruments in use.
 
 Live at [airegulationmap.org](https://airegulationmap.org)
 
 ## What it does
 
-- Choropleth world map colored by regulation score, built with D3.js and TopoJSON
-- Six scoring dimensions: regulation status, policy lever, governance type, actor involvement, enforcement level, and a composite average
+- Choropleth world map coloured by regulation score, built with D3.js and TopoJSON
+- Six scoring dimensions: regulation status, policy lever, governance type, actor involvement, enforcement level, and a composite maturity index
 - Click any country to see detailed descriptions, relevant laws, source links, and a per-country score change history
-- Compare up to four countries side-by-side on a radar chart
+- Each dimension score breaks down into four sub-indicators; research passes since September 2026 add a one-sentence rationale to each
+- Entries researched since September 2026 state their evidence coverage: whether the research pass was grounded in verified OECD.AI policy initiatives, and whether it used web search
+- Compare up to four countries side-by-side on a radar chart, or start a comparison from the panel's "Compare with" peer shortcuts (bloc, similar maturity, similar profile)
 - Full-text search across regulation text ("sandbox", "facial recognition", …) alongside country-name search
-- Filter by score range or by bloc (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD) with aggregate stats
+- Filter by score range, bloc (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD), confidence, official sources or evidence coverage, with aggregate stats per bloc
 - Cross-dimension scatter plot to explore governance clusters
 - One-click CSV/JSON export of the full or filtered dataset
-- Timeline slider to view how scores have changed over time
+- Timeline slider to view how scores have changed over time, and a "This week" strip of score changes from the last seven days
+- Weekly changes digest (`changes.html`) with an Atom feed (`/digest/feed.xml`)
+- Drift dashboard (`drift.html`): how much each research run moved the dataset, and how confident it is
+- A JavaScript-free static page per country (`/country/<slug>/`), and a printable one-to-two page country brief
 - Shareable URLs, formatted citations (APA/Chicago/MLA), and light/dark themes
 - Every country entry has a "Report an issue" button that opens a pre-filled GitHub issue (see [CONTRIBUTING.md](CONTRIBUTING.md), "Data issues")
+- Static CSV/JSON downloads and a public read-only REST API (`data.html`, `api-docs.html`)
 - Data is automatically re-researched weekly using Claude with web search to keep it current
 
 ## Quick start
@@ -31,36 +37,52 @@ Open [localhost:5173](http://localhost:5173) in your browser.
 ## Project structure
 
 ```
+index.html        The map app
+changes.html      Weekly changes digest
+drift.html        Drift dashboard
+api-docs.html     Swagger UI for the read-only API
+
 src/              TypeScript frontend (no framework)
-  main.ts           Entry point
-  state/store.ts    Centralized state with event bus
+  main.ts           Entry point (changes.ts, drift.ts, apiDocs.ts for the other pages)
+  state/            Store with event bus, intents, selectors
   map/              Map rendering, legend, zoom, tooltip
-  panel/            Country detail panel (scores, text, changelog)
+  panel/            Country detail panel (scores, sub-indicators, text, changelog, evidence, peers)
   comparison/       Side-by-side comparison panel + radar chart
   scatter/          Cross-dimension scatter plot
-  controls/         Search, score selector, filter, blocs, export, timeline
+  charts/           Drift dashboard charts
+  controls/         Search, score selector, filter, blocs, export, timeline, share, print brief, issue report
   styles/           CSS partials
   constants.ts      Shared labels, options, regex
-  data/             CSV + history loading, search index, blocs
+  data/             CSV + JSON loading, search index, blocs, digest, drift, Supabase reader
 
-public/           Static data files served as-is
+public/           Static files served as-is
   scores.csv        Numeric scores (1–5) per country
   regulation_data.csv  Text descriptions, laws, sources
-  history.json      Timestamped score snapshots for timeline
+  history.json      Score snapshots for the timeline
+  data/subscores.json  Sub-indicator scores, rationales, evidence records
+  data/pending.json    Score changes the stability gate is holding
+  data/gold_set.json, data/drift.json  Gold set and per-run drift check
   data/country_names.json  Country name aliases
   data/blocs.json   Bloc membership (EU, G20, …)
+  digest/           Weekly digest JSON + Atom feed
+  data.html, methodology.html  Data & API overview, methodology
+  country/          Static country pages (generated by `npm run pages`, not committed)
 
-scripts/          Python data pipeline
-  update_data.py    CLI entry point
+scripts/          Build and data scripts
+  build_pages.ts    Static country pages + sitemap
+  update_data.py    Pipeline CLI entry point
   regulation_pipeline/  Typed models, repository, strategies, service
                         (see its README.md for architecture + diagrams)
 
-tests/            Vitest unit tests (frontend) + pytest (pipeline)
+supabase/         Database migrations (system of record + read-only API)
+docs/prds/        Product requirement documents
+tests/            Vitest unit tests, Playwright e2e (tests/e2e/), pytest (tests/pipeline/)
 ```
 
-The pipeline's architecture — layering, the run sequence, the domain model, and
-the strategy/repository patterns — is documented with diagrams in
-[`scripts/regulation_pipeline/README.md`](scripts/regulation_pipeline/README.md).
+The pipeline's architecture (layering, the run sequence, the domain model, and
+the strategy/repository patterns) is documented with diagrams in
+[`scripts/regulation_pipeline/README.md`](scripts/regulation_pipeline/README.md);
+the frontend's in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 
 ## Development
 
@@ -68,10 +90,11 @@ the strategy/repository patterns — is documented with diagrams in
 npm run lint       # ESLint
 npm run typecheck  # TypeScript (strict)
 npm test           # Vitest unit tests
+npm run test:e2e   # Playwright smoke + accessibility checks (after npm run build)
 python -m pytest   # pipeline tests (pip install -r requirements-dev.txt)
 ```
 
-CI runs lint, tests, and the production build on every push and pull request.
+CI runs lint, typecheck, a circular-import check (madge), the Vitest tests, the production build, the Playwright e2e checks, and the pipeline's pytest and ruff checks on every push and pull request.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full check list and for how data-error reports are handled.
 
@@ -83,10 +106,10 @@ The regulation data is refreshed automatically every Monday via GitHub Actions (
 pip install -r requirements.txt
 export ANTHROPIC_API_KEY=your-key
 
-python scripts/update_data.py                              # update stale countries
+python scripts/update_data.py                              # re-research every country (the weekly run)
 python scripts/update_data.py --countries "Germany,France"  # specific countries
-python scripts/update_data.py --dry-run                     # preview without writing
-python scripts/update_data.py --force                       # re-research everything
+python scripts/update_data.py --no-force                    # only stale or low-confidence countries
+python scripts/update_data.py --dry-run                     # list what would run; no API call, no writes
 ```
 
 ## Building for production
