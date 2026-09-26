@@ -219,10 +219,48 @@ export function initSearch(): void {
   });
 }
 
+// Header popovers and the buttons that toggle them.
+const HEADER_POPOVERS: readonly (readonly [string, string])[] = [
+  ['score-dropdown', 'score-btn'],
+  ['filter-popover', 'filter-btn'],
+  ['export-popover', 'export-btn'],
+  ['share-popover', 'share-btn'],
+];
+
+function closeHeaderPopover(popoverId: string, btnId: string): void {
+  document.getElementById(popoverId)?.classList.remove('open');
+  const btn = document.getElementById(btnId);
+  btn?.classList.remove('active');
+  btn?.setAttribute('aria-expanded', 'false');
+}
+
 export function initKeyboardNav(): void {
   document.addEventListener('keydown', e => {
+    // A modal dialog (the help overlay) owns the keyboard: its own Esc
+    // closes it, and nothing behind it may react - arrows used to change
+    // the selection under the modal and Esc also left scatter.
+    if (document.querySelector('dialog[open]')) return;
+
     const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+
+    // Esc from inside an open header popover (the filter's sliders and
+    // checkboxes, the share link) closes that popover and hands focus back
+    // to its button, instead of blurring to <body> with it still open.
+    if (e.key === 'Escape') {
+      for (const [popoverId, btnId] of HEADER_POPOVERS) {
+        const popover = document.getElementById(popoverId);
+        if (popover?.classList.contains('open') && popover.contains(target)) {
+          closeHeaderPopover(popoverId, btnId);
+          document.getElementById(btnId)?.focus();
+          return;
+        }
+      }
+    }
+
+    // Form controls own their keys: arrows move a caret, a slider, a
+    // select's value. Text entry also blurs on Esc; a select lets Esc
+    // through to back out a layer like anywhere else.
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
       if (e.key === 'Escape') {
         target.blur();
         document.getElementById('search-suggestions')!.replaceChildren();
@@ -230,6 +268,7 @@ export function initKeyboardNav(): void {
       }
       return;
     }
+    if (target.tagName === 'SELECT' && e.key !== 'Escape') return;
 
     if (e.key === '?') {
       e.preventDefault();
@@ -255,17 +294,7 @@ export function initKeyboardNav(): void {
       if (escapeMainView()) return;
       // Header popovers close on every remaining Esc layer - they're
       // transient chrome, not part of the back-out stack.
-      for (const [popoverId, btnId] of [
-        ['score-dropdown', 'score-btn'],
-        ['filter-popover', 'filter-btn'],
-        ['export-popover', 'export-btn'],
-        ['share-popover', 'share-btn'],
-      ]) {
-        document.getElementById(popoverId)?.classList.remove('open');
-        const btn = document.getElementById(btnId);
-        btn?.classList.remove('active');
-        btn?.setAttribute('aria-expanded', 'false');
-      }
+      for (const [popoverId, btnId] of HEADER_POPOVERS) closeHeaderPopover(popoverId, btnId);
       // With nothing selected, Esc peels the committed search next - so
       // country → results list → clean map, one layer per press.
       if (!getState().selectedCountry && getState().searchQuery) {
@@ -276,7 +305,8 @@ export function initKeyboardNav(): void {
       return;
     }
 
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    // Modified arrows are browser shortcuts (Alt+Left is Back); leave them.
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
       stepCountry(e.key === 'ArrowRight' ? 1 : -1);
     }
