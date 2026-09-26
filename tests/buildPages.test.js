@@ -36,7 +36,7 @@ const CHILE_SOURCES = [
   'https://oecd.ai/en/dashboards/x',
   'https://www.gob.cl/ai',            // official (gob.cl) - listed second in the CSV
   'https://www.bcn.cl/leychile',
-  'https://www.senado.cl/ai-bill',    // not an official pattern
+  'https://www.senado.cl/ai-bill',    // official (senado keyword) - listed fourth
 ].join('|');
 
 function fixture() {
@@ -110,11 +110,11 @@ describe('orderSources', () => {
     const ordered = orderSources(classifySources(CHILE_SOURCES));
     expect(ordered.map(s => s.url)).toEqual([
       'https://www.gob.cl/ai',
+      'https://www.senado.cl/ai-bill',
       'https://oecd.ai/en/dashboards/x',
       'https://www.bcn.cl/leychile',
-      'https://www.senado.cl/ai-bill',
     ]);
-    expect(ordered.map(s => s.kind)).toEqual(['official', 'other', 'other', 'other']);
+    expect(ordered.map(s => s.kind)).toEqual(['official', 'official', 'other', 'other']);
   });
 
   it('returns [] for no sources', () => {
@@ -222,7 +222,7 @@ describe('renderCountryPage', () => {
     const urls = [...sources.matchAll(/href="([^"]+)"/g)].map(m => m[1]);
     expect(urls[0]).toBe('https://www.gob.cl/ai');
     expect(sources.indexOf('source-tag')).toBeLessThan(sources.indexOf('oecd.ai'));
-    expect(html).toContain('1 of 4 sources are official');
+    expect(html).toContain('2 of 4 sources are official');
   });
 
   it('links into the app and to neighbouring entries', () => {
