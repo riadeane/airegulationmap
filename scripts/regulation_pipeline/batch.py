@@ -1,6 +1,6 @@
 """Message Batches API support.
 
-The monthly run is the textbook batch workload: ~196 independent requests, no
+The weekly run is the textbook batch workload: ~196 independent requests, no
 latency requirement. Batches bill all token usage at 50% of standard prices,
 support every Messages API feature (web search, structured outputs), and return
 per-request results - a transient failure costs one country, not the run.

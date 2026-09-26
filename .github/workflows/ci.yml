@@ -40,8 +40,13 @@ jobs:
 
       # Standalone npx install (not a devDependency): madge's optional
       # typescript peer conflicts with the repo's TS 6 under npm ci.
+      # madge reads only .js by default, so --extensions ts is required;
+      # the grep fails the step if it ever processes no files again.
       - name: No circular imports
-        run: npx --yes madge --circular src/
+        run: |
+          npx --yes madge --circular --extensions ts src/ 2>&1 | tee "$RUNNER_TEMP/madge.log"
+          grep -Eq 'Processed [1-9][0-9]* files' "$RUNNER_TEMP/madge.log" \
+            || { echo "::error::madge processed no files"; exit 1; }
 
       - name: Test
         run: npm test

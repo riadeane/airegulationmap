@@ -153,7 +153,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 Python package that calls the Claude API to research regulation status per country. Full architecture write-up with mermaid diagrams (layering, run sequence, domain model, strategy/repository patterns, staleness, batch lifecycle, retry) lives in [`scripts/regulation_pipeline/README.md`](scripts/regulation_pipeline/README.md). Layered around a few design patterns so the concerns stay separated and testable:
 
 - **Domain models** (`models.py`) - pydantic v2 `ResearchResult` is the single source of truth: it generates the structured-output JSON schema, validates responses, and computes dimension means / maturity composite / confidence. Sub-indicator field names live in exactly one place.
-- **Repository** (`repository.py`) - `Dataset` owns the four data stores that always travel together (scores/regulation/history/subscores); loads, applies a validated result, and saves them atomically (temp file + `os.replace`).
+- **Repository** (`repository.py`) - `Dataset` owns the five data stores that always travel together (scores/regulation/history/subscores/pending); loads, applies a validated result, and saves them atomically (temp file + `os.replace`).
 - **Strategy** (`strategies.py`) - `ResearchStrategy` with `SyncStrategy` and `BatchStrategy` behind one generator interface, so the orchestrator treats sync and batch identically.
 - **Service** (`service.py`) - `PipelineService` orchestrates selection → research → validation → persistence, with no CLI/exit-code concerns, so it is unit-testable with a fake strategy.
 - **Settings** (`config.py`) - paths are anchored to the repo root via `pathlib` (not the CWD) and injectable, so tests redirect all I/O to a temp dir.
@@ -163,7 +163,7 @@ Python package that calls the Claude API to research regulation status per count
 | `cli.py` | Typer CLI entry point - flags, logging, dependency wiring, exit codes |
 | `service.py` | `PipelineService` orchestrator (selection, apply loop, save) |
 | `models.py` | Pydantic `ResearchResult` - schema + validation + score projections |
-| `repository.py` | `Dataset` repository - load/apply/validate/atomic-save the four stores |
+| `repository.py` | `Dataset` repository - load/apply/validate/atomic-save the five stores |
 | `strategies.py` | `ResearchStrategy` ABC + `SyncStrategy` / `BatchStrategy` |
 | `api.py` | `ResearchClient` - request params + response parsing (Claude transport) |
 | `batch.py` | `BatchRunner` - Message Batches submit/poll/classify (50% token pricing) |

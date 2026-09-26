@@ -138,6 +138,10 @@ async function main(): Promise<void> {
   try {
     await generateMap();
     removeMapSkeleton();
+    // The first paint sets fills only; opacity (the score-range and
+    // country filters) is updateMap's job. Run it once so filters from
+    // the URL (?conf=, ?min=, ?max=, ?official=) show on load.
+    updateMap();
   } catch (err) {
     showLoadError(err);
     return;

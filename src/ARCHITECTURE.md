@@ -15,7 +15,7 @@ Derived values are read through *selectors*, never recomputed inline.
 ## Layering
 
 Dependencies point downward. Nothing below the orchestrator imports a feature,
-so there are no import cycles (`madge --circular src/` is clean).
+so there are no import cycles (`madge --circular --extensions ts src/` is clean).
 
 ```mermaid
 flowchart TD

@@ -4,7 +4,7 @@
 page to a directory (a GitHub Actions artifact in the probe workflow), so
 an API-shape change can be inspected before any sync runs. ``sync`` needs
 ``SUPABASE_URL`` + ``SUPABASE_SERVICE_KEY``; a network failure is a warned
-no-op (exit 0) - the monthly data run must never fail because an external
+no-op (exit 0) - the weekly data run must never fail because an external
 evidence API had a bad day.
 """
 
