@@ -167,6 +167,7 @@ def _run(
         for raw_name in (c for c in countries.split(",") if c.strip()):
             resolved = names.resolve(raw_name, dataset.countries())
             (targets if resolved else unknown).append(resolved or raw_name.strip())
+        targets = list(dict.fromkeys(targets))  # "Germany,germany" researches once
         if unknown:
             logger.error(
                 "Unknown countries (not in scores.csv or the alias map): %s. Nothing was "
@@ -233,7 +234,7 @@ def _run(
     logger.info(result.gate.summary_line())
     for line in gate.review_lines(result.gate):
         logger.warning(line)
-    _write_step_summary(gate.markdown_summary(result.gate, calibration_break))
+    _write_step_summary(gate.markdown_summary(result.gate, result.calibration_break))
     _gold_check(result, settings, model, prompt_version, today, supabase_mirror)
     if write_digest and result.fatal:
         # An aborted run's changes are partial; a digest would publish them

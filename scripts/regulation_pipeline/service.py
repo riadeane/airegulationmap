@@ -134,8 +134,6 @@ class PipelineService:
         tally = gate.GateTally()
         changes: list[CountryChange] = []
         raw: dict[str, ResearchResult] = {}
-        if self._break is not None:
-            self._dataset.record_break(self._break)
         self._mirror_call("begin", len(to_update))
 
         try:
@@ -160,28 +158,46 @@ class PipelineService:
             else:
                 logger.exception("FATAL: unexpected error during research")
             logger.error("Aborting. %d countries updated before failure.", updated)
+            recorded = self._record_break(updated, len(to_update))
             if updated:
                 logger.info("Saving partial progress...")
                 self._dataset.save()
             # Mirror AFTER the files are safe - same ordering as the happy path.
             self._mirror_call("finish", updated, len(set(failed)), True, gate_counts=tally.counts)
-            return self._result(updated, failed, tally, changes, raw, fatal=True)
+            return self._result(updated, failed, tally, changes, raw, recorded, fatal=True)
 
+        recorded = self._record_break(updated, len(to_update))
         for error in self._dataset.validate():
             logger.warning("validation: %s", error)
 
         logger.info("Writing output files...")
         self._dataset.save()
         self._mirror_call("finish", updated, len(set(failed)), False, gate_counts=tally.counts)
-        return self._result(updated, failed, tally, changes, raw, fatal=False)
+        return self._result(updated, failed, tally, changes, raw, recorded, fatal=False)
+
+    def _record_break(self, updated: int, attempted: int) -> dict | None:
+        """Record the calibration break only once the run has applied
+        something: a break written by a run that re-scored nothing would tell
+        the rubric guard the switch is done, and the next (gated) run would
+        land the whole shift as policy change. ``complete`` says whether every
+        attempted country was re-scored; the guard treats an incomplete break
+        for the current rubric as still due."""
+        if self._break is None or updated == 0:
+            if self._break is not None:
+                logger.warning("calibration break not recorded: no country was updated")
+            return None
+        entry = {**self._break, "complete": updated >= attempted}
+        self._dataset.record_break(entry)
+        return entry
 
     def _result(
         self, updated: int, failed: list[str], tally: gate.GateTally,
-        changes: list[CountryChange], raw: dict[str, ResearchResult], *, fatal: bool,
+        changes: list[CountryChange], raw: dict[str, ResearchResult],
+        recorded_break: dict | None, *, fatal: bool,
     ) -> RunResult:
         return RunResult(
             updated=updated, failed=sorted(set(failed)), fatal=fatal, gate=tally,
-            run_id=self._run_id, changes=tuple(changes), calibration_break=self._break,
+            run_id=self._run_id, changes=tuple(changes), calibration_break=recorded_break,
             raw_results=dict(raw),
         )
 

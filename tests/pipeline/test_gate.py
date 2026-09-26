@@ -265,13 +265,47 @@ class TestServiceGate:
         assert run.gate.counts[gate.UNCHANGED] == 1
         assert ds.scores_row("A")["Regulation Status"] == 4.25
         history = json.loads((tmp_path / "public" / "history.json").read_text())
-        assert history["breaks"] == [brk]
+        assert history["breaks"] == [{**brk, "complete": True}]
+        assert run.calibration_break == {**brk, "complete": True}
         assert history["countries"]["A"][-1]["date"] == "2026-09-14"
 
         # A re-run on the same day records the break once.
         svc, ds = _service(tmp_path, RUN_2, gate_enabled=False, calibration_break=brk)
         svc.run(ListStrategy([("A", bumped())]), ["A"])
         assert len(json.loads((tmp_path / "public" / "history.json").read_text())["breaks"]) == 1
+
+    def test_a_calibration_run_that_updates_nothing_records_no_break(self, tmp_path):
+        # Otherwise the rubric guard would think the switch is done, and the
+        # next gated run would land the whole shift as policy change.
+        from regulation_pipeline.history import calibration_due
+
+        svc, _ = _service(tmp_path, RUN_1)
+        svc.run(ListStrategy([("A", result()), ("B", result())]), ["A", "B"])
+        june = {"date": "2026-06-13", "prompt_version": "v2-2026-06", "reason": "v2"}
+        brk = {"date": "2026-09-14", "model": "m", "prompt_version": "v3.2-2026-09",
+               "rubric": "v3", "reason": "Switch to scoring rubric v3"}
+        svc, ds = _service(tmp_path, RUN_2, gate_enabled=False, calibration_break=brk)
+        ds.record_break(june)
+        run = svc.run(ListStrategy([("A", None), ("B", None)]), ["A", "B"])
+        assert run.calibration_break is None
+        assert calibration_due(ds.breaks(), "v3") is True
+
+    def test_a_partial_calibration_run_leaves_the_switch_due(self, tmp_path):
+        from regulation_pipeline.history import calibration_due
+
+        svc, _ = _service(tmp_path, RUN_1)
+        svc.run(ListStrategy([("A", result()), ("B", result())]), ["A", "B"])
+        brk = {"date": "2026-09-14", "model": "m", "prompt_version": "v3.2-2026-09",
+               "rubric": "v3", "reason": "Switch to scoring rubric v3"}
+        svc, ds = _service(tmp_path, RUN_2, gate_enabled=False, calibration_break=brk)
+        run = svc.run(ListStrategy([("A", bumped()), ("B", None)]), ["A", "B"])
+        assert run.calibration_break["complete"] is False
+        assert calibration_due(ds.breaks(), "v3") is True
+        # The next full run finishes it on a later date: no longer due.
+        svc, ds = _service(tmp_path, RUN_3, gate_enabled=False,
+                           calibration_break={**brk, "date": "2026-09-21"})
+        svc.run(ListStrategy([("A", bumped()), ("B", bumped())]), ["A", "B"])
+        assert calibration_due(ds.breaks(), "v3") is False
 
     def test_mirror_receives_gated_scores(self, tmp_path):
         recorded = []

@@ -8,6 +8,7 @@ per-request results - a transient failure costs one country, not the run.
 
 from __future__ import annotations
 
+import importlib
 import logging
 import time
 from collections.abc import Callable
@@ -32,6 +33,24 @@ CANCEL_GRACE_SECONDS = 10 * 60
 # A follow-up batch (retry or continuation) is only worth submitting with at
 # least this much of the wait budget left.
 MIN_ROUND_SECONDS = 15 * 60
+# Downloads of a batch's results before giving up on reading them.
+RESULTS_ATTEMPTS = 4
+
+
+def _transport_errors() -> tuple[type[BaseException], ...]:
+    """Transport-level errors a streamed download can raise: the SDK's HTTP
+    library is httpx2 in anthropic 1.x and httpx before it."""
+    errors = []
+    for module in ("httpx2", "httpx"):
+        try:
+            errors.append(importlib.import_module(module).TransportError)
+        except (ImportError, AttributeError):
+            continue
+    return tuple(errors) or (OSError,)
+
+
+_TRANSPORT_ERRORS = _transport_errors()
+
 # pause_turn continuations per country, as in the synchronous path
 # (api.MAX_CONTINUATIONS).
 MAX_CONTINUATION_ROUNDS = 3
@@ -92,6 +111,10 @@ class BatchRunner:
         messages, errors = self._run_once(params_by_country)
         retry = {c for c, kind in errors.items() if kind == "retryable"}
         conversations: dict[str, list] = {}
+        # The paused Message last appended per country: a continuation that
+        # failed leaves it in ``messages``, and appending it again would send
+        # the same turn twice (duplicate server_tool_use ids).
+        appended: dict[str, object] = {}
 
         for _ in range(MAX_CONTINUATION_ROUNDS):
             paused = {
@@ -109,7 +132,9 @@ class BatchRunner:
             round_params = {c: params_by_country[c] for c in retry}
             for country, message in paused.items():
                 turns = conversations.setdefault(country, list(params_by_country[country]["messages"]))
-                turns.append({"role": "assistant", "content": message.content})
+                if appended.get(country) is not message:
+                    turns.append({"role": "assistant", "content": message.content})
+                    appended[country] = message
                 round_params[country] = {**params_by_country[country], "messages": list(turns)}
             logger.info(
                 "Follow-up batch: %d transient failures, %d paused results to continue...",
@@ -173,6 +198,26 @@ class BatchRunner:
 
         return self._collect(batch, id_map)
 
+    def _read_results(self, batch_id: str):
+        """Download a batch's results. The SDK streams JSONL straight off the
+        HTTP transport, so a connection dropped mid-download raises the
+        transport's own error rather than an ``anthropic`` one; retry those
+        too. ``None`` once every attempt failed."""
+        for attempt in range(1, RESULTS_ATTEMPTS + 1):
+            try:
+                return self._call(
+                    lambda: list(self._client.messages.batches.results(batch_id)),
+                    f"batch results {batch_id}",
+                )
+            except _TRANSPORT_ERRORS as exc:
+                logger.warning(
+                    "batch results %s: download interrupted (%s), attempt %d/%d",
+                    batch_id, type(exc).__name__, attempt, RESULTS_ATTEMPTS,
+                )
+                if attempt < RESULTS_ATTEMPTS:
+                    self._sleep(5 * attempt)
+        return None
+
     def _call(self, call, label: str):
         """One batch API call under :func:`~regulation_pipeline.retry.call_with_retries`.
         Returns ``None`` once transient retries are exhausted."""
@@ -206,9 +251,7 @@ class BatchRunner:
             )
             return messages, {country: "fatal" for country in id_map.values()}
 
-        results = self._call(
-            lambda: list(self._client.messages.batches.results(batch.id)), f"batch results {batch.id}"
-        )
+        results = self._read_results(batch.id)
         if results is None:
             logger.error(
                 "Could not read the results of batch %s; %d countries fail this run. "
