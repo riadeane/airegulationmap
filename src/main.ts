@@ -27,7 +27,7 @@ import { initCitePopover } from './controls/citePopover';
 import { initPrintBrief } from './controls/printBrief';
 import { initReport } from './controls/report';
 import { initInitiatives } from './panel/initiatives';
-import { hydrateFromSupabase } from './data/hydrate';
+import { hydrateFromSupabase, withHydratedEvidence } from './data/hydrate';
 import { loadSourceMeta } from './data/sourceMeta';
 import { initHelpOverlay } from './controls/helpOverlay';
 import { initMenu } from './controls/menu';
@@ -175,7 +175,8 @@ async function main(): Promise<void> {
 
   // Sub-indicator audit trail (methodology v2) - non-blocking; the
   // dimension-row breakdown appears once it loads.
-  loadSubscores().then(subscores => setState({ subscores }));
+  // A Supabase hydration that lands first overlays its evidence records.
+  loadSubscores().then(subscores => setState({ subscores: withHydratedEvidence(subscores) }));
 
   // ISO codes for the panel name row and the printed brief - non-blocking.
   loadCountryIso().then(countryIso => setState({ countryIso }));
