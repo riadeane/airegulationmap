@@ -36,6 +36,92 @@ class TestParseMessage:
         assert parse_message(text_message("not json at all"), "X") is None
 
 
+class TestUnfinishedResponses:
+    @pytest.mark.parametrize("reason", ["pause_turn", "max_tokens", "refusal"])
+    def test_a_response_without_its_answer_is_rejected(self, reason):
+        # Interim text ("let me search...") must never be parsed as the answer,
+        # even when it happens to be valid JSON.
+        msg = text_message(json.dumps(full_result()))
+        msg.stop_reason = reason
+        assert parse_message(msg, "X") is None
+
+    def test_end_turn_parses(self):
+        msg = text_message(json.dumps(full_result()))
+        msg.stop_reason = "end_turn"
+        assert parse_message(msg, "X")["confidence"] == "high"
+
+
+class _SequenceMessages:
+    """Returns the queued messages in order and records every request."""
+
+    def __init__(self, *messages):
+        self._queue = list(messages)
+        self.calls: list[dict] = []
+
+    def create(self, **kwargs):
+        self.calls.append(kwargs)
+        return self._queue.pop(0)
+
+
+def _paused(text="Searching..."):
+    msg = Message(Block("text", text), Block("server_tool_use"))
+    msg.stop_reason = "pause_turn"
+    return msg
+
+
+class TestResume:
+    def _client(self, *messages):
+        fake = _FakeClient()
+        fake.messages = _SequenceMessages(*messages)
+        return ResearchClient(fake, model="m", today=TODAY), fake.messages
+
+    def test_a_paused_turn_is_resumed_until_it_answers(self):
+        first, second = _paused("one"), _paused("two")
+        done = text_message(json.dumps(full_result()))
+        done.stop_reason = "end_turn"
+        client, messages = self._client(first, second, done)
+        raw, _ = client.research("Testland", None, use_search=True)
+        assert raw["confidence"] == "high"
+        assert len(messages.calls) == 3
+        # Each continuation re-sends the prompt plus every paused turn so far,
+        # as assistant messages, and nothing else changes.
+        resumed = messages.calls[2]
+        assert [m["role"] for m in resumed["messages"]] == ["user", "assistant", "assistant"]
+        assert resumed["messages"][1]["content"] is first.content
+        assert resumed["messages"][2]["content"] is second.content
+        assert resumed["tools"] == messages.calls[0]["tools"]
+        assert resumed["output_config"] == messages.calls[0]["output_config"]
+        # The first request's message list was not mutated.
+        assert len(messages.calls[0]["messages"]) == 1
+
+    def test_gives_up_after_the_continuation_cap(self):
+        from regulation_pipeline.api import MAX_CONTINUATIONS
+
+        client, messages = self._client(*[_paused() for _ in range(MAX_CONTINUATIONS + 1)])
+        raw, _ = client.research("Testland", None, use_search=True)
+        assert raw is None
+        assert len(messages.calls) == MAX_CONTINUATIONS + 1
+
+    def test_a_finished_turn_is_not_resent(self):
+        done = text_message(json.dumps(full_result()))
+        client, messages = self._client(done)
+        assert client.resume({"messages": []}, done, "X") is done
+        assert messages.calls == []
+
+    def test_continuation_usage_is_counted(self):
+        class Usage:
+            input_tokens = 10
+            output_tokens = 2
+
+        first = _paused()
+        first.usage = Usage()
+        done = text_message(json.dumps(full_result()))
+        done.usage = Usage()
+        client, _ = self._client(first, done)
+        client.research("Testland", None, use_search=True)
+        assert client.usage() == {"input": 20, "output": 4, "searches": 0}
+
+
 class _FakeMessages:
     def __init__(self, message):
         self._message = message
@@ -191,3 +277,30 @@ class TestResearch:
         raw, provenance = rc.research("Germany", None, use_search=True)
         assert raw is None
         assert provenance == ResearchProvenance(initiatives_used=0, search=True, model="m")
+
+
+class TestUsage:
+    def test_web_search_requests_are_counted(self):
+        from regulation_pipeline.api import add_usage
+
+        class ServerTools:
+            web_search_requests = 11
+
+        class Usage:
+            input_tokens = 140_000
+            output_tokens = 6_000
+            server_tool_use = ServerTools()
+
+        totals = {"input": 0, "output": 0, "searches": 0}
+        add_usage(totals, Usage())
+        add_usage(totals, None)
+        assert totals == {"input": 140_000, "output": 6_000, "searches": 11}
+
+    def test_cost_estimate(self):
+        from regulation_pipeline.config import estimate_cost_usd
+
+        batch = {"input": 1_000_000, "output": 100_000, "searches": 1000}
+        # Opus 5: (5 + 2.5) / 2 for batch tokens, plus $10 for 1,000 searches.
+        assert estimate_cost_usd("claude-opus-5", {}, batch) == 13.75
+        assert estimate_cost_usd("claude-opus-5", {"input": 1_000_000}, {}) == 5.0
+        assert estimate_cost_usd("some-unlisted-model", {}, batch) is None

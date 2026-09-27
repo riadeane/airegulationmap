@@ -61,10 +61,11 @@ export function buildSearchInput(atCap: boolean, listId = 'comp-search-suggestio
     list.replaceChildren();
     if (q.length < 1) { close(); return; }
 
-    const { sortedCountryNames, comparisonCountries } = getState();
+    const { sortedCountryNames, comparisonCountries, countryAliases } = getState();
     const matches = matchCountryNames(sortedCountryNames, q, {
       limit: 6,
       exclude: new Set(comparisonCountries),
+      aliases: countryAliases,
     });
 
     if (matches.length === 0) { close(); return; }

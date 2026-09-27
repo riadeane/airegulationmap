@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { buildScoresAtDate, extractSortedDates, historyBreaks } from '../src/data/history';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { buildScoresAtDate, extractSortedDates, historyBreaks, loadHistory } from '../src/data/history';
 
 const history = {
   schema_version: 1,
@@ -70,3 +70,30 @@ describe('historyBreaks', () => {
     expect(h.breaks).toEqual([later, earlier]);
   });
 });
+
+// Regression: `return response.json()` inside the try was not awaited, so
+// a malformed body rejected outside the catch and the drift page hung on
+// its loading message instead of rendering its empty states.
+describe('loadHistory', () => {
+  afterEach(() => {
+    delete globalThis.fetch;
+    vi.restoreAllMocks();
+  });
+
+  it('resolves null when the body is not JSON', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    globalThis.fetch = () => Promise.resolve({
+      ok: true,
+      json: () => Promise.reject(new SyntaxError('Unexpected token <')),
+    });
+    await expect(loadHistory()).resolves.toBeNull();
+  });
+
+  it('resolves null on an HTTP error and parses a good body', async () => {
+    globalThis.fetch = () => Promise.resolve({ ok: false });
+    await expect(loadHistory()).resolves.toBeNull();
+    globalThis.fetch = () => Promise.resolve({ ok: true, json: () => Promise.resolve(history) });
+    await expect(loadHistory()).resolves.toEqual(history);
+  });
+});
+

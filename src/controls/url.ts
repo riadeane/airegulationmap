@@ -43,6 +43,8 @@ export interface UrlState {
 }
 
 const CONFIDENCE_LEVELS = new Set(['high', 'medium', 'low']);
+// The `conf` value for "no level checked" (filterConfidence = []).
+const CONF_NONE = 'none';
 
 const VALID_MODES = new Set<string>(SCORE_OPTIONS.map(o => o.value));
 const DEFAULT_MODE = 'averageScore';
@@ -81,19 +83,24 @@ function splitCompare(raw: string): string[] {
 // Parse the current window URL into a partial state object. Only keys
 // actually present in the URL appear in the returned object - callers
 // decide which defaults to apply.
+//
+// URLSearchParams has already percent-decoded every value (and never
+// throws on a malformed escape), so values are used as-is: decoding them
+// a second time mangled "100%" and threw a URIError on a stray "%", which
+// left the app stuck on its loading skeleton.
 export function parseUrl(search: string = window.location.search): UrlState {
   const params = new URLSearchParams(search);
   const out: UrlState = {};
 
   const country = params.get('country');
-  if (country) out.country = decodeURIComponent(country);
+  if (country && country.trim()) out.country = country.trim();
 
   const mode = params.get('mode');
   if (mode && VALID_MODES.has(mode)) out.mode = mode as AttributeKey;
 
   const compare = params.get('compare');
   if (compare) {
-    const list = splitCompare(decodeURIComponent(compare));
+    const list = splitCompare(compare);
     if (list.length > 0) out.compare = list;
   }
 
@@ -113,13 +120,20 @@ export function parseUrl(search: string = window.location.search): UrlState {
   if (q && q.trim()) out.q = q.trim().slice(0, MAX_SEARCH_QUERY);
 
   // Confidence filter - a strict subset of the three levels (all three is
-  // no filter at all, so it normalizes away).
+  // no filter at all, so it normalizes away). `conf=none` is the empty
+  // subset: every box unchecked, so nothing passes. A bare `conf=` (what
+  // older links wrote for that view) means the same.
   const conf = params.get('conf');
-  if (conf) {
-    const levels = [...new Set(
-      conf.split(',').map(s => s.trim().toLowerCase()).filter(s => CONFIDENCE_LEVELS.has(s))
-    )] as ConfidenceLevel[];
-    if (levels.length > 0 && levels.length < CONFIDENCE_LEVELS.size) out.filterConfidence = levels;
+  if (conf !== null) {
+    const raw = conf.trim().toLowerCase();
+    if (raw === '' || raw === CONF_NONE) {
+      out.filterConfidence = [];
+    } else {
+      const levels = [...new Set(
+        raw.split(',').map(s => s.trim()).filter(s => CONFIDENCE_LEVELS.has(s))
+      )] as ConfidenceLevel[];
+      if (levels.length > 0 && levels.length < CONFIDENCE_LEVELS.size) out.filterConfidence = levels;
+    }
   }
   if (params.get('official') === '1') out.filterOfficialOnly = true;
   const evidence = parseEvidenceFilter(params.get('evidence'));
@@ -181,7 +195,9 @@ export function buildQueryString(s: Readonly<AppState>, theme: 'light' | 'dark' 
 
   if (s.filterMin !== 1) params.set('min', String(s.filterMin));
   if (s.filterMax !== 5) params.set('max', String(s.filterMax));
-  if (s.filterConfidence) params.set('conf', s.filterConfidence.join(','));
+  if (s.filterConfidence) {
+    params.set('conf', s.filterConfidence.length > 0 ? s.filterConfidence.join(',') : CONF_NONE);
+  }
   if (s.filterOfficialOnly) params.set('official', '1');
   if (s.filterEvidence && s.filterEvidence !== 'any') params.set('evidence', s.filterEvidence);
 

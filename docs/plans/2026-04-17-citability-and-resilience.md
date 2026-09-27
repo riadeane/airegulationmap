@@ -1,5 +1,7 @@
 # Citability & Resilience Implementation Plan
 
+**Status:** Shipped in #11 (April 2026). Kept as written; the `.js` paths predate the TypeScript migration (#13), and the code is the source of truth.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task.
 
 **Goal:** Turn the AI Regulation Map from a nice visualization into a tool that policy researchers actually cite in working papers. Three additions, in order of importance:

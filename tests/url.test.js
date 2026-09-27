@@ -166,3 +166,36 @@ describe('evidence filter param', () => {
       .toEqual({ filterEvidence: 'search' });
   });
 });
+
+// Regression: parseUrl decoded values that URLSearchParams had already
+// decoded, so "100%" was mangled and a stray "%" threw a URIError in
+// main(), leaving the app on its loading skeleton.
+describe('parseUrl - percent-decoding', () => {
+  it('decodes each value exactly once', () => {
+    expect(parseUrl('?country=100%25')).toEqual({ country: '100%' });
+    expect(parseUrl("?country=C%C3%B4te%20d'Ivoire")).toEqual({ country: "Côte d'Ivoire" });
+    expect(parseUrl('?compare=France%2CJapan')).toEqual({ compare: ['France', 'Japan'] });
+  });
+
+  it('never throws on a malformed escape', () => {
+    expect(() => parseUrl('?country=%E0%A4%A')).not.toThrow();
+    expect(() => parseUrl('?compare=%,%%')).not.toThrow();
+    expect(() => parseUrl('?q=%&mode=%zz&conf=%')).not.toThrow();
+  });
+});
+
+// Regression: unchecking every confidence box wrote `conf=`, which the
+// parser ignored, so the "nothing passes" view reloaded unfiltered.
+describe('confidence filter with no level checked', () => {
+  it('serializes the empty subset as conf=none and parses it back', () => {
+    const qs = buildQueryString(appState({ filterConfidence: [] }));
+    expect(qs).toBe('conf=none');
+    expect(parseUrl('?' + qs)).toEqual({ filterConfidence: [] });
+  });
+
+  it('reads the bare conf= older links carry as the empty subset', () => {
+    expect(parseUrl('?conf=')).toEqual({ filterConfidence: [] });
+    expect(parseUrl('?conf=NONE')).toEqual({ filterConfidence: [] });
+  });
+});
+

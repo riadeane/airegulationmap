@@ -421,7 +421,9 @@ function renderRun(
     root.append(el('p', {}, ['No score has moved yet.']));
     return;
   }
-  root.append(renderTable({
+  // In a scroll box: the nowrap cells outgrow a 360px phone, and a bare
+  // table widened the whole page.
+  root.append(el('div', { class: 'chart-table-wrap' }, [renderTable({
     head: ['Country', 'Dimension', 'From', 'To', 'Delta'],
     rows: moves.map(m => [
       link(countryHref(m.country), m.country),
@@ -430,7 +432,7 @@ function renderRun(
       String(m.to),
       formatSignedDelta(m.delta),
     ]),
-  }));
+  })]));
 }
 
 // ---------------------------------------------------------------------------

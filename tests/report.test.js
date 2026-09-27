@@ -315,3 +315,46 @@ describe('the issue form template', () => {
     expect(template).toContain(`labels: ["${ISSUE_LABEL}"]`);
   });
 });
+
+// Regression: on a past timeline date the report sent the latest scores
+// while the panel showed that date's snapshot.
+describe('buildReportBody on a past timeline date', () => {
+  const snapshot = {
+    date: '2026-03-21',
+    regulationStatus: 2,
+    policyLever: 1.75,
+    governanceType: 2,
+    actorInvolvement: 3,
+    enforcementLevel: 1.5,
+    averageScore: 1.75,
+  };
+
+  it('lists the vintage scores and states the vintage', () => {
+    const body = buildReportBody({
+      ...base,
+      timelineDate: '2026-03-21',
+      vintage: { date: '2026-03-21', scores: snapshot },
+    });
+    expect(body).toContain('**Scores as of:** 2026-03-21');
+    const rows = body.split('\n').filter(line => /^\| [A-Z]/.test(line) && !line.startsWith('| Dimension'));
+    expect(rows).toEqual([
+      '| Maturity Index | 1.75 |',
+      '| Regulation Status | 2 |',
+      '| Policy Lever | 1.75 |',
+      '| Governance Type | 2 |',
+      '| Actor Involvement | 3 |',
+      '| Enforcement Level | 1.50 |',
+    ]);
+  });
+
+  it('says N/A for a country the snapshot does not cover, never the latest', () => {
+    const body = buildReportBody({ ...base, vintage: { date: '2026-03-21', scores: null } });
+    expect(body).toContain('| Maturity Index | N/A |');
+    expect(body).not.toContain('| Maturity Index | 2.42 |');
+  });
+
+  it('adds no vintage line at Latest', () => {
+    expect(buildReportBody(base)).not.toContain('Scores as of');
+  });
+});
+

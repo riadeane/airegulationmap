@@ -47,6 +47,38 @@ SITE_URL = "https://airegulationmap.org"
 # Opus 5 thinks by default, which suits the judgment-heavy scoring rubric.
 DEFAULT_MODEL = "claude-opus-5"
 
+# List prices in USD per million tokens (input, output), for the rough
+# per-run cost estimate in research_runs.est_cost_usd. Batch requests bill
+# tokens at half these rates; web search bills per request. Prices change:
+# the estimate is a guide, and a model missing here records no estimate.
+MODEL_PRICES_PER_MTOK: dict[str, tuple[float, float]] = {
+    "claude-opus-5": (5.0, 25.0),
+    "claude-opus-5-5": (4.0, 20.0),
+    "claude-opus-4-8": (5.0, 25.0),
+    "claude-sonnet-5": (2.0, 10.0),
+    "claude-sonnet-4-6": (3.0, 15.0),
+    "claude-haiku-4-5": (1.0, 5.0),
+}
+WEB_SEARCH_USD_PER_REQUEST = 10.0 / 1000
+BATCH_DISCOUNT = 0.5
+
+
+def estimate_cost_usd(model: str, sync: dict[str, int], batch: dict[str, int]) -> float | None:
+    """Rough USD cost of a run from its token and search counts: sync tokens
+    at list price, batch tokens at half, every web search request at
+    $10 per 1,000. ``None`` for a model without a listed price."""
+    prices = MODEL_PRICES_PER_MTOK.get(model)
+    if prices is None:
+        return None
+    price_in, price_out = prices
+
+    def tokens(usage: dict[str, int]) -> float:
+        return (usage.get("input", 0) * price_in + usage.get("output", 0) * price_out) / 1_000_000
+
+    searches = sync.get("searches", 0) + batch.get("searches", 0)
+    total = tokens(sync) + BATCH_DISCOUNT * tokens(batch) + searches * WEB_SEARCH_USD_PER_REQUEST
+    return round(total, 2)
+
 
 @dataclass(frozen=True)
 class Settings:

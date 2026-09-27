@@ -1,8 +1,9 @@
 """One-shot seed: bootstrap the Supabase database from the static files.
 
-Reads the four stores (via the same :class:`Dataset` loader and
-canonicalization the pipeline uses) plus ``country_iso.json``, and produces
-the full initial contents of the ``countries`` / ``country_scores`` /
+Reads the scores, regulation, history and subscores stores (via the same
+:class:`Dataset` loader and canonicalization the pipeline uses) plus
+``country_iso.json``, and produces the full initial contents of the
+``countries`` / ``country_scores`` /
 ``country_summaries`` / ``score_history`` / ``sources`` /
 ``country_sources`` tables under a single ``research_runs(trigger='seed')``
 provenance row.

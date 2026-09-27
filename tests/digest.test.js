@@ -9,6 +9,7 @@ import {
   parseDigestIndex,
   pickWeek,
   sourceHost,
+  uncoveredFacts,
   weekLabel,
 } from '../src/data/digest';
 
@@ -127,3 +128,44 @@ describe('formatting helpers', () => {
     expect(changesWithoutItems(d).map((c) => c.country)).toEqual(['Chile']);
   });
 });
+
+// Regression: "Also changed" listed a confidence-only change as
+// "Germany: " with nothing after the colon.
+describe('uncoveredFacts', () => {
+  const change = (overrides) => ({
+    country: 'Germany',
+    scores: {},
+    laws: null,
+    confidence: { old: 'medium', new: 'medium' },
+    sources: [],
+    newSources: [],
+    ...overrides,
+  });
+
+  it('states a confidence-only change', () => {
+    expect(uncoveredFacts(change({ confidence: { old: 'medium', new: 'high' } })))
+      .toEqual(['confidence medium → high']);
+    expect(uncoveredFacts(change({ confidence: { old: null, new: 'low' } })))
+      .toEqual(['confidence low']);
+  });
+
+  it('lists score, law and confidence changes together', () => {
+    expect(uncoveredFacts(change({
+      scores: { regulation_status: { old: 3, new: 3.25 } },
+      laws: { old: null, new: 'AI Act' },
+      confidence: { old: 'low', new: 'medium' },
+    }))).toEqual(['Regulation Status 3 → 3.25', 'specific laws updated', 'confidence low → medium']);
+  });
+
+  it('says "first scored" for a country new to the tracker', () => {
+    expect(uncoveredFacts(change({
+      scores: { regulation_status: { old: null, new: 2 } },
+      confidence: { old: null, new: 'low' },
+    }))).toEqual(['first scored in this run']);
+  });
+
+  it('adds nothing for an unchanged confidence', () => {
+    expect(uncoveredFacts(change({}))).toEqual([]);
+  });
+});
+

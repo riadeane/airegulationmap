@@ -1,6 +1,6 @@
 # PRD 01: Stability gate for weekly re-scoring
 
-Status: Implemented (September 2026). Owner: unassigned. Depends on: none. Includes the calibration break and the fixed-anchor rubric (addenda A and B).
+Status: Implemented (September 2026, #43). Owner: unassigned. Depends on: none. Includes the calibration break and the fixed-anchor rubric (addenda A and B).
 Blocks: 02 (weekly digest), 05 ("This week" strip).
 
 ## Problem

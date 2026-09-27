@@ -3,7 +3,8 @@ import tseslint from 'typescript-eslint';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['dist/', 'node_modules/', 'public/', 'docs/', 'PLANS/'] },
+  // .claude/ holds agent worktrees (full checkouts) and local session state.
+  { ignores: ['dist/', 'node_modules/', 'public/', 'docs/', 'PLANS/', '.claude/'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

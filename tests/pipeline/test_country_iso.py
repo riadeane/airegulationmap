@@ -83,3 +83,16 @@ def test_known_special_cases():
     assert ISO["Taiwan"]["iso3"] == "TWN"
     assert ISO["Dem. Rep. Congo"]["iso3"] == "COD"
     assert ISO["Swaziland"]["iso3"] == "SWZ"  # dataset name predates Eswatini
+
+
+def test_bloc_membership_counts_are_deliberate():
+    """Pin each bloc's size so an accession (or a slip) is a deliberate edit.
+    ASEAN has 11 members since Timor-Leste joined in October 2025."""
+    blocs = json.loads((SETTINGS.root / "public" / "data" / "blocs.json").read_text(encoding="utf-8"))
+    members = {code: bloc["members"] for code, bloc in blocs.items() if not code.startswith("_")}
+    assert {code: len(names) for code, names in members.items()} == {
+        "EU": 27, "G7": 7, "G20": 19, "ASEAN": 11, "AU": 54, "BRICS": 10, "NATO": 32, "OECD": 38,
+    }
+    scored = set(_scores_countries())
+    for code, names in members.items():
+        assert set(names) <= scored, code

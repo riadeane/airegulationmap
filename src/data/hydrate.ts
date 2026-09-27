@@ -10,15 +10,20 @@
 import { getState, setState } from '../state/store';
 import { parseScore } from './loader';
 import type { ScoreData, RegulationData, ScoreEntry, RegulationEntry } from './loader';
+import { normalizeEvidence } from './evidence';
+import type { EvidenceRecord } from './evidence';
+import type { SubscoresData } from './subscores';
 import { restGet } from './supabase';
 
-/** Columns fetched from public_export - prose included, subscores excluded
- * (the sub-indicator panel reads the static subscores.json). */
+/** Columns fetched from public_export - prose and the evidence record
+ * included, subscores excluded (the sub-indicator panel reads the static
+ * subscores.json, so a hydrated entry keeps the older breakdown). */
 export const EXPORT_COLUMNS =
   'country,regulation_status,policy_lever,governance_type,actor_involvement,'
   + 'enforcement_level,avg_score,confidence,data_version,scored_at,'
   + 'regulation_status_text,policy_lever_text,governance_type_text,'
-  + 'actor_involvement_text,enforcement_level_text,specific_laws,sources_raw,summarized_at';
+  + 'actor_involvement_text,enforcement_level_text,specific_laws,sources_raw,summarized_at,'
+  + 'grounded,initiatives_used,web_search';
 
 interface ExportRow {
   country: string;
@@ -39,6 +44,24 @@ interface ExportRow {
   specific_laws: string | null;
   sources_raw: string | null;
   summarized_at: string | null;
+  // Evidence coverage (migration 0008). All three null = no run record.
+  grounded?: boolean | null;
+  initiatives_used?: number | null;
+  web_search?: boolean | null;
+}
+
+/** The evidence record a public_export row carries, in the shape
+ * subscores.json gives it. The view has no model or run id, so both are
+ * null. Null when the row has no record (or an inconsistent one). */
+export function evidenceFromRow(row: ExportRow): EvidenceRecord | null {
+  if (row.grounded == null && row.web_search == null) return null;
+  return normalizeEvidence({
+    grounded: row.grounded,
+    initiatives_used: row.initiatives_used ?? null,
+    search: row.web_search,
+    model: null,
+    run_id: null,
+  });
 }
 
 /** Map one public_export row into the exact shapes the CSV loader
@@ -69,6 +92,36 @@ export function mapExportRow(row: ExportRow): { score: ScoreEntry; reg: Regulati
     confidence: row.confidence || null,
   };
   return { score, reg };
+}
+
+// Evidence records from the last hydration, for the countries whose entry
+// it replaced with a different research pass (null = the database row has
+// no record). subscores.json may land before or after hydration, so both
+// paths run it through withHydratedEvidence().
+let hydratedEvidence: ReadonlyMap<string, EvidenceRecord | null> | null = null;
+
+/** Overlay the hydrated evidence records on a subscores object, so the
+ * panel sentence, the Evidence facet and the bloc share describe the run
+ * behind the hydrated text. Returns the input unchanged when there is
+ * nothing to overlay. Countries missing from subscores.json get no entry:
+ * the sub-indicator panel needs the file's breakdown to render one. */
+export function withHydratedEvidence(subscores: SubscoresData | null): SubscoresData | null {
+  if (!subscores || !hydratedEvidence || hydratedEvidence.size === 0) return subscores;
+  const countries = { ...subscores.countries };
+  for (const [name, record] of hydratedEvidence) {
+    const entry = countries[name];
+    if (!entry) continue;
+    const next = { ...entry };
+    if (record) next.evidence = record;
+    else delete next.evidence;
+    countries[name] = next;
+  }
+  return { ...subscores, countries };
+}
+
+/** Test hook: forget the last hydration's evidence records. */
+export function resetHydratedEvidence(): void {
+  hydratedEvidence = null;
 }
 
 function maxLastUpdated(scoreData: ScoreData): string {
@@ -106,23 +159,33 @@ export async function hydrateFromSupabase(): Promise<boolean> {
   const rows = await restGet(`public_export?select=${EXPORT_COLUMNS}&limit=1000`);
   if (!Array.isArray(rows) || rows.length === 0) return false;
 
+  const current = getState().scoreData;
   const scoreData: ScoreData = {};
   const regulationData: RegulationData = {};
+  const evidence = new Map<string, EvidenceRecord | null>();
   for (const raw of rows as ExportRow[]) {
     const mapped = mapExportRow(raw);
     if (!mapped) continue;
-    scoreData[mapped.score.country] = mapped.score;
-    regulationData[mapped.reg.country] = mapped.reg;
+    const name = mapped.score.country;
+    scoreData[name] = mapped.score;
+    regulationData[name] = mapped.reg;
+    // Same research date as the static entry = the same pass, whose record
+    // in subscores.json also names the model and run: keep that one.
+    if (mapped.score.lastUpdated !== current[name]?.lastUpdated) {
+      evidence.set(name, evidenceFromRow(raw));
+    }
   }
   if (Object.keys(scoreData).length === 0) return false;
 
-  if (!isStrictlyNewer(scoreData, getState().scoreData)) return false;
+  if (!isStrictlyNewer(scoreData, current)) return false;
 
   console.info('supabase: database is newer than the static snapshot; hydrating.');
+  hydratedEvidence = evidence;
   setState({
     scoreData,
     regulationData,
     sortedCountryNames: Object.keys(scoreData).sort(),
+    subscores: withHydratedEvidence(getState().subscores),
   });
   return true;
 }

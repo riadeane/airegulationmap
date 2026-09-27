@@ -1,7 +1,7 @@
 # Mobile UX + Architecture Plan
 
 **Date:** 2026-04-22
-**Status:** Proposal — awaiting direction on scope and tooling.
+**Status:** Proposal, since resolved (Option 4, no framework): the frontend moved to TypeScript in #13 (June 2026), and the bottom-sheet country panel and mobile audit shipped in #17 (end of June 2026). The original text below is kept as written.
 **Context:** The weekend polish ([2026-04-17-polish-and-onramp.md](./2026-04-17-polish-and-onramp.md)) shipped a help overlay, empty-panel on-ramp, and display-layer copy normalizer. In review, the mobile UX surfaced as the next honest weakness: a keyboard-shortcut overlay is meaningless on a phone, the empty-panel intro lives below the fold on cold load, and there's no first-class way to add a country to comparison without the desktop-only shift-click shortcut. A tactical fix has already landed (`910550d`: hide the `?` button and its intro step on coarse pointers; rewrite the intro copy). This plan scopes the fuller pass and asks whether it's the right moment to migrate off vanilla JS.
 
 ---

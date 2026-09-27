@@ -16,7 +16,16 @@ import { syncColorSlots } from '../comparison/colorSlots';
 
 // -- selection ---------------------------------------------------------------
 
+// Only dataset countries can be selected or compared. The map also draws
+// territories the dataset has no row for (Greenland, W. Sahara, …); their
+// tooltip says "No data", and selecting one produced an empty panel and
+// ?compare= links that did not survive a reload.
+function inDataset(name: string): boolean {
+  return Object.prototype.hasOwnProperty.call(getState().scoreData, name);
+}
+
 export function selectCountry(name: string | null): void {
+  if (name !== null && !inDataset(name)) return;
   setState({ selectedCountry: name });
 }
 
@@ -64,7 +73,7 @@ function commitComparison(names: readonly string[]): void {
 }
 
 export function addToComparison(name: string | null): void {
-  if (!name) return;
+  if (!name || !inDataset(name)) return;
   const { comparisonCountries } = getState();
   if (comparisonCountries.includes(name)) return;
   if (comparisonCountries.length >= MAX_COMPARISON) return;

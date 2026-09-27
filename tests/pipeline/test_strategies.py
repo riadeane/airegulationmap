@@ -148,6 +148,13 @@ class TestBatchStrategy:
         runner = StubRunner({}, ["A"])
         assert dict(BatchStrategy(client, runner, lambda c: True).research(["A"], {})) == {"A": None}
 
+    def test_a_result_still_paused_after_the_runner_is_a_failure(self):
+        client = StubResearchClient({})
+        paused = text_message(json.dumps(full_result()))
+        paused.stop_reason = "pause_turn"
+        runner = StubRunner({"A": paused}, [])
+        assert dict(BatchStrategy(client, runner, lambda c: True).research(["A"], {})) == {"A": None}
+
 
 def _drain_until_fatal(gen):
     try:

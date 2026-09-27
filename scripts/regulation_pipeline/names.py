@@ -30,3 +30,21 @@ class CountryNames:
     def canonical(self, name: str) -> str:
         stripped = name.strip()
         return self._aliases.get(stripped, stripped)
+
+    def resolve(self, name: str, known: list[str]) -> str | None:
+        """Resolve a user-typed name to one of ``known`` (the dataset's
+        countries): exact, then alias, then either one case-insensitively.
+        ``None`` when nothing matches, so a typo can never create a new
+        country."""
+        stripped = name.strip()
+        by_folded = {k.casefold(): k for k in known}
+        for candidate in (stripped, self._aliases.get(stripped)):
+            if candidate and candidate in known:
+                return candidate
+        folded = stripped.casefold()
+        if folded in by_folded:
+            return by_folded[folded]
+        for alias, canonical in self._aliases.items():
+            if alias.casefold() == folded and canonical in known:
+                return canonical
+        return None

@@ -6,10 +6,18 @@ Delegates to ``regulation_pipeline.cli.main``. Kept so the historical invocation
 package; once installed (``pip install -e .``) the ``update-regulation-data``
 console command is equivalent.
 
+The defaults are the weekly run: every country, web search on, the Message
+Batches API, the stability gate on, and the default model (claude-opus-5).
+The flags opt out or narrow the run; ``--help`` lists them all.
+
 Usage:
-  python scripts/update_data.py [--countries "Germany,France"] [--force]
-                                [--dry-run] [--model MODEL] [--search]
-                                [--search-all] [--batch]
+  python scripts/update_data.py [--countries "Germany,France"] [--no-force]
+                                [--dry-run] [--model MODEL] [--no-search]
+                                [--no-batch] [--max-runtime-minutes N]
+                                [--mirror | --no-mirror]
+                                [--grounded] [--evidence-file PATH]
+                                [--no-gate [--break-reason TEXT]]
+                                [--digest | --no-digest] [--verbose]
 
 Requirements:
   pip install -r requirements.txt

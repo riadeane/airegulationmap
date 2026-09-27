@@ -132,3 +132,36 @@ test('the Evidence facet deep-links, narrows the map and the bloc card states th
   await expect(page.locator('#filter-evidence input[value="any"]')).toBeChecked();
   await expect.poll(() => new URL(page.url()).searchParams.has('evidence')).toBe(false);
 });
+
+// Regression: until the first research run records evidence, "Grounded"
+// and "Search only" emptied the map. Options that would keep no country
+// are disabled with the reason as a tooltip; a deep link still applies.
+test('Evidence options that match no country are disabled, and a deep link still applies', async ({ page }) => {
+  await page.route(REST, route => route.abort());
+  await page.route('**/data/subscores.json', async route => {
+    const response = await route.fetch();
+    const body = await response.json() as { countries: Record<string, Record<string, unknown>> };
+    for (const entry of Object.values(body.countries)) delete entry.evidence;
+    await route.fulfill({ response, json: body });
+  });
+  await page.goto('/?evidence=grounded');
+  await page.waitForSelector('#map svg path.country', { timeout: 15_000 });
+  await page.click('#filter-btn');
+
+  const grounded = page.locator('#filter-evidence input[value="grounded"]');
+  const search = page.locator('#filter-evidence input[value="search"]');
+  await expect(grounded).toBeDisabled();
+  await expect(search).toBeDisabled();
+  await expect(page.locator('#filter-evidence input[value="any"]')).toBeEnabled();
+  await expect(page.locator('#filter-evidence label', { has: page.locator('input[value="grounded"]') }))
+    .toHaveAttribute('title', /No country has a research record grounded/);
+  await expect(page.locator('#filter-evidence label', { has: page.locator('input[value="search"]') }))
+    .toHaveAttribute('title', /No country has a search-only research record/);
+
+  // The deep-linked facet is still the active filter; "Any" clears it.
+  await expect(grounded).toBeChecked();
+  await expect(page.locator('#filter-btn')).toHaveClass(/has-filter/);
+  await page.check('#filter-evidence input[value="any"]');
+  await expect.poll(() => new URL(page.url()).searchParams.has('evidence')).toBe(false);
+});
+

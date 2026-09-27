@@ -11,6 +11,7 @@ import { getState, on } from '../state/store';
 import { visibleCountrySet } from '../state/selectors';
 import type { ScoreEntry, RegulationEntry } from '../data/loader';
 import type { SubscoreEntry } from '../data/subscores';
+import { localIsoDate } from '../data/localDate';
 
 function buildExportRows(countries: string[]) {
   const { scoreData, regulationData } = getState();
@@ -133,7 +134,7 @@ export function exportCountries(
   toastLabel: string = scopeLabel
 ): void {
   const rows = buildExportRows([...countries]);
-  const date = new Date().toISOString().slice(0, 10);
+  const date = localIsoDate();
   if (format === 'csv') {
     downloadFile(csvFormat(rows), `ai-regulation-data-${scopeLabel}-${date}.csv`, 'text/csv');
   } else {

@@ -177,6 +177,10 @@
   stroke-width: 1px;
 }
 
+.country.no-data {
+  cursor: default;
+}
+
 .country.selected,
 .country-hatch.selected {
   stroke: var(--accent) !important;

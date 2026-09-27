@@ -16,12 +16,20 @@ from datetime import date
 # is no longer "the global frontier today", so scores compare across time.
 # v3.1 (2026-09): every sub-indicator is {score, rationale}. The rubric is
 # unchanged, so this bump is a structure change, not a calibration break.
-PROMPT_VERSION = "v3.1-2026-09"
+# v3.2 (2026-09): the existing-data block also shows the Enforcement Level
+# text (it showed four of the five dimensions). Context only; same rubric.
+PROMPT_VERSION = "v3.2-2026-09"
+
+# The rubric generation alone (the part of PROMPT_VERSION a calibration
+# break is about). Bump it with the rubric: the first full run on a new
+# rubric then records a calibration break and runs ungated automatically
+# (history.calibration_due), so a scale change never lands as silent drift.
+RUBRIC_VERSION = "v3"
 
 # The evidence-grounded variant (same rubric + output schema, plus a
 # verified-records block). Grounded prompts are LONGER than plain ones -
 # pair grounded runs with --batch for the 50% token pricing.
-GROUNDED_PROMPT_VERSION = "v3.1-grounded-2026-09"
+GROUNDED_PROMPT_VERSION = "v3.2-grounded-2026-09"
 
 # Caps keeping the evidence block bounded: the most recent initiatives
 # carry the signal, and full overviews would dwarf the rubric.
@@ -38,6 +46,7 @@ Existing data (may be outdated):
 - Policy Lever: {existing_policy}
 - Governance Type: {existing_governance}
 - Actor Involvement: {existing_actors}
+- Enforcement Level: {existing_enforcement}
 
 Research the current state of AI regulation in {country} as of {today}.
 Consider recent legislation, executive orders, national strategies, and international agreements.
@@ -154,6 +163,7 @@ def render_prompt(country: str, today: date, existing_reg: dict | None) -> str:
         existing_policy=existing.get("Policy Lever", "Unknown"),
         existing_governance=existing.get("Governance Type", "Unknown"),
         existing_actors=existing.get("Actor Involvement", "Unknown"),
+        existing_enforcement=existing.get("Enforcement Level", "Unknown"),
     )
 
 

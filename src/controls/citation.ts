@@ -3,6 +3,8 @@
 // the exact view the researcher cited.
 
 import { ATTRIBUTE_LABELS } from '../constants';
+import { localIsoDate } from '../data/localDate';
+import type { AppState } from '../state/store';
 
 const DEFAULT_MODE = 'averageScore';
 
@@ -20,6 +22,22 @@ export interface Citations {
   apa: string;
   chicago: string;
   mla: string;
+}
+
+/**
+ * The citation view for a state snapshot. The comparison is cited only
+ * while its view is open, the same rule the permalink follows
+ * (buildQueryString): a staged set behind a selected country would title
+ * the citation "France, Japan comparison" over a ?country=Germany link.
+ */
+export function citationViewOf(s: Readonly<AppState>, url: string): CitationView {
+  return {
+    country: s.selectedCountry,
+    compareCountries: s.mainView === 'comparison' ? s.comparisonCountries : null,
+    mode: s.currentAttribute,
+    timelineDate: s.timelineDate,
+    url,
+  };
 }
 
 function viewTitle({ country, compareCountries, mode }: Pick<CitationView, 'country' | 'compareCountries' | 'mode'>): string {
@@ -48,7 +66,7 @@ export function citationsFor({
   mode,
   timelineDate,
   url,
-  accessed = new Date().toISOString().slice(0, 10),
+  accessed = localIsoDate(),
 }: CitationView): Citations {
   const year = (timelineDate || accessed).slice(0, 4);
   const title = viewTitle({ country, compareCountries, mode });

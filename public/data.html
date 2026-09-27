@@ -6,7 +6,7 @@
   <title>Data &amp; API · AI Regulation Map</title>
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="canonical" href="https://airegulationmap.org/data.html">
+  <link rel="canonical" href="https://airegulationmap.org/data">
 
   <meta name="description" content="Download the AI Regulation Map dataset: static CSV/JSON files, plus a public read-only REST API with interactive reference docs: scores, score history, the sources database, and verified policy-initiative records.">
 
@@ -26,6 +26,10 @@
       } catch (e) { /* storage blocked */ }
     })();
   </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <style>
     /* Tokens: mirror of the main app's _tokens.css, trimmed to what this
@@ -88,8 +92,9 @@
 
     .site-header {
       display: flex;
+      flex-wrap: wrap;
       align-items: baseline;
-      gap: 14px;
+      gap: 8px 14px;
       padding: 18px 28px;
       border-bottom: 1px solid var(--border);
     }
@@ -103,8 +108,9 @@
     .header-links {
       margin-left: auto;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 14px;
+      gap: 8px 14px;
       font-size: 0.8rem;
     }
     .header-links a { color: var(--text-secondary); }
@@ -261,26 +267,27 @@
     </p>
 
     <h2 id="files">Download the dataset</h2>
-    <p>One HTTP GET each, no key, CDN-served. These files update together, weekly,
-       and their <a href="https://github.com/riadeane/airegulationmap/commits/main/public" rel="noopener noreferrer">git history</a>
+    <p>One HTTP GET each, no key, CDN-served. Each research run commits the files it
+       changes in one commit (runs are weekly, every Monday, from 28 September 2026;
+       monthly before that), and the <a href="https://github.com/riadeane/airegulationmap/commits/main/public" rel="noopener noreferrer">git history</a>
        makes any past state retrievable by commit hash.</p>
     <table>
       <thead><tr><th>File</th><th>Contents</th></tr></thead>
       <tbody>
         <tr><td><a href="/scores.csv" download>scores.csv</a></td>
-            <td>196 countries × six 1–5 scores (quarter-point decimals), last-updated date, data version.</td></tr>
+            <td>196 countries × five 1–5 dimension scores (quarter-point decimals) and the Maturity Index, the mean of the three normative dimensions to two decimals (e.g. 1.83, 2.92); last-updated date, data version.</td></tr>
         <tr><td><a href="/regulation_data.csv" download>regulation_data.csv</a></td>
             <td>Per-country prose for the five dimensions, key legislation, source URLs, confidence.</td></tr>
         <tr><td><a href="/history.json" download>history.json</a></td>
             <td>Change-point score snapshots per country; the timeline's raw data.</td></tr>
         <tr><td><a href="/data/subscores.json" download>subscores.json</a></td>
-            <td>The four named sub-indicators behind each dimension score: an integer 1–5 and, since September 2026, the one-sentence rationale the model gave for it. Researched countries also carry an <a href="#evidence">evidence record</a> of their latest research pass.</td></tr>
+            <td>The four named sub-indicators behind each dimension score, each an integer 1–5. Countries researched under methodology v2.1 (late September 2026 on) also carry the one-sentence rationale the model gave for each score, and an <a href="#evidence">evidence record</a> of their latest research pass.</td></tr>
         <tr><td><a href="/data/country_iso.json" download>country_iso.json</a></td>
             <td>ISO 3166 alpha-2 / alpha-3 / numeric codes for every dataset country name.</td></tr>
         <tr><td><a href="/data/gold_set.json" download>gold_set.json</a></td>
-            <td>Hand-checked sub-indicator scores for ten countries, with justifications, sources and a draft or verified status per country (see the <a href="/methodology.html#update-cadence">methodology</a>).</td></tr>
+            <td>Gold sub-indicator scores for ten countries, with justifications, sources and a draft or verified status per country; all ten are drafts awaiting the maintainer's hand-check (see the <a href="/methodology.html#update-cadence">methodology</a>).</td></tr>
         <tr><td><a href="/data/drift.json" download>drift.json</a></td>
-            <td>One row per research run: how far the model's raw scores for the gold countries sat from the gold scores (mean absolute error per dimension, share within one point, largest deviation).</td></tr>
+            <td>One row per research run that covers the gold countries: how far the model's raw scores for them sat from the gold scores (mean absolute error per dimension, share within one point, largest deviation).</td></tr>
       </tbody>
     </table>
 
@@ -297,7 +304,7 @@
       <thead><tr><th>Endpoint</th><th>Contents</th></tr></thead>
       <tbody>
         <tr><td><a href="/api-docs.html#/public_export">/public_export</a></td>
-            <td>The whole dataset flat: countries × scores × summaries, with evidence coverage.</td></tr>
+            <td>The whole dataset flat: countries × scores × summaries, with the sub-indicators, their rationales, and evidence coverage.</td></tr>
         <tr><td><a href="/api-docs.html#/countries">/countries</a></td>
             <td>Canonical names, ISO codes, and name aliases.</td></tr>
         <tr><td><a href="/api-docs.html#/country_scores">/country_scores</a></td>
@@ -337,9 +344,9 @@
 
     <h2 id="evidence">Evidence coverage</h2>
     <p>
-      Every researched country records how its latest research pass was grounded. In
-      grounded runs the research prompt embeds the country's verified policy initiatives
-      (OECD.AI Policy Navigator / GAIIN records, the ones <code>/policy_initiatives</code>
+      Since evidence coverage was added (September 2026), every research pass records
+      how it was grounded. In grounded runs the research prompt embeds the country's
+      verified policy initiatives (OECD.AI Policy Navigator / GAIIN records, the ones <code>/policy_initiatives</code>
       serves), up to 15 of them; a country with none on record is researched with the
       plain prompt. The record sits beside the sub-scores in <code>subscores.json</code>,
       under <code>countries.&lt;name&gt;.evidence</code>:
@@ -370,8 +377,8 @@
       record as three columns: <code>grounded</code>, <code>initiatives_used</code> and
       <code>web_search</code> (the file's <code>search</code>), all null for a country with
       no run record. The model is <code>research_runs.model</code>, reached through
-      <code>country_scores.run_id</code>. In the app, each country entry states the record
-      in one sentence under its confidence line, such as "Grounded in 7 verified policy
+      <code>country_scores.run_id</code>. In the app, a country entry with a record states
+      it in one sentence under its confidence line, such as "Grounded in 7 verified policy
       initiatives and web search" or "Web search only; no verified initiatives on record",
       and the filter's Evidence facet narrows the map to grounded or search-only countries.
     </p>

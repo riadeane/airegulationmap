@@ -46,12 +46,15 @@ class _Result:
     def __init__(self, type, message=None, error_type=None):
         self.type = type
         self.message = message
-        self.error = type == "errored" and _Err(error_type) or None
+        self.error = type == "errored" and _ErrorResponse(error_type) or None
 
 
-class _Err:
-    def __init__(self, type):
-        self.type = type
+class _ErrorResponse:
+    """The SDK's shape: an ErrorResponse (type "error") wrapping the kind."""
+
+    def __init__(self, kind):
+        self.type = "error"
+        self.error = type("ErrorObject", (), {"type": kind})()
 
 
 class _Item:
@@ -122,8 +125,8 @@ def test_classifies_succeeded_errored_and_canceled():
     msg = object()
     spec = {
         "A": ("succeeded", msg),
-        "B": ("errored", "invalid_request"),   # -> fatal
-        "C": ("errored", "overloaded"),         # -> retryable
+        "B": ("errored", "invalid_request_error"),   # -> fatal
+        "C": ("errored", "overloaded_error"),         # -> retryable
         "D": ("canceled", None),                # -> retryable
     }
     client = FakeClient(FakeBatches([{"statuses": ["ended"], "results": _items(params, spec)}]))
@@ -173,7 +176,7 @@ def test_fatal_batch_error_is_not_retried():
     # batch - it goes straight to the failed list.
     params = {"A": {}}
     batches = FakeBatches(
-        [{"statuses": ["ended"], "results": _items(params, {"A": ("errored", "invalid_request")})}]
+        [{"statuses": ["ended"], "results": _items(params, {"A": ("errored", "invalid_request_error")})}]
     )
     client = FakeClient(batches)
     messages, failed = _runner(client).research(params)
@@ -182,14 +185,181 @@ def test_fatal_batch_error_is_not_retried():
     assert batches.create_calls == 1  # no retry batch submitted
 
 
-def test_batch_that_never_terminates_classifies_all_retryable():
+def test_batch_that_never_terminates_fails_without_resubmitting():
     # If a canceled batch never reaches a terminal state within the grace
-    # window, results can't be read - everything is retryable, not lost.
+    # window, its results can't be read yet. Resubmitting would pay again for
+    # requests that already succeeded, so those countries fail this run.
     params = {"A": {}}
     batches = FakeBatches([{"statuses": ["canceling"], "results": []}])
     client = FakeClient(batches)
     # poll_interval == grace window so the drain loop runs exactly once.
-    messages, errors = _runner(client, max_wait=0, poll_interval=300)._run_once(params)
+    runner = _runner(client, max_wait=0, poll_interval=600)
+    messages, errors = runner._run_once(params)
     assert batches.canceled == ["batch_0"]
     assert messages == {}
-    assert errors == {"A": "retryable"}
+    assert errors == {"A": "fatal"}
+
+
+# -- transient API errors never lose a paid-for batch --------------------------
+
+
+class FlakyBatches(FakeBatches):
+    """Fails the first ``fail`` calls of the named method with a transient error."""
+
+    def __init__(self, rounds, *, method, fail, error):
+        super().__init__(rounds)
+        self._method, self._fail, self._error = method, fail, error
+
+    def _maybe_fail(self, name):
+        if name == self._method and self._fail > 0:
+            self._fail -= 1
+            raise self._error
+
+    def create(self, requests):
+        self._maybe_fail("create")
+        return super().create(requests)
+
+    def retrieve(self, id):
+        self._maybe_fail("retrieve")
+        return super().retrieve(id)
+
+    def results(self, id):
+        self._maybe_fail("results")
+        return super().results(id)
+
+
+@pytest.mark.parametrize("method", ["create", "retrieve", "results"])
+def test_a_transient_error_on_any_batch_call_is_retried(method, anthropic_errors):
+    params = {"A": {}}
+    msg = object()
+    batches = FlakyBatches(
+        [{"statuses": ["in_progress", "ended"], "results": _items(params, {"A": ("succeeded", msg)})}],
+        method=method, fail=1, error=anthropic_errors["connection"](),
+    )
+    messages, failed = _runner(FakeClient(batches)).research(params)
+    assert messages == {"A": msg}
+    assert failed == []
+
+
+def test_unreadable_results_fail_the_countries_without_raising(anthropic_errors):
+    params = {"A": {}}
+    batches = FlakyBatches(
+        [{"statuses": ["ended"], "results": _items(params, {"A": ("succeeded", object())})}],
+        method="results", fail=99, error=anthropic_errors["connection"](),
+    )
+    messages, failed = _runner(FakeClient(batches)).research(params)
+    assert messages == {}
+    assert failed == ["A"]
+    assert batches.create_calls == 1  # not resubmitted: it was already paid for
+
+
+# -- pause_turn continuations --------------------------------------------------
+
+
+class _Msg:
+    def __init__(self, stop_reason, content):
+        self.stop_reason = stop_reason
+        self.content = content
+
+
+class RecordingBatches(FakeBatches):
+    def __init__(self, rounds):
+        super().__init__(rounds)
+        self.submitted: list[list[dict]] = []
+
+    def create(self, requests):
+        self.submitted.append(requests)
+        return super().create(requests)
+
+
+def test_paused_results_are_continued_in_a_follow_up_batch():
+    user = [{"role": "user", "content": "prompt"}]
+    params = {"A": {"model": "m", "messages": user}, "B": {"model": "m", "messages": user}}
+    paused = _Msg("pause_turn", ["searching"])
+    done_a, done_b = _Msg("end_turn", ["a"]), _Msg("end_turn", ["b"])
+    batches = RecordingBatches([
+        {"statuses": ["ended"], "results": _items(params, {"A": ("succeeded", paused), "B": ("succeeded", done_b)})},
+        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("succeeded", done_a)})},
+    ])
+    messages, failed = _runner(FakeClient(batches)).research(params)
+    assert messages == {"A": done_a, "B": done_b}
+    assert failed == []
+    # The continuation re-sends the prompt plus the paused turn, nothing else.
+    [follow_up] = batches.submitted[1]
+    assert follow_up["params"]["model"] == "m"
+    assert follow_up["params"]["messages"] == user + [{"role": "assistant", "content": ["searching"]}]
+    assert params["A"]["messages"] == user  # the original params are untouched
+
+
+def test_continuations_stop_at_the_round_cap():
+    from regulation_pipeline.batch import MAX_CONTINUATION_ROUNDS
+
+    params = {"A": {"messages": [{"role": "user", "content": "p"}]}}
+    # Each round's result is a new Message, as the Batches API returns.
+    rounds = [
+        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("succeeded", _Msg("pause_turn", ["x"]))})}
+        for _ in range(MAX_CONTINUATION_ROUNDS + 1)
+    ]
+    batches = RecordingBatches(rounds)
+    messages, _ = _runner(FakeClient(batches)).research(params)
+    assert batches.create_calls == MAX_CONTINUATION_ROUNDS + 1
+    assert len(batches.submitted[-1][0]["params"]["messages"]) == 1 + MAX_CONTINUATION_ROUNDS
+    assert messages["A"].stop_reason == "pause_turn"  # the parser rejects it
+
+
+def test_the_wait_budget_is_shared_across_batches():
+    # The first batch uses up the budget, so no follow-up batch is submitted:
+    # the job's timeout must cover every batch of the run together.
+    params = {"A": {}, "B": {}}
+    msg = object()
+    batches = FakeBatches([
+        {"statuses": ["in_progress"] * 3 + ["ended"],
+         "results": _items(params, {"A": ("succeeded", msg), "B": ("canceled", None)})},
+    ])
+    runner = _runner(FakeClient(batches), max_wait=3 * 600, poll_interval=600)
+    messages, failed = runner.research(params)
+    assert messages == {"A": msg}
+    assert failed == ["B"]
+    assert batches.create_calls == 1
+
+
+def test_a_failed_continuation_is_retried_without_duplicating_the_turn():
+    user = [{"role": "user", "content": "q"}]
+    params = {"A": {"messages": user}}
+    paused = _Msg("pause_turn", ["c1"])
+    done = _Msg("end_turn", ["answer"])
+    batches = RecordingBatches([
+        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("succeeded", paused)})},
+        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("errored", "overloaded_error")})},
+        {"statuses": ["ended"], "results": _items({"A": {}}, {"A": ("succeeded", done)})},
+    ])
+    messages, failed = _runner(FakeClient(batches)).research(params)
+    assert messages == {"A": done}
+    assert failed == []
+    for submitted in batches.submitted[1:]:
+        assert submitted[0]["params"]["messages"] == user + [{"role": "assistant", "content": ["c1"]}]
+
+
+def test_an_interrupted_results_download_is_retried():
+    import httpx
+
+    params = {"A": {}}
+    msg = object()
+
+    class Dropping(FakeBatches):
+        drops = 1
+
+        def results(self, id):
+            if self.drops:
+                self.drops -= 1
+
+                def broken():
+                    yield from ()
+                    raise httpx.ReadError("connection reset")
+                return broken()
+            return super().results(id)
+
+    batches = Dropping([{"statuses": ["ended"], "results": _items(params, {"A": ("succeeded", msg)})}])
+    messages, failed = _runner(FakeClient(batches)).research(params)
+    assert messages == {"A": msg}
+    assert failed == []

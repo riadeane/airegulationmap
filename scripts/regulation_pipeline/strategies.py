@@ -136,6 +136,8 @@ class BatchStrategy(ResearchStrategy):
         )
 
         for country in countries:
+            # The runner already continued results paused mid-search in
+            # follow-up batches; one still paused is rejected by the parser.
             message = messages.get(country)
             raw = parse_message(message, country) if message is not None else None
             yield country, _validate(country, raw, requests[country].provenance)

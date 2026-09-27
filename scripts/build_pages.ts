@@ -20,7 +20,7 @@ import type { BlocsData } from '../src/data/blocs';
 import { parseRegulationCsv, parseScoresCsv } from '../src/data/loader';
 import type { RegulationData, RegulationEntry, ScoreData, ScoreEntry } from '../src/data/loader';
 import { countryPagePath, countrySlug } from '../src/data/slug';
-import { classifySources } from '../src/data/sources';
+import { classifySources, safeHttpUrl } from '../src/data/sources';
 import type { ClassifiedSource } from '../src/data/sources';
 import { evidenceSentence } from '../src/data/evidence';
 import { DIMENSION_TO_SNAKE, SUBSCORE_LABELS, normalizeSubscores } from '../src/data/subscores';
@@ -29,14 +29,18 @@ import { cleanRegulationText } from '../src/panel/normalize';
 
 export const SITE_ORIGIN = 'https://airegulationmap.org';
 
-/** Top-level pages listed in the sitemap next to the country pages. */
+/**
+ * Top-level pages listed in the sitemap next to the country pages. The
+ * canonical, extensionless form: Cloudflare Pages answers /changes.html
+ * with a 308 to /changes, and a sitemap should list the final URL.
+ */
 export const TOP_LEVEL_PATHS = [
   '/',
-  '/methodology.html',
-  '/data.html',
-  '/api-docs.html',
-  '/changes.html',
-  '/drift.html',
+  '/methodology',
+  '/data',
+  '/api-docs',
+  '/changes',
+  '/drift',
   '/country/',
 ];
 
@@ -840,7 +844,11 @@ function renderSources(model: CountryPageModel): string {
   if (model.sources.length === 0) return '';
   const items = model.sources.map(s => {
     const tag = s.kind === 'official' ? ' <span class="source-tag">official</span>' : '';
-    return `        <li><a href="${escapeHtml(s.url)}" rel="noopener noreferrer">${escapeHtml(s.url)}</a>${tag}</li>`;
+    // Only http(s) sources become links; anything else shows as text.
+    const href = safeHttpUrl(s.url);
+    const label = escapeHtml(s.url);
+    const entry = href ? `<a href="${escapeHtml(href)}" rel="noopener noreferrer">${label}</a>` : label;
+    return `        <li>${entry}${tag}</li>`;
   });
   const official = model.sources.filter(s => s.kind === 'official').length;
   const note = official > 0

@@ -95,3 +95,24 @@ test('the tooltip and live region report the vintage the map is painting', async
   await page.keyboard.press('Enter');
   await expect(page.locator('#map-live-region')).toContainText(`${score} of 5 as of ${date}`);
 });
+
+// The data-load error boundary (panel/resilience.ts): when scores.csv
+// fails, the map area says so and offers Retry and the raw data, instead
+// of a loading skeleton that never resolves.
+test('a failed scores.csv load shows the error state with Retry', async ({ page }) => {
+  await page.route('**/scores.csv', route => route.abort());
+  await page.goto('/');
+
+  const error = page.locator('#map .map-error');
+  await expect(error).toBeVisible({ timeout: 15_000 });
+  await expect(error).toHaveAttribute('role', 'alert');
+  await expect(error).toContainText("Couldn't load the regulation data.");
+  await expect(error.getByRole('link', { name: 'View data on GitHub' })).toHaveAttribute('href', /github\.com/);
+  await expect(page.locator('#map-skeleton')).toHaveCount(0);
+
+  // Retry reloads; with the fault gone the map draws.
+  await page.unroute('**/scores.csv');
+  await error.getByRole('button', { name: 'Retry' }).click();
+  await page.waitForSelector('#map svg path.country', { timeout: 15_000 });
+});
+
