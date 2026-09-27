@@ -7,6 +7,10 @@ export interface HistorySnapshot {
   actorInvolvement: number | null;
   enforcementLevel: number | null;
   averageScore: number | null;
+  /** Research confidence as of this snapshot ("high" | "medium" | "low"),
+   *  when the pipeline recorded one. Snapshots written before it did carry
+   *  none, and readers fall back to the current confidence. */
+  confidence?: string | null;
 }
 
 /**

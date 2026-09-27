@@ -130,11 +130,11 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/data/hydrate.ts` | Post-boot dataset hydration when the database is strictly newer |
 | `src/data/sourceMeta.ts` | Source titles/types from the sources database |
 | `src/data/slug.ts` | Country page slug and path (`/country/<slug>/`), shared by the app and the page generator |
-| `src/map/` | Map rendering (renderer, legend, zoom, tooltip) |
+| `src/map/` | Map rendering (renderer, legend, zoom, tooltip, low-confidence hatch pattern in `hatch.ts`) |
 | `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives, evidence coverage: `evidence.ts` renders the sentence under the confidence line and links to the Policy Initiatives section) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
 | `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
-| `src/controls/` | UI controls (search, score selector, filter incl. the Evidence facet, blocs and bloc summary incl. the grounded share, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip) |
+| `src/controls/` | UI controls (search, score selector, filter incl. the Evidence facet, blocs and bloc summary incl. the grounded share, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip, "Show uncertainty" toggle) |
 | `src/data/digest.ts` | Weekly digest parsing + formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
 | `src/data/drift.ts` | Drift dashboard aggregations (pure): countries changed per run by dimension, delta bins, confidence by vintage, drift.json and `research_runs` parsing, per-bloc shares |
 | `src/charts/drift.ts` | The drift dashboard's D3 small multiples (token-driven palette, hover tooltips); `src/drift.ts` is the `drift.html` entry |
@@ -230,6 +230,28 @@ block) to stay under 6,000 characters and 7,000 encoded, well inside
 GitHub's URL limit. Nothing but on-screen data is sent. Reports do not
 trigger re-research; `CONTRIBUTING.md` ("Data issues") describes how a fix
 flows through the pipeline.
+
+### Uncertainty on the map (`src/map/hatch.ts`, `src/controls/uncertainty.ts`)
+
+Countries whose confidence is `low` carry a diagonal hatch over their score
+fill: one `<pattern id="hatch-low">` in the map SVG's `<defs>` and a second
+fill layer (`.hatch-layer`, pointer-events off) that repeats each hatched
+country's path above the countries. Hatch paths draw no border; a hatched
+country's selected, compared, search-match or hover outline is repeated on
+its hatch path so the texture never stripes it. The marks use
+`--map-stroke` at `--hatch-opacity` (per theme, `_tokens.css`), kept below
+border strength. The pattern counter-scales with the zoom factor (snapped
+to quarter-octave steps so a zoom animation re-records it only a few
+times), so the lines stay about 4 px apart on screen at every zoom level. The hatch follows
+`isLowConfidenceAtDate()` (`state/selectors.ts`): the snapshot's
+`confidence` at the timeline date when `history.json` records one, else the
+current confidence, in which case the legend adds "(current rating)".
+"No data" countries are never hatched. The legend shows "Hatched: low
+confidence"; the tooltip title adds "low confidence". The "Show
+uncertainty" checkbox (filter popover, below "Reset filters", on by
+default) is a per-browser display preference in `localStorage`
+(`showUncertainty`); the URL does not carry it and "Reset filters" leaves
+it alone.
 
 ### Drift dashboard (`drift.html`, `src/drift.ts`)
 

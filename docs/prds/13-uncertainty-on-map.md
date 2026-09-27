@@ -1,6 +1,6 @@
 # PRD 13: Uncertainty on the map
 
-Status: Proposed. Owner: unassigned. Depends on: none.
+Status: Implemented (September 2026). Owner: unassigned. Depends on: none.
 
 ## Problem
 

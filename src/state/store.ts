@@ -22,6 +22,10 @@ export interface AppState {
   // Restrict to countries citing at least one official (government/
   // legislature/regulator) source.
   filterOfficialOnly: boolean;
+  // Hatch low-confidence countries on the map (PRD 13). A per-browser
+  // display preference (controls/uncertainty.ts persists it in
+  // localStorage); the URL never carries it.
+  showUncertainty: boolean;
   // Evidence facet (PRD 14): 'any' = no filter; 'grounded' = research drew
   // on verified policy initiatives; 'search' = web search without any.
   // Countries with no run record in subscores.json pass only 'any'.
@@ -78,6 +82,7 @@ const state: AppState = {
   filterMax: 5,
   filterConfidence: null,
   filterOfficialOnly: false,
+  showUncertainty: true,
   filterEvidence: 'any',
   selectedCountry: null,
   sortedCountryNames: [],
