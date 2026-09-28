@@ -50,8 +50,12 @@ function cssOf(file, text) {
 const LEFT_BORDER = /\bborder-(?:left|inline-start)(?:-width)?\s*:\s*([^;]+)/g;
 const NOT_DRAWN = /^(?:none|hidden|0[a-z%]*)(?:\s|!|$)|\btransparent\b/i;
 
-// rgb(0, 0, 0 ...), rgba(0,0,0 ...) and rgb(0 0 0 / ...).
-const RGB_BLACK = /\brgba?\(\s*0\s*[,\s]\s*0\s*[,\s]\s*0(?![.\d])/gi;
+// rgb(0, 0, 0 ...), rgba(0,0,0 ...) and rgb(0 0 0 / ...), and the same
+// for 255 (pure white).
+const RGB_BLACK = /\brgba?\(\s*(?:0\s*[,\s]\s*0\s*[,\s]\s*0|255\s*[,\s]\s*255\s*[,\s]\s*255)(?![.\d])/gi;
+// oklch(100% 0 0), oklch(0% 0 0), oklch(1 0 0): lightness at an end and no
+// chroma, so no hue tint.
+const OKLCH_PURE = /\boklch\(\s*(?:100%|0%|1|0)\s+0\s+0(?:\s|\)|\/)/gi;
 // #000, #fff, #000000, #ffffff (and their alpha forms).
 const HEX = /#([0-9a-f]{3,8})\b/gi;
 function isPureHex(hex) {
@@ -83,6 +87,7 @@ function designViolations(file, text) {
       if (!NOT_DRAWN.test(m[1].trim())) report('border-left stripe', m.index, m[0]);
     }
     for (const m of body.matchAll(RGB_BLACK)) report('pure black or white', m.index, m[0]);
+    for (const m of body.matchAll(OKLCH_PURE)) report('pure black or white', m.index, m[0]);
     for (const m of body.matchAll(HEX)) {
       if (isPureHex(m[1])) report('pure black or white', m.index, m[0]);
     }
@@ -113,16 +118,19 @@ describe('design rules', () => {
       .g { color: #000; border-color: #FFF; }
       .h { color: #ffffff; background: #000000; }
       @media print { .i { color: #000; } }
+      .j { --surface-raised: oklch(100% 0 0); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07); }
+      .k { color: oklch(0% 0 0 / 0.5); }
       .ok { border-left: none; border-left: 0; border-left: 0px solid red; }
       .ok2 { color: #0a0a0a; background: #fefdfc; box-shadow: 0 1px 2px rgba(0, 0, 0.5, 0); }
+      .ok3 { color: oklch(99.8% 0.0015 80); background: oklch(100% 0.01 80); }
       /* .commented { backdrop-filter: blur(2px); color: #000; } */
       #add-btn { color: var(--accent); }
     `;
     const found = designViolations('test.css', css);
-    expect(found).toHaveLength(11);
+    expect(found).toHaveLength(14);
     expect(found.filter(f => f.startsWith('backdrop-filter'))).toHaveLength(2);
     expect(found.filter(f => f.startsWith('border-left stripe'))).toHaveLength(2);
-    expect(found.filter(f => f.startsWith('pure black or white'))).toHaveLength(7);
+    expect(found.filter(f => f.startsWith('pure black or white'))).toHaveLength(10);
     expect(found.some(f => f.includes('.i {'))).toBe(true);
     expect(found.some(f => f.includes('.ok'))).toBe(false);
   });

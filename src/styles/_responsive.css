@@ -149,9 +149,10 @@
     border-top: 1px solid var(--border);
     border-radius: 18px 18px 0 0;
     /* The inset top highlight defines the sheet's edge against a dark map
-       (a downward black shadow is invisible there); negligible on light. */
+       (a downward shadow is invisible there); negligible on light. A near
+       white tinted toward the brand hue, not pure white (#140). */
     box-shadow: 0 -14px 44px -16px color-mix(in oklch, var(--shadow-color) 45%, transparent),
-                inset 0 1px 0 rgba(255, 255, 255, 0.07);
+                inset 0 1px 0 oklch(98% 0.01 var(--brand-hue) / 0.07);
     transform: translateY(100%);
     transition: transform 0.34s var(--ease-out);
     z-index: 400;
