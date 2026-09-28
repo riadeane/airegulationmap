@@ -199,6 +199,7 @@ sequenceDiagram
 | `map/*` | choropleth render, zoom, tooltip, the HTML legend, the two ramps (`ramp.ts`) | imperative D3 |
 | `map/countryTable.ts` | the map as a keyboard and screen-reader table (#139) | subscriber view |
 | `map/geometryNames.ts` | gives world-atlas geometries the dataset's country names via their ISO numeric ids | Mapper |
+| `map/smallStates.ts` | small states the 1:110m atlas has no shape for (`public/data/small_states.json`) as Point features the renderer draws as constant-size `.country` markers (#104) | Mapper |
 | `panel/*` | country detail | subscriber view |
 | `comparison/*` | staging strip + full comparison | subscriber view (+ `colorSlots` leaf) |
 | `scatter/*` | dimension explorer | subscriber view |
