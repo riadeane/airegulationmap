@@ -147,7 +147,7 @@ pattern write-up (layering + mermaid diagrams: pub-sub store, the
 single-writer interactions orchestrator, the `mainView` FSM, selectors, the
 typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 
-**The frontend is fully TypeScript** (strict mode, `tsc --noEmit` in CI). Relative imports are extensionless. The state shape lives in the `AppState` interface in `src/state/store.ts`; data row shapes (`ScoreEntry`, `RegulationEntry`) in `src/data/loader.ts`; the score-dimension unions (`AttributeKey`, `DimensionKey`) in `src/constants.ts`. All state writes go through intents in `src/state/interactions.ts`; derived reads through `src/state/selectors.ts`.
+**The frontend is fully TypeScript** (strict mode, `tsc --noEmit` in CI). Relative imports are extensionless. The state shape lives in the `AppState` interface in `src/state/store.ts`; data row shapes (`ScoreEntry`, `RegulationEntry`) in `src/data/loader.ts`; the score-dimension unions (`AttributeKey`, `DimensionKey`) and the score vocabulary (`ATTRIBUTES`, `GROUPS`; see "Score meaning" below) in `src/constants.ts`. All state writes go through intents in `src/state/interactions.ts`; derived reads through `src/state/selectors.ts`.
 
 **Module structure:**
 
@@ -155,28 +155,30 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 |-----------|---------|
 | `src/main.ts` | Entry point - boots app, loads data, wires subscriptions |
 | `src/state/store.ts` | Centralized state store with event bus (`getState`, `setState`, `on`) |
-| `src/constants.ts` | Attribute labels, legend endpoints, score options, shared regex |
+| `src/constants.ts` | The score vocabulary, one record per attribute (`ATTRIBUTES`: `{label, group, question, low, high, notClaim}` plus the bloc card's end labels) and per lens (`GROUPS`), from which `ATTRIBUTE_LABELS`, `LEGEND_ENDPOINTS` and `SCORE_OPTIONS` derive; `IMPLEMENTATION_LEVELS` (the v3 ladder in plain words); shared regex |
+| `src/data/meaning.ts` | The strings each surface shows about a score (pure): tooltip line, legend caption, live-region sentence, bloc card end labels, panel captions, sub-indicator level meanings, the #96 "No AI governance activity observed" rule, API docs column descriptions |
 | `src/data/loader.ts` | CSV loading and parsing (scores + regulation data) |
 | `src/data/history.ts` | History JSON loading and date-based score reconstruction |
 | `src/data/changelog.ts` | Per-country score-change computation from history snapshots |
 | `src/data/searchIndex.ts` | Full-text index + substring search over regulation text |
 | `src/data/countryMatch.ts` | Shared country-name autocomplete matcher |
 | `src/data/blocs.ts` | Bloc membership loading + aggregate stats (`computeBlocStats`) |
-| `src/data/peers.ts` | Peer sets for the panel's "Compare with" shortcuts (bloc, similar maturity, similar profile) |
+| `src/data/peers.ts` | Peer sets for the panel's "Compare with" shortcuts (bloc members closest in implementation index, similar implementation, similar profile) |
 | `src/data/sources.ts` | Source URL classification (official vs other) + copy formatting + `SourceMeta` |
-| `src/data/subscores.ts` | subscores.json loading + sub-indicator labels (methodology v2) |
+| `src/data/subscores.ts` | subscores.json loading + sub-indicator labels (methodology v2) + the governance style sub-indicators' 1/3/5 anchors (`STYLE_ANCHORS`) |
 | `src/data/evidence.ts` | Evidence coverage (pure): `normalizeEvidence` for the subscores.json `evidence` record, `evidenceSentence` (panel and country pages), `matchesEvidenceFilter` / `parseEvidenceFilter` for the Evidence facet |
 | `src/data/supabase.ts` | Thin PostgREST reader (env-gated; null on any failure) |
 | `src/data/hydrate.ts` | Post-boot dataset hydration when the database is strictly newer: scores, text and the evidence record (overlaid on `subscores` for countries with a newer pass, whichever of the two loads first); sub-indicators stay from the static file |
 | `src/data/sourceMeta.ts` | Source titles/types from the sources database |
 | `src/data/slug.ts` | Country page slug and path (`/country/<slug>/`), shared by the app and the page generator |
 | `src/data/countryIso.ts` | `country_iso.json` loading: ISO alpha-2/alpha-3 codes for the panel and print brief, and the ISO numeric -> dataset name index for the map join |
-| `src/map/` | Map rendering (renderer, legend, zoom, tooltip, low-confidence hatch pattern in `hatch.ts`) |
+| `src/map/` | Map rendering (renderer, the HTML legend, zoom, tooltip, low-confidence hatch pattern in `hatch.ts`, the two ramps in `ramp.ts`) |
+| `src/map/countryTable.ts` | The map as a table for keyboard and screen-reader users (#139): visually hidden until focus enters it, sortable, roving tabindex |
 | `src/map/geometryNames.ts` | `resolveFeatureNames`: gives each world-atlas geometry the dataset's country name via its ISO numeric id where the atlas name differs ("Dominican Rep.") |
 | `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives, evidence coverage: `evidence.ts` renders the sentence under the confidence line and links to the Policy Initiatives section) |
 | `src/comparison/` | Side-by-side comparison panel + radar chart |
 | `src/scatter/` | Cross-dimension scatter plot with deterministic jitter + trend overlay (`stats.ts`) |
-| `src/controls/` | UI controls (search, score selector, filter incl. the Evidence facet, blocs and bloc summary incl. the grounded share, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip, "Show uncertainty" toggle) |
+| `src/controls/` | UI controls (search, grouped score selector, filter incl. the Evidence facet, blocs and bloc summary incl. the grounded share, export, share, timeline, URL sync, citations, print brief, issue reporting, header menu, "this week" strip, "Show uncertainty" toggle, the "How to read this map" dialog in `helpOverlay.ts`) |
 | `src/data/digest.ts` | Weekly digest parsing + formatting helpers (pure; used by `src/changes.ts`, the `changes.html` entry) |
 | `src/data/drift.ts` | Drift dashboard aggregations (pure): countries changed per run by dimension, delta bins, confidence by vintage, drift.json and `research_runs` parsing, per-bloc shares |
 | `src/charts/drift.ts` | The drift dashboard's D3 small multiples (token-driven palette, hover tooltips); `src/drift.ts` is the `drift.html` entry |
@@ -194,7 +196,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 
 Python package that calls the Claude API to research regulation status per country. Full architecture write-up with mermaid diagrams (layering, run sequence, domain model, strategy/repository patterns, staleness, batch lifecycle, retry) lives in [`scripts/regulation_pipeline/README.md`](scripts/regulation_pipeline/README.md). Layered around a few design patterns so the concerns stay separated and testable:
 
-- **Domain models** (`models.py`) - pydantic v2 `ResearchResult` is the single source of truth: it generates the structured-output JSON schema, validates responses, and computes dimension means / maturity composite / confidence. Sub-indicator field names live in exactly one place.
+- **Domain models** (`models.py`) - pydantic v2 `ResearchResult` is the single source of truth: it generates the structured-output JSON schema, validates responses, and computes dimension means / the composite (the implementation index) / confidence. Sub-indicator field names live in exactly one place.
 - **Repository** (`repository.py`) - `Dataset` owns the five data stores that always travel together (scores/regulation/history/subscores/pending); loads, applies a validated result, and saves them atomically (temp file + `os.replace`).
 - **Strategy** (`strategies.py`) - `ResearchStrategy` with `SyncStrategy` and `BatchStrategy` behind one generator interface, so the orchestrator treats sync and batch identically.
 - **Service** (`service.py`) - `PipelineService` orchestrates selection → research → validation → persistence, with no CLI/exit-code concerns, so it is unit-testable with a fake strategy.
@@ -236,7 +238,7 @@ Python package that calls the Claude API to research regulation status per count
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
 | `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1), plus the `evidence` record of each country's latest research pass (PRD 14; absent = no run record yet) |
 | `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`) |
-| `public/data/gold_set.json` | Gold sub-indicator scores for ten countries across the maturity range: 20 scores, a justification per dimension, sources, and `status` (`draft` until the maintainer verifies, then `verified` + `verified_on`). All ten are drafts awaiting the maintainer's hand-check (September 2026). Validated by `gold.load_gold_set` |
+| `public/data/gold_set.json` | Gold sub-indicator scores for ten countries across the range of the implementation index: 20 scores, a justification per dimension, sources, and `status` (`draft` until the maintainer verifies, then `verified` + `verified_on`). All ten are drafts awaiting the maintainer's hand-check (September 2026). Validated by `gold.load_gold_set` |
 | `public/data/drift.json` | One row per run from the gold-set drift check: `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, within_one, max_dev, max_dev_at}`. Mirrored to Supabase `gold_checks` |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 | `public/data/countries-110m.json` | Self-hosted world-atlas TopoJSON (Natural Earth 1:110m) the map draws; geometry ids are ISO 3166-1 numeric, and the map joins them to dataset names through `country_iso.json` |
@@ -391,12 +393,47 @@ colour mode on the map. Migration 0008 is applied to the live project
 ### Scoring Dimensions
 
 Six attributes scored 1–5 (used in the score selector dropdown):
-- **avg_score** - maturity index: mean of the three normative dimensions (regulation_status, policy_lever, enforcement_level)
-- **regulation_status** - existence and maturity of regulation (normative)
-- **policy_lever** - breadth of policy instruments (normative)
-- **governance_type** - centralized↔distributed (descriptive - excluded from the composite)
+- **avg_score** - the implementation index (displayed "Implementation Index"; called the maturity index before PRD 16): mean of the three normative dimensions (regulation_status, policy_lever, enforcement_level). Data field names (`avg_score`, `averageScore`, the `Average Score` CSV/export column) are unchanged
+- **regulation_status** - how much binding, AI-specific regulation is in force (normative)
+- **policy_lever** - breadth of policy instruments in use (normative)
+- **governance_type** - centralised↔distributed (descriptive - excluded from the composite)
 - **actor_involvement** - narrow↔broad participation (descriptive - excluded from the composite)
-- **enforcement_level** - enforcement rigor (normative)
+- **enforcement_level** - enforcement activity observed (normative)
+
+### Score meaning (PRD 16)
+
+A score says how much is in force, or how a country governs; never that one
+country regulates better than another. User-facing copy groups the
+attributes into two lenses: **Implementation** (the index, regulation status,
+policy lever, enforcement level: "how much is in force, not how good it
+is") and **Governance style** (governance type, actor involvement: "how, not
+how well"). "Normative" and "descriptive" stay in code and in the
+methodology's technical section. The vocabulary lives once in
+`src/constants.ts` (`ATTRIBUTES`, `GROUPS`) and every surface reads it: the
+grouped score selector (each option with its `question`), the HTML legend
+(ramp, endpoints in words, question, `notClaim`, "What does this mean?"),
+the tooltip line ("Implementation Index: 4.25 / 5, how much is in force"),
+the live region, the panel's group captions and sub-indicator level
+meanings, the bloc card ("Most in force", "Most centralised"), the
+comparison (radar plots implementation only; governance style is a
+position strip; table rows under lens headings), the scatter key, the JSON
+export's `meta` block (the export is now `{meta, countries}`; CSV columns
+unchanged), the static pages (`scripts/build_pages.ts`) and the API docs
+(load-time fixes in `src/apiDocs.ts`). There is no rank anywhere, and change
+arrows use one neutral colour (`--change-mark`). Two ramps in
+`src/styles/_tokens.css`: `--ramp-impl-low/high` (one blue hue, light = less
+in force, dark = more) and `--ramp-style-low/high` (neutral stone); neither
+uses red. "How to read this map" is the `#help-overlay` dialog (guide first,
+keyboard shortcuts second), opened by any `[data-explainer]` control, the
+header ? button and the ? key. Where every implementation dimension is 1 the
+panel shows "No AI governance activity observed" instead of a governance
+type score (#96, display only). The header folds its page links (below
+1,440px), the freshness metadata (below 1,280px) and Export/Share (below
+960px) behind the menu toggle (#73). `tests/copyAudit.test.js` fails if
+"rank", "highest", "lowest", "best", "leading", "weak", "strong",
+"comprehensive", "mature" or "maturity" reach the vocabulary, the panel,
+legend, bloc card, tooltip, explainer or static page score sections; the
+methodology keeps one history note on the old name.
 
 **Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` was `v3-2026-09` for the rubric switch, `v3.1-2026-09` once the v2.1 rationale field changed the output structure, and is `v3.2-2026-09` since the existing-data block also shows the Enforcement Level text (context only; same rubric). `RUBRIC_VERSION = "v3"` is what the rubric guard compares. The switch is recorded as a calibration break in `history.json` (`breaks`) by the first full v3 run (automatically, via the guard), which the timeline marks and the changelog labels as "Recalibration". Until that run lands, all scores are rubric v2.
 

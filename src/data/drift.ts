@@ -15,7 +15,7 @@ import { historyBreaks } from './history';
 import type { HistoryData } from './history';
 import type { RegulationData } from './loader';
 
-/** The five scored dimensions in rubric order (the maturity index is derived). */
+/** The five scored dimensions in rubric order (the implementation index is derived). */
 export const DIMENSIONS: DimensionKey[] = [
   'regulationStatus',
   'policyLever',
