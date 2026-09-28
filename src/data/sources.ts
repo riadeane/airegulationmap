@@ -97,8 +97,18 @@ export function safeHttpUrl(url: string | null | undefined): string | null {
   }
 }
 
-export function classifySource(url: string): ClassifiedSource {
+// Mirrored as _WELL_FORMED_RE in scripts/regulation_pipeline/sources.py. A
+// classifiable URL has a scheme, "//", and a host with no whitespace,
+// backslash or percent escape, followed by the end or by "/", "?" or "#".
+// The browser's URL parser and Python's disagree on anything else
+// ("//gov.uk/x", "https:gov.uk", "https://gov.uk\x", "https://%67ov.uk"),
+// so both ports class such input as "other" (#97).
+const WELL_FORMED_RE = /^[a-z][a-z0-9+.-]*:\/\/[^\s/\\?#%]+(?:[/?#]|$)/i;
+
+export function classifySource(rawUrl: string): ClassifiedSource {
+  const url = rawUrl.trim();
   let hostname: string;
+  if (!WELL_FORMED_RE.test(url)) return { url, hostname: url, kind: 'other' };
   try {
     hostname = new URL(url).hostname.replace(/^www\./, '');
   } catch {

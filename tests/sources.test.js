@@ -1,5 +1,19 @@
+import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import { classifySource, classifySources, formatSourcesForCopy, safeHttpUrl } from '../src/data/sources';
+
+// The same file drives tests/pipeline/test_sources_classify.py, so the two
+// classifiers cannot drift apart on hosts, IDNs or malformed input (#97).
+const SHARED = JSON.parse(
+  readFileSync(new URL('./fixtures/source_classification.json', import.meta.url), 'utf8')
+);
+
+describe('classifySource shared cases (Python parity)', () => {
+  it.each(SHARED.cases.map((c) => [c.note, c]))('%s', (_note, c) => {
+    const source = classifySource(c.url);
+    expect([source.hostname, source.kind]).toEqual([c.hostname, c.kind]);
+  });
+});
 
 describe('classifySource', () => {
   it.each([

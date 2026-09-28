@@ -4,7 +4,20 @@ examples are the contract documented in both files."""
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from regulation_pipeline.sources import classify_source, classify_sources
+
+SHARED_CASES = Path(__file__).resolve().parents[1] / "fixtures" / "source_classification.json"
+
+
+def test_the_shared_cases_match():
+    # The same file drives tests/sources.test.js, so the two ports cannot
+    # drift apart on hosts, IDNs or malformed input (#97).
+    for case in json.loads(SHARED_CASES.read_text(encoding="utf-8"))["cases"]:
+        source = classify_source(case["url"])
+        assert (source.domain, source.kind) == (case["hostname"], case["kind"]), case["note"]
 
 
 class TestKindParityWithFrontend:
