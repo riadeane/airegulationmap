@@ -90,12 +90,12 @@ async function main(): Promise<void> {
 
   // Apply URL state BEFORE first render so `currentAttribute` and
   // `timelineDate` land correctly on initial paint. Theme was already
-  // applied pre-paint by the inline script in index.html; we re-apply
-  // here only so `initTheme()` sees a consistent localStorage value.
+  // applied pre-paint by the inline script in index.html; re-applying it
+  // here keeps `data-theme` right even if that script failed. A URL theme
+  // is for this visit only, so it is never written to localStorage.
   const urlState = parseUrl();
   if (urlState.theme) {
     document.documentElement.setAttribute('data-theme', urlState.theme);
-    try { localStorage.setItem('theme', urlState.theme); } catch (e) { /* storage blocked */ }
   }
   if (urlState.mode) setState({ currentAttribute: urlState.mode });
   if (urlState.date) setState({ timelineDate: urlState.date });

@@ -1,9 +1,10 @@
 // Theme toggle.
 //
-// Respects the user's stored preference if one exists, otherwise falls
-// back to `prefers-color-scheme`. The initial attribute is set by a
-// tiny inline script in index.html (before paint, to avoid FOUC); this
-// module handles the runtime toggle and label updates.
+// The effective theme is a `?theme=` URL parameter (this visit only),
+// else the user's stored preference, else `prefers-color-scheme`. The
+// inline script in index.html sets `data-theme` from the first two before
+// paint (to avoid FOUC); this module handles the runtime toggle, the only
+// thing that persists a choice, and label updates.
 
 const STORAGE_KEY = 'theme';
 
@@ -41,14 +42,12 @@ export function initTheme(): void {
     applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
   });
 
-  // If the user hasn't set an explicit preference, follow system changes live.
+  // Follow system changes live. `currentTheme()` reads `data-theme` first,
+  // so an explicit theme (URL, stored or toggled) keeps its label, and no
+  // storage read can throw here.
   if (window.matchMedia) {
     const mq = window.matchMedia('(prefers-color-scheme: light)');
-    const listener = () => {
-      let stored: string | null = null;
-      try { stored = localStorage.getItem(STORAGE_KEY); } catch (e) { /* storage blocked */ }
-      if (!stored) updateToggleLabel(currentTheme());
-    };
+    const listener = () => updateToggleLabel(currentTheme());
     if (mq.addEventListener) mq.addEventListener('change', listener);
     else if (mq.addListener) mq.addListener(listener);
   }

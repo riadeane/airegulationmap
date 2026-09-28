@@ -140,7 +140,10 @@ omits defaults (and the theme, for citations); `applyUrlState` restores through
 the same intents, with an explicit precedence (comparison > scatter > country).
 Params: `country`, `compare`, `mode`, `date`, `bloc`, `min`/`max` (score
 range), `conf`/`official`/`evidence` (country filters), `q` (committed search),
-`scatter`, `theme`. The header Share popover (`controls/share.ts`) surfaces
+`scatter`, `theme`. A `theme` param applies for that visit only (the boot
+script and `applyUrlState` set `data-theme` but never write localStorage;
+only the theme toggle persists a choice), so opening a shared link does not
+change the reader's stored theme. The header Share popover (`controls/share.ts`) surfaces
 the permalink + formatted citations for ANY view, no selection required.
 `showUncertainty` (the map hatch toggle) is a per-browser preference in
 `localStorage` and, unlike `theme`, is not carried in the URL, so a shared

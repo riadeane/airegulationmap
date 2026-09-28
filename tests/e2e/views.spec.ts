@@ -117,6 +117,19 @@ test('comparison and panel colours follow a theme switch', async ({ page }) => {
     .not.toBe(before);
 });
 
+// #138: opening a shared link permanently switched the reader's theme. A
+// `?theme=` applies for the visit only; the toggle still persists a choice.
+test('a shared ?theme= link does not change the stored theme', async ({ page }) => {
+  await page.goto('/?theme=dark');
+  await page.waitForSelector('#map svg path.country', { timeout: 15_000 });
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  expect(await page.evaluate(() => localStorage.getItem('theme'))).toBeNull();
+
+  await page.click('#theme-toggle');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('light');
+});
+
 // Regression (phones): closing an overlay dropped the bottom sheet, and
 // re-selecting the still-selected country is a store no-op, so there was
 // no way back to the sheet short of picking another country.

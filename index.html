@@ -32,14 +32,15 @@
   <meta name="theme-color" content="#fefdfc" media="(prefers-color-scheme: light)">
 
   <!-- Resolve theme before paint to avoid a flash of wrong theme.
-       URL wins over localStorage wins over prefers-color-scheme. -->
+       URL wins over localStorage wins over prefers-color-scheme. A
+       ?theme= parameter applies for this visit only: opening a shared
+       link must not change the reader's stored choice. -->
   <script>
     (function () {
       try {
         var urlTheme = new URLSearchParams(location.search).get('theme');
         if (urlTheme === 'light' || urlTheme === 'dark') {
           document.documentElement.setAttribute('data-theme', urlTheme);
-          try { localStorage.setItem('theme', urlTheme); } catch (e) {}
           return;
         }
         var t = localStorage.getItem('theme');

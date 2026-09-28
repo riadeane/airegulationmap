@@ -261,9 +261,9 @@ function writeReplace(): void {
 }
 
 function applyUrlState(urlState: UrlState, { initial = false }: { initial?: boolean } = {}): void {
+  // A URL theme applies for this visit only; only the toggle persists one.
   if (urlState.theme) {
     document.documentElement.setAttribute('data-theme', urlState.theme);
-    try { localStorage.setItem('theme', urlState.theme); } catch (e) { /* storage blocked */ }
   }
 
   if (urlState.mode) setState({ currentAttribute: urlState.mode });
