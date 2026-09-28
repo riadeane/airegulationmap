@@ -21,6 +21,13 @@ const history = (countries, breaks) => ({
 });
 
 describe('computeRecentChanges', () => {
+  it('skips a confidence-only snapshot inside the window (#60)', () => {
+    const h = history({
+      Fiji: [snap('2026-06-01', { confidence: 'medium' }), snap('2026-09-21', { confidence: 'low' })],
+    });
+    expect(computeRecentChanges(h, TODAY)).toEqual([]);
+  });
+
   it('returns [] for missing history or no countries', () => {
     expect(computeRecentChanges(null, TODAY)).toEqual([]);
     expect(computeRecentChanges(undefined, TODAY)).toEqual([]);

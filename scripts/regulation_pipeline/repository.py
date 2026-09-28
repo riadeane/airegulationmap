@@ -176,7 +176,7 @@ class Dataset:
             apply_scores = True
 
         # Audit trail: apply() overwrites in place, and history.json only
-        # captures dimension-score changes - a sources/confidence-only change
+        # captures score and confidence changes - a sources-only change
         # would otherwise leave no record of what was replaced. Log the prior
         # snapshot so an operator can reconstruct it from the run log.
         prior = self._regulation.get(country)
@@ -196,7 +196,9 @@ class Dataset:
             return ApplyOutcome(
                 average=_as_score(held.get("Average Score")),
                 confidence=result.effective_confidence(),
-                history_added=False,
+                history_added=self._record_held_confidence(
+                    country, result.effective_confidence(), today,
+                ),
                 scores_applied=False,
             )
 
@@ -215,6 +217,18 @@ class Dataset:
             confidence=result.effective_confidence(),
             history_added=added,
         )
+
+    def _record_held_confidence(self, country: str, confidence: str, today: date) -> bool:
+        """A held result keeps its scores but still writes its confidence to
+        regulation_data.csv, so history records a confidence change with the
+        held scores copied from the last snapshot (the scores the map still
+        shows). Returns ``True`` when a snapshot was appended."""
+        snapshots = self._history.get("countries", {}).get(country)
+        if not snapshots:
+            return False
+        snapshot = {k: v for k, v in snapshots[-1].items() if k != "date"}
+        snapshot = {"date": today.isoformat(), **snapshot, "confidence": confidence}
+        return history_mod.append_snapshot(self._history, country, snapshot)
 
     # -- validation ------------------------------------------------------------
 
@@ -340,11 +354,13 @@ def split_subscores_entry(entry: dict) -> tuple[dict, dict | None]:
 def _history_snapshot(result: ResearchResult, today: date) -> dict:
     # Key order matters - history.json is written without sort_keys, and the
     # frontend reads snapshots positionally-agnostic but the file diff should
-    # stay stable: date, five dimensions in canonical order, then averageScore.
+    # stay stable: date, five dimensions in canonical order, averageScore,
+    # then the confidence written to regulation_data.csv.
     snapshot: dict = {"date": today.isoformat()}
     for dim in result.dimensions().values():
         snapshot[dim.history_key] = dim.score
     snapshot["averageScore"] = result.average_score()
+    snapshot[history_mod.CONFIDENCE_KEY] = result.effective_confidence()
     return snapshot
 
 

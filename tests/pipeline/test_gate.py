@@ -217,8 +217,15 @@ class TestServiceGate:
         assert row["Regulation Status"] == "4.0"      # held (CSV string, as loaded)
         assert row["Last Updated"] == "2026-09-14"    # always applies
         assert ds.regulation_row("A")["Confidence"] == "medium"
-        assert len(ds.history_for("A")) == 1
-        assert ds.history_for("A")[0]["date"] == "2026-09-07"   # snapshot not advanced
+        # The held scores stay; only the confidence change is recorded, on a
+        # snapshot that copies them (#60). The first snapshot is not advanced.
+        first, confidence_only = ds.history_for("A")
+        assert first["date"] == "2026-09-07"
+        assert confidence_only["date"] == "2026-09-14"
+        assert confidence_only["confidence"] == "medium"
+        assert {k: v for k, v in confidence_only.items() if k not in ("date", "confidence")} == {
+            k: v for k, v in first.items() if k not in ("date", "confidence")
+        }
         assert ds.subscores_for("A")["date"] == "2026-09-07"
         assert _pending_file(tmp_path)["pending"] == [{
             "country": "A",

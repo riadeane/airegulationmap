@@ -63,6 +63,16 @@ describe('computeWeeklyChanges', () => {
     expect(computeWeeklyChanges({ schema_version: 1, countries: {} })).toEqual([]);
   });
 
+  it('does not count a confidence-only snapshot as a change (#60)', () => {
+    const base = history.countries.Albania[0];
+    const weeks = computeWeeklyChanges({
+      schema_version: 1,
+      countries: { Fiji: [{ ...base, confidence: 'medium' }, { ...base, date: '2026-09-21', confidence: 'low' }] },
+    });
+    expect(weeks.map(w => w.date)).toEqual([base.date]);
+    expect(weeks[0]).toMatchObject({ changed: 0, firstScored: 1 });
+  });
+
   it('counts first assessments separately from changes, oldest run first', () => {
     const weeks = computeWeeklyChanges(history);
     expect(weeks.map(w => w.date)).toEqual(['2026-03-21', '2026-04-01', '2026-06-13']);

@@ -3,6 +3,7 @@ from datetime import date
 from pathlib import Path
 
 from conftest import full_result
+from regulation_pipeline import history as history_mod
 from regulation_pipeline.config import REGULATION_FIELDS, SCORES_FIELDS, Settings
 from regulation_pipeline.models import ResearchResult
 from regulation_pipeline.names import CountryNames
@@ -17,8 +18,8 @@ def empty_dataset(tmp_path) -> Dataset:
     return Dataset.load(settings, CountryNames({}))
 
 
-def result_model() -> ResearchResult:
-    return ResearchResult.model_validate(full_result())
+def result_model(**overrides) -> ResearchResult:
+    return ResearchResult.model_validate({**full_result(), **overrides})
 
 
 EVIDENCE = {
@@ -99,8 +100,9 @@ class TestApply:
         assert snap["regulationStatus"] == 4.0
         assert list(snap) == [
             "date", "regulationStatus", "policyLever", "governanceType",
-            "actorInvolvement", "enforcementLevel", "averageScore",
+            "actorInvolvement", "enforcementLevel", "averageScore", "confidence",
         ]
+        assert snap["confidence"] == ds.regulation_row("Germany")["Confidence"]
 
     def test_unchanged_scores_do_not_append_second_snapshot(self, tmp_path):
         ds = empty_dataset(tmp_path)
@@ -110,6 +112,28 @@ class TestApply:
         assert len(ds._history["countries"]["Germany"]) == 1
         # The snapshot dates the change, not the latest confirmation.
         assert ds._history["countries"]["Germany"][0]["date"] == "2026-06-01"
+
+    def test_confidence_only_change_appends_a_snapshot(self, tmp_path):
+        ds = empty_dataset(tmp_path)
+        ds.apply("Germany", result_model(), date(2026, 6, 1))
+        before = ds._history["countries"]["Germany"][0]
+        lower = result_model(confidence="low")
+        assert lower.effective_confidence() != before["confidence"]
+        outcome = ds.apply("Germany", lower, date(2026, 7, 1))
+        assert outcome.history_added is True
+        first, second = ds._history["countries"]["Germany"]
+        assert second["date"] == "2026-07-01"
+        assert second["confidence"] == "low"
+        assert {k: second[k] for k in history_mod.DIMENSION_KEYS} == {
+            k: first[k] for k in history_mod.DIMENSION_KEYS
+        }
+
+    def test_held_result_with_unchanged_confidence_adds_no_snapshot(self, tmp_path):
+        ds = empty_dataset(tmp_path)
+        ds.apply("Germany", result_model(), date(2026, 6, 1))
+        outcome = ds.apply("Germany", result_model(), date(2026, 7, 1), apply_scores=False)
+        assert outcome.history_added is False
+        assert len(ds._history["countries"]["Germany"]) == 1
 
 
 class TestSetEvidence:
