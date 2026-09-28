@@ -340,6 +340,34 @@ class TestSupabaseMirror:
         mirror.finish(updated=1, failed=0, fatal=False)
         assert len(fake.of("PATCH", "research_runs")) == 1
 
+    def test_begin_retries_then_turns_the_mirror_off(self):
+        # #149: every later write references the research_runs row, so when
+        # it cannot be written the mirror stops instead of failing each
+        # write on the foreign key.
+        fake = FakePostgrest()
+        fake.fail.add(("POST", "research_runs"))
+        slept: list[float] = []
+        client = SupabaseClient("https://x.supabase.co", "key", transport=fake.transport())
+        mirror = SupabaseMirror(client, META, sleep=slept.append)
+        mirror.begin(attempted=1)
+        assert len(fake.of("POST", "research_runs")) == 3
+        assert slept == [5.0, 10.0]
+        assert mirror.disabled
+        mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=HISTORY)
+        mirror.finish(updated=1, failed=0, fatal=False)
+        mirror.record_gold_check({"run_id": mirror.run_id})
+        assert [m for m, _, _ in fake.requests] == ["POST"] * 3
+
+    def test_begin_recovers_from_one_failure(self):
+        fake = FakePostgrest()
+        failures = iter([True])
+        fake.fail_if = lambda method, table, body: table == "research_runs" and next(failures, False)
+        client = SupabaseClient("https://x.supabase.co", "key", transport=fake.transport())
+        mirror = SupabaseMirror(client, META, sleep=lambda _s: None)
+        mirror.begin(attempted=1)
+        assert not mirror.disabled
+        assert len(fake.of("POST", "research_runs")) == 2
+
     def test_finish_without_records_only_updates_run(self):
         fake = FakePostgrest()
         mirror = make_mirror(fake)

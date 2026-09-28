@@ -173,6 +173,17 @@ def _run(
 
     logger.info("Loading existing data...")
     dataset = Dataset.load(settings, names)
+    inconsistent = dataset.consistency_errors()
+    if inconsistent:
+        # A save interrupted between two renames mixes old and new files;
+        # researching on top would bake the mismatch in (#149).
+        for error in inconsistent:
+            logger.error("data files disagree: %s", error)
+        logger.error(
+            "The data files in public/ disagree (an interrupted save?). Restore them "
+            "from git before running. Nothing was researched."
+        )
+        raise typer.Exit(code=1)
 
     targets = None
     if not full_run:

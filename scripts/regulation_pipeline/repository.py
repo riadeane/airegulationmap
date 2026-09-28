@@ -274,22 +274,57 @@ class Dataset:
     # -- persistence -----------------------------------------------------------
 
     def save(self) -> None:
-        _write_text(self._settings.scores_csv, _csv_text(self._scores, SCORES_FIELDS))
-        _write_text(self._settings.regulation_csv, _csv_text(self._regulation, REGULATION_FIELDS))
+        """Write the five stores as a set: every temp file is written and
+        fsynced first, then the five renames run back to back, so a crash
+        while writing (the slow part) leaves the old set intact and only a
+        crash between two renames can mix old and new files, which
+        :meth:`consistency_errors` then catches on the next load (#149)."""
         # No trailing newline on the JSON files - matches the byte layout the
         # existing files already have, so an unchanged run produces no diff.
-        _write_text(
-            self._settings.history_json,
-            json.dumps(self._history, ensure_ascii=False, indent=2),
-        )
-        _write_text(
-            self._settings.subscores_json,
-            json.dumps(self._subscores, ensure_ascii=False, indent=2, sort_keys=True),
-        )
-        _write_text(
-            self._settings.pending_json,
-            json.dumps(self._pending, ensure_ascii=False, indent=2),
-        )
+        files = [
+            (self._settings.scores_csv, _csv_text(self._scores, SCORES_FIELDS)),
+            (self._settings.regulation_csv, _csv_text(self._regulation, REGULATION_FIELDS)),
+            (self._settings.history_json, json.dumps(self._history, ensure_ascii=False, indent=2)),
+            (
+                self._settings.subscores_json,
+                json.dumps(self._subscores, ensure_ascii=False, indent=2, sort_keys=True),
+            ),
+            (self._settings.pending_json, json.dumps(self._pending, ensure_ascii=False, indent=2)),
+        ]
+        staged = [(_stage_text(path, text), path) for path, text in files]
+        for tmp, path in staged:
+            tmp.replace(path)
+        for directory in {path.parent for _, path in staged}:
+            _fsync_dir(directory)
+
+    def consistency_errors(self) -> list[str]:
+        """Disagreements a save interrupted between two renames would leave:
+        history has a country ``scores.csv`` lacks, or a country's latest
+        snapshot does not hold the scores in ``scores.csv``. ``save`` renames
+        scores.csv first and history.json third, so a crash between them
+        shows up here for every country the run re-scored. Empty when they
+        agree (#149)."""
+        errors: list[str] = []
+        for country, snapshots in sorted(self._history.get("countries", {}).items()):
+            if not snapshots:
+                continue
+            row = self._scores.get(country)
+            if row is None:
+                errors.append(f"{country}: in history.json but not in scores.csv")
+                continue
+            latest = max(snapshots, key=lambda s: str(s.get("date", "")))
+            # _SCORE_COLUMNS lists the five dimensions in DIMENSIONS order.
+            for dim, column in zip(ResearchResult.DIMENSIONS, _SCORE_COLUMNS, strict=False):
+                stored = _as_score(row.get(column))
+                recorded = latest.get(dim.history_key)
+                recorded = None if recorded is None else round(float(recorded), 2)
+                if (None if stored is None else round(stored, 2)) != recorded:
+                    errors.append(
+                        f"{country}: scores.csv {dim.history_key} {stored} differs from its "
+                        f"latest history snapshot ({latest.get('date')}: {recorded})"
+                    )
+                    break
+        return errors
 
 
 # -- projections (research result -> persistence rows) -------------------------
@@ -443,18 +478,28 @@ def _write_text(path: Path, text: str) -> None:
     still be in the page cache when a CI/cloud runner is yanked. We fsync the
     temp file before the swap, then fsync the containing directory so the
     rename itself is on stable storage."""
+    _stage_text(path, text).replace(path)
+    _fsync_dir(path.parent)
+
+
+def _stage_text(path: Path, text: str) -> Path:
+    """Write ``text`` to ``path``'s temp file and fsync it; returns the temp
+    path for the caller to rename into place."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
-    # Write + flush + fsync the data before we swap it into place.
+    # Write + flush + fsync the data before it is swapped into place.
     with tmp.open("w", encoding="utf-8", newline="") as f:
         f.write(text)
         f.flush()
         os.fsync(f.fileno())
-    tmp.replace(path)
+    return tmp
+
+
+def _fsync_dir(directory: Path) -> None:
     # Persist the directory entry (the rename) too. Best-effort: some
     # platforms/filesystems don't allow opening a directory for fsync.
     try:
-        dir_fd = os.open(path.parent, os.O_RDONLY)
+        dir_fd = os.open(directory, os.O_RDONLY)
         try:
             os.fsync(dir_fd)
         finally:

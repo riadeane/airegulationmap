@@ -136,3 +136,83 @@ class TestDurableWrite:
         ds = Dataset.load(Settings(root=tmp_path), CountryNames({}))
         assert ds.scores_row("Germany")["Data Version"] == 3
         assert isinstance(ds.scores_row("Germany")["Data Version"], int)
+
+
+class TestSaveAsASet:
+    """#149: the five stores are written as a set, and a mix of old and
+    new files is caught on the next load."""
+
+    def _dataset(self, tmp_path):
+        from datetime import date
+
+        from conftest import full_result
+        from regulation_pipeline.models import ResearchResult
+
+        ds = Dataset.load(Settings(root=tmp_path), CountryNames({}))
+        ds.apply("Germany", ResearchResult.model_validate(full_result()), date(2026, 9, 7))
+        return ds
+
+    def test_every_temp_file_is_written_before_any_rename(self, tmp_path, monkeypatch):
+        from pathlib import Path
+
+        ds = self._dataset(tmp_path)
+        events: list[str] = []
+        real_replace = Path.replace
+
+        def recording_replace(self, target):
+            events.append(f"rename {Path(target).name}")
+            return real_replace(self, target)
+
+        real_open = Path.open
+
+        def recording_open(self, *args, **kwargs):
+            if self.name.endswith(".tmp"):
+                events.append(f"write {self.name}")
+            return real_open(self, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "replace", recording_replace)
+        monkeypatch.setattr(Path, "open", recording_open)
+        ds.save()
+        writes = [i for i, e in enumerate(events) if e.startswith("write")]
+        renames = [i for i, e in enumerate(events) if e.startswith("rename")]
+        assert len(writes) == 5 and len(renames) == 5
+        assert max(writes) < min(renames)
+        assert not list(tmp_path.rglob("*.tmp"))
+
+    def test_the_saved_stores_agree(self, tmp_path):
+        self._dataset(tmp_path).save()
+        assert Dataset.load(Settings(root=tmp_path), CountryNames({})).consistency_errors() == []
+
+    def test_a_scores_file_newer_than_history_is_caught(self, tmp_path):
+        import json
+
+        ds = self._dataset(tmp_path)
+        ds.save()
+        settings = Settings(root=tmp_path)
+        # Simulate a crash after scores.csv was renamed but before history.json:
+        # history still holds the previous scores.
+        history = json.loads(settings.history_json.read_text())
+        history["countries"]["Germany"][-1]["regulationStatus"] = 1.0
+        settings.history_json.write_text(json.dumps(history))
+        errors = Dataset.load(settings, CountryNames({})).consistency_errors()
+        assert len(errors) == 1 and errors[0].startswith("Germany: scores.csv regulationStatus 4.0")
+
+    def test_a_history_country_missing_from_scores_is_caught(self, tmp_path):
+        import json
+
+        ds = self._dataset(tmp_path)
+        ds.save()
+        settings = Settings(root=tmp_path)
+        history = json.loads(settings.history_json.read_text())
+        history["countries"]["Atlantis"] = [{"date": "2026-09-07", "regulationStatus": 2}]
+        settings.history_json.write_text(json.dumps(history))
+        assert Dataset.load(settings, CountryNames({})).consistency_errors() == [
+            "Atlantis: in history.json but not in scores.csv",
+        ]
+
+    def test_the_committed_data_files_agree(self):
+        from regulation_pipeline.names import CountryNames as Names
+
+        settings = Settings()
+        ds = Dataset.load(settings, Names.load(settings.country_names_json))
+        assert ds.consistency_errors() == []

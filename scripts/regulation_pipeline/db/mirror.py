@@ -29,11 +29,15 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Protocol
+
+import httpx
 
 from ..models import ResearchResult
 from ..repository import EVIDENCE_KEY, split_subscores_entry
@@ -41,6 +45,10 @@ from ..sources import classify_sources
 from .client import SupabaseClient, SupabaseError
 
 logger = logging.getLogger(__name__)
+
+# research_runs row insert: attempts and linear backoff (seconds).
+BEGIN_ATTEMPTS = 3
+BEGIN_BACKOFF_SECONDS = 5.0
 
 
 @dataclass(frozen=True)
@@ -92,6 +100,7 @@ class SupabaseMirror:
         *,
         iso_path: Path | None = None,
         usage_provider=None,
+        sleep: Callable[[float], None] = time.sleep,
     ):
         self._client = client
         self._meta = meta
@@ -99,6 +108,8 @@ class SupabaseMirror:
         self._iso = _load_iso(iso_path)
         self._run_id = str(uuid.uuid4())
         self._entries: list[_Entry] = []
+        self._disabled = False
+        self._sleep = sleep
 
     @property
     def run_id(self) -> str:
@@ -109,7 +120,11 @@ class SupabaseMirror:
     # -- Mirror protocol -----------------------------------------------------
 
     def begin(self, attempted: int) -> None:
-        self._client.insert("research_runs", [{
+        """Insert the run's ``research_runs`` row, retrying a transient
+        failure. Every later write references this row, so if it cannot be
+        written the mirror turns itself off for the run with one warning,
+        instead of failing each later write on the foreign key (#149)."""
+        row = {
             "id": self._run_id,
             "trigger": self._meta.trigger,
             "model": self._meta.model,
@@ -118,7 +133,31 @@ class SupabaseMirror:
             "grounded": self._meta.grounded,
             "git_sha": self._meta.git_sha,
             "countries_attempted": attempted,
-        }])
+        }
+        for attempt in range(1, BEGIN_ATTEMPTS + 1):
+            try:
+                self._client.insert("research_runs", [row])
+                return
+            except (SupabaseError, httpx.HTTPError) as exc:
+                if attempt == BEGIN_ATTEMPTS:
+                    self._disabled = True
+                    logger.warning(
+                        "mirror: could not record run %s after %d attempts (%s) - the "
+                        "Supabase mirror is off for this run; the data files are unaffected",
+                        self._run_id, BEGIN_ATTEMPTS, exc,
+                    )
+                    return
+                delay = BEGIN_BACKOFF_SECONDS * attempt
+                logger.warning(
+                    "mirror: recording run %s failed (%s) - retrying in %.0fs",
+                    self._run_id, exc, delay,
+                )
+                self._sleep(delay)
+
+    @property
+    def disabled(self) -> bool:
+        """True once :meth:`begin` gave up: record/finish/gold writes are skipped."""
+        return self._disabled
 
     def record(
         self, country: str, result: ResearchResult, today: date,
@@ -127,12 +166,16 @@ class SupabaseMirror:
         """Buffer one country. ``scores_row`` and ``subscores`` are what the
         dataset holds AFTER the stability gate, so a held result mirrors the
         unchanged scores while the text fields still refresh."""
+        if self._disabled:
+            return
         self._entries.append(_Entry(country, result, today, scores_row, subscores, history))
 
     def finish(
         self, updated: int, failed: int, fatal: bool, *,
         gate_counts: dict[str, int] | None = None, calibration_break: dict | None = None,
     ) -> None:
+        if self._disabled:
+            return
         if self._entries:
             self._flush()
         usage = self._usage_provider() if self._usage_provider else {}
@@ -172,6 +215,8 @@ class SupabaseMirror:
         ``gold_checks``. Called by the CLI after ``finish``, outside the
         service, so it is not part of the :class:`Mirror` protocol; the CLI
         downgrades a failure to a warning like every other mirror call."""
+        if self._disabled:
+            return
         full = _gold_check_row(row)
         try:
             self._client.insert("gold_checks", [full])
