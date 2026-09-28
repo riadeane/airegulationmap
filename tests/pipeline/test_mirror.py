@@ -45,6 +45,7 @@ class FakePostgrest:
         self.params: list[tuple[str, str, dict]] = []
         # (method, table) pairs that answer 500, to simulate a failed write.
         self.fail: set[tuple[str, str]] = set()
+        self.fail_if = None  # optional (method, table, body) -> bool
         self.select_rows: dict[str, list[dict]] = {
             "countries": [{"id": "c-1", "name": "A"}],
             "sources": [
@@ -59,7 +60,7 @@ class FakePostgrest:
             body = json.loads(request.content) if request.content else None
             self.requests.append((request.method, table, body))
             self.params.append((request.method, table, dict(request.url.params)))
-            if (request.method, table) in self.fail:
+            if (request.method, table) in self.fail or (self.fail_if and self.fail_if(request.method, table, body)):
                 return httpx.Response(500, json={"message": "boom"})
             if request.method == "GET":
                 return httpx.Response(200, json=self.select_rows.get(table, []))
@@ -310,6 +311,35 @@ class TestSupabaseMirror:
             mirror.finish(updated=1, failed=0, fatal=False)
         assert fake.of("DELETE", "score_history") == []
 
+    def test_finish_records_the_calibration_break_in_its_own_request(self):
+        # #90: the break reaches research_runs, apart from the run's counts,
+        # so a database without migration 0012 loses only the break.
+        brk = {"date": "2026-09-28", "model": "claude-opus-5", "prompt_version": "v3.3-2026-09",
+               "rubric": "v3.1", "reason": "Switch to scoring rubric v3.1", "complete": True}
+        fake = FakePostgrest()
+        mirror = make_mirror(fake)
+        mirror.begin(attempted=1)
+        mirror.finish(updated=1, failed=0, fatal=False, calibration_break=brk)
+        counts, break_patch = fake.of("PATCH", "research_runs")
+        assert "calibration_break" not in counts
+        assert break_patch == {"calibration_break": brk}
+
+    def test_a_missing_break_column_is_a_warning(self, caplog):
+        fake = FakePostgrest()
+        fake.fail_if = lambda method, table, body: bool(body) and "calibration_break" in body
+        mirror = make_mirror(fake)
+        mirror.begin(attempted=1)
+        mirror.finish(updated=1, failed=0, fatal=False, calibration_break={"reason": "x"})
+        assert fake.of("PATCH", "research_runs")[0]["countries_succeeded"] == 1
+        assert "0012" in caplog.text
+
+    def test_no_break_no_break_request(self):
+        fake = FakePostgrest()
+        mirror = make_mirror(fake)
+        mirror.begin(attempted=1)
+        mirror.finish(updated=1, failed=0, fatal=False)
+        assert len(fake.of("PATCH", "research_runs")) == 1
+
     def test_finish_without_records_only_updates_run(self):
         fake = FakePostgrest()
         mirror = make_mirror(fake)
@@ -359,8 +389,9 @@ class RecordingMirror:
     def record(self, country, result, today, *, scores_row, subscores, history):
         self.calls.append(("record", country, scores_row["Data Version"], len(history)))
 
-    def finish(self, updated, failed, fatal, *, gate_counts=None):
+    def finish(self, updated, failed, fatal, *, gate_counts=None, calibration_break=None):
         self.calls.append(("finish", updated, failed, fatal))
+        self.calibration_break = calibration_break
 
 
 def _service(tmp_path, mirror=None):
@@ -400,6 +431,17 @@ class TestServiceMirrorSeam:
         # data_version bumped to 2 by apply; one history snapshot exists.
         assert mirror.calls[1] == ("record", "A", 2, 1)
         assert mirror.calls[2] == ("finish", 1, 1, False)
+
+    def test_finish_receives_the_recorded_break(self, tmp_path):
+        brk = {"date": "2026-06-11", "model": "m", "prompt_version": "v", "reason": "r"}
+        mirror = RecordingMirror()
+        ds = Dataset.load(Settings(root=tmp_path), CountryNames({}))
+        svc = PipelineService(
+            ds, StalenessPolicy(90, TODAY), TODAY, mirror=mirror,
+            gate_enabled=False, calibration_break=brk,
+        )
+        svc.run(ListStrategy([("A", model())]), ["A"])
+        assert mirror.calibration_break == {**brk, "complete": True}
 
     def test_fatal_path_still_finishes_mirror_after_save(self, tmp_path):
         mirror = RecordingMirror()

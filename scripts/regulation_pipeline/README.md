@@ -473,8 +473,10 @@ provenance.
   date moved before September 2026 matches by scores alone), so a score
   that reverts is a new change point. It also feeds every cited URL into `sources` /
   `country_sources` with the run id. `research_runs` records trigger,
-  model, strategy, prompt version, grounded flag, git SHA, counts, and
-  cumulative token usage.
+  model, strategy, prompt version, grounded flag, git SHA, counts,
+  cumulative token usage, and the calibration break the run recorded
+  (`calibration_break`, migration 0012; written in its own request, so a
+  database without the column loses only the break).
 - **Client (`db/client.py`)** - a thin httpx PostgREST wrapper (select /
   insert / upsert / update / delete), testable with `httpx.MockTransport`.
   Upserts must never include generated columns like `id` -
@@ -542,8 +544,12 @@ Claude for the prose once, and writes `public/digest/`.
 - **Regeneration.** `python -m regulation_pipeline.digest --run <id>` rebuilds a
   run's changes from Supabase. `score_history.run_id` marks the snapshots a run
   introduced (the mirror keeps earlier snapshots' ids when it syncs a
-  country's history), so score change points are exact. The regulation text has
-  no history in the database, so regenerated digests cover score changes only.
+  country's history), so score change points are exact. The run row's
+  `calibration_break` makes a recalibration run's rebuilt digest lead with the
+  recalibration and list no score moves as policy change. The regulation text
+  has no history in the database, so regenerated digests cover score changes
+  only; the week file carries `"regenerated": true` and the changes page says
+  so.
 
 ## Gold set and drift check (`gold.py`)
 

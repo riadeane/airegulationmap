@@ -22,6 +22,7 @@ from regulation_pipeline.digest import (
     changes_from_supabase,
     entry_html,
     generate,
+    regenerated_result,
     render_feed,
     render_prompt,
     request_params,
@@ -168,6 +169,7 @@ class TestCalibrationBreak:
         assert week["lead"].startswith("Recalibration: Model switch. Score movements dated 2026-09-07")
         assert week["calibration_break"] == self.BREAK
         assert week["changes"] == [] and client.messages.calls == []
+        assert "regenerated" not in week  # only digests rebuilt from Supabase say so
 
 
 class TestPrompt:
@@ -504,6 +506,40 @@ class TestChangesFromSupabase:
         client = SupabaseClient("https://x.supabase.co", "key", transport=fake.transport())
         with pytest.raises(DigestError):
             changes_from_supabase(client, "nope")
+
+    def test_a_regenerated_calibration_run_lists_no_policy_change(self, tmp_path):
+        # #90: the run row carries the break it recorded, so the rebuilt
+        # digest leads with the recalibration and lists no score moves.
+        brk = {"date": "2026-09-07", "model": "claude-opus-5", "prompt_version": "v3.3-2026-09",
+               "rubric": "v3.1", "reason": "Switch to scoring rubric v3.1", "complete": True}
+        fake = FakePostgrest({
+            "research_runs": [{"id": "run-9", "model": "claude-x", "calibration_break": brk}],
+            "countries": [{"id": "c1", "name": "Germany"}],
+            "score_history": [
+                {"country_id": "c1", "snapshot_date": "2026-06-01", "run_id": "run-1",
+                 "scores": {"regulationStatus": 3.0, "averageScore": 3.0}},
+                {"country_id": "c1", "snapshot_date": "2026-09-07", "run_id": "run-9",
+                 "scores": {"regulationStatus": 3.75, "averageScore": 3.25}},
+            ],
+        })
+        client = SupabaseClient("https://x.supabase.co", "key", transport=fake.transport())
+        changes, run_row = changes_from_supabase(client, "run-9")
+        result = regenerated_result("run-9", changes, run_row)
+        assert result.calibration_break == brk
+        assert select_changes(result.changes, calibration_break=result.calibration_break) == []
+
+        settings = Settings(root=tmp_path)
+        path = write_run_digest(
+            result, client=None, settings=settings, model="m", run_date=date(2026, 9, 7), now=NOW,
+            regenerated=True,
+        )
+        week = json.loads(path.read_text())
+        assert week["lead"].startswith("Recalibration: Switch to scoring rubric v3.1.")
+        assert week["items"] == [] and week["changes"] == []
+        assert week["regenerated"] is True
+
+    def test_a_run_row_without_the_break_column_has_no_break(self):
+        assert regenerated_result("r", [], {"id": "r"}).calibration_break is None
 
     def test_run_without_snapshots_yields_no_changes(self):
         fake = FakePostgrest({"research_runs": [{"id": "r", "model": "m"}], "score_history": []})

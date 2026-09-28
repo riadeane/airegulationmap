@@ -324,7 +324,7 @@ class TestServiceGate:
             def record(self, country, result, today, *, scores_row, subscores, history):
                 recorded.append((scores_row["Regulation Status"], subscores["date"]))
 
-            def finish(self, updated, failed, fatal, *, gate_counts=None):
+            def finish(self, updated, failed, fatal, *, gate_counts=None, calibration_break=None):
                 recorded.append(gate_counts)
 
         svc, _ = _service(tmp_path, RUN_1)

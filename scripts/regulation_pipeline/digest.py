@@ -387,9 +387,11 @@ def build_digest(
     run_date: date,
     generated_at: datetime,
     calibration_break: dict | None = None,
+    regenerated: bool = False,
 ) -> dict:
     """The week file's JSON document. On a calibration-break run the lead
-    opens with the recalibration sentence."""
+    opens with the recalibration sentence. A digest rebuilt from Supabase
+    (``regenerated``) says so: it covers score changes only."""
     lead = text.lead
     if calibration_break is not None:
         prefix = _BREAK_LEAD.format(
@@ -397,7 +399,7 @@ def build_digest(
             date=calibration_break.get("date", run_date.isoformat()),
         )
         lead = f"{prefix} {lead}".strip()
-    return {
+    digest = {
         "schema_version": SCHEMA_VERSION,
         "week": week_of(run_date),
         "date": run_date.isoformat(),
@@ -410,16 +412,19 @@ def build_digest(
         "items": [item.model_dump() for item in text.items],
         "changes": [change.to_json() for change in changes],
     }
+    if regenerated:
+        digest["regenerated"] = True
+    return digest
 
 
 def no_changes_digest(
     *, run_id: str, model: str, run_date: date, generated_at: datetime,
-    calibration_break: dict | None = None,
+    calibration_break: dict | None = None, regenerated: bool = False,
 ) -> dict:
     return build_digest(
         DigestText(lead=_NO_CHANGES_LEAD, items=[]), [],
         run_id=run_id, model=model, run_date=run_date, generated_at=generated_at,
-        calibration_break=calibration_break,
+        calibration_break=calibration_break, regenerated=regenerated,
     )
 
 
@@ -431,16 +436,18 @@ def write_run_digest(
     model: str,
     run_date: date,
     now: datetime | None = None,
+    regenerated: bool = False,
 ) -> Path:
     """Select the run's changes, generate the prose (one request, skipped
-    when nothing changed), and write the week file, index and feed."""
+    when nothing changed), and write the week file, index and feed.
+    ``regenerated`` marks a digest rebuilt from Supabase after the run."""
     generated_at = now or datetime.now(UTC)
     calibration_break = result.calibration_break
     changes = select_changes(result.changes, calibration_break=calibration_break)
     if not changes:
         digest = no_changes_digest(
             run_id=result.run_id, model=model, run_date=run_date, generated_at=generated_at,
-            calibration_break=calibration_break,
+            calibration_break=calibration_break, regenerated=regenerated,
         )
         existing = settings.digest_dir / f"{digest['week']}.json"
         if existing.exists() and json.loads(existing.read_text(encoding="utf-8")).get("items"):
@@ -455,7 +462,7 @@ def write_run_digest(
         digest = build_digest(
             text, changes,
             run_id=result.run_id, model=model, run_date=run_date, generated_at=generated_at,
-            calibration_break=calibration_break,
+            calibration_break=calibration_break, regenerated=regenerated,
         )
     return write_digest(settings, digest)
 
@@ -700,6 +707,19 @@ def changes_from_supabase(client, run_id: str) -> tuple[list[CountryChange], dic
     return changes, run
 
 
+def regenerated_result(run_id: str, changes: list[CountryChange], run_row: dict) -> RunResult:
+    """The :class:`RunResult` a regenerated digest is written from. It
+    carries the calibration break the run recorded (``research_runs.
+    calibration_break``, migration 0012), so a recalibration run's
+    re-scores are not listed as policy change (#90). Rows written before
+    the column existed have no break."""
+    recorded = run_row.get("calibration_break")
+    return RunResult(
+        updated=len(changes), failed=[], run_id=run_id, changes=tuple(changes),
+        calibration_break=dict(recorded) if isinstance(recorded, dict) else None,
+    )
+
+
 def _scores_row(country: str, snapshot_scores: dict) -> dict:
     """History-shaped scores (camelCase keys) -> CSV-shaped row."""
     row: dict = {"Country": country}
@@ -748,13 +768,18 @@ def _regenerate(
     started = run_row.get("started_at") or run_row.get("finished_at")
     run_date = datetime.fromisoformat(started).date() if started else date.today()
     digest_model = model or run_row.get("model") or settings.default_model
-    result = RunResult(updated=len(changes), failed=[], run_id=run, changes=tuple(changes))
+    result = regenerated_result(run, changes, run_row)
     logger.info("digest: run %s on %s - %d countries with new snapshots", run, run_date, len(changes))
+    if result.calibration_break:
+        logger.info("digest: run %s recorded a calibration break: %s", run, result.calibration_break.get("reason"))
 
     # SDK-level silent retries stay off; retry.py does explicit, logged retries.
     client = anthropic.Anthropic(api_key=api_key, max_retries=0)
     try:
-        write_run_digest(result, client=client, settings=settings, model=digest_model, run_date=run_date)
+        write_run_digest(
+            result, client=client, settings=settings, model=digest_model, run_date=run_date,
+            regenerated=True,
+        )
     except DigestError as exc:
         logger.error("%s", exc)
         raise typer.Exit(code=2) from exc

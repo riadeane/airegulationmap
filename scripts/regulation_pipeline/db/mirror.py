@@ -38,7 +38,7 @@ from typing import Protocol
 from ..models import ResearchResult
 from ..repository import EVIDENCE_KEY, split_subscores_entry
 from ..sources import classify_sources
-from .client import SupabaseClient
+from .client import SupabaseClient, SupabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,8 @@ class Mirror(Protocol):
     ) -> None: ...
 
     def finish(
-        self, updated: int, failed: int, fatal: bool, *, gate_counts: dict[str, int] | None = None,
+        self, updated: int, failed: int, fatal: bool, *,
+        gate_counts: dict[str, int] | None = None, calibration_break: dict | None = None,
     ) -> None: ...
 
 
@@ -129,7 +130,8 @@ class SupabaseMirror:
         self._entries.append(_Entry(country, result, today, scores_row, subscores, history))
 
     def finish(
-        self, updated: int, failed: int, fatal: bool, *, gate_counts: dict[str, int] | None = None,
+        self, updated: int, failed: int, fatal: bool, *,
+        gate_counts: dict[str, int] | None = None, calibration_break: dict | None = None,
     ) -> None:
         if self._entries:
             self._flush()
@@ -142,10 +144,26 @@ class SupabaseMirror:
             "est_cost_usd": usage.get("est_cost_usd"),
             "notes": _notes(fatal, gate_counts, usage.get("searches")),
         }, {"id": f"eq.{self._run_id}"})
+        if calibration_break is not None:
+            self._record_break(calibration_break)
         logger.info(
             "mirror: run %s recorded (%d countries mirrored, fatal=%s)",
             self._run_id, len(self._entries), fatal,
         )
+
+    def _record_break(self, entry: dict) -> None:
+        """Write the run's calibration break to ``research_runs`` in its own
+        request, so a database without migration 0012 loses only the break,
+        never the run's counts and finish time."""
+        try:
+            self._client.update(
+                "research_runs", {"calibration_break": dict(entry)}, {"id": f"eq.{self._run_id}"},
+            )
+        except SupabaseError:
+            logger.warning(
+                "mirror: calibration break not recorded on run %s (is migration "
+                "0012_research_runs_calibration_break.sql applied?)", self._run_id, exc_info=True,
+            )
 
     # -- gold-set drift check --------------------------------------------------
 

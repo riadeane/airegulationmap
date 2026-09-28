@@ -163,7 +163,10 @@ class PipelineService:
                 logger.info("Saving partial progress...")
                 self._dataset.save()
             # Mirror AFTER the files are safe - same ordering as the happy path.
-            self._mirror_call("finish", updated, len(set(failed)), True, gate_counts=tally.counts)
+            self._mirror_call(
+                "finish", updated, len(set(failed)), True,
+                gate_counts=tally.counts, calibration_break=recorded,
+            )
             return self._result(updated, failed, tally, changes, raw, recorded, fatal=True)
 
         recorded = self._record_break(updated, len(to_update))
@@ -172,7 +175,10 @@ class PipelineService:
 
         logger.info("Writing output files...")
         self._dataset.save()
-        self._mirror_call("finish", updated, len(set(failed)), False, gate_counts=tally.counts)
+        self._mirror_call(
+            "finish", updated, len(set(failed)), False,
+            gate_counts=tally.counts, calibration_break=recorded,
+        )
         return self._result(updated, failed, tally, changes, raw, recorded, fatal=False)
 
     def _record_break(self, updated: int, attempted: int) -> dict | None:

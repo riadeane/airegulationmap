@@ -113,7 +113,9 @@ python scripts/update_data.py --no-gate --break-reason "Model switch to Opus 5"
 python scripts/update_data.py --batch --digest
 
 # Regenerate the digest for a past run from Supabase score_history
-# (needs SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY).
+# (needs SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY). It reads the
+# run's calibration break from research_runs.calibration_break (migration
+# 0012) and covers score changes only (the page says so).
 python -m regulation_pipeline.digest --run <research_runs.id>
 
 # Gold set and drift check (always on): after each run the raw results for

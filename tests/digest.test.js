@@ -72,6 +72,12 @@ describe('parseDigest', () => {
     expect(parseDigest({ ...WEEK, calibration_break: { date: 'x' } }).calibrationBreak).toBeNull();
   });
 
+  it('reads the regenerated flag (#90)', () => {
+    expect(parseDigest(WEEK).regenerated).toBe(false);
+    expect(parseDigest({ ...WEEK, regenerated: true }).regenerated).toBe(true);
+    expect(parseDigest({ ...WEEK, regenerated: 'yes' }).regenerated).toBe(false);
+  });
+
   it('accepts a no-changes digest', () => {
     const d = parseDigest({ week: '2026-W38', date: '2026-09-14', lead: 'No changes.', items: [], changes: [] });
     expect(d.items).toEqual([]);
