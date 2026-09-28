@@ -291,6 +291,23 @@
   cursor: pointer;
 }
 
+/* Small states (#104, map/smallStates.ts): scored countries the 1:110m
+   atlas has no shape for, drawn as point markers that keep their screen
+   size as the map zooms, so their strokes must not scale either. The
+   outline is a muted neutral rather than the country border colour (white
+   in the light theme, next to no contrast with the ocean), so a pale
+   marker still reads at sea. Listed before the emphasis rules below,
+   which override it. */
+.country.small-state,
+.country-hatch.small-state {
+  vector-effect: non-scaling-stroke;
+}
+
+.country.small-state {
+  stroke: var(--text-tertiary);
+  stroke-width: 0.75px;
+}
+
 /* Each emphasis rule also names .country-hatch: a hatched country's hatch
    path repeats its country's outline above the texture (renderer.ts,
    syncHatchEmphasis). Hover can't cross the pointer-events:none layer,
@@ -328,7 +345,8 @@
    stroke of its own, so borders stay exactly as the country paths draw
    them (emphasis outlines are repeated above). The opacity mirrors the
    country's (filters inline, search dimming here). */
-.hatch-layer {
+.hatch-layer,
+.small-state-hatch-layer {
   pointer-events: none;
 }
 
