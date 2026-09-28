@@ -1,4 +1,5 @@
-import { SCORE_OPTIONS, ATTRIBUTE_LABELS } from '../constants';
+import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../constants';
+import type { AttributeGroup } from '../constants';
 import type { AttributeKey } from '../constants';
 import { getState, setState, on } from '../state/store';
 
@@ -7,12 +8,18 @@ import { getState, setState, on } from '../state/store';
 // roves across them with the arrow keys, Home and End, Enter or Space
 // picks one, and Esc or Tab closes the list. Focus returns to the button
 // when the list closes by keyboard.
+//
+// Options sit in two labelled groups (role="group"), "Implementation" and
+// "Governance style" (PRD 16), and each carries the one-line question its
+// score answers, so the reader knows what a colour means before choosing
+// it. The groups are presentational for the keyboard: the arrows rove
+// across all six options in display order.
 
 // Label and aria-selected follow the state, whoever wrote it (a dimension
 // row, a URL, popstate).
 function syncSelected(attr: AttributeKey): void {
   document.getElementById('score-btn-label')!.textContent = ATTRIBUTE_LABELS[attr];
-  document.querySelectorAll<HTMLLIElement>('#score-dropdown li').forEach(li => {
+  document.querySelectorAll<HTMLLIElement>('#score-dropdown [role="option"]').forEach(li => {
     const selected = li.dataset.value === attr;
     li.classList.toggle('selected', selected);
     li.setAttribute('aria-selected', String(selected));
@@ -28,17 +35,42 @@ export function buildScoreSelector(): void {
   const dropdown = document.getElementById('score-dropdown')!;
   btn.setAttribute('aria-controls', 'score-dropdown');
 
-  const options = SCORE_OPTIONS.map(opt => {
-    const li = document.createElement('li');
-    li.id = `score-option-${opt.value}`;
-    li.setAttribute('role', 'option');
-    li.tabIndex = -1;
-    li.textContent = opt.text;
-    li.dataset.value = opt.value;
-    li.addEventListener('click', () => pick(opt.value));
-    dropdown.appendChild(li);
-    return li;
-  });
+  const options: HTMLLIElement[] = [];
+  for (const group of ['implementation', 'style'] as AttributeGroup[]) {
+    const wrap = document.createElement('li');
+    wrap.setAttribute('role', 'presentation');
+    wrap.className = 'score-group';
+    const head = document.createElement('span');
+    head.className = 'score-group-head';
+    head.id = `score-group-${group}`;
+    head.textContent = GROUPS[group].label;
+    const list = document.createElement('ul');
+    list.setAttribute('role', 'group');
+    list.setAttribute('aria-labelledby', head.id);
+    for (const value of attributesIn(group)) {
+      const li = document.createElement('li');
+      li.id = `score-option-${value}`;
+      li.setAttribute('role', 'option');
+      li.tabIndex = -1;
+      li.dataset.value = value;
+      const label = document.createElement('span');
+      label.className = 'score-option-label';
+      label.id = `${li.id}-label`;
+      label.textContent = ATTRIBUTES[value].label;
+      const question = document.createElement('span');
+      question.className = 'score-option-question';
+      question.id = `${li.id}-question`;
+      question.textContent = ATTRIBUTES[value].question;
+      li.append(label, question);
+      li.setAttribute('aria-labelledby', label.id);
+      li.setAttribute('aria-describedby', question.id);
+      li.addEventListener('click', () => pick(value));
+      list.appendChild(li);
+      options.push(li);
+    }
+    wrap.append(head, list);
+    dropdown.appendChild(wrap);
+  }
 
   // Set the initial label from state so a URL-provided `?mode=` shows up
   // correctly without a click.
@@ -123,12 +155,12 @@ export function initDimensionClicks(): void {
   // before - one click did both, with contradictory signifiers.
   //
   // Clicking the main button colors the map by that dimension; clicking
-  // the active dimension again toggles back to the maturity index
+  // the active dimension again toggles back to the implementation index
   // (there was no in-panel way back before).
   document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
     const main = row.querySelector<HTMLElement>('.dim-main');
     if (!main) return;
-    main.title = 'Color the map by this dimension; click again to return to the maturity index';
+    main.title = 'Colour the map by this dimension; click again to return to the implementation index';
     main.addEventListener('click', () => {
       const dimension = row.dataset.dimension as AttributeKey;
       switchAttribute(getState().currentAttribute === dimension ? 'averageScore' : dimension);

@@ -8,8 +8,9 @@ import { renderEvidence } from './evidence';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { onThemeChange } from '../map/cssColors';
 import { toggleComparison } from '../state/interactions';
-import { maturityRank, scoresAtDate } from '../state/selectors';
-import { MAX_COMPARISON } from '../constants';
+import { scoresAtDate } from '../state/selectors';
+import { ATTRIBUTE_LABELS, GROUPS, MAX_COMPARISON } from '../constants';
+import type { AttributeGroup } from '../constants';
 import { classifySources, formatSourcesForCopy } from '../data/sources';
 import { writeClipboard } from '../controls/clipboard';
 import { formatIsoCodes } from '../data/countryIso';
@@ -157,22 +158,26 @@ function renderIsoCodes(countryName: string): void {
   el.textContent = formatIsoCodes(countryIso?.[countryName]);
 }
 
-// Maturity-index rank among countries with a composite score. The ranking is
-// derived once per data load by the memoized selector, not recomputed on every
-// panel render.
-function renderRank(countryName: string): void {
-  const el = document.getElementById('maturity-rank');
-  if (!el) return;
-  const result = maturityRank(countryName);
-  el.textContent = result ? `Rank ${result.rank} of ${result.total}` : '';
+// Group headings and captions from the shared vocabulary (constants.ts),
+// so the panel says exactly what the legend and the explainer say.
+function renderGroupCaptions(): void {
+  document.querySelectorAll<HTMLElement>('[data-group-label]').forEach(el => {
+    el.textContent = GROUPS[el.dataset.groupLabel as AttributeGroup].label;
+  });
+  document.querySelectorAll<HTMLElement>('[data-group-caption]').forEach(el => {
+    el.textContent = GROUPS[el.dataset.groupCaption as AttributeGroup].caption;
+  });
+  const indexLabel = document.getElementById('index-label');
+  if (indexLabel) indexLabel.textContent = ATTRIBUTE_LABELS.averageScore;
 }
 
-// Score bar, dots, and rank - split from renderPanel because the timeline
+// Score bar and dots - split from renderPanel because the timeline
 // re-renders just these. While the timeline is scrubbed to a historical
 // date, the panel shows that date's snapshot (the same vintage the map is
 // painting) instead of silently disagreeing with it. Prose, sources, and
 // sub-indicators have no historical record, so a notice says exactly what
-// the reader is looking at; rank is a latest-data derivation and hides.
+// the reader is looking at. (There is no rank: PRD 16 removed it, since a
+// higher score is not a better one.)
 function renderScores(countryName: string): void {
   const { scoreData, timelineDate } = getState();
   // scoresAtDate() is null for "Latest" AND for dates the history doesn't
@@ -187,14 +192,8 @@ function renderScores(countryName: string): void {
   renderScoreBar(entry ? entry.averageScore : null);
   renderAllDots(entry);
 
-  // Rank and peer sets are latest-data derivations; both hide while a
-  // historical vintage is showing.
-  if (historical) {
-    const rankEl = document.getElementById('maturity-rank');
-    if (rankEl) rankEl.textContent = '';
-  } else {
-    renderRank(countryName);
-  }
+  // Peer sets are a latest-data derivation; they hide while a historical
+  // vintage is showing.
   renderPeerRow(historical ? null : countryName);
 
   const notice = document.getElementById('panel-history-notice');
@@ -250,7 +249,7 @@ function renderPanel(countryName: string, { refresh = false }: { refresh?: boole
       ? 'Sparse public information; treat as indicative.'
       : level === 'medium'
       ? 'Based on a mix of primary and secondary sources.'
-      : 'Supported by enacted legislation and recent primary sources.';
+      : 'Supported by recent primary sources.';
   } else {
     badge.style.display = 'none';
     badge.removeAttribute('data-level');
@@ -311,6 +310,8 @@ function clearPanel(): void {
 }
 
 export function initPanel(): void {
+  renderGroupCaptions();
+
   const compareBtn = document.getElementById('compare-btn');
   if (compareBtn) {
     compareBtn.addEventListener('click', () => {
@@ -425,7 +426,7 @@ export function initPanel(): void {
     if (selectedCountry) renderScores(selectedCountry);
   });
 
-  // The maturity bar and the dots carry colours resolved from the ramp,
+  // The index bar and the dots carry colours resolved from the ramp,
   // which a theme switch changes - repaint them, as the map does.
   onThemeChange(() => {
     const { selectedCountry } = getState();

@@ -19,7 +19,7 @@ const PROFILE_DIMENSIONS: readonly DimensionKey[] = [
   'regulationStatus', 'policyLever', 'governanceType', 'actorInvolvement', 'enforcementLevel',
 ];
 
-export type PeerSetKind = 'bloc' | 'maturity' | 'profile';
+export type PeerSetKind = 'bloc' | 'implementation' | 'profile';
 
 export interface PeerSet {
   kind: PeerSetKind;
@@ -50,18 +50,28 @@ function takeLowest(ranked: Ranked[], limit: number): string[] {
 }
 
 /**
- * The `limit` countries whose maturity index is closest to the selected
- * country's. Empty when the selected country has no maturity index.
+ * The `limit` countries among `names` whose implementation index is
+ * closest to the selected country's. Empty when the selected country has
+ * no implementation index.
  */
-export function nearestByMaturity(country: string, scoreData: ScoreData, limit: number): string[] {
+function closestByIndex(country: string, names: Iterable<string>, scoreData: ScoreData, limit: number): string[] {
   const own = scoreData[country]?.averageScore;
   if (own == null) return [];
   const ranked: Ranked[] = [];
-  for (const [name, entry] of Object.entries(scoreData)) {
-    if (name === country || entry.averageScore == null) continue;
-    ranked.push({ name, key: Math.abs(entry.averageScore - own) });
+  for (const name of names) {
+    const score = scoreData[name]?.averageScore;
+    if (name === country || score == null) continue;
+    ranked.push({ name, key: Math.abs(score - own) });
   }
   return takeLowest(ranked, limit);
+}
+
+/**
+ * The `limit` countries whose implementation index is closest to the
+ * selected country's. Empty when the selected country has no index.
+ */
+export function nearestByImplementation(country: string, scoreData: ScoreData, limit: number): string[] {
+  return closestByIndex(country, Object.keys(scoreData), scoreData, limit);
 }
 
 // The five dimension values, or null when any is missing: a partial
@@ -98,9 +108,11 @@ export function nearestByProfile(country: string, scoreData: ScoreData, limit: n
 }
 
 /**
- * One set per bloc the country belongs to: the top `limit` other members
- * by maturity index. Members without a maturity index are excluded; a bloc
- * with no other scored member yields no set. Sets follow blocs.json order.
+ * One set per bloc the country belongs to: the `limit` other members
+ * closest to it in implementation index (not the highest: a higher score
+ * is not a better one). Members without an index are excluded; a bloc
+ * with no other scored member, or a country without an index, yields no
+ * set. Sets follow blocs.json order.
  */
 export function blocPeers(
   country: string,
@@ -112,19 +124,12 @@ export function blocPeers(
   const sets: PeerSet[] = [];
   for (const [code, bloc] of Object.entries(blocsData)) {
     if (!bloc.members.includes(country)) continue;
-    const ranked: Ranked[] = [];
-    for (const name of bloc.members) {
-      const score = scoreData[name]?.averageScore;
-      if (name === country || score == null) continue;
-      // Negated so the highest maturity index ranks first.
-      ranked.push({ name, key: -score });
-    }
-    const members = takeLowest(ranked, limit);
+    const members = closestByIndex(country, bloc.members, scoreData, limit);
     if (members.length === 0) continue;
     sets.push({
       kind: 'bloc',
       label: code,
-      criterion: `${bloc.name} members with the highest maturity index`,
+      criterion: `Other ${bloc.name} members closest in implementation index`,
       members,
     });
   }
@@ -133,7 +138,8 @@ export function blocPeers(
 
 /**
  * Every peer set for the country, in display order: bloc sets, then
- * nearest by maturity, then nearest by profile. Empty sets are omitted.
+ * nearest by implementation index, then nearest by profile. Empty sets
+ * are omitted.
  */
 export function peerSets(
   country: string,
@@ -142,13 +148,13 @@ export function peerSets(
   limit: number,
 ): PeerSet[] {
   const sets = blocPeers(country, blocsData, scoreData, limit);
-  const maturity = nearestByMaturity(country, scoreData, limit);
-  if (maturity.length > 0) {
+  const implementation = nearestByImplementation(country, scoreData, limit);
+  if (implementation.length > 0) {
     sets.push({
-      kind: 'maturity',
-      label: 'Similar maturity',
-      criterion: 'Closest maturity index',
-      members: maturity,
+      kind: 'implementation',
+      label: 'Similar implementation',
+      criterion: 'Closest implementation index',
+      members: implementation,
     });
   }
   const profile = nearestByProfile(country, scoreData, limit);

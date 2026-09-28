@@ -1,7 +1,7 @@
 import { getState } from '../state/store';
 import { el } from '../dom';
-import { ATTRIBUTE_LABELS } from '../constants';
-import type { DimensionKey } from '../constants';
+import { ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../constants';
+import type { AttributeGroup, DimensionKey } from '../constants';
 import { matchCountryNames } from '../data/countryMatch';
 import { cleanRegulationText } from '../panel/normalize';
 import { renderRadar } from './radar';
@@ -9,13 +9,6 @@ import { addToComparison, removeFromComparison } from '../state/interactions';
 import { getColorFor } from './colorSlots';
 import { MAX_COMPARISON } from '../constants';
 
-const DETAIL_DIMENSIONS: DimensionKey[] = [
-  'regulationStatus',
-  'policyLever',
-  'governanceType',
-  'actorInvolvement',
-  'enforcementLevel',
-];
 
 // Build a search-as-you-type input for adding countries to the
 // comparison. Much faster than hunting for a country on the map.
@@ -237,26 +230,32 @@ function renderComparisonTable(names: readonly string[]): void {
   const fmtScore = (v: number | null | undefined) =>
     v == null ? '–' : (Number.isInteger(v) ? String(v) : v.toFixed(2));
 
-  // Maturity index - score only (it is derived; no description).
-  const avgRow = document.createElement('tr');
-  avgRow.className = 'ct-row ct-row-maturity';
-  const avgLabel = document.createElement('th');
-  avgLabel.scope = 'row';
-  avgLabel.className = 'ct-label';
-  avgLabel.textContent = 'Maturity index';
-  avgRow.appendChild(avgLabel);
-  names.forEach(name => {
-    const td = document.createElement('td');
-    const score = document.createElement('span');
-    score.className = 'ct-score ct-score-lg';
-    score.textContent = fmtScore(scoreData[name]?.averageScore);
-    td.appendChild(score);
-    avgRow.appendChild(td);
-  });
-  tbody.appendChild(avgRow);
+  // One heading row per lens, so the table reads as the panel does:
+  // implementation (how much is in force), then governance style (how,
+  // not how well).
+  const groupRow = (title: string, caption: string | null, group: string): void => {
+    const tr = document.createElement('tr');
+    tr.className = 'ct-group';
+    tr.dataset.group = group;
+    const th = document.createElement('th');
+    th.scope = 'colgroup';
+    th.colSpan = names.length + 1;
+    const t = document.createElement('span');
+    t.className = 'style-strip-title';
+    t.textContent = title;
+    th.appendChild(t);
+    if (caption) {
+      const c = document.createElement('span');
+      c.className = 'style-strip-caption';
+      c.textContent = caption;
+      th.append(': ', c);
+    }
+    tr.appendChild(th);
+    tbody.appendChild(tr);
+  };
 
-  // The five scored dimensions - score badge + description per country.
-  DETAIL_DIMENSIONS.forEach(dim => {
+  // A scored dimension - score badge + description per country.
+  const dimensionRow = (dim: DimensionKey): void => {
     const row = document.createElement('tr');
     row.className = 'ct-row';
     const label = document.createElement('th');
@@ -285,7 +284,36 @@ function renderComparisonTable(names: readonly string[]): void {
       row.appendChild(td);
     });
     tbody.appendChild(row);
-  });
+  };
+
+  for (const group of ['implementation', 'style'] as AttributeGroup[]) {
+    groupRow(GROUPS[group].label, GROUPS[group].caption, group);
+    for (const key of attributesIn(group)) {
+      if (key !== 'averageScore') {
+        dimensionRow(key);
+        continue;
+      }
+      // The index - score only (it is derived; no description).
+      const avgRow = document.createElement('tr');
+      avgRow.className = 'ct-row ct-row-index';
+      const avgLabel = document.createElement('th');
+      avgLabel.scope = 'row';
+      avgLabel.className = 'ct-label';
+      avgLabel.textContent = ATTRIBUTE_LABELS.averageScore;
+      avgRow.appendChild(avgLabel);
+      names.forEach(name => {
+        const td = document.createElement('td');
+        const score = document.createElement('span');
+        score.className = 'ct-score ct-score-lg';
+        score.textContent = fmtScore(scoreData[name]?.averageScore);
+        td.appendChild(score);
+        avgRow.appendChild(td);
+      });
+      tbody.appendChild(avgRow);
+    }
+  }
+
+  groupRow('Legislation', null, 'laws');
 
   // Key legislation - text only, useful side-by-side.
   const lawsRow = document.createElement('tr');

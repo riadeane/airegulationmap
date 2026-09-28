@@ -7,7 +7,7 @@ import { computeChangelog, isPolicyChange } from '../data/changelog';
 import { historyBreaks } from '../data/history';
 
 // Snapshots from this date onward use methodology v2 (sub-indicator
-// means, frontier calibration, 3-dimension maturity composite).
+// means, frontier calibration, 3-dimension composite index).
 const METHODOLOGY_V2_DATE = '2026-06-13';
 import type { ChangelogDiffEntry, ChangelogInitialEntry } from '../data/changelog';
 
@@ -64,6 +64,8 @@ function renderChangeEntry(entry: ChangelogDiffEntry): HTMLDivElement {
     arrowSpan.textContent = `${c.from} → ${c.to}`;
     li.appendChild(arrowSpan);
 
+    // Direction by glyph only: the arrow takes one neutral colour for
+    // every dimension, since a move up is not an improvement (PRD 16).
     const up = c.to! > c.from!;
     const dirSpan = document.createElement('span');
     dirSpan.className = `changelog-direction ${up ? 'up' : 'down'}`;

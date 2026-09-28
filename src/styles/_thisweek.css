@@ -24,7 +24,9 @@
 
 .this-week-label {
   font-size: 0.66rem;
-  color: var(--text-tertiary);
+  /* Secondary, not tertiary: at this size tertiary fell to 4.4:1 on the
+     strip's surface in the light theme (below WCAG AA). */
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   white-space: nowrap;
@@ -91,7 +93,7 @@
 
 .this-week-dim {
   font-size: 0.66rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .this-week-delta {
@@ -100,12 +102,11 @@
   font-weight: 500;
 }
 
-.this-week-delta.up {
-  color: var(--score-high);
-}
-
+/* One neutral tone for both directions: the sign carries the direction,
+   and a move up is not an improvement (PRD 16). */
+.this-week-delta.up,
 .this-week-delta.down {
-  color: var(--score-low);
+  color: var(--change-mark);
 }
 
 .this-week-more {

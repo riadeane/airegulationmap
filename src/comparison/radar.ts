@@ -1,21 +1,18 @@
 import { create } from 'd3-selection';
 import { scaleLinear } from 'd3-scale';
 import { lineRadial, curveLinearClosed } from 'd3-shape';
-import { ATTRIBUTE_LABELS } from '../constants';
+import { ATTRIBUTES, GROUPS, attributesIn } from '../constants';
 import type { AttributeKey } from '../constants';
 import type { ScoreData, ScoreEntry } from '../data/loader';
 import { getColorFor } from './colorSlots';
 
-// Axis order for the radar (6 axes). Keep averageScore first so the most
-// prominent axis is the composite score.
-export const RADAR_AXES: AttributeKey[] = [
-  'averageScore',
-  'regulationStatus',
-  'policyLever',
-  'governanceType',
-  'actorInvolvement',
-  'enforcementLevel',
-];
+// Axis order for the radar: the implementation lens only (the index first,
+// then regulation status, policy lever, enforcement level), so a larger
+// shape reads as "more in force". The governance style dimensions are
+// descriptive (neither end is better) and would inflate the shape, so they
+// get their own labelled strip below the radar (renderStyleStrip).
+export const RADAR_AXES: AttributeKey[] = attributesIn('implementation');
+export const STYLE_AXES: AttributeKey[] = attributesIn('style');
 
 const SIZE = 480;
 const MARGIN = 110;
@@ -28,13 +25,11 @@ function angleFor(i: number): number {
   return -Math.PI / 2 + (i / RADAR_AXES.length) * Math.PI * 2;
 }
 
-export function renderRadar(containerEl: Element, countries: readonly string[], scoreData: ScoreData): void {
-  containerEl.replaceChildren();
-
+function renderRadarSvg(countries: readonly string[], scoreData: ScoreData): SVGSVGElement {
   const svg = create('svg')
     .attr('viewBox', `0 0 ${SIZE} ${SIZE}`)
     .attr('role', 'img')
-    .attr('aria-label', 'Radar chart comparing selected countries');
+    .attr('aria-label', 'Radar chart comparing how much is in force in the selected countries; the scores are in the table below');
 
   const rScale = scaleLinear().domain([0, MAX_SCORE]).range([0, R]);
 
@@ -70,13 +65,23 @@ export function renderRadar(containerEl: Element, countries: readonly string[], 
     let anchor = 'middle';
     if (Math.cos(angle) > 0.2) anchor = 'start';
     else if (Math.cos(angle) < -0.2) anchor = 'end';
-    axisGroup.append('text')
+    const text = axisGroup.append('text')
       .attr('x', lx)
       .attr('y', ly)
       .attr('text-anchor', anchor)
       .attr('dominant-baseline', 'middle')
-      .attr('class', 'radar-axis-label')
-      .text(ATTRIBUTE_LABELS[key] || key);
+      .attr('class', 'radar-axis-label');
+    // Side axes break their label over two lines so it stays inside the
+    // chart at phone widths ("Enforcement / Level").
+    const words = ATTRIBUTES[key].label.split(' ');
+    if (anchor !== 'middle' && words.length > 1) {
+      const first = words.slice(0, Math.ceil(words.length / 2)).join(' ');
+      const rest = words.slice(Math.ceil(words.length / 2)).join(' ');
+      text.append('tspan').attr('x', lx).attr('dy', '-0.55em').text(first);
+      text.append('tspan').attr('x', lx).attr('dy', '1.1em').text(rest);
+    } else {
+      text.text(ATTRIBUTES[key].label);
+    }
   });
 
   // One polygon per country
@@ -114,7 +119,85 @@ export function renderRadar(containerEl: Element, countries: readonly string[], 
     });
   });
 
-  containerEl.appendChild(svg.node()!);
+  return svg.node()!;
+}
+
+// Governance style as positions on a line: one track per descriptive
+// dimension, each country a dot in its comparison colour. A position, not
+// a length, so nothing reads as "more".
+function renderStyleStrip(countries: readonly string[], scoreData: ScoreData): HTMLElement {
+  const strip = document.createElement('div');
+  strip.className = 'style-strip';
+  strip.setAttribute('role', 'group');
+  strip.setAttribute('aria-label', `${GROUPS.style.label}: ${GROUPS.style.caption}`);
+
+  const head = document.createElement('p');
+  head.className = 'style-strip-head';
+  const title = document.createElement('span');
+  title.className = 'style-strip-title';
+  title.textContent = GROUPS.style.label;
+  const caption = document.createElement('span');
+  caption.className = 'style-strip-caption';
+  caption.textContent = GROUPS.style.caption;
+  head.append(title, ' ', caption);
+  strip.appendChild(head);
+
+  for (const key of STYLE_AXES) {
+    const meaning = ATTRIBUTES[key];
+    const row = document.createElement('div');
+    row.className = 'style-strip-row';
+
+    const label = document.createElement('span');
+    label.className = 'style-strip-label';
+    label.textContent = meaning.label;
+
+    const track = document.createElement('div');
+    track.className = 'style-strip-track';
+    // Screen readers get the numbers from the table below.
+    track.setAttribute('aria-hidden', 'true');
+    countries.forEach((name, i) => {
+      const value = scoreData[name]?.[key];
+      if (value == null) return;
+      const dot = document.createElement('span');
+      dot.className = 'style-strip-dot';
+      dot.style.left = `${((value - 1) / 4) * 100}%`;
+      dot.style.setProperty('--dot-color', getColorFor(name));
+      // Countries on the same value stack upwards a little, so none hides.
+      dot.style.setProperty('--stack', String(
+        countries.slice(0, i).filter(n => scoreData[n]?.[key] === value).length
+      ));
+      dot.title = `${name}: ${value}`;
+      track.appendChild(dot);
+    });
+
+    const ends = document.createElement('div');
+    ends.className = 'style-strip-ends';
+    const lo = document.createElement('span');
+    lo.textContent = `1 ${meaning.low}`;
+    const hi = document.createElement('span');
+    hi.textContent = `${meaning.high} 5`;
+    ends.append(lo, hi);
+
+    row.append(label, track, ends);
+    strip.appendChild(row);
+  }
+  return strip;
+}
+
+export function renderRadar(containerEl: Element, countries: readonly string[], scoreData: ScoreData): void {
+  containerEl.replaceChildren();
+
+  const head = document.createElement('p');
+  head.className = 'style-strip-head radar-head';
+  const title = document.createElement('span');
+  title.className = 'style-strip-title';
+  title.textContent = GROUPS.implementation.label;
+  const caption = document.createElement('span');
+  caption.className = 'style-strip-caption';
+  caption.textContent = GROUPS.implementation.caption;
+  head.append(title, ' ', caption);
+
+  containerEl.append(head, renderRadarSvg(countries, scoreData), renderStyleStrip(countries, scoreData));
   // The numeric scores live in the unified comparison table below the
   // chart (renderComparisonTable), which is a real <table> and serves
   // the accessibility role this chart needs - no separate data table.

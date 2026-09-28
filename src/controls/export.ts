@@ -12,6 +12,64 @@ import { visibleCountrySet } from '../state/selectors';
 import type { ScoreEntry, RegulationEntry } from '../data/loader';
 import type { SubscoreEntry } from '../data/subscores';
 import { localIsoDate } from '../data/localDate';
+import { ATTRIBUTES, GROUPS } from '../constants';
+import type { AttributeKey } from '../constants';
+
+// Score columns in the export rows, by attribute. The column names are a
+// data contract and never change (the composite stays "Average Score");
+// the JSON export's `meta` block carries what each one means.
+const SCORE_COLUMNS: Record<AttributeKey, string> = {
+  averageScore: 'Average Score',
+  regulationStatus: 'Regulation Status (Score)',
+  policyLever: 'Policy Lever (Score)',
+  enforcementLevel: 'Enforcement Level (Score)',
+  governanceType: 'Governance Type (Score)',
+  actorInvolvement: 'Actor Involvement (Score)',
+};
+
+export interface ExportFieldMeta {
+  label: string;
+  group: string;
+  question: string;
+  scale: { min: 1; max: 5; low: string; high: string };
+  notClaim: string;
+}
+
+export interface ExportMeta {
+  title: string;
+  exported: string;
+  note: string;
+  explainer: string;
+  fields: Record<string, ExportFieldMeta>;
+}
+
+/**
+ * The JSON export's `meta` block (PRD 16): for each score column, the
+ * display label, its lens, the question it answers, what 1 and 5 mean,
+ * and what it does not claim. Keyed by the export's column names.
+ */
+export function buildExportMeta(date: string = localIsoDate()): ExportMeta {
+  const fields: Record<string, ExportFieldMeta> = {};
+  for (const [key, column] of Object.entries(SCORE_COLUMNS) as [AttributeKey, string][]) {
+    const m = ATTRIBUTES[key];
+    fields[column] = {
+      label: m.label,
+      group: GROUPS[m.group].label,
+      question: m.question,
+      scale: { min: 1, max: 5, low: m.low, high: m.high },
+      notClaim: m.notClaim,
+    };
+  }
+  return {
+    title: 'AI Regulation Map',
+    exported: date,
+    note: 'Implementation scores measure how much AI governance is in force, not whether it is good. '
+      + 'Governance style scores describe how a country governs; neither end is better. '
+      + '"Average Score" is the implementation index.',
+    explainer: 'https://airegulationmap.org/methodology.html',
+    fields,
+  };
+}
 
 function buildExportRows(countries: string[]) {
   const { scoreData, regulationData } = getState();
@@ -139,7 +197,8 @@ export function exportCountries(
     downloadFile(csvFormat(rows), `ai-regulation-data-${scopeLabel}-${date}.csv`, 'text/csv');
   } else {
     const withAudit = withSubindicators(rows, getState().subscores?.countries);
-    downloadFile(JSON.stringify(withAudit, null, 2), `ai-regulation-data-${scopeLabel}-${date}.json`, 'application/json');
+    const payload = { meta: buildExportMeta(date), countries: withAudit };
+    downloadFile(JSON.stringify(payload, null, 2), `ai-regulation-data-${scopeLabel}-${date}.json`, 'application/json');
   }
   showToast(
     `Exported ${rows.length} ${rows.length === 1 ? 'country' : 'countries'} · ` +
