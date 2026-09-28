@@ -275,18 +275,19 @@
       text-align: center;
     }
 
-    /* Print: strip chrome, inline everything, use black-on-white. */
+    /* Print: strip chrome, inline everything, near-black ink on near-white
+       paper, tinted like the print brief (_print.css). */
     @media print {
-      body { background: white; color: black; font-size: 11pt; }
+      body { background: oklch(99.5% 0.002 80); color: oklch(16% 0.012 80); font-size: 11pt; }
       header.site-header, footer.site-footer { display: none; }
       main.doc { max-width: none; margin: 0; padding: 0; }
-      h1.doc-title, h2, h3 { color: black; }
+      h1.doc-title, h2, h3 { color: oklch(16% 0.012 80); }
       p, li { color: #222; }
-      a { color: black; text-decoration: none; }
+      a { color: oklch(16% 0.012 80); text-decoration: none; }
       a[href]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #555; }
       .rubric { border-color: #bbb; }
       .rubric-row { border-color: #ddd; }
-      .rubric-score { color: black; }
+      .rubric-score { color: oklch(16% 0.012 80); }
       .callout { background: #f2f2f2; }
     }
 
