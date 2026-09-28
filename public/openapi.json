@@ -940,7 +940,7 @@
             "description": "Partial Content"
           }
         },
-        "summary": "Flat research export: one row per country joining scores, sub-indicators, prose, and evidence coverage. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
+        "summary": "Flat research export: one row per country joining scores, sub-indicators with their v2.1 rationales, prose, and evidence coverage. The API twin of scores.csv plus regulation_data.csv; also serves as CSV via Accept: text/csv.",
         "tags": [
           "public_export"
         ]
@@ -1307,6 +1307,9 @@
             "$ref": "#/parameters/rowFilter.research_runs.notes"
           },
           {
+            "$ref": "#/parameters/rowFilter.research_runs.calibration_break"
+          },
+          {
             "$ref": "#/parameters/select"
           },
           {
@@ -1417,6 +1420,9 @@
             "$ref": "#/parameters/rowFilter.research_runs.notes"
           },
           {
+            "$ref": "#/parameters/rowFilter.research_runs.calibration_break"
+          },
+          {
             "$ref": "#/parameters/preferReturn"
           }
         ],
@@ -1476,6 +1482,9 @@
           },
           {
             "$ref": "#/parameters/rowFilter.research_runs.notes"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.research_runs.calibration_break"
           },
           {
             "$ref": "#/parameters/body.research_runs"
@@ -1871,9 +1880,6 @@
             "$ref": "#/parameters/rowFilter.gold_checks.mae_by_dimension"
           },
           {
-            "$ref": "#/parameters/rowFilter.gold_checks.bias_by_dimension"
-          },
-          {
             "$ref": "#/parameters/rowFilter.gold_checks.within_one"
           },
           {
@@ -1884,6 +1890,18 @@
           },
           {
             "$ref": "#/parameters/rowFilter.gold_checks.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.bias_by_dimension"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.gold_verified"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.gold_version"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.grounded_countries"
           },
           {
             "$ref": "#/parameters/select"
@@ -1975,9 +1993,6 @@
             "$ref": "#/parameters/rowFilter.gold_checks.mae_by_dimension"
           },
           {
-            "$ref": "#/parameters/rowFilter.gold_checks.bias_by_dimension"
-          },
-          {
             "$ref": "#/parameters/rowFilter.gold_checks.within_one"
           },
           {
@@ -1988,6 +2003,18 @@
           },
           {
             "$ref": "#/parameters/rowFilter.gold_checks.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.bias_by_dimension"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.gold_verified"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.gold_version"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.grounded_countries"
           },
           {
             "$ref": "#/parameters/preferReturn"
@@ -2030,9 +2057,6 @@
             "$ref": "#/parameters/rowFilter.gold_checks.mae_by_dimension"
           },
           {
-            "$ref": "#/parameters/rowFilter.gold_checks.bias_by_dimension"
-          },
-          {
             "$ref": "#/parameters/rowFilter.gold_checks.within_one"
           },
           {
@@ -2043,6 +2067,18 @@
           },
           {
             "$ref": "#/parameters/rowFilter.gold_checks.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.bias_by_dimension"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.gold_verified"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.gold_version"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.gold_checks.grounded_countries"
           },
           {
             "$ref": "#/parameters/body.gold_checks"
@@ -2868,6 +2904,10 @@
           "description": "Free-form operator notes.",
           "format": "text",
           "type": "string"
+        },
+        "calibration_break": {
+          "description": "The calibration break this run recorded, as in history.json breaks: {date, model, prompt_version, rubric, reason, complete}. Score changes dated on a break are a re-measurement, not policy change. Null when the run recorded none.",
+          "format": "jsonb"
         }
       },
       "type": "object"
@@ -3029,10 +3069,6 @@
           "description": "Mean absolute error of the run's sub-indicator scores against the gold scores, keyed by dimension (regulation_status, policy_lever, governance_type, actor_involvement, enforcement_level).",
           "format": "jsonb"
         },
-        "bias_by_dimension": {
-          "description": "Mean signed error of the run's sub-indicator scores against the gold scores (run minus gold), keyed by dimension. Positive means the run scores higher than the gold set. Beyond 0.5 in either direction the run summary carries a calibration warning. Null for checks recorded before September 2026.",
-          "format": "jsonb"
-        },
         "within_one": {
           "description": "Share of compared sub-indicators whose run score is within one point of the gold score. Below 0.8, or with any dimension's bias beyond 0.5, the run summary carries a calibration warning.",
           "format": "numeric",
@@ -3052,6 +3088,25 @@
           "description": "Row creation time.",
           "format": "timestamp with time zone",
           "type": "string"
+        },
+        "bias_by_dimension": {
+          "description": "Mean signed error of the run's sub-indicator scores against the gold scores (run minus gold), keyed by dimension. Positive means the run scores higher than the gold set. Beyond 0.5 in either direction the run summary carries a calibration warning. Null for checks recorded before September 2026.",
+          "format": "jsonb"
+        },
+        "gold_verified": {
+          "description": "How many of the compared countries had a verified gold entry; the rest were drafts awaiting the maintainer's hand-check. Null for checks recorded before September 2026.",
+          "format": "integer",
+          "type": "integer"
+        },
+        "gold_version": {
+          "description": "The first 12 hex digits of the SHA-256 of public/data/gold_set.json when the check ran: checks with different versions were computed against different gold scores. Null for checks recorded before September 2026.",
+          "format": "text",
+          "type": "string"
+        },
+        "grounded_countries": {
+          "description": "On a grounded run, how many compared countries' prompts carried verified policy initiatives (the rest fell back to the plain prompt). Null on runs that were not grounded.",
+          "format": "integer",
+          "type": "integer"
         }
       },
       "type": "object"
@@ -3692,7 +3747,7 @@
     },
     "rowFilter.public_export.subscores": {
       "name": "subscores",
-      "description": "Methodology v2 integer sub-indicators only. The v2.1 rationale sentences are in country_scores.rationales.",
+      "description": "Methodology v2 integer sub-indicators only. The v2.1 rationale sentences are in the rationales column.",
       "required": false,
       "in": "query",
       "type": "string"
@@ -4011,6 +4066,13 @@
       "in": "query",
       "type": "string"
     },
+    "rowFilter.research_runs.calibration_break": {
+      "name": "calibration_break",
+      "description": "The calibration break this run recorded, as in history.json breaks: {date, model, prompt_version, rubric, reason, complete}. Score changes dated on a break are a re-measurement, not policy change. Null when the run recorded none.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
     "body.country_summaries": {
       "name": "country_summaries",
       "description": "country_summaries",
@@ -4206,13 +4268,6 @@
       "in": "query",
       "type": "string"
     },
-    "rowFilter.gold_checks.bias_by_dimension": {
-      "name": "bias_by_dimension",
-      "description": "Mean signed error of the run's sub-indicator scores against the gold scores (run minus gold), keyed by dimension. Positive means the run scores higher than the gold set. Beyond 0.5 in either direction the run summary carries a calibration warning. Null for checks recorded before September 2026.",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
     "rowFilter.gold_checks.within_one": {
       "name": "within_one",
       "description": "Share of compared sub-indicators whose run score is within one point of the gold score. Below 0.8, or with any dimension's bias beyond 0.5, the run summary carries a calibration warning.",
@@ -4237,6 +4292,34 @@
     "rowFilter.gold_checks.created_at": {
       "name": "created_at",
       "description": "Row creation time.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.bias_by_dimension": {
+      "name": "bias_by_dimension",
+      "description": "Mean signed error of the run's sub-indicator scores against the gold scores (run minus gold), keyed by dimension. Positive means the run scores higher than the gold set. Beyond 0.5 in either direction the run summary carries a calibration warning. Null for checks recorded before September 2026.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.gold_verified": {
+      "name": "gold_verified",
+      "description": "How many of the compared countries had a verified gold entry; the rest were drafts awaiting the maintainer's hand-check. Null for checks recorded before September 2026.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.gold_version": {
+      "name": "gold_version",
+      "description": "The first 12 hex digits of the SHA-256 of public/data/gold_set.json when the check ran: checks with different versions were computed against different gold scores. Null for checks recorded before September 2026.",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.gold_checks.grounded_countries": {
+      "name": "grounded_countries",
+      "description": "On a grounded run, how many compared countries' prompts carried verified policy initiatives (the rest fell back to the plain prompt). Null on runs that were not grounded.",
       "required": false,
       "in": "query",
       "type": "string"
