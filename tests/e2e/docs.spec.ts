@@ -147,3 +147,18 @@ test('changes.html spaces the calibration callout and states confidence changes'
   await expect(page.locator('.change-uncovered li')).toHaveText('Germany: confidence medium → high');
 });
 
+// #166: the drift charts read the map's --ramp-impl-high, which the page
+// gets from the shared _tokens.css its bundle imports, not from a copy.
+test('drift.html charts use the map ramp in both themes', async ({ page }) => {
+  const rampAt = async (path: string, theme: string) => {
+    await page.goto(`${path}?theme=${theme}`);
+    return page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--ramp-impl-high').trim());
+  };
+  for (const theme of ['light', 'dark']) {
+    const map = await rampAt('/', theme);
+    expect(map, theme).toMatch(/^oklch\(/);
+    expect(await rampAt('/drift.html', theme), theme).toBe(map);
+  }
+});
+

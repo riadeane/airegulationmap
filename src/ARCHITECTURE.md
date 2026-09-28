@@ -104,8 +104,10 @@ a row with a null value, passes the range only while it spans the full
 scale, see `scoreRangeIsFull()`) - the export scope, scatter dimming, and map opacity all read it,
 after three diverging copies let the export forget the bloc filter entirely.
 `passesCountryFilters()` is its score-independent half (the map range-checks
-per-datum because timeline playback filters historical snapshots), and
-`scoresAtDate()` memoizes the snapshot resolution the map and the panel share
+per-datum because timeline playback filters historical snapshots;
+`visibleCountriesIn(rows)` is the same rule over other rows, which the
+export applies to its rows as of a past date), and `scoresAtDate()`
+memoizes the snapshot resolution the map, the panel and the export share
 while the timeline is scrubbed. `isLowConfidenceAtDate()` builds on it: the
 map's low-confidence hatch follows the snapshot's recorded confidence at the
 scrubbed date, else the current rating (`confidenceFallsBackAtDate()` tells

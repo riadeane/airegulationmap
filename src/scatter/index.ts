@@ -6,7 +6,8 @@
 //
 // Shows LATEST scores only - the timeline scrubber drives the map, not
 // this view (history snapshots are score-only and axis pairs would
-// silently mix vintages).
+// silently mix vintages). Opening it returns the timeline to "Latest"
+// (setMainView), so the panel beside it shows the same vintage.
 
 import { select } from 'd3-selection';
 import { el, maybeEl } from '../dom';

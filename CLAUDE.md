@@ -337,12 +337,15 @@ largest moves with app deep links. Sources: `history.json` (movement, via
 `computeChangelog`), `regulation_data.csv` (confidence), `data/drift.json`,
 `data/blocs.json`. Aggregations live in `src/data/drift.ts` (pure, tested in
 `tests/drift.test.js`); charts in `src/charts/drift.ts` read the tokens at
-render time (`cssVar`), use one single-hue ramp off `--score-high` for
-ordered series and neutral tints for the rest, and re-render on theme
-change and resize. Every figure has a caption with the key numbers and a
-"Show as a table" twin. The page renders with any source missing (each
-figure has an empty state). Linked from the app header menu, `data.html`
-and `changes.html`; listed in the sitemap.
+render time (`cssVar`), use one single-hue ramp off `--ramp-impl-high`
+(the map's implementation ramp; `src/drift.ts` imports
+`src/styles/_tokens.css`; the inline mirror in `drift.html` carries no
+score tokens, `tests/driftTokens.test.js`) for ordered series and neutral
+tints for the rest, and re-render on theme change and resize. Every
+figure has a caption with the key numbers and a "Show as a table" twin.
+The page renders with any source missing (each figure has an empty
+state). Linked from the app header menu, `data.html` and `changes.html`;
+listed in the sitemap.
 
 ### Static country pages (`scripts/build_pages.ts`)
 

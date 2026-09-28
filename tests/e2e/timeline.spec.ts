@@ -152,3 +152,22 @@ test('the bloc summary follows the timeline vintage', async ({ page }) => {
   await page.click('#timeline-reset');
   await expect(page.locator('#bloc-summary .bloc-summary-dim')).not.toContainText('as of');
 });
+
+// #142: the scatter plots the latest scores and hides the timeline, so
+// opening it returns the timeline to Latest; the panel beside it used to
+// keep a past date's scores next to latest-data dots.
+test('opening the scatter view returns the timeline to Latest', async ({ page }) => {
+  const { dates } = await historyFacts(page);
+  await page.goto(`/?country=Germany&date=${dates[0]}`);
+  await page.waitForSelector('#timeline-strip', { state: 'visible', timeout: 15_000 });
+  await expect(page.locator('#panel-history-notice')).toBeVisible();
+
+  await page.click('#scatter-btn');
+  await expect(page.locator('body')).toHaveClass(/view-scatter/);
+  await expect(page.locator('#panel-history-notice')).toBeHidden();
+  await expect.poll(() => new URL(page.url()).searchParams.has('date')).toBe(false);
+
+  await page.keyboard.press('Escape');
+  await expect(page.locator('body')).not.toHaveClass(/view-scatter/);
+  await expect(page.locator('#timeline-date-label')).toHaveText('Latest');
+});

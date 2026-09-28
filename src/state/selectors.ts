@@ -142,6 +142,36 @@ export function scoreRangeIsFull(min: number, max: number): boolean {
   return min <= 1 && max >= 5;
 }
 
+/**
+ * The score-range half of the visibility rule for one value: inside
+ * [min, max], or insufficient evidence (null) while the range is the full
+ * scale. A missing value (no data) never passes.
+ */
+export function passesScoreRange(value: number | null | undefined, min: number, max: number): boolean {
+  if (isInsufficient(value)) return scoreRangeIsFull(min, max);
+  return value != null && value >= min && value <= max;
+}
+
+/** Any per-country score rows: the latest data or a timeline snapshot. */
+type ScoreRows = Readonly<Record<string, Partial<Record<AttributeKey, number | null>>>>;
+
+/**
+ * Countries in `rows` that pass ALL active filters: the score range on the
+ * current attribute (see passesScoreRange) and every country-level filter.
+ * visibleCountrySet() is this over the latest data; the export applies it
+ * to its rows as of a past timeline date. Not memoized.
+ */
+export function visibleCountriesIn(rows: ScoreRows): Set<string> {
+  const { currentAttribute, filterMin, filterMax } = getState();
+  const set = new Set<string>();
+  for (const [name, entry] of Object.entries(rows)) {
+    if (!passesScoreRange(entry[currentAttribute], filterMin, filterMax)) continue;
+    if (!passesCountryFilters(name)) continue;
+    set.add(name);
+  }
+  return set;
+}
+
 let visibleCache: {
   scoreData: ScoreData;
   regulationData: RegulationData;
@@ -163,7 +193,8 @@ let visibleCache: {
  * a score for the current attribute exists and is inside [filterMin,
  * filterMax] (or it is "insufficient evidence" and the range is the full
  * scale, see scoreRangeIsFull), and every country-level filter passes. This is the export and
- * scatter scope; the map composes passesCountryFilters() with its own
+ * scatter scope (the export's on a past timeline date is visibleCountriesIn
+ * over its as-of rows); the map composes passesCountryFilters() with its own
  * per-datum range check instead (see above).
  */
 export function visibleCountrySet(): ReadonlySet<string> {
@@ -188,15 +219,7 @@ export function visibleCountrySet(): ReadonlySet<string> {
     return visibleCache.set;
   }
 
-  const set = new Set<string>();
-  for (const [name, entry] of Object.entries(scoreData)) {
-    const score = entry[currentAttribute];
-    if (isInsufficient(score)) {
-      if (!scoreRangeIsFull(filterMin, filterMax)) continue;
-    } else if (score == null || score < filterMin || score > filterMax) continue;
-    if (!passesCountryFilters(name)) continue;
-    set.add(name);
-  }
+  const set = visibleCountriesIn(scoreData);
   visibleCache = {
     scoreData, regulationData, attr: currentAttribute, min: filterMin, max: filterMax,
     blocSet, confidence: filterConfidence, officialOnly: filterOfficialOnly,

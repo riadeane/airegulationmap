@@ -122,10 +122,15 @@ export function startComparison(names: readonly string[]): void {
  * The only place `mainView` is written. Because it's a single field, setting
  * one view implicitly leaves the others - no explicit "close the other overlay"
  * dance. Guards the one real invariant: the comparison view needs ≥2 countries.
+ *
+ * The scatter plots the latest scores and hides the timeline, so entering it
+ * returns the timeline to "Latest" (#142): the panel beside it would
+ * otherwise keep showing a past date's scores next to latest-data dots.
  */
 export function setMainView(view: MainView): void {
   if (view === 'comparison' && getState().comparisonCountries.length < 2) return;
-  setState({ mainView: view });
+  if (view === 'scatter') setState({ timelineDate: null, mainView: view });
+  else setState({ mainView: view });
 }
 
 export function showMap(): void {
