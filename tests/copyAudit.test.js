@@ -82,6 +82,7 @@ describe('copy audit', () => {
       }
     }
     strings.push(JSON.stringify(buildExportMeta('2026-09-28')));
+    strings.push(JSON.stringify(buildExportMeta('2026-09-28', '2026-06-13')));
     expect(offenders(strings)).toEqual([]);
   });
 

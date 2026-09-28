@@ -37,7 +37,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 14px 16px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 28px color-mix(in oklch, var(--shadow-color) 18%, transparent);
   animation: fadeUp 0.25s var(--ease-out);
 }
 
@@ -192,11 +192,5 @@
     width: auto;
     max-width: 280px;
     padding: 10px 12px;
-    /* The card sits over the very region it summarizes; a translucent,
-       blurred surface lets the highlighted members read through it
-       without sacrificing the stats' legibility. */
-    background: color-mix(in oklch, var(--surface) 85%, transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
   }
 }

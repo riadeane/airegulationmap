@@ -184,6 +184,25 @@ class TestRequestParams:
         assert "Germany" in prompt
         assert "prior status" in prompt
 
+    def test_prompt_shows_the_current_laws_and_sources(self):
+        # #88: the model sees the published lists so it can reuse still
+        # accurate names and URLs instead of rewording them.
+        params = _client().request_params(
+            "Germany",
+            {"Specific Laws": "AI Act (2024)", "Sources": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"},
+            use_search=False,
+        )
+        prompt = params["messages"][0]["content"]
+        assert "- Specific Laws: AI Act (2024)" in prompt
+        assert "- Sources: https://eur-lex.europa.eu/eli/reg/2024/1689/oj" in prompt
+        assert "reuse its exact name or URL" in prompt
+
+    def test_prompt_carries_the_style_and_dead_url_rules(self):
+        prompt = _client().request_params("Chad", None, use_search=False)["messages"][0]["content"]
+        assert "- Specific Laws: None recorded" in prompt
+        assert 'Do not open with a date clause such as "As of September 2026,"' in prompt  # #141
+        assert "Never construct OECD.AI country-dashboard URLs" in prompt  # #92
+
 
 class TestPromptEvidenceCount:
     """PRD 14: the prompt reports how many verified initiatives it embeds."""

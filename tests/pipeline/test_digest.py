@@ -22,6 +22,7 @@ from regulation_pipeline.digest import (
     changes_from_supabase,
     entry_html,
     generate,
+    regenerated_result,
     render_feed,
     render_prompt,
     request_params,
@@ -107,6 +108,15 @@ class TestSelectChanges:
         [selected] = select_changes([new_laws])
         assert selected.laws == ("AI Act (2024)", "AI Act (2024); Digital Act (2026)")
 
+    def test_a_reordered_law_list_is_not_a_change(self):
+        # Same comparison as the gate (#88): a set of named instruments.
+        reordered = change(
+            "A", old_scores=scores_row("A"),
+            old_reg=reg_row("A", **{"Specific Laws": "AI Act (2024); Digital Act (2026)"}),
+            new_reg=reg_row("A", **{"Specific Laws": "Digital Act 2026, AI Act (2024)"}),
+        )
+        assert select_changes([reordered]) == []
+
     def test_confidence_rising_to_high_needs_new_sources(self):
         no_new_sources = change(
             "A", old_scores=scores_row("A"), old_reg=reg_row("A"),
@@ -168,6 +178,7 @@ class TestCalibrationBreak:
         assert week["lead"].startswith("Recalibration: Model switch. Score movements dated 2026-09-07")
         assert week["calibration_break"] == self.BREAK
         assert week["changes"] == [] and client.messages.calls == []
+        assert "regenerated" not in week  # only digests rebuilt from Supabase say so
 
 
 class TestPrompt:
@@ -368,6 +379,49 @@ class TestWrite:
         assert again == first
         assert first.read_text() == before
 
+    def test_a_manual_run_never_replaces_the_weeks_digest(self, tmp_path):
+        # #101: files are named by ISO week, so a dispatch with changes
+        # would replace the scheduled run's digest and its feed entry.
+        settings = Settings(root=tmp_path)
+        items = [{"country": "Germany", "headline": "H", "summary": "S",
+                  "sources": ["https://example.gov/new"]}]
+        first = write_run_digest(
+            two_country_run(), client=FakeClient(payload(items)), settings=settings,
+            model="m", run_date=TODAY, now=NOW,
+        )
+        before = first.read_text()
+        client = FakeClient(payload(items))
+        again = write_run_digest(
+            two_country_run(), client=client, settings=settings, model="m", run_date=TODAY,
+            now=NOW, replace=False,
+        )
+        assert again == first and first.read_text() == before
+        assert client.messages.calls == []  # no request for a digest it will not write
+
+    def test_a_manual_run_fills_a_week_without_a_digest(self, tmp_path):
+        settings = Settings(root=tmp_path)
+        empty = RunResult(updated=1, failed=[], run_id="run-0", changes=(unchanged("France"),))
+        write_run_digest(empty, client=None, settings=settings, model="m", run_date=TODAY, now=NOW)
+        items = [{"country": "Germany", "headline": "H", "summary": "S",
+                  "sources": ["https://example.gov/new"]}]
+        path = write_run_digest(
+            two_country_run(), client=FakeClient(payload(items)), settings=settings,
+            model="m", run_date=TODAY, now=NOW, replace=False,
+        )
+        assert [i["country"] for i in json.loads(path.read_text())["items"]] == ["Germany"]
+
+    def test_a_later_empty_run_keeps_a_calibration_digest(self, tmp_path):
+        settings = Settings(root=tmp_path)
+        brk = {"date": "2026-09-07", "model": "m", "prompt_version": "v", "reason": "Model switch"}
+        calibration = RunResult(updated=1, failed=[], run_id="run-1", calibration_break=brk,
+                                changes=(unchanged("France"),))
+        first = write_run_digest(calibration, client=None, settings=settings, model="m",
+                                 run_date=TODAY, now=NOW)
+        before = first.read_text()
+        write_run_digest(RunResult(updated=1, failed=[], run_id="run-2", changes=(unchanged("France"),)),
+                         client=None, settings=settings, model="m", run_date=TODAY, now=NOW)
+        assert first.read_text() == before
+
     def test_feed_escapes_markup_in_prose(self):
         digest = {
             "week": "2026-W37", "date": "2026-09-07", "generated_at": NOW.isoformat(),
@@ -504,6 +558,40 @@ class TestChangesFromSupabase:
         client = SupabaseClient("https://x.supabase.co", "key", transport=fake.transport())
         with pytest.raises(DigestError):
             changes_from_supabase(client, "nope")
+
+    def test_a_regenerated_calibration_run_lists_no_policy_change(self, tmp_path):
+        # #90: the run row carries the break it recorded, so the rebuilt
+        # digest leads with the recalibration and lists no score moves.
+        brk = {"date": "2026-09-07", "model": "claude-opus-5", "prompt_version": "v3.3-2026-09",
+               "rubric": "v3.1", "reason": "Switch to scoring rubric v3.1", "complete": True}
+        fake = FakePostgrest({
+            "research_runs": [{"id": "run-9", "model": "claude-x", "calibration_break": brk}],
+            "countries": [{"id": "c1", "name": "Germany"}],
+            "score_history": [
+                {"country_id": "c1", "snapshot_date": "2026-06-01", "run_id": "run-1",
+                 "scores": {"regulationStatus": 3.0, "averageScore": 3.0}},
+                {"country_id": "c1", "snapshot_date": "2026-09-07", "run_id": "run-9",
+                 "scores": {"regulationStatus": 3.75, "averageScore": 3.25}},
+            ],
+        })
+        client = SupabaseClient("https://x.supabase.co", "key", transport=fake.transport())
+        changes, run_row = changes_from_supabase(client, "run-9")
+        result = regenerated_result("run-9", changes, run_row)
+        assert result.calibration_break == brk
+        assert select_changes(result.changes, calibration_break=result.calibration_break) == []
+
+        settings = Settings(root=tmp_path)
+        path = write_run_digest(
+            result, client=None, settings=settings, model="m", run_date=date(2026, 9, 7), now=NOW,
+            regenerated=True,
+        )
+        week = json.loads(path.read_text())
+        assert week["lead"].startswith("Recalibration: Switch to scoring rubric v3.1.")
+        assert week["items"] == [] and week["changes"] == []
+        assert week["regenerated"] is True
+
+    def test_a_run_row_without_the_break_column_has_no_break(self):
+        assert regenerated_result("r", [], {"id": "r"}).calibration_break is None
 
     def test_run_without_snapshots_yields_no_changes(self):
         fake = FakePostgrest({"research_runs": [{"id": "r", "model": "m"}], "score_history": []})

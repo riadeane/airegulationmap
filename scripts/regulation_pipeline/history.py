@@ -17,10 +17,18 @@ from .models import ResearchResult
 # a change in the underlying dimension scores.
 DIMENSION_KEYS = tuple(dim.history_key for dim in ResearchResult.DIMENSIONS)
 
+# The research confidence ("high" | "medium" | "low") the run wrote to
+# regulation_data.csv, recorded so the map's low-confidence hatch can follow
+# past ratings on the timeline. A change in it alone is a change-point too:
+# the map shows it. Snapshots written before it was recorded carry no key.
+CONFIDENCE_KEY = "confidence"
+CHANGE_KEYS = (*DIMENSION_KEYS, CONFIDENCE_KEY)
+
 
 def append_snapshot(history: dict, country: str, snapshot: dict) -> bool:
-    """Append ``snapshot`` for ``country`` only if its dimension scores changed
-    from the last recorded snapshot. Returns ``True`` when it was appended.
+    """Append ``snapshot`` for ``country`` only if its dimension scores or its
+    confidence changed from the last recorded snapshot. Returns ``True`` when
+    it was appended.
 
     A snapshot is a change-point: its ``date`` is the run that produced those
     scores, and the frontend's timeline, changelog, "This week" strip and
@@ -32,6 +40,13 @@ def append_snapshot(history: dict, country: str, snapshot: dict) -> bool:
     A dimension value may be ``None`` (insufficient evidence, written as
     ``null``). ``None`` against a number is a change; ``None`` against
     ``None`` is not.
+
+    A confidence-only change appends a snapshot with the same scores: the
+    map's hatch follows it on the timeline, while the changelog, "This
+    week" strip and drift dashboard skip snapshots whose dimension scores
+    equal the previous one's. A last snapshot written before confidence was
+    recorded has none, so the first run that records it appends once per
+    country; older snapshots are not backfilled.
 
     A second run on the same day supersedes that day's snapshot instead of
     adding another with the same date (``score_history`` allows one per
@@ -45,7 +60,7 @@ def append_snapshot(history: dict, country: str, snapshot: dict) -> bool:
 
     if snapshots:
         last = snapshots[-1]
-        if not any(snapshot.get(k) != last.get(k) for k in DIMENSION_KEYS):
+        if not any(snapshot.get(k) != last.get(k) for k in CHANGE_KEYS):
             return False
 
     snapshots.append(snapshot)

@@ -29,6 +29,7 @@ import {
 import { getColorIndex } from '../comparison/colorSlots';
 import { cssVar, onThemeChange } from './cssColors';
 import { resolveFeatureNames } from './geometryNames';
+import { loadSmallStates, smallStateFeatures, smallStateRadius } from './smallStates';
 import { loadIsoNumericIndex } from '../data/countryIso';
 
 /** A world-atlas country geometry with its bound name property. */
@@ -61,6 +62,13 @@ let zoomHandle: ZoomHandle | null = null;
 let hatchLayerRef: GroupSelection | null = null;
 let hatchPatternRef: Selection<SVGPatternElement, unknown, HTMLElement, unknown> | null = null;
 let countryFeaturesRef: CountryFeature[] = [];
+// Small states (#104): scored countries the 1:110m atlas has no shape
+// for, drawn as point markers (smallStates.ts) in a layer above the
+// country hatch, with their own hatch layer above them. A marker is a
+// `.country` path like any other, so every selection below reaches it.
+let smallStateLayerRef: GroupSelection | null = null;
+let smallStateHatchLayerRef: GroupSelection | null = null;
+let smallStateFeaturesRef: CountryFeature[] = [];
 // Names currently hatched - what the map shows, so the tooltip and the
 // live region describe the drawing rather than re-deriving it.
 let hatchedRef: ReadonlySet<string> = new Set();
@@ -106,29 +114,41 @@ export function isHatched(name: string): boolean {
 // is unchecked. The hatch paths repeat the country geometry with the
 // pattern fill and no stroke of their own, so borders stay as drawn.
 // `fadeIn` starts entering paths transparent for updateMap's opacity
-// transition. Call only once the layer exists (generateMap builds it).
+// transition. The polygons' hatch paths go in the hatch layer, the small
+// states' in theirs. Call only once the layers exist (generateMap builds
+// them); `hatchPaths()` then reaches every hatch path.
 function joinHatch(
-  hatchLayer: GroupSelection,
   data: MapScores,
   attr: AttributeKey,
   { fadeIn }: { fadeIn: boolean }
-): Selection<SVGPathElement, CountryFeature, SVGGElement, unknown> {
-  const hatched = hatchedCountries(countryFeaturesRef.map(f => f.properties.name), {
+): void {
+  const all = [...countryFeaturesRef, ...smallStateFeaturesRef];
+  const hatched = hatchedCountries(all.map(f => f.properties.name), {
     show: getState().showUncertainty,
     hasScore: name => scoreOf(data[name], attr) != null,
     isLow: isLowConfidenceAtDate,
   });
   hatchedRef = hatched;
-  const joined = hatchLayer
-    .selectAll<SVGPathElement, CountryFeature>('.country-hatch')
-    .data(countryFeaturesRef.filter(f => hatched.has(f.properties.name)), d => d.properties.name)
-    .join(enter => enter.append('path')
-      .attr('class', 'country-hatch')
-      .attr('d', pathRef!)
-      .attr('fill', `url(#${HATCH_ID})`)
-      .style('opacity', () => (fadeIn ? 0 : null)));
+  const layers: [GroupSelection | null, CountryFeature[], boolean][] = [
+    [hatchLayerRef, countryFeaturesRef, false],
+    [smallStateHatchLayerRef, smallStateFeaturesRef, true],
+  ];
+  for (const [layer, features, smallState] of layers) {
+    layer?.selectAll<SVGPathElement, CountryFeature>('.country-hatch')
+      .data(features.filter(f => hatched.has(f.properties.name)), d => d.properties.name)
+      .join(enter => enter.append('path')
+        .attr('class', 'country-hatch')
+        .classed('small-state', smallState)
+        .attr('d', pathRef!)
+        .attr('fill', `url(#${HATCH_ID})`)
+        .style('opacity', () => (fadeIn ? 0 : null)));
+  }
   syncHatchEmphasis();
-  return joined;
+}
+
+/** Every hatch path on the map, polygons' and small states' alike. */
+function hatchPaths(): Selection<SVGPathElement, CountryFeature, SVGGElement, unknown> | null {
+  return mapGroupRef ? mapGroupRef.selectAll<SVGPathElement, CountryFeature>('.country-hatch') : null;
 }
 
 // The hatch sits above every country, so on its own it would stripe the
@@ -138,9 +158,11 @@ function joinHatch(
 // the emphasised paths are raised so their outline also clears
 // neighbouring hatches. Search dimming is mirrored the same way.
 function syncHatchEmphasis(): void {
-  if (!hatchLayerRef) return;
+  raiseSmallStateEmphasis();
+  const paths = hatchPaths();
+  if (!paths) return;
   const matches = searchMatchesRef;
-  const paths = hatchLayerRef.selectAll<SVGPathElement, CountryFeature>('.country-hatch')
+  paths
     .classed('search-dimmed', d => !!matches && !matches.has(d.properties.name))
     .classed('search-highlighted', d => !!matches && matches.has(d.properties.name))
     .classed('in-comparison', d => comparisonRef.has(d.properties.name))
@@ -151,6 +173,37 @@ function syncHatchEmphasis(): void {
   for (const cls of ['search-highlighted', 'in-comparison', 'selected', 'hovered']) {
     paths.filter(`.${cls}`).raise();
   }
+}
+
+// Neighbouring markers can overlap at low zoom (the Lesser Antilles), so
+// an emphasised marker is drawn above the others for its whole outline to
+// show: search matches, then compared, then the selected one on top (the
+// order the hatch raises in). Read from the refs, not the classes, which
+// some callers set after this runs. A stable sort plus d3's order() moves
+// only the markers that are out of place, so a repeat call (every hover of
+// a hatched country lands here) leaves the DOM alone and never re-inserts
+// the marker under the pointer.
+function raiseSmallStateEmphasis(): void {
+  if (!smallStateLayerRef) return;
+  const matches = searchMatchesRef;
+  const rank = ({ properties: { name } }: CountryFeature): number => {
+    if (name === highlightedRef) return 3;
+    if (comparisonRef.has(name)) return 2;
+    return matches?.has(name) ? 1 : 0;
+  };
+  smallStateLayerRef.selectAll<SVGPathElement, CountryFeature>('.country')
+    .sort((a, b) => rank(a) - rank(b));
+}
+
+// Hold the markers at SMALL_STATE_RADIUS screen pixels as the map zooms:
+// the map group scales by k, so the path generator draws points at radius
+// R / k, and each marker and its hatch path are redrawn. (Their strokes
+// are non-scaling, _map.css.) Polygons ignore the point radius.
+function resizeSmallStates(k: number): void {
+  if (!pathRef) return;
+  pathRef.pointRadius(smallStateRadius(k));
+  smallStateLayerRef?.selectAll<SVGPathElement, CountryFeature>('.country').attr('d', pathRef);
+  smallStateHatchLayerRef?.selectAll<SVGPathElement, CountryFeature>('.country-hatch').attr('d', pathRef);
 }
 
 function readContainerSize(): Size {
@@ -235,6 +288,73 @@ function fitToSize({ w, h }: Size): void {
   if (zoomHandle) zoomHandle.updateBounds({ w, h });
 }
 
+// Append one `.country` path per feature to `parent`, with its fill,
+// border and pointer handlers. The atlas polygons and the small-state
+// markers both come through here, so they paint and respond alike.
+function appendCountries(
+  parent: GroupSelection,
+  features: CountryFeature[],
+  scoreData: ScoreData,
+  attr: AttributeKey,
+  colorScale: ColorScale
+): Selection<SVGPathElement, CountryFeature, SVGGElement, unknown> {
+  return parent.selectAll<SVGPathElement, CountryFeature>('.country')
+    .data(features)
+    .enter().append('path')
+    .attr('class', 'country')
+    // Territories without a dataset row are not selectable (the intents
+    // ignore them); drop the pointer cursor that promises otherwise.
+    .classed('no-data', d => !scoreData[d.properties.name])
+    .attr('d', pathRef!)
+    .attr('fill', d => fillFor(scoreData[d.properties.name], attr, colorScale))
+    .attr('stroke', cssVar('--map-stroke'))
+    .attr('stroke-width', 0.3)
+    .on('mouseover', function (event: MouseEvent, d) {
+      const countryName = d.properties.name;
+      const { currentAttribute, comparisonCountries } = getState();
+      const { entry, vintage } = displayedEntry(countryName);
+      const score = entry?.[currentAttribute];
+      const inComparison = comparisonCountries.includes(countryName);
+      const hint = inComparison
+        ? '<br><em>Shift+click to remove from comparison</em>'
+        : '<br><em>Shift+click to add to comparison</em>';
+      // Hatched countries say so in the title line; the confidence line
+      // follows the same date-aware rule as the hatch.
+      const flag = hatchedRef.has(countryName)
+        ? ' <span class="tooltip-flag">low confidence</span>'
+        : '';
+      const confidence = confidenceAtDate(countryName);
+      showTooltip(event,
+        `<strong>${countryName}${flag}</strong>` +
+        (score != null
+          ? `<br>${scoreLine(currentAttribute, score, vintage)}`
+          : isInsufficient(score)
+            ? `<br>${ATTRIBUTE_LABELS[currentAttribute] || currentAttribute}: insufficient evidence${vintage ? ` (${vintage})` : ''}`
+            : '<br>No data') +
+        (confidence ? `<br>Confidence: ${confidence}` : '') +
+        hint
+      );
+    })
+    .on('mouseover.hatch', (_event: MouseEvent, d) => {
+      hoveredRef = d.properties.name;
+      if (hatchedRef.has(hoveredRef)) syncHatchEmphasis();
+    })
+    .on('mouseout', (_event: MouseEvent, d) => {
+      hideTooltip();
+      hoveredRef = null;
+      if (hatchedRef.has(d.properties.name)) syncHatchEmphasis();
+    })
+    .on('click', function (event: MouseEvent, d) {
+      const name = d.properties.name;
+      if (event.shiftKey) {
+        toggleComparison(name);
+        event.preventDefault();
+      } else {
+        selectCountry(name);
+      }
+    });
+}
+
 export async function generateMap(): Promise<void> {
   const { scoreData, currentAttribute } = getState();
 
@@ -266,7 +386,8 @@ export async function generateMap(): Promise<void> {
   const projection = geoEquirectangular();
   fitProjectionToFill(projection, size.w, size.h);
 
-  const path = geoPath().projection(projection);
+  // The point radius only draws the small-state markers; zoom rescales it.
+  const path = geoPath().projection(projection).pointRadius(smallStateRadius(1));
   const colorScale = makeColorScale(currentAttribute);
 
   svgRef = svg;
@@ -277,9 +398,10 @@ export async function generateMap(): Promise<void> {
 
   // Self-hosted from /public/data so there's no third-party request on
   // page load and offline dev works. Source: world-atlas@2 (Natural Earth).
-  const [world, byNumeric] = await Promise.all([
+  const [world, byNumeric, smallStatePoints] = await Promise.all([
     json<Topology>('/data/countries-110m.json'),
     loadIsoNumericIndex(),
+    loadSmallStates(),
   ]);
   const countries = resolveFeatureNames(
     (feature(world!, world!.objects.countries) as FeatureCollection<Geometry, { name: string }>).features,
@@ -287,6 +409,7 @@ export async function generateMap(): Promise<void> {
     byNumeric
   );
   countryFeaturesRef = countries;
+  smallStateFeaturesRef = smallStateFeatures(smallStatePoints, countries, byNumeric);
 
   const mapGroup = g.append<SVGGElement>('g').attr('class', 'map-group');
   mapGroupRef = mapGroup;
@@ -309,68 +432,24 @@ export async function generateMap(): Promise<void> {
     .attr('stroke-width', 0.4)
     .attr('stroke-dasharray', '2,3');
 
-  mapGroup.selectAll<SVGPathElement, CountryFeature>('.country')
-    .data(countries)
-    .enter().append('path')
-    .attr('class', 'country')
-    // Territories without a dataset row are not selectable (the intents
-    // ignore them); drop the pointer cursor that promises otherwise.
-    .classed('no-data', d => !scoreData[d.properties.name])
-    .attr('d', path)
-    .attr('fill', d => fillFor(scoreData[d.properties.name], currentAttribute, colorScale))
-    .attr('stroke', cssVar('--map-stroke'))
-    .attr('stroke-width', 0.3)
-    .on('mouseover', function (event: MouseEvent, d) {
-      const countryName = d.properties.name;
-      const { currentAttribute: attr, comparisonCountries } = getState();
-      const { entry, vintage } = displayedEntry(countryName);
-      const score = entry?.[attr];
-      const inComparison = comparisonCountries.includes(countryName);
-      const hint = inComparison
-        ? '<br><em>Shift+click to remove from comparison</em>'
-        : '<br><em>Shift+click to add to comparison</em>';
-      // Hatched countries say so in the title line; the confidence line
-      // follows the same date-aware rule as the hatch.
-      const flag = hatchedRef.has(countryName)
-        ? ' <span class="tooltip-flag">low confidence</span>'
-        : '';
-      const confidence = confidenceAtDate(countryName);
-      showTooltip(event,
-        `<strong>${countryName}${flag}</strong>` +
-        (score != null
-          ? `<br>${scoreLine(attr, score, vintage)}`
-          : isInsufficient(score)
-            ? `<br>${ATTRIBUTE_LABELS[attr] || attr}: insufficient evidence${vintage ? ` (${vintage})` : ''}`
-            : '<br>No data') +
-        (confidence ? `<br>Confidence: ${confidence}` : '') +
-        hint
-      );
-    })
-    .on('mouseover.hatch', (_event: MouseEvent, d) => {
-      hoveredRef = d.properties.name;
-      if (hatchedRef.has(hoveredRef)) syncHatchEmphasis();
-    })
-    .on('mouseout', (_event: MouseEvent, d) => {
-      hideTooltip();
-      hoveredRef = null;
-      if (hatchedRef.has(d.properties.name)) syncHatchEmphasis();
-    })
-    .on('click', function (event: MouseEvent, d) {
-      const name = d.properties.name;
-      if (event.shiftKey) {
-        toggleComparison(name);
-        event.preventDefault();
-      } else {
-        selectCountry(name);
-      }
-    });
+  appendCountries(mapGroup, countries, scoreData, currentAttribute, colorScale);
 
   // Second fill layer: drawn after every country so the hatch sits on
   // top of the score fills; pointer-events pass through to the country.
   hatchLayerRef = mapGroup.append<SVGGElement>('g')
     .attr('class', 'hatch-layer')
     .attr('aria-hidden', 'true');
-  joinHatch(hatchLayerRef, scoreData, currentAttribute, { fadeIn: false });
+  // The small-state markers sit above the country hatch, so a hatched
+  // neighbour's texture never stripes them, and carry their own hatch
+  // layer above them.
+  smallStateLayerRef = mapGroup.append<SVGGElement>('g')
+    .attr('class', 'small-state-layer');
+  appendCountries(smallStateLayerRef, smallStateFeaturesRef, scoreData, currentAttribute, colorScale)
+    .classed('small-state', true);
+  smallStateHatchLayerRef = mapGroup.append<SVGGElement>('g')
+    .attr('class', 'small-state-hatch-layer')
+    .attr('aria-hidden', 'true');
+  joinHatch(scoreData, currentAttribute, { fadeIn: false });
   // A search typed while the map loaded set the match set before any path
   // existed; apply it to both layers now so they agree.
   if (searchMatchesRef) updateSearchHighlight(searchMatchesRef);
@@ -379,6 +458,7 @@ export async function generateMap(): Promise<void> {
   // write re-records the pattern (see hatchTransform).
   let hatchTransformValue = hatchTransform(1);
   zoomHandle = setupZoom(svg, mapGroup, () => currentSize, (k) => {
+    resizeSmallStates(k);
     const next = hatchTransform(k);
     if (next === hatchTransformValue) return;
     hatchTransformValue = next;
@@ -520,7 +600,8 @@ export function updateMap(overrideScoreData?: MapScores): void {
   // texture recedes with its fill. (No layer yet while the map loads;
   // generateMap's first paint reads the same state.)
   if (!hatchLayerRef) return;
-  joinHatch(hatchLayerRef, data, currentAttribute, { fadeIn: true })
+  joinHatch(data, currentAttribute, { fadeIn: true });
+  hatchPaths()!
     .interrupt()
     .transition()
     .duration(500)

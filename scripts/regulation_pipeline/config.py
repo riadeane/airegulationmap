@@ -124,8 +124,14 @@ class Settings:
 
     @property
     def pending_json(self) -> Path:
-        """Score candidates the stability gate held for one run (see gate.py)."""
+        """The stability gate's state: held candidates and each country's
+        cited-source memory (see gate.py)."""
         return self.root / "public" / "data" / "pending.json"
+
+    @property
+    def blocs_json(self) -> Path:
+        """Bloc membership (EU, G7, ...), shared with the frontend."""
+        return self.root / "public" / "data" / "blocs.json"
 
     @property
     def digest_dir(self) -> Path:

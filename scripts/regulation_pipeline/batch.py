@@ -12,6 +12,7 @@ import importlib
 import logging
 import time
 from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 
 import anthropic
 
@@ -35,6 +36,10 @@ CANCEL_GRACE_SECONDS = 10 * 60
 MIN_ROUND_SECONDS = 15 * 60
 # Downloads of a batch's results before giving up on reading them.
 RESULTS_ATTEMPTS = 4
+# After a batch submit that needed retries, an in-progress batch with the
+# same request count created this close to the first attempt is taken for
+# the orphan of a lost response (#153).
+ORPHAN_WINDOW = timedelta(minutes=2)
 
 
 def _transport_errors() -> tuple[type[BaseException], ...]:
@@ -85,20 +90,38 @@ class BatchRunner:
         max_wait: int = MAX_WAIT_SECONDS,
         cancel_grace_seconds: int = CANCEL_GRACE_SECONDS,
         sleep: Callable[[float], None] = time.sleep,
+        clock: Callable[[], float] | None = None,
+        now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ):
         self._client = client
         self._poll_interval = poll_interval
         self._max_wait = max_wait
         self._cancel_grace_seconds = cancel_grace_seconds
-        self._sleep = sleep
-        # Seconds spent polling so far, across every batch of the run.
-        self._waited = 0
+        self._raw_sleep = sleep
+        self._now = now
+        # The wait budget is wall-clock time since the run's first submit,
+        # so retry backoff and slow requests count, not only poll intervals
+        # (#153). A test that injects ``sleep`` without ``clock`` runs on a
+        # virtual clock that advances by the seconds slept.
+        self._virtual = 0.0
+        if clock is None:
+            clock = time.monotonic if sleep is time.sleep else (lambda: self._virtual)
+        self._clock = clock
+        self._started: float | None = None
         # Cumulative token usage over succeeded requests (best-effort
         # provenance; batches bill these at 50%).
         self._usage = {"input": 0, "output": 0, "searches": 0}
 
     def usage(self) -> dict[str, int]:
         return dict(self._usage)
+
+    def _sleep(self, seconds: float) -> None:
+        self._virtual += seconds
+        self._raw_sleep(seconds)
+
+    def _elapsed(self) -> float:
+        """Seconds since the run's first batch submit (0 before it)."""
+        return 0.0 if self._started is None else self._clock() - self._started
 
     def research(self, params_by_country: dict[str, dict]) -> tuple[dict, list[str]]:
         """Run the batch, then follow-up rounds in smaller batches: transient
@@ -123,7 +146,7 @@ class BatchRunner:
             }
             if not paused and not retry:
                 break
-            if self._max_wait - self._waited < MIN_ROUND_SECONDS:
+            if self._max_wait - self._elapsed() < MIN_ROUND_SECONDS:
                 logger.warning(
                     "Batch wait budget nearly spent - not resubmitting %d transient "
                     "failures or continuing %d paused results", len(retry), len(paused),
@@ -158,18 +181,30 @@ class BatchRunner:
         connection blip on a poll must never cost a run whose results are
         already paid for."""
         requests, id_map = build_batch_requests(params_by_country)
+        if self._started is None:
+            self._started = self._clock()
 
-        batch = self._call(
-            lambda: self._client.messages.batches.create(requests=requests), "batch submit"
-        )
+        attempts = 0
+
+        def submit():
+            nonlocal attempts
+            attempts += 1
+            return self._client.messages.batches.create(requests=requests)
+
+        submitted_at = self._now()
+        batch = self._call(submit, "batch submit")
         if batch is None:
             logger.error("Could not submit a batch of %d requests", len(requests))
+            if attempts > 1:
+                self._cancel_orphans(None, len(requests), submitted_at)
             return {}, {country: "retryable" for country in id_map.values()}
 
         logger.info("Batch %s submitted (%d requests, 50%% token pricing)", batch.id, len(requests))
+        if attempts > 1:
+            self._cancel_orphans(batch.id, len(requests), submitted_at)
 
         while batch.processing_status != "ended":
-            if self._waited >= self._max_wait:
+            if self._elapsed() >= self._max_wait:
                 # Don't discard already-succeeded (already-billed) work: cancel
                 # the batch, let it reach a terminal state, then collect whatever
                 # completed. Requests still in flight come back as "canceled" and
@@ -182,7 +217,6 @@ class BatchRunner:
                 batch = self._drain_after_cancel(batch)
                 break
             self._sleep(self._poll_interval)
-            self._waited += self._poll_interval
             refreshed = self._call(
                 lambda b=batch.id: self._client.messages.batches.retrieve(b), f"batch poll {batch.id}"
             )
@@ -193,10 +227,41 @@ class BatchRunner:
             logger.info(
                 "... %s: %d processing, %d succeeded, %d errored (%ds)",
                 batch.processing_status, counts.processing, counts.succeeded, counts.errored,
-                self._waited,
+                int(self._elapsed()),
             )
 
         return self._collect(batch, id_map)
+
+    def _cancel_orphans(self, kept: str | None, size: int, since: datetime) -> None:
+        """Cancel the batch a lost ``create`` response left running (#153).
+
+        The SDK sends no idempotency key, so a create the server accepted
+        but whose response was lost is retried and starts a second batch;
+        the first would run to completion, billed and never read. After a
+        submit that needed retries, any other in-progress batch with the
+        same request count, created within :data:`ORPHAN_WINDOW` of the
+        first attempt, is taken for that orphan and canceled (requests it
+        already finished stay billed; the rest are not run)."""
+        listing = self._call(lambda: self._client.messages.batches.list(limit=20), "batch list")
+        if listing is None:
+            logger.warning(
+                "Could not list batches after a retried submit; an orphaned batch of %d "
+                "requests may still be running", size,
+            )
+            return
+        for other in getattr(listing, "data", listing):
+            if other.id == kept or other.processing_status != "in_progress":
+                continue
+            created = getattr(other, "created_at", None)
+            if created is None or created < since - ORPHAN_WINDOW:
+                continue
+            if _request_total(other) != size:
+                continue
+            logger.warning(
+                "Batch %s (%d requests) looks like the orphan of a retried submit - canceling it",
+                other.id, size,
+            )
+            self._call(lambda b=other.id: self._client.messages.batches.cancel(b), "batch cancel")
 
     def _read_results(self, batch_id: str):
         """Download a batch's results. The SDK streams JSONL straight off the
@@ -277,6 +342,14 @@ class BatchRunner:
                 logger.warning("batch request for %s %s", country, kind)
 
         return messages, errors
+
+
+def _request_total(batch) -> int:
+    counts = batch.request_counts
+    return sum(
+        getattr(counts, name, 0) or 0
+        for name in ("processing", "succeeded", "errored", "canceled", "expired")
+    )
 
 
 # Batch error kinds that resubmitting cannot fix.

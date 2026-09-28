@@ -23,7 +23,14 @@ from datetime import date
 # tie-break applies only when evidence supports both levels. This changes
 # the scale (thinly covered countries no longer default to 1), so it comes
 # with rubric v3.1.
-PROMPT_VERSION = "v3.3-2026-09"
+# v3.4 (2026-09): context and style only; same rubric. The existing-data
+# block also shows the current Specific Laws and Sources, with a rule to
+# reuse a still-accurate name or URL verbatim (#88: rewording and URL churn
+# passed the stability gate as evidence); a style rule for the text fields
+# (no leading "As of <date>," clause, no hedging, one statement of an
+# absence, complete lists; #141); and a rule never to construct OECD.AI
+# country-dashboard URLs, which no longer exist (#92).
+PROMPT_VERSION = "v3.4-2026-09"
 
 # The rubric generation alone (the part of PROMPT_VERSION a calibration
 # break is about). Bump it with the rubric: the first full run on a new
@@ -36,7 +43,7 @@ RUBRIC_VERSION = "v3.1"
 # The evidence-grounded variant (same rubric + output schema, plus a
 # verified-records block). Grounded prompts are LONGER than plain ones -
 # pair grounded runs with --batch for the 50% token pricing.
-GROUNDED_PROMPT_VERSION = "v3.3-grounded-2026-09"
+GROUNDED_PROMPT_VERSION = "v3.4-grounded-2026-09"
 
 # Caps keeping the evidence block bounded: the most recent initiatives
 # carry the signal, and full overviews would dwarf the rubric.
@@ -54,6 +61,8 @@ Existing data (may be outdated):
 - Governance Type: {existing_governance}
 - Actor Involvement: {existing_actors}
 - Enforcement Level: {existing_enforcement}
+- Specific Laws: {existing_laws}
+- Sources: {existing_sources}
 
 Research the current state of AI regulation in {country} as of {today}.
 Consider recent legislation, executive orders, national strategies, and international agreements.
@@ -115,6 +124,14 @@ Calibration - read before scoring:
   sub-indicator definition asks about, and make each dimension's "text" justify the
   sub-scores you gave.
 
+Style for each dimension's "text" and for "specific_laws":
+- Do not open with a date clause such as "As of September 2026,". The research date
+  is recorded separately.
+- State facts plainly, with no hedging ("appears to", "may", "likely", "reportedly").
+- State an absence once ("No AI-specific law, regulator or enforcement mechanism
+  exists."), not in a run of sentences that each begin with "No".
+- Name instruments in full. Do not end a list with "etc." or "among others".
+
 Return ONLY a valid JSON object with these exact keys:
 {{
   "regulation_status": {{
@@ -162,6 +179,14 @@ Source requirements:
 - Only include URLs you are confident are real. NEVER fabricate or guess URLs. If you
   cannot recall an exact deep link, give the official top-level page you are certain
   exists (e.g. the ministry or regulator homepage) rather than a guessed path.
+- Never construct OECD.AI country-dashboard URLs (oecd.ai/en/dashboards/countries/...):
+  those pages no longer exist. Cite an OECD.AI page only when you found its exact URL.
+- The existing Specific Laws and Sources above are the current published entry. Where
+  an instrument or URL in them is still accurate, reuse its exact name or URL rather
+  than rewording it or citing another page that says the same thing. Drop what is
+  no longer accurate, and add what is new.
+- Every cited URL is checked after research; a URL that returns "not found" is
+  removed, and an entry left without a source is published as low confidence.
 - If you cannot support your assessment with any source, set "sources" to "" AND set
   "confidence" to "low".
 - "confidence" must be "high" only when claims are backed by enacted legislation with
@@ -184,6 +209,8 @@ def render_prompt(country: str, today: date, existing_reg: dict | None) -> str:
         existing_governance=existing.get("Governance Type", "Unknown"),
         existing_actors=existing.get("Actor Involvement", "Unknown"),
         existing_enforcement=existing.get("Enforcement Level", "Unknown"),
+        existing_laws=existing.get("Specific Laws") or "None recorded",
+        existing_sources=existing.get("Sources") or "None recorded",
     )
 
 

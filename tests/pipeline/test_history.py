@@ -98,3 +98,28 @@ def test_the_committed_history_records_the_v2_break():
     for snapshots in history["countries"].values():
         dates = [s["date"] for s in snapshots]
         assert dates == sorted(set(dates))
+
+
+def test_confidence_only_change_appends():
+    history = {"schema_version": 1, "countries": {}}
+    append_snapshot(history, "Fiji", snap(confidence="medium"))
+    assert append_snapshot(history, "Fiji", snap(date="2026-07-01", confidence="low")) is True
+    assert [s["confidence"] for s in history["countries"]["Fiji"]] == ["medium", "low"]
+
+
+def test_unchanged_confidence_and_scores_do_not_append():
+    history = {"schema_version": 1, "countries": {}}
+    append_snapshot(history, "Fiji", snap(confidence="medium"))
+    assert append_snapshot(history, "Fiji", snap(date="2026-07-01", confidence="medium")) is False
+
+
+def test_first_recorded_confidence_appends_after_a_legacy_snapshot():
+    # Snapshots written before confidence was recorded carry no key. The
+    # first run that records it appends once; the old snapshot is left as
+    # it was (no backfill), so the timeline falls back to the current
+    # rating for dates before it.
+    history = {"schema_version": 1, "countries": {"Fiji": [snap()]}}
+    assert append_snapshot(history, "Fiji", snap(date="2026-07-01", confidence="high")) is True
+    legacy, recorded = history["countries"]["Fiji"]
+    assert "confidence" not in legacy
+    assert recorded["confidence"] == "high"

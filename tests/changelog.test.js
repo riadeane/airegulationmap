@@ -106,4 +106,16 @@ describe('computeChangelog with calibration breaks', () => {
     const log = computeChangelog([snap('2026-06-13'), snap('2026-09-14', { policyLever: 3 })]);
     expect(isPolicyChange(log[0])).toBe(true);
   });
+
+  it('never lists a confidence-only snapshot as a score change (#60)', () => {
+    const log = computeChangelog([
+      snap('2026-06-13', { confidence: 'medium' }),
+      snap('2026-09-14', { confidence: 'low' }),
+      snap('2026-09-21', { confidence: 'low', policyLever: 3 }),
+    ]);
+    expect(log.map(e => e.date)).toEqual(['2026-09-21', '2026-06-13']);
+    expect(log[0].changes).toEqual([
+      { dimension: 'policyLever', label: 'Policy Lever', from: 2, to: 3 },
+    ]);
+  });
 });

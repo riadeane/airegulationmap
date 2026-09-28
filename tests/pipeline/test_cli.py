@@ -1,4 +1,5 @@
 import importlib.util
+from datetime import date
 from pathlib import Path
 
 import typer
@@ -157,3 +158,32 @@ def test_an_aborted_run_writes_no_digest(monkeypatch, tmp_path):
     assert result.exit_code == 2
     assert written == []
     assert "digest: skipped because the run aborted" in result.output
+
+
+def test_only_a_scheduled_run_may_replace_the_weeks_digest(monkeypatch, tmp_path):
+    # #101: a dispatch fills a week without a digest but never replaces one.
+    from regulation_pipeline.service import RunResult
+
+    seen = []
+    monkeypatch.setattr(cli, "write_run_digest", lambda *a, **k: seen.append(k["replace"]))
+    for event, expected in (("schedule", True), ("workflow_dispatch", False)):
+        monkeypatch.setenv("GITHUB_EVENT_NAME", event)
+        cli._write_digest(RunResult(updated=0, failed=[]), None, None, "m", date(2026, 9, 28))
+        assert seen[-1] is expected
+
+
+def test_disagreeing_data_files_stop_the_run_before_research(monkeypatch, tmp_path):
+    # #149: a save interrupted between two renames must not be researched on.
+    import json
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    settings = _dataset_with(tmp_path, ["Germany"], [])
+    settings.history_json.write_text(json.dumps({"schema_version": 1, "countries": {
+        "Germany": [{"date": "2026-09-01", "regulationStatus": 3, "policyLever": 2, "governanceType": 2,
+                     "actorInvolvement": 2, "enforcementLevel": 2, "averageScore": 2.33}],
+    }}))
+    monkeypatch.setattr(cli, "Settings", lambda **kw: _TmpSettings(tmp_path, **kw))
+    result = runner.invoke(_app(), ["--dry-run"])
+    assert result.exit_code == 1
+    assert "data files disagree: Germany" in result.output
+    assert "Nothing was researched" in result.output

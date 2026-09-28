@@ -5,8 +5,10 @@ and ``pending.json`` are loaded, mutated, and saved as a unit. :class:`Dataset`
 owns all five, folds a validated
 :class:`~regulation_pipeline.models.ResearchResult` into them via :meth:`apply`,
 and persists them with atomic writes so an interrupted run can't leave a
-half-written CSV behind. ``pending.json`` holds the score candidates the
-stability gate (:mod:`gate`) held back for one run.
+half-written CSV behind. ``pending.json`` holds the stability gate's state
+(:mod:`gate`): the score candidates it held back for one run, and under
+``seen_sources`` every source URL each country has cited, so the evidence
+rule can tell a new source from a re-cited one.
 
 Each researched country's ``subscores.json`` entry also carries an
 ``evidence`` block (PRD 14, :meth:`Dataset.set_evidence`): how the most recent
@@ -116,6 +118,19 @@ class Dataset:
         entry = self._subscores.get("countries", {}).get(country)
         return dict(entry) if entry is not None else None
 
+    def seen_sources_for(self, country: str) -> frozenset[str]:
+        """Every source URL ``country`` has cited on earlier runs, in
+        :func:`gate.normalise_url` form (``pending.json`` ``seen_sources``)."""
+        return frozenset(self._pending.get("seen_sources", {}).get(country, ()))
+
+    def remember_sources(self, country: str, urls: frozenset[str]) -> None:
+        """Add ``urls`` (normalised) to the country's cited-source memory."""
+        if not urls:
+            return
+        seen = self._pending.setdefault("seen_sources", {})
+        seen[country] = sorted(set(seen.get(country, ())) | set(urls))
+        self._pending["seen_sources"] = dict(sorted(seen.items()))
+
     def pending_for(self, country: str) -> dict | None:
         """The gate's stored candidate for ``country``:
         ``{"candidate_scores": {...}, "first_seen": "YYYY-MM-DD"}`` or ``None``."""
@@ -176,7 +191,7 @@ class Dataset:
             apply_scores = True
 
         # Audit trail: apply() overwrites in place, and history.json only
-        # captures dimension-score changes - a sources/confidence-only change
+        # captures score and confidence changes - a sources-only change
         # would otherwise leave no record of what was replaced. Log the prior
         # snapshot so an operator can reconstruct it from the run log.
         prior = self._regulation.get(country)
@@ -196,7 +211,9 @@ class Dataset:
             return ApplyOutcome(
                 average=_as_score(held.get("Average Score")),
                 confidence=result.effective_confidence(),
-                history_added=False,
+                history_added=self._record_held_confidence(
+                    country, result.effective_confidence(), today,
+                ),
                 scores_applied=False,
             )
 
@@ -215,6 +232,18 @@ class Dataset:
             confidence=result.effective_confidence(),
             history_added=added,
         )
+
+    def _record_held_confidence(self, country: str, confidence: str, today: date) -> bool:
+        """A held result keeps its scores but still writes its confidence to
+        regulation_data.csv, so history records a confidence change with the
+        held scores copied from the last snapshot (the scores the map still
+        shows). Returns ``True`` when a snapshot was appended."""
+        snapshots = self._history.get("countries", {}).get(country)
+        if not snapshots:
+            return False
+        snapshot = {k: v for k, v in snapshots[-1].items() if k != "date"}
+        snapshot = {"date": today.isoformat(), **snapshot, "confidence": confidence}
+        return history_mod.append_snapshot(self._history, country, snapshot)
 
     # -- validation ------------------------------------------------------------
 
@@ -245,22 +274,57 @@ class Dataset:
     # -- persistence -----------------------------------------------------------
 
     def save(self) -> None:
-        _write_text(self._settings.scores_csv, _csv_text(self._scores, SCORES_FIELDS))
-        _write_text(self._settings.regulation_csv, _csv_text(self._regulation, REGULATION_FIELDS))
+        """Write the five stores as a set: every temp file is written and
+        fsynced first, then the five renames run back to back, so a crash
+        while writing (the slow part) leaves the old set intact and only a
+        crash between two renames can mix old and new files, which
+        :meth:`consistency_errors` then catches on the next load (#149)."""
         # No trailing newline on the JSON files - matches the byte layout the
         # existing files already have, so an unchanged run produces no diff.
-        _write_text(
-            self._settings.history_json,
-            json.dumps(self._history, ensure_ascii=False, indent=2),
-        )
-        _write_text(
-            self._settings.subscores_json,
-            json.dumps(self._subscores, ensure_ascii=False, indent=2, sort_keys=True),
-        )
-        _write_text(
-            self._settings.pending_json,
-            json.dumps(self._pending, ensure_ascii=False, indent=2),
-        )
+        files = [
+            (self._settings.scores_csv, _csv_text(self._scores, SCORES_FIELDS)),
+            (self._settings.regulation_csv, _csv_text(self._regulation, REGULATION_FIELDS)),
+            (self._settings.history_json, json.dumps(self._history, ensure_ascii=False, indent=2)),
+            (
+                self._settings.subscores_json,
+                json.dumps(self._subscores, ensure_ascii=False, indent=2, sort_keys=True),
+            ),
+            (self._settings.pending_json, json.dumps(self._pending, ensure_ascii=False, indent=2)),
+        ]
+        staged = [(_stage_text(path, text), path) for path, text in files]
+        for tmp, path in staged:
+            tmp.replace(path)
+        for directory in {path.parent for _, path in staged}:
+            _fsync_dir(directory)
+
+    def consistency_errors(self) -> list[str]:
+        """Disagreements a save interrupted between two renames would leave:
+        history has a country ``scores.csv`` lacks, or a country's latest
+        snapshot does not hold the scores in ``scores.csv``. ``save`` renames
+        scores.csv first and history.json third, so a crash between them
+        shows up here for every country the run re-scored. Empty when they
+        agree (#149)."""
+        errors: list[str] = []
+        for country, snapshots in sorted(self._history.get("countries", {}).items()):
+            if not snapshots:
+                continue
+            row = self._scores.get(country)
+            if row is None:
+                errors.append(f"{country}: in history.json but not in scores.csv")
+                continue
+            latest = max(snapshots, key=lambda s: str(s.get("date", "")))
+            # _SCORE_COLUMNS lists the five dimensions in DIMENSIONS order.
+            for dim, column in zip(ResearchResult.DIMENSIONS, _SCORE_COLUMNS, strict=False):
+                stored = _as_score(row.get(column))
+                recorded = latest.get(dim.history_key)
+                recorded = None if recorded is None else round(float(recorded), 2)
+                if (None if stored is None else round(stored, 2)) != recorded:
+                    errors.append(
+                        f"{country}: scores.csv {dim.history_key} {stored} differs from its "
+                        f"latest history snapshot ({latest.get('date')}: {recorded})"
+                    )
+                    break
+        return errors
 
 
 # -- projections (research result -> persistence rows) -------------------------
@@ -340,11 +404,13 @@ def split_subscores_entry(entry: dict) -> tuple[dict, dict | None]:
 def _history_snapshot(result: ResearchResult, today: date) -> dict:
     # Key order matters - history.json is written without sort_keys, and the
     # frontend reads snapshots positionally-agnostic but the file diff should
-    # stay stable: date, five dimensions in canonical order, then averageScore.
+    # stay stable: date, five dimensions in canonical order, averageScore,
+    # then the confidence written to regulation_data.csv.
     snapshot: dict = {"date": today.isoformat()}
     for dim in result.dimensions().values():
         snapshot[dim.history_key] = dim.score
     snapshot["averageScore"] = result.average_score()
+    snapshot[history_mod.CONFIDENCE_KEY] = result.effective_confidence()
     return snapshot
 
 
@@ -412,18 +478,28 @@ def _write_text(path: Path, text: str) -> None:
     still be in the page cache when a CI/cloud runner is yanked. We fsync the
     temp file before the swap, then fsync the containing directory so the
     rename itself is on stable storage."""
+    _stage_text(path, text).replace(path)
+    _fsync_dir(path.parent)
+
+
+def _stage_text(path: Path, text: str) -> Path:
+    """Write ``text`` to ``path``'s temp file and fsync it; returns the temp
+    path for the caller to rename into place."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
-    # Write + flush + fsync the data before we swap it into place.
+    # Write + flush + fsync the data before it is swapped into place.
     with tmp.open("w", encoding="utf-8", newline="") as f:
         f.write(text)
         f.flush()
         os.fsync(f.fileno())
-    tmp.replace(path)
+    return tmp
+
+
+def _fsync_dir(directory: Path) -> None:
     # Persist the directory entry (the rename) too. Best-effort: some
     # platforms/filesystems don't allow opening a directory for fsync.
     try:
-        dir_fd = os.open(path.parent, os.O_RDONLY)
+        dir_fd = os.open(directory, os.O_RDONLY)
         try:
             os.fsync(dir_fd)
         finally:

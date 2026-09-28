@@ -48,7 +48,7 @@ def test_numeric_matches_topojson_geometry_ids():
     for name, entry in ISO.items():
         topo_id = topo_ids.get(name)
         if topo_id is None or entry["numeric"] is None:
-            continue  # small state absent from 110m atlas, or non-ISO entity
+            continue  # small state drawn as a marker (small_states.json), or non-ISO entity
         if str(topo_id).lstrip("0") != entry["numeric"].lstrip("0"):
             mismatches.append((name, entry["numeric"], topo_id))
     assert mismatches == []
@@ -76,6 +76,31 @@ def test_scored_countries_resolve_to_atlas_geometries():
         "Timor-Leste": "East Timor",
         "eSwatini": "Swaziland",
     }
+
+
+def test_every_scored_country_has_a_shape_or_a_small_state_point():
+    """The 1:110m atlas has no shape for about thirty small states; the map
+    draws those as point markers from public/data/small_states.json (#104).
+    A scored country with neither would never appear on the map: regenerate
+    the points with `npx tsx scripts/build_small_states.ts`."""
+    by_name = _topojson_ids()
+    atlas_ids = {str(i).lstrip("0") for i in by_name.values() if i is not None}
+    small = json.loads((SETTINGS.root / "public" / "data" / "small_states.json").read_text(encoding="utf-8"))
+    point_ids = {entry["id"].lstrip("0") for entry in small["countries"]}
+    missing = []
+    for name in _scores_countries():
+        if name in by_name:
+            continue
+        numeric = (ISO[name]["numeric"] or "").lstrip("0")
+        if numeric not in atlas_ids and numeric not in point_ids:
+            missing.append(name)
+    assert missing == []
+    # No point for a country the atlas already draws, and every point is a
+    # [lon, lat] pair on the globe.
+    assert point_ids & atlas_ids == set()
+    for entry in small["countries"]:
+        lon, lat = entry["point"]
+        assert -180 <= lon <= 180 and -90 <= lat <= 90, entry["name"]
 
 
 def test_known_special_cases():

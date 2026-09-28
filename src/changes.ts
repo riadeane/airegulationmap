@@ -177,6 +177,14 @@ function renderDigest(root: HTMLElement, digest: Digest, weeks: DigestWeek[], la
       'are a recalibration, not policy change, so only law and confidence changes are listed.',
     ]));
   }
+  if (digest.regenerated) {
+    root.append(el('div', { class: 'callout' }, [
+      el('strong', {}, ['Rebuilt from the database.']),
+      ' This digest was written after the run from the stored score history. It lists score ',
+      'changes only: the database keeps no history of the regulation text, so law and ',
+      'confidence changes from this run are not recovered.',
+    ]));
+  }
   root.append(el('p', { class: 'digest-lead' }, [digest.lead]));
 
   const byCountry = changesByCountry(digest);

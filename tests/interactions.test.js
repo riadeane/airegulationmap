@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getState, setState } from '../src/state/store';
-import { selectCountry, addToComparison, toggleComparison } from '../src/state/interactions';
+import {
+  selectCountry, addToComparison, toggleComparison, selectBloc, resetFilters, receiveData,
+} from '../src/state/interactions';
 
 // Regression: the map draws territories the dataset has no row for
 // (Greenland, W. Sahara, Palestine, Puerto Rico). Selecting one produced an
@@ -40,5 +42,41 @@ describe('comparison membership', () => {
     addToComparison('Germany');
     toggleComparison('France');
     expect(getState().comparisonCountries).toEqual(['Germany', 'France']);
+  });
+});
+
+// #150: controls write through intents. The bloc intent carries the one new
+// rule (only a known bloc), and "Reset filters" is one atomic write.
+describe('bloc and filter intents', () => {
+  beforeEach(() => {
+    setState({ blocsData: { EU: { name: 'European Union', members: ['Germany', 'France'] } }, selectedBloc: null });
+  });
+
+  it('selects a known bloc, ignores an unknown key, and clears with null', () => {
+    selectBloc('EU');
+    expect(getState().selectedBloc).toBe('EU');
+    selectBloc('Atlantis');
+    expect(getState().selectedBloc).toBe('EU');
+    selectBloc(null);
+    expect(getState().selectedBloc).toBeNull();
+  });
+
+  it('resetFilters clears every filter and the bloc, not the uncertainty hatch', () => {
+    selectBloc('EU');
+    setState({
+      filterMin: 2, filterMax: 4, filterConfidence: ['high'], filterOfficialOnly: true,
+      filterEvidence: 'grounded', showUncertainty: false,
+    });
+    resetFilters();
+    const s = getState();
+    expect([s.filterMin, s.filterMax, s.selectedBloc]).toEqual([1, 5, null]);
+    expect([s.filterConfidence, s.filterOfficialOnly, s.filterEvidence]).toEqual([null, false, 'any']);
+    expect(s.showUncertainty).toBe(false);
+  });
+
+  it('receiveData writes the data slices it is given', () => {
+    const countryIso = { Germany: { alpha2: 'DE', alpha3: 'DEU', numeric: '276' } };
+    receiveData({ countryIso });
+    expect(getState().countryIso).toBe(countryIso);
   });
 });

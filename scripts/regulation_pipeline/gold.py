@@ -28,6 +28,7 @@ touching the dataset: the model-comparison tool.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -42,6 +43,7 @@ import typer
 
 from .config import Settings
 from .models import ResearchResult
+from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
 
 if TYPE_CHECKING:  # the mirror is optional; keep the db layer out of the import graph
     from .db.mirror import SupabaseMirror
@@ -338,11 +340,25 @@ def compare(gold: GoldSet, results: Mapping[str, ResearchResult]) -> GoldMetrics
 # -- the drift record ----------------------------------------------------------
 
 
+def gold_version(path: Path) -> str:
+    """A short, stable identity for the gold file the row was computed
+    against: the first 12 hex digits of its SHA-256. Correcting a gold
+    score changes it, so a series never silently changes meaning (#99)."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+
+
 def drift_row(
     metrics: GoldMetrics, *, run_id: str, run_date: date, model: str, prompt_version: str,
+    gold: GoldSet | None = None, gold_version: str | None = None,
+    grounded_countries: int | None = None,
 ) -> dict:
-    """One ``drift.json`` row (and the shape mirrored to ``gold_checks``)."""
-    return {
+    """One ``drift.json`` row (and the shape mirrored to ``gold_checks``).
+
+    ``gold_verified`` counts the compared countries whose gold entry is
+    verified (the rest are drafts, #99); ``gold_version`` names the gold
+    file; ``grounded_countries`` counts the compared countries whose prompt
+    carried verified initiatives (only on grounded runs)."""
+    row = {
         "run_id": run_id,
         "date": run_date.isoformat(),
         "model": model,
@@ -355,6 +371,14 @@ def drift_row(
         "max_dev": metrics.max_dev.delta if metrics.max_dev else None,
         "max_dev_at": metrics.max_dev.to_json() if metrics.max_dev else None,
     }
+    if gold is not None:
+        verified = set(gold.verified())
+        row["gold_verified"] = sum(1 for country in metrics.compared if country in verified)
+    if gold_version is not None:
+        row["gold_version"] = gold_version
+    if grounded_countries is not None:
+        row["grounded_countries"] = grounded_countries
+    return row
 
 
 def load_drift(path: Path) -> dict:
@@ -497,12 +521,17 @@ def check_run(
     prompt_version: str,
     run_date: date,
     mirror: SupabaseMirror | None = None,
+    record: bool = True,
 ) -> GoldCheck | None:
     """Compare the run's raw results with the gold set, append the drift row,
     and mirror it. Returns ``None`` (after a log line) when the gold file is
-    absent or none of the gold countries were in the run. Raises on a
-    malformed gold file or an unwritable drift file; the CLI downgrades that
-    to a warning so the check can never change a run's exit code."""
+    absent or none of the gold countries were in the run. With ``record``
+    off (a ``--countries`` run) the metrics are logged and returned but no
+    row is written: the series holds one row per full run, so a
+    single-country dispatch never plots beside the weekly rows (#99).
+    Raises on a malformed gold file or an unwritable drift file; the CLI
+    downgrades that to a warning so the check can never change a run's exit
+    code."""
     if not settings.gold_set_json.exists():
         logger.info("gold: no gold set at %s - check skipped", settings.gold_set_json)
         return None
@@ -511,10 +540,18 @@ def check_run(
     logger.info(summary_line(metrics, gold))
     if not metrics.compared:
         return None
+    grounded = _grounded_countries(result, metrics) if prompt_version == GROUNDED_PROMPT_VERSION else None
+    if grounded == 0:
+        # Every compared country fell back to the plain prompt.
+        prompt_version = PROMPT_VERSION
     row = drift_row(
         metrics, run_id=result.run_id, run_date=run_date, model=model,
-        prompt_version=prompt_version,
+        prompt_version=prompt_version, gold=gold,
+        gold_version=gold_version(settings.gold_set_json), grounded_countries=grounded,
     )
+    if not record:
+        logger.info("gold: partial run - no drift row written (the series is full runs only)")
+        return GoldCheck(metrics, gold, row)
     append_drift_row(settings.drift_json, row)
     logger.info("gold: drift row appended to %s", settings.drift_json.relative_to(settings.root))
     if mirror is not None:
@@ -523,6 +560,19 @@ def check_run(
         except Exception:
             logger.warning("gold: mirror to gold_checks failed - continuing", exc_info=True)
     return GoldCheck(metrics, gold, row)
+
+
+def _grounded_countries(result: RunResult, metrics: GoldMetrics) -> int:
+    """How many compared gold countries' prompts carried verified
+    initiatives. A grounded run falls back to the plain prompt for a
+    country with no evidence, so the run's prompt version alone overstates
+    the grounding (#99)."""
+    count = 0
+    for country in metrics.compared:
+        provenance = result.raw_results[country].provenance
+        if provenance is not None and provenance.grounded:
+            count += 1
+    return count
 
 
 # -- the model-comparison CLI --------------------------------------------------
@@ -565,7 +615,6 @@ def _compare_cli(
     from .batch import BatchRunner
     from .cli import configure_logging
     from .names import CountryNames
-    from .prompt import PROMPT_VERSION
     from .repository import Dataset
     from .strategies import BatchStrategy, SyncStrategy
 

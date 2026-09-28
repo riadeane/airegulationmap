@@ -657,12 +657,15 @@
   margin-top: 4px;
 }
 
+/* Each entry is a hanging indent: the date sits at the margin as the
+   entry's heading, its changes indented beneath it. */
 .changelog-entry {
-  border-left: 2px solid var(--border);
   padding-left: 12px;
 }
 
 .changelog-date {
+  display: block;
+  margin-left: -12px;
   font-size: 0.72rem;
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
@@ -840,11 +843,11 @@
   }
 }
 
-/* Sub-indicator breakdown (methodology v2 audit trail) */
+/* Sub-indicator breakdown (methodology v2 audit trail). The indent and
+   the caption set it under its dimension row; no rule down the side. */
 .subscore-panel {
   margin: 2px 0 8px;
   padding: 8px 10px 10px 14px;
-  border-left: 2px solid var(--border);
   animation: fadeIn 0.2s var(--ease-out);
 }
 

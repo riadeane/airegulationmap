@@ -17,7 +17,9 @@ npm run preview  # preview production build
 npm run lint       # ESLint (flat config in eslint.config.js)
 npm run typecheck  # tsc --noEmit (strict; tsconfig.json)
 npm test           # Vitest unit tests (tests/*.test.js)
-npm run test:e2e   # Playwright smoke + axe checks (tests/e2e/) against the built preview; run after build
+npm run test:e2e   # Playwright smoke + axe checks (tests/e2e/) against the built preview; run after a build
+                   # made with CI's dummy VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY (see ci.yml), or the
+                   # Supabase specs fail; CI=1 makes it start its own preview instead of reusing port 4173
 ```
 
 Pipeline tests: `pip install -r requirements-dev.txt && python -m pytest` (configured in `pyproject.toml`, tests in `tests/pipeline/`). CI (`.github/workflows/ci.yml`) runs on every push/PR: lint, typecheck, a `madge --circular` import check, Vitest and the build (frontend job); Playwright e2e against the build (e2e job); pytest and `ruff check scripts tests/pipeline` (pipeline job).
@@ -89,7 +91,9 @@ python scripts/update_data.py --grounded
 
 # Supabase dual-write mirror: auto-on when SUPABASE_URL and
 # SUPABASE_SERVICE_KEY are set; force with --mirror / disable with
-# --no-mirror. Mirror failures never fail a run.
+# --no-mirror. Mirror failures never fail a run. If the run's research_runs
+# row cannot be written after 3 attempts, the mirror turns itself off for
+# the run with one warning.
 
 # Stability gate (default on): a score change lands only with new
 # evidence or when it repeats on the next run (a held candidate counts for
@@ -107,13 +111,31 @@ python scripts/update_data.py --no-gate --break-reason "Model switch to Opus 5"
 # --countries names resolve exactly, through the alias map, or
 # case-insensitively; an unknown name exits 1 before any API call.
 
+# Link check (default on): every cited URL is fetched after research; dead
+# ones (404, 410, a not-found page, the dead oecd.ai country-dashboard
+# pattern) are dropped before writing, and a result left with no source is
+# capped at low confidence. Blocked or unreachable URLs are kept. Live pages'
+# titles go to Supabase sources.title.
+python scripts/update_data.py --no-link-check
+
+# Link-rot report over the published CSV (Markdown; the monthly
+# link-check.yml workflow opens or updates a "Dead source links" issue with
+# it), and a one-off fill of sources.title for untitled rows.
+python -m regulation_pipeline.links report
+python -m regulation_pipeline.links titles
+
 # Weekly changes digest (public/digest/): auto-on for scheduled runs
 # (GITHUB_EVENT_NAME=schedule); force with --digest. One Claude request on
-# the run's model; digest failures never fail a run.
+# the run's model; digest failures never fail a run. Files are named by ISO
+# week: only a scheduled run replaces the week's digest; a manual --digest
+# run fills a week that has none (or only "no changes") and otherwise keeps
+# it without a request (#101).
 python scripts/update_data.py --batch --digest
 
 # Regenerate the digest for a past run from Supabase score_history
-# (needs SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY).
+# (needs SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY). It reads the
+# run's calibration break from research_runs.calibration_break (migration
+# 0012) and covers score changes only (the page says so).
 python -m regulation_pipeline.digest --run <research_runs.id>
 
 # Gold set and drift check (always on): after each run the raw results for
@@ -139,6 +161,12 @@ Requires `ANTHROPIC_API_KEY` in environment. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
+
+`requirements.txt` is a pip-compile lock (every package pinned) compiled from
+`requirements.in` (the direct dependencies as ranges), so the weekly run
+installs exactly what CI tested (#98). Edit `requirements.in`, then
+recompile on Python 3.12: `pip-compile --output-file=requirements.txt
+--strip-extras requirements.in`. Dependabot's pip updates recompile it.
 
 ## Architecture
 
@@ -174,7 +202,8 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/data/sourceMeta.ts` | Source titles/types from the sources database |
 | `src/data/slug.ts` | Country page slug and path (`/country/<slug>/`), shared by the app and the page generator |
 | `src/data/countryIso.ts` | `country_iso.json` loading: ISO alpha-2/alpha-3 codes for the panel and print brief, and the ISO numeric -> dataset name index for the map join |
-| `src/map/` | Map rendering (renderer, the HTML legend, zoom, tooltip, low-confidence hatch pattern in `hatch.ts`, the two ramps in `ramp.ts`) |
+| `src/map/` | Map rendering (renderer, the HTML legend, zoom, tooltip, low-confidence hatch pattern in `hatch.ts`, the two ramps in `ramp.ts`, small-state point markers in `smallStates.ts`) |
+| `src/map/smallStates.ts` | Small states (#104): the scored countries the 1:110m atlas has no shape for, drawn as point markers from `small_states.json`. A marker is a `.country` path with a Point geometry (so fill, tooltip, click, selection, comparison, search and filter dimming, the hatch and the no-data/insufficient fills all apply), in `.small-state-layer` above the country hatch with its own `.small-state-hatch-layer` above it; its radius (`SMALL_STATE_RADIUS`, 4 px) and non-scaling stroke keep their screen size at every zoom |
 | `src/map/countryTable.ts` | The map as a table for keyboard and screen-reader users (#139): visually hidden until focus enters it, sortable, roving tabindex |
 | `src/map/geometryNames.ts` | `resolveFeatureNames`: gives each world-atlas geometry the dataset's country name via its ISO numeric id where the atlas name differs ("Dominican Rep.") |
 | `src/panel/` | Country detail panel (scores, text sections, changelog, search results, policy initiatives, evidence coverage: `evidence.ts` renders the sentence under the confidence line and links to the Policy Initiatives section) |
@@ -186,7 +215,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/charts/drift.ts` | The drift dashboard's D3 small multiples (token-driven palette, hover tooltips); `src/drift.ts` is the `drift.html` entry |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
-**State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
+**State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()`; only `src/state/` calls `setState(patch)`, and every other module writes through an intent in `src/state/interactions.ts` (data loaders through `receiveData`; `tests/singleWriter.test.js` enforces it, #150). The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
 
 **Data flow:**
 1. `main.ts` loads `scores.csv` and `regulation_data.csv` in parallel via `Promise.all`
@@ -199,7 +228,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 Python package that calls the Claude API to research regulation status per country. Full architecture write-up with mermaid diagrams (layering, run sequence, domain model, strategy/repository patterns, staleness, batch lifecycle, retry) lives in [`scripts/regulation_pipeline/README.md`](scripts/regulation_pipeline/README.md). Layered around a few design patterns so the concerns stay separated and testable:
 
 - **Domain models** (`models.py`) - pydantic v2 `ResearchResult` is the single source of truth: it generates the structured-output JSON schema, validates responses, and computes dimension means / the composite (the implementation index) / confidence. Sub-indicator field names live in exactly one place.
-- **Repository** (`repository.py`) - `Dataset` owns the five data stores that always travel together (scores/regulation/history/subscores/pending); loads, applies a validated result, and saves them atomically (temp file + `os.replace`).
+- **Repository** (`repository.py`) - `Dataset` owns the five data stores that always travel together (scores/regulation/history/subscores/pending); loads, applies a validated result, and saves them as a set (all five temp files written and fsynced, then renamed back to back). On load the CLI checks that every country's latest history snapshot matches `scores.csv` (`consistency_errors`) and stops before researching if a save was interrupted between renames (#149).
 - **Strategy** (`strategies.py`) - `ResearchStrategy` with `SyncStrategy` and `BatchStrategy` behind one generator interface, so the orchestrator treats sync and batch identically.
 - **Service** (`service.py`) - `PipelineService` orchestrates selection → research → validation → persistence, with no CLI/exit-code concerns, so it is unit-testable with a fake strategy.
 - **Settings** (`config.py`) - paths are anchored to the repo root via `pathlib` (not the CWD) and injectable, so tests redirect all I/O to a temp dir.
@@ -212,15 +241,17 @@ Python package that calls the Claude API to research regulation status per count
 | `repository.py` | `Dataset` repository - load/apply/validate/atomic-save the five stores |
 | `strategies.py` | `ResearchStrategy` ABC + `SyncStrategy` / `BatchStrategy` |
 | `api.py` | `ResearchClient` - request params + response parsing (Claude transport); resumes `pause_turn` responses (web search's server-side loop limit) up to 3 times, and rejects `max_tokens`/`refusal` answers with the stop reason logged |
-| `batch.py` | `BatchRunner` - Message Batches submit/poll/classify (50% token pricing). Every call goes through the retry policy; one 4h wait budget covers all batches of a run (the job has 355 min); follow-up batches resubmit transient failures once and continue `pause_turn` results (up to 3 rounds); already-billed results are never resubmitted |
+| `batch.py` | `BatchRunner` - Message Batches submit/poll/classify (50% token pricing). Every call goes through the retry policy; one 4h wall-clock wait budget, counted from the first submit, covers all batches of a run (the job has 355 min); a submit that needed retries cancels the orphaned batch a lost response left running; follow-up batches resubmit transient failures once and continue `pause_turn` results (up to 3 rounds); already-billed results are never resubmitted |
 | `retry.py` | Reusable transient-error retry policy (backoff, Retry-After capped at 120s; 400/413/422 fail the one request, other 4xx are fatal) |
 | `prompt.py` | Research prompt template + rendering |
 | `config.py` | `Settings` (repo-root paths) + constants (CSV fields, staleness threshold, site URL, default model) |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - evidence and persistence rules for score changes |
 | `digest.py` | Weekly digest: selects a run's gate-applied changes, one structured-output Claude request, writes `public/digest/` (week JSON, index, Atom feed); `python -m regulation_pipeline.digest --run <id>` regenerates from Supabase |
+| `consistency.py` | Post-run EU consistency check (#95): lists EU members whose `regulation_status.binding_force` or `ai_specificity` (fixed by the AI Act for every member) differs from the EU's most common score, as `eu:` log lines and a step-summary table. Never changes a score |
+| `links.py` | Source link check (#92): `LinkChecker` fetches each cited URL once per run and drops dead ones (404/410, a redirect to or a 200 not-found page, known-bad patterns) before gating; 401/403/429/5xx/timeouts stay. Reads live pages' titles for `sources.title` (#143). `python -m regulation_pipeline.links report|titles` |
 | `gold.py` | Gold set and drift check: loads `gold_set.json`, compares a run's raw (ungated) results with it (`compare`, pure), appends `drift.json`, mirrors `gold_checks`, step-summary block; `python -m regulation_pipeline.gold --model <id>` is the model-comparison CLI |
-| `history.py` | History snapshot append/change-detection: a snapshot is a change-point (an unchanged re-research leaves history alone; a same-day re-run supersedes that day's snapshot); `calibration_due` for the rubric guard |
+| `history.py` | History snapshot append/change-detection: a snapshot is a change-point in the scores or the confidence (an unchanged re-research leaves history alone; a same-day re-run supersedes that day's snapshot; a gate-held result with a new confidence appends a snapshot copying the held scores); `calibration_due` for the rubric guard |
 | `names.py` | `CountryNames` - country-name normalization via alias map |
 | `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
 | `db/` | Supabase layer: `client.py` (httpx PostgREST wrapper), `mirror.py` (dual-write with run provenance), `seed.py` (one-shot bootstrap CLI) |
@@ -235,15 +266,16 @@ Python package that calls the Claude API to research regulation status per count
 |------|---------|
 | `public/scores.csv` | Numeric scores (1–5) for 6 dimensions per country; an empty cell is "insufficient evidence" (rubric v3.1), distinct from a country with no row ("no data") |
 | `public/regulation_data.csv` | Text descriptions, laws, source URLs, confidence, last_updated |
-| `public/history.json` | Change-point score snapshots per country (a dimension or `averageScore` may be `null`, insufficient evidence; a snapshot's `date` is the run that produced those scores; the timeline, changelog, "This week" strip and drift dashboard all read it that way), plus `breaks` (calibration breaks: `{date, model, prompt_version, rubric, reason, complete}`, recorded only when the run applied something; `complete: false` means some countries kept older-rubric scores, so the rubric guard still treats the switch as due; the June 2026 methodology v2 break is the first) |
+| `public/history.json` | Change-point score snapshots per country (a dimension or `averageScore` may be `null`, insufficient evidence; a snapshot's `date` is the run that produced those scores; the timeline, changelog, "This week" strip and drift dashboard all read it that way; each snapshot also records the run's `confidence`, and a confidence-only change appends a snapshot with the same scores, which the changelog, strip and dashboard skip; snapshots from before September 2026 carry no `confidence` and are not backfilled), plus `breaks` (calibration breaks: `{date, model, prompt_version, rubric, reason, complete}`, recorded only when the run applied something; `complete: false` means some countries kept older-rubric scores, so the rubric guard still treats the switch as due; the June 2026 methodology v2 break is the first) |
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
 | `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1, `score: null` for insufficient evidence since rubric v3.1), plus the `evidence` record of each country's latest research pass (PRD 14; absent = no run record yet) |
-| `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`; a candidate score may be `null`) |
+| `public/data/pending.json` | The stability gate's state: `pending`, the score candidates it held for one run (`{country, candidate_scores, first_seen}`; a candidate score may be `null`), and `seen_sources`, every source URL each country has cited (normalised), so a re-cited URL is not new evidence |
 | `public/data/gold_set.json` | Gold sub-indicator scores for ten countries across the range of the implementation index: 20 scores, a justification per dimension, sources, and `status` (`draft` until the maintainer verifies, then `verified` + `verified_on`). All ten are drafts awaiting the maintainer's hand-check (September 2026). Validated by `gold.load_gold_set` |
-| `public/data/drift.json` | One row per run from the gold-set drift check: `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, bias_by_dimension, within_one, max_dev, max_dev_at}`; `bias_by_dimension` is the mean signed error (run minus gold), absent on rows from before #163. Mirrored to Supabase `gold_checks` |
+| `public/data/drift.json` | One row per full run from the gold-set drift check (a `--countries` run logs the metrics but writes no row, #99): `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, bias_by_dimension, within_one, max_dev, max_dev_at, gold_verified, gold_version, grounded_countries?}`; `bias_by_dimension` is the mean signed error (run minus gold), absent on rows from before #163; `gold_verified` counts the compared countries whose gold entry was verified (the rest were drafts) and `gold_version` is the first 12 hex digits of the gold file's SHA-256; a grounded run adds `grounded_countries` and records the plain prompt version when every compared country fell back to it. The drift dashboard marks rows computed against drafts. Mirrored to Supabase `gold_checks` (the gold-set columns need migration 0013; until then the row is written without them) |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 | `public/data/countries-110m.json` | Self-hosted world-atlas TopoJSON (Natural Earth 1:110m) the map draws; geometry ids are ISO 3166-1 numeric, and the map joins them to dataset names through `country_iso.json` |
+| `public/data/small_states.json` | One `[lon, lat]` per scored country with no shape in `countries-110m.json` (29 small states: Singapore, Malta, Bahrain, Pacific and Caribbean island states), keyed by ISO numeric `id`; the map draws each as a point marker. Generated by `npx tsx scripts/build_small_states.ts` (the centroid of the country's largest polygon in world-atlas 2.0.2's 1:50m file, 1:10m for Tuvalu; Kiribati uses Tarawa); never edit by hand. `tests/smallStates.test.js` and `tests/pipeline/test_country_iso.py` fail when a scored country has neither a shape nor a point |
 | `public/openapi.json` | Committed snapshot of PostgREST's OpenAPI output; drives the Swagger UI at `api-docs.html` (Supabase serves the live spec endpoint only to secret keys, so the browser can never fetch it) |
 | `public/digest/` | Weekly changes digest: `YYYY-Www.json` per run week, `index.json` (weeks, newest first), `feed.xml` (Atom). Written by the pipeline after scheduled runs; rendered by `changes.html` |
 | `public/data/country_slugs.json` | Slug -> canonical name for the static country pages; generated by `scripts/build_pages.ts`, committed so API consumers can resolve `/country/<slug>/` |
@@ -314,12 +346,15 @@ largest moves with app deep links. Sources: `history.json` (movement, via
 `computeChangelog`), `regulation_data.csv` (confidence), `data/drift.json`,
 `data/blocs.json`. Aggregations live in `src/data/drift.ts` (pure, tested in
 `tests/drift.test.js`); charts in `src/charts/drift.ts` read the tokens at
-render time (`cssVar`), use one single-hue ramp off `--score-high` for
-ordered series and neutral tints for the rest, and re-render on theme
-change and resize. Every figure has a caption with the key numbers and a
-"Show as a table" twin. The page renders with any source missing (each
-figure has an empty state). Linked from the app header menu, `data.html`
-and `changes.html`; listed in the sitemap.
+render time (`cssVar`), use one single-hue ramp off `--ramp-impl-high`
+(the map's implementation ramp; `src/drift.ts` imports
+`src/styles/_tokens.css`; the inline mirror in `drift.html` carries no
+score tokens, `tests/driftTokens.test.js`) for ordered series and neutral
+tints for the rest, and re-render on theme change and resize. Every
+figure has a caption with the key numbers and a "Show as a table" twin.
+The page renders with any source missing (each figure has an empty
+state). Linked from the app header menu, `data.html` and `changes.html`;
+listed in the sitemap.
 
 ### Static country pages (`scripts/build_pages.ts`)
 
@@ -348,9 +383,12 @@ dual-write mirror on every run (`db/mirror.py`; failures never fail a run).
 The frontend reads Supabase only as progressive enhancement: post-boot
 hydration when the DB is strictly newer, source titles, and the per-country
 Policy Initiatives panel section - all of which degrade to today's behavior
-when unconfigured or unreachable. Source titles are a read path only so far:
-`src/data/sourceMeta.ts` fetches rows with a title, but no code in the
-repository writes `sources.title` yet, so the panel shows hostnames. Schema
+when unconfigured or unreachable. Source titles: the pipeline's link check reads each live cited page's
+title (`og:title`, else `<title>`) and the mirror writes it to
+`sources.title` (an untitled row never overwrites a stored title);
+`python -m regulation_pipeline.links titles` (or the link-check workflow's
+`titles` dispatch) fills rows from before. `src/data/sourceMeta.ts` reads
+them, and the panel shows hostnames for untitled sources. Schema
 migrations live in `supabase/migrations/`; RLS is public-SELECT everywhere, writes via the
 service role only. Researcher-facing docs live at `public/data.html` (static
 overview: downloads, endpoint table, recipe links) and `api-docs.html`
@@ -437,7 +475,7 @@ type score (#96, display only). The header folds its page links (below
 legend, bloc card, tooltip, explainer or static page score sections; the
 methodology keeps one history note on the old name.
 
-**Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` was `v3-2026-09` for the rubric switch, `v3.1-2026-09` once the v2.1 rationale field changed the output structure, `v3.2-2026-09` once the existing-data block also showed the Enforcement Level text (context only; same rubric), and is `v3.3-2026-09` for rubric v3.1.
+**Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` was `v3-2026-09` for the rubric switch, `v3.1-2026-09` once the v2.1 rationale field changed the output structure, `v3.2-2026-09` once the existing-data block also showed the Enforcement Level text (context only; same rubric), `v3.3-2026-09` for rubric v3.1, and is `v3.4-2026-09` once the existing-data block also showed the current Specific Laws and Sources, with style and source rules (#88, #92, #141; context only, same rubric v3.1, so no break).
 
 **Rubric v3.1 (September 2026, #162):** the v3 anchors plus an insufficient-evidence value. A sub-indicator score is `null` when no source confirms either the presence or the absence of what it asks about (the rationale then says what was searched); a 1 needs positive evidence of absence. The "give the lower level" tie-break applies only when evidence supports both levels. Downstream: a dimension is the mean of its numeric sub-indicators, `None` when two or more are null; the implementation index (`averageScore`) is the mean of the scored normative dimensions, `None` with fewer than two; any unscored dimension caps confidence at `low` (so staleness re-researches it). Files: `scores.csv` writes an empty cell, `history.json` and `pending.json` hold `null`, `subscores.json` holds `{"score": null, "rationale": ...}`; the gate treats a move to or from null as a score change (always on the review list); the digest and changelog print "insufficient evidence" with no direction. Frontend: `isInsufficient(value)` and `INSUFFICIENT_EVIDENCE_LABEL` in `src/constants.ts` are the one test (read values as `entry?.[key]` so a missing row stays `undefined`, "no data"); the map paints `--score-insufficient` (`src/map/fill.ts`, never the colour for 1), and the legend adds an "Insufficient evidence" key only while a shown country is in that state; with the score range at the full scale such a country stays visible, with a narrowed range it is filtered out. `RUBRIC_VERSION = "v3.1"` is what the rubric guard compares. The switch is recorded as a calibration break in `history.json` (`breaks`) by the first full forced run (automatically, via the guard), which the timeline marks and the changelog labels as "Recalibration"; no v3 break was ever recorded, so that one break covers v2 to v3.1. Until that run lands, all scores are rubric v2.
 
@@ -445,7 +483,7 @@ methodology keeps one history note on the old name.
 
 ### Automated Updates
 
-`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`). If main moved during the run the commit is rebased and retried, and if it still fails every output file is uploaded as a workflow artifact; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
+`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`). If main moved during the run the commit is rebased and retried, and if it still fails every output file is uploaded as a workflow artifact; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Before committing, it builds the site and runs the unit tests on the new data (data commits pushed with `GITHUB_TOKEN` never trigger CI); a failure keeps the data as an artifact instead of pushing it. After a push it runs the Playwright suite, so a data change that breaks e2e turns that run red the same day. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer. `.github/workflows/link-check.yml` runs monthly (and on dispatch): it checks every URL in `regulation_data.csv` and opens or updates one "Dead source links" issue (label `data`); a dispatch with `titles` also fills Supabase `sources.title`.
 
 ### Deployment
 

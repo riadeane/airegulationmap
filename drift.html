@@ -46,8 +46,10 @@
 
   <style>
     /* Tokens: mirror of the main app's _tokens.css, trimmed to what this
-       page uses (plus the score and no-data tints the charts read). Kept
-       inline so the prose renders even if the bundle is unavailable.
+       page uses (plus the no-data tint the charts read). Kept inline so
+       the prose renders even if the bundle is unavailable. The charts'
+       ramp (--ramp-impl-high) is not copied here: the bundle imports
+       _tokens.css itself (src/drift.ts), so it is the map's own value.
        --text-tertiary follows _tokens.css (52% light / 62% dark) so the
        small chart labels clear WCAG AA. */
     :root {
@@ -70,8 +72,7 @@
       --accent-muted:    oklch(76% 0.13 var(--brand-hue) / 0.14);
 
       --no-data:         oklch(26% 0.007 var(--brand-hue));
-      --score-low:       oklch(58% 0.16 28);
-      --score-high:      oklch(62% 0.13 245);
+      --shadow-color:    oklch(10% 0.01 var(--brand-hue));
 
       color-scheme: dark;
     }
@@ -80,7 +81,7 @@
       :root:not([data-theme]) {
         --bg:              oklch(98% 0.003 80);
         --surface:         oklch(99.5% 0.002 80);
-        --surface-raised:  oklch(100% 0 0);
+        --surface-raised:  oklch(99.8% 0.0015 80);
         --border:          oklch(88% 0.008 80);
         --border-subtle:   oklch(94% 0.004 80);
         --text-primary:    oklch(20% 0.013 80);
@@ -89,8 +90,7 @@
         --accent:          oklch(48% 0.16 60);
         --accent-muted:    oklch(48% 0.16 60 / 0.10);
         --no-data:         oklch(93% 0.004 80);
-        --score-low:       oklch(52% 0.18 28);
-        --score-high:      oklch(45% 0.15 245);
+        --shadow-color:    oklch(20% 0.015 80);
         color-scheme: light;
       }
     }
@@ -98,7 +98,7 @@
     :root[data-theme='light'] {
       --bg:              oklch(98% 0.003 80);
       --surface:         oklch(99.5% 0.002 80);
-      --surface-raised:  oklch(100% 0 0);
+      --surface-raised:  oklch(99.8% 0.0015 80);
       --border:          oklch(88% 0.008 80);
       --border-subtle:   oklch(94% 0.004 80);
       --text-primary:    oklch(20% 0.013 80);
@@ -107,8 +107,7 @@
       --accent:          oklch(48% 0.16 60);
       --accent-muted:    oklch(48% 0.16 60 / 0.10);
       --no-data:         oklch(93% 0.004 80);
-      --score-low:       oklch(52% 0.18 28);
-      --score-high:      oklch(45% 0.15 245);
+      --shadow-color:    oklch(20% 0.015 80);
       color-scheme: light;
     }
 
@@ -286,18 +285,19 @@
       text-align: center;
     }
 
-    /* Print: strip chrome, inline everything, use black-on-white. */
+    /* Print: strip chrome, inline everything, near-black ink on near-white
+       paper, tinted like the print brief (_print.css). */
     @media print {
-      body { background: white; color: black; font-size: 11pt; }
+      body { background: oklch(99.5% 0.002 80); color: oklch(16% 0.012 80); font-size: 11pt; }
       header.site-header, footer.site-footer { display: none; }
       main.doc { max-width: none; margin: 0; padding: 0; }
-      h1.doc-title, h2, h3 { color: black; }
+      h1.doc-title, h2, h3 { color: oklch(16% 0.012 80); }
       p, li { color: #222; }
-      a { color: black; text-decoration: none; }
+      a { color: oklch(16% 0.012 80); text-decoration: none; }
       a[href]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #555; }
       .rubric { border-color: #bbb; }
       .rubric-row { border-color: #ddd; }
-      .rubric-score { color: black; }
+      .rubric-score { color: oklch(16% 0.012 80); }
       .callout { background: #f2f2f2; }
     }
 
@@ -495,7 +495,7 @@
       pointer-events: none;
       font-family: 'Geist', -apple-system, sans-serif;
       font-size: 0.78rem;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 28px color-mix(in oklch, var(--shadow-color) 25%, transparent);
       color: var(--text-secondary);
       max-width: 260px;
       z-index: 200;

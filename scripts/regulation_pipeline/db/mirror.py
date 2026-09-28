@@ -9,13 +9,16 @@ Design constraints (see the service for the call sites):
   a run. The static files stay authoritative for the frontend's boot path.
 * ``record`` buffers; ``finish`` flushes in one burst - the network cost is
   paid once, after ``dataset.save()`` has already secured the files.
-* ``score_history`` is replaced per recorded country rather than appended:
-  ``history.py`` advances the last snapshot's date in place when scores are
-  unchanged, so an append-only mirror would drift from the file. A snapshot
-  that already existed keeps its original ``run_id``; only snapshots with
-  new scores get this run's id. ``run_id`` therefore means "the run that
-  introduced this change point", which is what the weekly digest's
-  ``--run <id>`` regeneration relies on.
+* ``score_history`` is synced per recorded country to the file's snapshots
+  rather than appended: a same-day re-run supersedes that day's snapshot
+  (``history.py``), so an append-only mirror would drift from the file. The
+  sync upserts every snapshot on ``(country_id, snapshot_date)`` first and
+  only then deletes the rows whose dates the file no longer has, so a
+  failed write never leaves a country with less history than before. A
+  snapshot that already existed keeps its original ``run_id`` (matched by
+  date and scores); only new snapshots get this run's id. ``run_id``
+  therefore means "the run that introduced this change point", which is
+  what the weekly digest's ``--run <id>`` regeneration relies on.
 * The evidence columns of ``country_scores`` (``grounded``,
   ``initiatives_used``, ``web_search``) come from the ``evidence`` block of
   the subscores entry the service hands over, so the database says exactly
@@ -26,18 +29,26 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Protocol
 
+import httpx
+
 from ..models import ResearchResult
 from ..repository import EVIDENCE_KEY, split_subscores_entry
 from ..sources import classify_sources
-from .client import SupabaseClient
+from .client import SupabaseClient, SupabaseError
 
 logger = logging.getLogger(__name__)
+
+# research_runs row insert: attempts and linear backoff (seconds).
+BEGIN_ATTEMPTS = 3
+BEGIN_BACKOFF_SECONDS = 5.0
 
 
 @dataclass(frozen=True)
@@ -62,7 +73,8 @@ class Mirror(Protocol):
     ) -> None: ...
 
     def finish(
-        self, updated: int, failed: int, fatal: bool, *, gate_counts: dict[str, int] | None = None,
+        self, updated: int, failed: int, fatal: bool, *,
+        gate_counts: dict[str, int] | None = None, calibration_break: dict | None = None,
     ) -> None: ...
 
 
@@ -88,6 +100,7 @@ class SupabaseMirror:
         *,
         iso_path: Path | None = None,
         usage_provider=None,
+        sleep: Callable[[float], None] = time.sleep,
     ):
         self._client = client
         self._meta = meta
@@ -95,6 +108,8 @@ class SupabaseMirror:
         self._iso = _load_iso(iso_path)
         self._run_id = str(uuid.uuid4())
         self._entries: list[_Entry] = []
+        self._disabled = False
+        self._sleep = sleep
 
     @property
     def run_id(self) -> str:
@@ -105,7 +120,11 @@ class SupabaseMirror:
     # -- Mirror protocol -----------------------------------------------------
 
     def begin(self, attempted: int) -> None:
-        self._client.insert("research_runs", [{
+        """Insert the run's ``research_runs`` row, retrying a transient
+        failure. Every later write references this row, so if it cannot be
+        written the mirror turns itself off for the run with one warning,
+        instead of failing each later write on the foreign key (#149)."""
+        row = {
             "id": self._run_id,
             "trigger": self._meta.trigger,
             "model": self._meta.model,
@@ -114,7 +133,31 @@ class SupabaseMirror:
             "grounded": self._meta.grounded,
             "git_sha": self._meta.git_sha,
             "countries_attempted": attempted,
-        }])
+        }
+        for attempt in range(1, BEGIN_ATTEMPTS + 1):
+            try:
+                self._client.insert("research_runs", [row])
+                return
+            except (SupabaseError, httpx.HTTPError) as exc:
+                if attempt == BEGIN_ATTEMPTS:
+                    self._disabled = True
+                    logger.warning(
+                        "mirror: could not record run %s after %d attempts (%s) - the "
+                        "Supabase mirror is off for this run; the data files are unaffected",
+                        self._run_id, BEGIN_ATTEMPTS, exc,
+                    )
+                    return
+                delay = BEGIN_BACKOFF_SECONDS * attempt
+                logger.warning(
+                    "mirror: recording run %s failed (%s) - retrying in %.0fs",
+                    self._run_id, exc, delay,
+                )
+                self._sleep(delay)
+
+    @property
+    def disabled(self) -> bool:
+        """True once :meth:`begin` gave up: record/finish/gold writes are skipped."""
+        return self._disabled
 
     def record(
         self, country: str, result: ResearchResult, today: date,
@@ -123,11 +166,16 @@ class SupabaseMirror:
         """Buffer one country. ``scores_row`` and ``subscores`` are what the
         dataset holds AFTER the stability gate, so a held result mirrors the
         unchanged scores while the text fields still refresh."""
+        if self._disabled:
+            return
         self._entries.append(_Entry(country, result, today, scores_row, subscores, history))
 
     def finish(
-        self, updated: int, failed: int, fatal: bool, *, gate_counts: dict[str, int] | None = None,
+        self, updated: int, failed: int, fatal: bool, *,
+        gate_counts: dict[str, int] | None = None, calibration_break: dict | None = None,
     ) -> None:
+        if self._disabled:
+            return
         if self._entries:
             self._flush()
         usage = self._usage_provider() if self._usage_provider else {}
@@ -139,10 +187,26 @@ class SupabaseMirror:
             "est_cost_usd": usage.get("est_cost_usd"),
             "notes": _notes(fatal, gate_counts, usage.get("searches")),
         }, {"id": f"eq.{self._run_id}"})
+        if calibration_break is not None:
+            self._record_break(calibration_break)
         logger.info(
             "mirror: run %s recorded (%d countries mirrored, fatal=%s)",
             self._run_id, len(self._entries), fatal,
         )
+
+    def _record_break(self, entry: dict) -> None:
+        """Write the run's calibration break to ``research_runs`` in its own
+        request, so a database without migration 0012 loses only the break,
+        never the run's counts and finish time."""
+        try:
+            self._client.update(
+                "research_runs", {"calibration_break": dict(entry)}, {"id": f"eq.{self._run_id}"},
+            )
+        except SupabaseError:
+            logger.warning(
+                "mirror: calibration break not recorded on run %s (is migration "
+                "0012_research_runs_calibration_break.sql applied?)", self._run_id, exc_info=True,
+            )
 
     # -- gold-set drift check --------------------------------------------------
 
@@ -151,7 +215,23 @@ class SupabaseMirror:
         ``gold_checks``. Called by the CLI after ``finish``, outside the
         service, so it is not part of the :class:`Mirror` protocol; the CLI
         downgrades a failure to a warning like every other mirror call."""
-        self._client.insert("gold_checks", [_gold_check_row(row)])
+        if self._disabled:
+            return
+        full = _gold_check_row(row)
+        try:
+            self._client.insert("gold_checks", [full])
+        except SupabaseError:
+            # Migration 0013 adds the gold-set columns; before it is applied
+            # the insert fails on them, so the check still lands without.
+            legacy = {k: v for k, v in full.items() if k not in _GOLD_SET_COLUMNS}
+            if legacy == full:
+                raise
+            logger.warning(
+                "mirror: gold_checks has no %s columns (is migration "
+                "0013_gold_checks_gold_set.sql applied?) - row written without them",
+                "/".join(_GOLD_SET_COLUMNS),
+            )
+            self._client.insert("gold_checks", [legacy])
 
     # -- flush ----------------------------------------------------------------
 
@@ -166,40 +246,34 @@ class SupabaseMirror:
         self._client.upsert("country_scores", scores_rows, on_conflict="country_id")
         self._client.upsert("country_summaries", summary_rows, on_conflict="country_id")
 
-        # History: replace-per-country (delete + insert the file's snapshots),
-        # keeping the run id of every snapshot that already existed.
+        # History: sync each country to the file's snapshots, keeping the run
+        # id of every snapshot that already existed. Upsert first, prune
+        # after: a failure part-way leaves the old rows in place (#89).
         for e in self._entries:
             cid = country_ids[e.country]
-            prior_run_ids = self._prior_run_ids(cid)
-            self._client.delete("score_history", {"country_id": f"eq.{cid}"})
-            rows = []
-            for snap in e.history:
-                scores = {k: v for k, v in snap.items() if k != "date"}
-                rows.append({
-                    "country_id": cid,
-                    "snapshot_date": snap["date"],
-                    "scores": scores,
-                    "run_id": prior_run_ids.get(_scores_key(scores), self._run_id),
+            prior = self._prior_history(cid)
+            rows = _history_rows(cid, e.history, prior, self._run_id)
+            if not rows:
+                continue  # never wipe a country's database history
+            self._client.upsert("score_history", rows, on_conflict="country_id,snapshot_date")
+            kept = {r["snapshot_date"] for r in rows}
+            stale = sorted({r["snapshot_date"] for r in prior} - kept)
+            if stale:
+                self._client.delete("score_history", {
+                    "country_id": f"eq.{cid}",
+                    "snapshot_date": "in.(" + ",".join(stale) + ")",
                 })
-            self._client.insert("score_history", rows)
 
         self._sync_sources(country_ids)
 
-    def _prior_run_ids(self, country_id: str) -> dict[str, str]:
-        """Map ``scores json -> run_id`` for the country's existing snapshot
-        rows. Keyed by scores, not date: before September 2026 an unchanged
-        snapshot's date advanced on every re-research, so rows written then
-        can carry a different date from the file's."""
-        rows = self._client.select_all("score_history", {
-            "select": "scores,run_id",
-            "order": "id",
+    def _prior_history(self, country_id: str) -> list[dict]:
+        """The country's existing ``score_history`` rows
+        (``snapshot_date``, ``scores``, ``run_id``), oldest first."""
+        return self._client.select_all("score_history", {
+            "select": "snapshot_date,scores,run_id",
+            "order": "snapshot_date",
             "country_id": f"eq.{country_id}",
         })
-        return {
-            _scores_key(r["scores"]): r["run_id"]
-            for r in rows
-            if r.get("run_id") and isinstance(r.get("scores"), dict)
-        }
 
     def _resolve_country_ids(self, names: list[str]) -> dict[str, str]:
         rows = self._client.select_all("countries", {"select": "id,name", "order": "id"})
@@ -218,17 +292,27 @@ class SupabaseMirror:
         by_url: dict[str, dict] = {}
         links: list[tuple[str, str]] = []
         for e in self._entries:
+            titles = e.result.source_titles
             for src in classify_sources(e.result.sources):
-                by_url.setdefault(src.url, {
+                row = by_url.setdefault(src.url, {
                     "url": src.url, "domain": src.domain,
                     "source_type": src.source_type, "last_seen": now,
                 })
+                if titles.get(src.url):
+                    row["title"] = titles[src.url]
                 links.append((e.country, src.url))
         if not by_url:
             return
         # first_seen is deliberately not supplied: the DB default applies on
-        # insert, and merge-duplicates only updates supplied columns.
-        self._client.upsert("sources", list(by_url.values()), on_conflict="url")
+        # insert, and merge-duplicates only updates supplied columns. A bulk
+        # request sends one column set for every row, so titled rows (the
+        # link check read the page) go in their own request; an untitled row
+        # never overwrites a stored title with null.
+        titled = [row for row in by_url.values() if "title" in row]
+        untitled = [row for row in by_url.values() if "title" not in row]
+        for rows in (titled, untitled):
+            if rows:
+                self._client.upsert("sources", rows, on_conflict="url")
         source_ids = {
             r["url"]: r["id"]
             for r in self._client.select_all("sources", {"select": "id,url", "order": "id"})
@@ -353,11 +437,59 @@ def _gold_check_row(row: dict) -> dict:
         "within_one": row["within_one"],
         "max_dev": row["max_dev"],
         "max_dev_at": row["max_dev_at"],
+        # #99: rows written before these existed carry none; all nullable.
+        **{column: row.get(column) for column in _GOLD_SET_COLUMNS},
     }
 
 
+# gold_checks columns added by migration 0013 (#99).
+_GOLD_SET_COLUMNS = ("gold_verified", "gold_version", "grounded_countries")
+
+
+def _history_rows(
+    country_id: str, snapshots: list[dict], prior: list[dict], run_id: str,
+) -> list[dict]:
+    """``score_history`` rows for a country's file snapshots, each carrying
+    the run that introduced it.
+
+    A snapshot keeps the ``run_id`` of the existing row with the same date
+    and scores. Rows written before September 2026 can carry a date the file
+    no longer has (an unchanged snapshot's date used to advance on every
+    re-research), so a snapshot with no exact match takes the run id of an
+    existing row with equal scores whose date the file does not have, each
+    such row at most once and oldest first. Rows whose date the file still
+    has never match loosely, so a score that reverts (A, B, then A again)
+    is a new change point with this run's id, not the first A's."""
+    file_dates = {s["date"] for s in snapshots}
+    exact: dict[tuple[str, str], str] = {}
+    loose: dict[str, list[str]] = {}
+    for row in prior:
+        if not row.get("run_id") or not isinstance(row.get("scores"), dict):
+            continue
+        key = _scores_key(row["scores"])
+        day = str(row.get("snapshot_date"))
+        exact[(day, key)] = row["run_id"]
+        if day not in file_dates:
+            loose.setdefault(key, []).append(row["run_id"])
+
+    rows = []
+    for snap in sorted(snapshots, key=lambda s: s["date"]):
+        scores = {k: v for k, v in snap.items() if k != "date"}
+        key = _scores_key(scores)
+        introduced = exact.get((snap["date"], key))
+        if introduced is None and loose.get(key):
+            introduced = loose[key].pop(0)
+        rows.append({
+            "country_id": country_id,
+            "snapshot_date": snap["date"],
+            "scores": scores,
+            "run_id": introduced or run_id,
+        })
+    return rows
+
+
 def _scores_key(scores: dict) -> str:
-    """A stable identity for a snapshot's score set (see ``_prior_run_ids``)."""
+    """A stable identity for a snapshot's score set (see ``_history_rows``)."""
     return json.dumps(scores, sort_keys=True, separators=(",", ":"))
 
 

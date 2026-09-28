@@ -4,7 +4,7 @@
 // Only rows that actually carry a title are fetched - most don't until
 // the enrichment job runs, and hostnames need no help.
 
-import { setState } from '../state/store';
+import { receiveData } from '../state/interactions';
 import type { SourceMeta } from './sources';
 import { restGet } from './supabase';
 
@@ -16,5 +16,5 @@ export async function loadSourceMeta(): Promise<void> {
     if (!row.url) continue;
     meta[row.url] = { title: row.title ?? null, sourceType: row.source_type ?? null };
   }
-  if (Object.keys(meta).length > 0) setState({ sourceMeta: meta });
+  if (Object.keys(meta).length > 0) receiveData({ sourceMeta: meta });
 }

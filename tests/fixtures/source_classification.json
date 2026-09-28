@@ -1,0 +1,179 @@
+{
+  "_comment": "Shared contract for the two source classifiers (src/data/sources.ts and scripts/regulation_pipeline/sources.py, #97). Both test suites read this file: for each url, the TypeScript hostname and the Python domain must equal `hostname`, and both kinds must equal `kind`. Add a case here, not in one suite.",
+  "cases": [
+    {
+      "url": "https://www.legislation.gov.uk/ukpga/2018/12",
+      "hostname": "legislation.gov.uk",
+      "kind": "official",
+      "note": "a government TLD"
+    },
+    {
+      "url": "HTTPS://WWW.Gov.UK/x",
+      "hostname": "gov.uk",
+      "kind": "official",
+      "note": "case folds; www. stripped"
+    },
+    {
+      "url": "https://user@gov.uk/x",
+      "hostname": "gov.uk",
+      "kind": "official",
+      "note": "userinfo is not the host"
+    },
+    {
+      "url": "https://gov.uk:443/x",
+      "hostname": "gov.uk",
+      "kind": "official",
+      "note": "a port is not the host"
+    },
+    {
+      "url": "https://gov.uk?x=1",
+      "hostname": "gov.uk",
+      "kind": "official",
+      "note": "a query right after the host"
+    },
+    {
+      "url": "https://gov.uk#frag",
+      "hostname": "gov.uk",
+      "kind": "official",
+      "note": "a fragment right after the host"
+    },
+    {
+      "url": " https://gov.uk/x ",
+      "hostname": "gov.uk",
+      "kind": "official",
+      "note": "surrounding whitespace is trimmed"
+    },
+    {
+      "url": "ftp://gov.uk/x",
+      "hostname": "gov.uk",
+      "kind": "official",
+      "note": "any scheme with //"
+    },
+    {
+      "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+      "hostname": "eur-lex.europa.eu",
+      "kind": "official",
+      "note": "EU institutions are official"
+    },
+    {
+      "url": "https://valtioneuvosto.fi/en/-/ai",
+      "hostname": "valtioneuvosto.fi",
+      "kind": "official",
+      "note": "OFFICIAL_HOSTS"
+    },
+    {
+      "url": "https://iapp.org/resources/article/ai",
+      "hostname": "iapp.org",
+      "kind": "other",
+      "note": "secondary commentary"
+    },
+    {
+      "url": "https://bücher.de/a",
+      "hostname": "xn--bcher-kva.de",
+      "kind": "other",
+      "note": "an IDN host is punycode in both"
+    },
+    {
+      "url": "https://faß.de/",
+      "hostname": "xn--fa-hia.de",
+      "kind": "other",
+      "note": "UTS 46 non-transitional, like the browser"
+    },
+    {
+      "url": "https://ministère.gouv.fr/",
+      "hostname": "xn--ministre-60a.gouv.fr",
+      "kind": "official",
+      "note": "an IDN government host"
+    },
+    {
+      "url": "https://xn--bcher-kva.de/",
+      "hostname": "xn--bcher-kva.de",
+      "kind": "other",
+      "note": "punycode stays punycode"
+    },
+    {
+      "url": "https://[::1]/x",
+      "hostname": "[::1]",
+      "kind": "other",
+      "note": "an IPv6 literal keeps its brackets"
+    },
+    {
+      "url": "http://127.0.0.1/",
+      "hostname": "127.0.0.1",
+      "kind": "other",
+      "note": "an IPv4 literal"
+    },
+    {
+      "url": "https://gov.uk./x",
+      "hostname": "gov.uk.",
+      "kind": "other",
+      "note": "a trailing dot is kept"
+    },
+    {
+      "url": "https://my_site.gov.uk/x",
+      "hostname": "my_site.gov.uk",
+      "kind": "official",
+      "note": "an underscore in a label"
+    },
+    {
+      "url": "//gov.uk/x",
+      "hostname": "//gov.uk/x",
+      "kind": "other",
+      "note": "malformed: no scheme"
+    },
+    {
+      "url": "https:///www.gov.uk",
+      "hostname": "https:///www.gov.uk",
+      "kind": "other",
+      "note": "malformed: empty authority"
+    },
+    {
+      "url": "https:gov.uk/x",
+      "hostname": "https:gov.uk/x",
+      "kind": "other",
+      "note": "malformed: no //"
+    },
+    {
+      "url": "https://gov.uk\\x",
+      "hostname": "https://gov.uk\\x",
+      "kind": "other",
+      "note": "malformed: a backslash after the host"
+    },
+    {
+      "url": "https:\\\\gov.uk\\x",
+      "hostname": "https:\\\\gov.uk\\x",
+      "kind": "other",
+      "note": "malformed: backslashes for slashes"
+    },
+    {
+      "url": "https://%67ov.uk/",
+      "hostname": "https://%67ov.uk/",
+      "kind": "other",
+      "note": "malformed: a percent escape in the host"
+    },
+    {
+      "url": "https://example .gov/",
+      "hostname": "https://example .gov/",
+      "kind": "other",
+      "note": "malformed: whitespace in the host"
+    },
+    {
+      "url": "javascript:alert(1)",
+      "hostname": "javascript:alert(1)",
+      "kind": "other",
+      "note": "malformed: not a network URL"
+    },
+    {
+      "url": "example.gov/ai",
+      "hostname": "example.gov/ai",
+      "kind": "other",
+      "note": "malformed: scheme-less"
+    },
+    {
+      "url": "https://",
+      "hostname": "https://",
+      "kind": "other",
+      "note": "malformed: no host"
+    }
+  ]
+}

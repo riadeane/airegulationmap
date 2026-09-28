@@ -7,7 +7,8 @@
 // project warm and the live read path continuously exercised. State is
 // replaced only when the database is STRICTLY newer.
 
-import { getState, setState } from '../state/store';
+import { getState } from '../state/store';
+import { receiveData } from '../state/interactions';
 import { parseScore } from './loader';
 import type { ScoreData, RegulationData, ScoreEntry, RegulationEntry } from './loader';
 import { normalizeEvidence } from './evidence';
@@ -181,7 +182,7 @@ export async function hydrateFromSupabase(): Promise<boolean> {
 
   console.info('supabase: database is newer than the static snapshot; hydrating.');
   hydratedEvidence = evidence;
-  setState({
+  receiveData({
     scoreData,
     regulationData,
     sortedCountryNames: Object.keys(scoreData).sort(),

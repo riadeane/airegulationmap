@@ -281,6 +281,29 @@ export interface DriftCheck {
   withinOne: number;
   maxDev: number | null;
   maxDevAt: { country: string; dimension: string; subindicator: string; gold: number; run: number } | null;
+  /**
+   * How many compared countries had a verified gold entry (the rest were
+   * drafts). Null for rows recorded before the pipeline wrote it (#99).
+   */
+  goldVerified: number | null;
+  /** Identity of the gold file the row was computed against; '' when not recorded. */
+  goldVersion: string;
+}
+
+/**
+ * How far a check rests on draft gold scores (#99): 'verified' when every
+ * compared country's gold entry was verified, 'draft' when any was a
+ * draft, 'unknown' for rows recorded before the pipeline said.
+ */
+export function goldBasis(check: DriftCheck): 'verified' | 'draft' | 'unknown' {
+  if (check.goldVerified == null) return 'unknown';
+  return check.goldVerified >= check.countriesCompared ? 'verified' : 'draft';
+}
+
+/** "3 of 10 verified" / "not recorded", for the gold table and tooltip. */
+export function goldBasisText(check: DriftCheck): string {
+  if (check.goldVerified == null) return 'not recorded';
+  return `${check.goldVerified} of ${check.countriesCompared} verified`;
 }
 
 /** The within-one share below which a run carries a calibration warning. */
@@ -377,6 +400,8 @@ export function parseDriftChecks(raw: unknown): DriftCheck[] {
       withinOne,
       maxDev: num(row.max_dev),
       maxDevAt,
+      goldVerified: num(row.gold_verified),
+      goldVersion: str(row.gold_version),
     });
   }
   return checks.sort((a, b) => a.date.localeCompare(b.date));

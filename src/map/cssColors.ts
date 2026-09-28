@@ -70,14 +70,13 @@ export function cssVar(name: string): string {
     : `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
 }
 
-// The user's explicit theme choice, or null. Storage access throws in some
-// private modes and with site data blocked; that reads as "no choice".
-function storedTheme(): string | null {
-  try {
-    return localStorage.getItem('theme');
-  } catch {
-    return null;
-  }
+// Whether an explicit theme is in effect: a `?theme=` for this visit, the
+// stored choice, or a toggle, each of which sets `data-theme` (the CSS
+// follows the system only without it). Reading the attribute, not
+// localStorage, matches what is painted and never throws when storage is
+// blocked.
+function hasExplicitTheme(): boolean {
+  return document.documentElement.hasAttribute('data-theme');
 }
 
 // Invalidate any cached results on theme change. Call from the theme
@@ -95,7 +94,7 @@ export function onThemeChange(callback: () => void): void {
   // Also re-run when system color scheme changes if user has no explicit choice.
   if (window.matchMedia) {
     const mq = window.matchMedia('(prefers-color-scheme: light)');
-    const listener = () => { if (!storedTheme()) callback(); };
+    const listener = () => { if (!hasExplicitTheme()) callback(); };
     if (mq.addEventListener) mq.addEventListener('change', listener);
     else if (mq.addListener) mq.addListener(listener);
   }

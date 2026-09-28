@@ -103,6 +103,29 @@ class TestDecide:
         decision = gate.decide(scores, reg, bumped(specific_laws="  AI Act   (2024) "), None, RUN_1)
         assert decision.rule == gate.HELD
 
+    def test_reordered_laws_with_changed_punctuation_are_not_evidence(self):
+        # #88: the list is a set of named instruments, not free text.
+        scores, reg = existing_rows()
+        reg = dict(reg, **{"Specific Laws": "Data Protection Act (2019); AI Act (2024)"})
+        reordered = "ai act (2024), Data Protection Act 2019"
+        decision = gate.decide(scores, reg, bumped(specific_laws=reordered), None, RUN_1)
+        assert decision.rule == gate.HELD
+
+    def test_a_newly_named_instrument_is_evidence(self):
+        scores, reg = existing_rows()
+        more = "AI Act (2024); AI Promotion Act (AI Act, 2025)"
+        decision = gate.decide(scores, reg, bumped(specific_laws=more), None, RUN_1)
+        assert decision.rule == gate.APPLIED_EVIDENCE
+
+    def test_a_re_cited_url_is_not_new(self):
+        # #88: Sources is rewritten every run, so a URL dropped one week and
+        # cited again the next is not new evidence.
+        scores, reg = existing_rows()
+        seen = frozenset({"legislation.gov.uk/ai"})
+        again = BASE_SOURCES + "|https://www.legislation.gov.uk/ai/"
+        decision = gate.decide(scores, reg, bumped(sources=again), None, RUN_1, seen_sources=seen)
+        assert decision.rule == gate.HELD
+
     def test_no_evidence_holds_with_candidate(self):
         scores, reg = existing_rows()
         decision = gate.decide(scores, reg, bumped(), None, RUN_1)
@@ -217,14 +240,36 @@ class TestServiceGate:
         assert row["Regulation Status"] == "4.0"      # held (CSV string, as loaded)
         assert row["Last Updated"] == "2026-09-14"    # always applies
         assert ds.regulation_row("A")["Confidence"] == "medium"
-        assert len(ds.history_for("A")) == 1
-        assert ds.history_for("A")[0]["date"] == "2026-09-07"   # snapshot not advanced
+        # The held scores stay; only the confidence change is recorded, on a
+        # snapshot that copies them (#60). The first snapshot is not advanced.
+        first, confidence_only = ds.history_for("A")
+        assert first["date"] == "2026-09-07"
+        assert confidence_only["date"] == "2026-09-14"
+        assert confidence_only["confidence"] == "medium"
+        assert {k: v for k, v in confidence_only.items() if k not in ("date", "confidence")} == {
+            k: v for k, v in first.items() if k not in ("date", "confidence")
+        }
         assert ds.subscores_for("A")["date"] == "2026-09-07"
         assert _pending_file(tmp_path)["pending"] == [{
             "country": "A",
             "candidate_scores": bumped().dimension_scores(),
             "first_seen": "2026-09-14",
         }]
+
+    def test_the_gate_remembers_every_cited_url(self, tmp_path):
+        # Run 1 cites X, run 2 drops it for Y (scores unchanged), run 3
+        # cites X again with a score move: X is not new, so the move is held
+        # (#88). Before, run 3 compared only with run 2's Sources.
+        x, y = "https://example.gov/x", "https://example.gov/y"
+        svc, _ = _service(tmp_path, RUN_1)
+        svc.run(ListStrategy([("A", result(sources=x))]), ["A"])
+        svc, _ = _service(tmp_path, RUN_2)
+        svc.run(ListStrategy([("A", result(sources=y))]), ["A"])
+        svc, ds = _service(tmp_path, RUN_3)
+        run = svc.run(ListStrategy([("A", bumped(sources=x))]), ["A"])
+        assert run.gate.counts[gate.HELD] == 1
+        assert _pending_file(tmp_path)["seen_sources"] == {"A": ["example.gov/x", "example.gov/y"]}
+        assert ds.seen_sources_for("A") == frozenset({"example.gov/x", "example.gov/y"})
 
     def test_held_then_persisted_lands_and_clears_pending(self, tmp_path):
         svc, _ = _service(tmp_path, RUN_1)
@@ -317,7 +362,7 @@ class TestServiceGate:
             def record(self, country, result, today, *, scores_row, subscores, history):
                 recorded.append((scores_row["Regulation Status"], subscores["date"]))
 
-            def finish(self, updated, failed, fatal, *, gate_counts=None):
+            def finish(self, updated, failed, fatal, *, gate_counts=None, calibration_break=None):
                 recorded.append(gate_counts)
 
         svc, _ = _service(tmp_path, RUN_1)

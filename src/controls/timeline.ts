@@ -1,4 +1,5 @@
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
+import { setTimelineDate } from '../state/interactions';
 import { el } from '../dom';
 import { updateMap } from '../map/index';
 import { buildScoresAtDate, extractSortedDates, historyBreaks } from '../data/history';
@@ -54,14 +55,14 @@ export function initTimeline(history: HistoryData | null): void {
   historyRef = history;
   sortedDatesRef = sortedDates;
 
-  const container = document.getElementById('timeline-strip')!;
+  const container = el('timeline-strip');
   container.style.display = 'block';
 
   const slider = el<HTMLInputElement>('timeline-slider');
   slider.max = String(sortedDates.length - 1);
   renderBreakMarkers(historyBreaks(history), sortedDates);
 
-  const dateLabel = document.getElementById('timeline-date-label')!;
+  const dateLabel = el('timeline-date-label');
   const lastIdx = sortedDates.length - 1;
 
   // The visible label and the slider's spoken value: without
@@ -83,7 +84,7 @@ export function initTimeline(history: HistoryData | null): void {
   if (initialDate) {
     const i = sortedDates.indexOf(initialDate);
     if (i >= 0 && i < lastIdx) initialIdx = i;
-    else setState({ timelineDate: null }); // sanitize unknown or latest date
+    else setTimelineDate(null); // sanitize unknown or latest date
   }
   slider.value = String(initialIdx);
   labelFor(initialIdx);
@@ -99,13 +100,13 @@ export function initTimeline(history: HistoryData | null): void {
     const idx = parseInt(this.value);
     const isLatest = idx === lastIdx;
     labelFor(idx);
-    setState({ timelineDate: isLatest ? null : sortedDates[idx] });
+    setTimelineDate(isLatest ? null : sortedDates[idx]);
   });
 
-  document.getElementById('timeline-reset')!.addEventListener('click', () => {
+  el('timeline-reset').addEventListener('click', () => {
     slider.value = String(lastIdx);
     labelFor(lastIdx);
-    setState({ timelineDate: null });
+    setTimelineDate(null);
   });
 
   // Any change to `timelineDate` (slider, reset, popstate, URL load)

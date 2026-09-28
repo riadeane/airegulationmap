@@ -79,6 +79,8 @@ flowchart TD
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - decides whether a result's scores may land |
 | `digest.py` | Weekly digest: change selection, one structured-output request, `public/digest/` writers (week JSON, index, Atom), `--run <id>` regeneration |
+| `consistency.py` | Post-run EU consistency check: members whose AI Act sub-indicators differ from the EU's most common score (log + step summary) |
+| `links.py` | Source link check: drops dead cited URLs before gating, reads live page titles for `sources.title`; `report` / `titles` CLI |
 | `gold.py` | Gold set and drift check: the gold file's contract, the pure agreement metrics, the `drift.json` record, the step-summary block, `--model <id>` comparison CLI |
 | `names.py` | `CountryNames` - country-name normalization |
 | `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
@@ -358,7 +360,7 @@ flowchart TD
     B -- no --> E["applied:evidence"]
     B -- yes --> C{"any dimension<br/>score changed?"}
     C -- no --> U["unchanged<br/>(clears pending)"]
-    C -- yes --> D{"new source URL,<br/>or Specific Laws changed?"}
+    C -- yes --> D{"a URL the country never cited,<br/>or a changed set of named laws?"}
     D -- yes --> E
     D -- no --> P{"pending candidate<br/>with the same dimensions<br/>moving the same way?"}
     P -- yes --> Q["applied:persisted<br/>(clears pending)"]
@@ -370,12 +372,19 @@ flowchart TD
   its direction is "to insufficient evidence" or "from insufficient evidence",
   and it always goes on the review list, since it has no size. A row whose five
   scores are all empty counts as no prior scores.
-- **Evidence rule.** A cited URL that the existing `Sources` column does not
-  contain counts as new. URLs compare after the same normalisation as
-  `sources.py` (no scheme, no `www.`, no trailing slash). `Specific Laws`
-  compares after whitespace normalisation. A confidence drop is not evidence.
+- **Evidence rule.** A cited URL counts as new only when the country has
+  never cited it: it is in neither the existing `Sources` column nor the
+  gate's memory of every URL the country cited on earlier runs
+  (`pending.json` `seen_sources`, updated for every result, held or not), so
+  a URL dropped one week and cited again the next is not evidence (#88). URLs
+  compare after the same normalisation as `sources.py` (no scheme, no `www.`,
+  no trailing slash). `Specific Laws` compares as a set of named instruments
+  (split on `;`, newlines and `, ` outside parentheses; each name case-folded
+  with punctuation collapsed), so reordering or re-punctuating the list is not
+  a change; naming a new instrument, or dropping one, is. A confidence drop is
+  not evidence.
 - **Persistence rule.** A held candidate lives in `public/data/pending.json`
-  as `{country, candidate_scores, first_seen}`. The next result for that
+  (`pending`) as `{country, candidate_scores, first_seen}`. The next result for that
   country applies when it moves the same dimensions in the same direction.
   A result that reverts to the stored scores clears the candidate. A result
   that moves differently replaces it. The window is two consecutive results.
@@ -403,7 +412,12 @@ flowchart TD
 it **cancels and salvages** the requests that already succeeded (and were already
 billed) instead of discarding the run. Submit, poll, cancel and results calls go
 through the retry policy below, and one wait budget (`max_wait`, 4 hours) covers
-every batch of a run.
+every batch of a run. The budget is wall-clock time since the run's first submit
+(`time.monotonic`, injectable), so retry backoff and slow requests count, not
+only poll intervals. The SDK sends no idempotency key, so a submit whose
+response was lost is retried as a second batch: after any submit that needed
+retries, the runner lists recent batches and cancels an in-progress one with
+the same request count created within two minutes of the first attempt (#153).
 
 ```mermaid
 stateDiagram-v2
@@ -464,12 +478,19 @@ provenance.
   (including the fatal-error partial-save path) - every call wrapped so a
   mirror failure downgrades to a warning and can never change a run's
   outcome or exit code. The flush upserts `country_scores` /
-  `country_summaries`, REPLACES `score_history` per recorded country
-  (a same-day re-run supersedes that day's snapshot in `history.py`, so
-  append-only would drift), and feeds every cited URL into `sources` /
+  `country_summaries`, SYNCS `score_history` per recorded country to the
+  file's snapshots (a same-day re-run supersedes that day's snapshot in
+  `history.py`, so append-only would drift): it upserts on
+  `(country_id, snapshot_date)` first and then deletes only the dates the
+  file no longer has, so a failed write never loses rows. A snapshot keeps
+  the run id of the existing row with the same date and scores (a row whose
+  date moved before September 2026 matches by scores alone), so a score
+  that reverts is a new change point. It also feeds every cited URL into `sources` /
   `country_sources` with the run id. `research_runs` records trigger,
-  model, strategy, prompt version, grounded flag, git SHA, counts, and
-  cumulative token usage.
+  model, strategy, prompt version, grounded flag, git SHA, counts,
+  cumulative token usage, and the calibration break the run recorded
+  (`calibration_break`, migration 0012; written in its own request, so a
+  database without the column loses only the break).
 - **Client (`db/client.py`)** - a thin httpx PostgREST wrapper (select /
   insert / upsert / update / delete), testable with `httpx.MockTransport`.
   Upserts must never include generated columns like `id` -
@@ -533,12 +554,20 @@ Claude for the prose once, and writes `public/digest/`.
   per week). An empty run writes a one-line "no changes" week without a request.
 - **When it runs.** `--digest/--no-digest`; the default is on for scheduled
   runs (`GITHUB_EVENT_NAME=schedule`). A digest failure is a warning: the data
-  files are already saved and the exit code is unchanged.
+  files are already saved and the exit code is unchanged. Only a scheduled
+  run replaces the week's file; a manual `--digest` run writes one only for a
+  week with no digest or a "no changes" one, and makes no request otherwise
+  (#101). A later run with nothing to report never replaces a week that has
+  items, changes or a calibration break.
 - **Regeneration.** `python -m regulation_pipeline.digest --run <id>` rebuilds a
   run's changes from Supabase. `score_history.run_id` marks the snapshots a run
-  introduced (the mirror keeps earlier snapshots' ids when it replaces a
-  country's history), so score change points are exact. The regulation text has
-  no history in the database, so regenerated digests cover score changes only.
+  introduced (the mirror keeps earlier snapshots' ids when it syncs a
+  country's history), so score change points are exact. The run row's
+  `calibration_break` makes a recalibration run's rebuilt digest lead with the
+  recalibration and list no score moves as policy change. The regulation text
+  has no history in the database, so regenerated digests cover score changes
+  only; the week file carries `"regenerated": true` and the changes page says
+  so.
 
 ## Gold set and drift check (`gold.py`)
 
@@ -563,14 +592,21 @@ fails loudly.
   where it happened, plus the gold countries the run did not cover.
   Sub-indicators the run left without a score (insufficient evidence) are
   counted as skipped, not compared.
-- **Record.** One row per run is appended to `public/data/drift.json`
+- **Record.** One row per full run is appended to `public/data/drift.json`
   (`{run_id, date, model, prompt_version, countries_compared,
   countries_missing, mae_by_dimension, bias_by_dimension, within_one,
-  max_dev, max_dev_at}`) and mirrored to the Supabase `gold_checks` table
-  (`supabase/migrations/0007_gold_checks.sql`, bias column in
-  `0011_gold_checks_bias.sql`). The workflow commits the
-  file with the other data files. A run covering none of the gold
-  countries records nothing.
+  max_dev, max_dev_at, gold_verified, gold_version}`, plus
+  `grounded_countries` on a grounded run) and mirrored to the Supabase
+  `gold_checks` table (`supabase/migrations/0007_gold_checks.sql`, bias
+  column in `0011_gold_checks_bias.sql`, gold-set columns in
+  `0013_gold_checks_gold_set.sql`). `gold_verified` counts the compared
+  countries whose gold entry was verified and `gold_version` hashes the
+  gold file, so a series computed against drafts, or against an older gold
+  file, says so (#99). A grounded run whose compared countries all fell
+  back to the plain prompt records the plain prompt version. The workflow
+  commits the file with the other data files. A run covering none of the
+  gold countries records nothing, and a `--countries` run logs the metrics
+  but writes no row, so the series holds full runs only.
 - **Summary.** The metrics go to the run log (`gold:` line) and to the
   GitHub step summary. When `within_one` is below 0.8, or any dimension's
   signed bias is beyond 0.5 either way, both start with "Calibration
@@ -590,8 +626,9 @@ ruff check scripts tests/pipeline   # lint; rules in pyproject.toml ([tool.ruff]
 pip install -e .                    # installs the package + update-regulation-data console script
 ```
 
-Ruff is configured in `pyproject.toml` but is not in `requirements-dev.txt`;
-install it separately to run it locally. CI (`.github/workflows/ci.yml`) runs
+Ruff is configured in `pyproject.toml` and pinned in `requirements-dev.txt`.
+`requirements.txt` is a pip-compile lock built from `requirements.in`, so the
+weekly run installs the versions CI tested. CI (`.github/workflows/ci.yml`) runs
 `python -m pytest` and `ruff check scripts tests/pipeline` on every push and
 pull request.
 

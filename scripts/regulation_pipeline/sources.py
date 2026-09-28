@@ -15,6 +15,9 @@ the ``sources`` table taxonomy:
 * ``other`` - everything else. (``news``/``industry`` exist in the DB check
   constraint for future refinement but are not auto-assigned yet.)
 
+The two ports are held together by ``tests/fixtures/source_classification.json``,
+which both test suites read (hosts, IDNs, malformed input; #97).
+
 Shared classification examples (keep in sync with src/data/sources.ts):
   legislation.gov.uk → official · bmds.bund.de → official ·
   eur-lex.europa.eu → official kind (intergovernmental type) ·
@@ -26,6 +29,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from urllib.parse import urlparse
+
+import idna
 
 # Mirrors OFFICIAL_HOST_RE in src/data/sources.ts.
 _OFFICIAL_HOST_RE = re.compile(
@@ -102,17 +107,39 @@ class ClassifiedSource:
     source_type: str   # sources.source_type taxonomy
 
 
+# Mirrors WELL_FORMED_RE in src/data/sources.ts. A classifiable URL has a
+# scheme, "//", and a host with no whitespace, backslash or percent escape,
+# followed by the end or by "/", "?" or "#". The two URL parsers disagree on
+# anything else ("//gov.uk/x", "https:gov.uk", "https://gov.uk\\x",
+# "https://%67ov.uk"), so both ports class such input as "other" (#97).
+_WELL_FORMED_RE = re.compile(r"^[a-z][a-z0-9+.-]*://[^\s/\\?#%]+(?:[/?#]|$)", re.IGNORECASE)
+
+
 def _hostname(url: str) -> str | None:
+    """The host as the frontend's WHATWG URL parser reports it: lower case,
+    an IDN in punycode (UTS 46, like the browser), an IPv6 literal in
+    brackets, and a leading ``www.`` stripped. ``None`` for input the two
+    ports cannot agree on."""
+    if not _WELL_FORMED_RE.match(url):
+        return None
     try:
         host = urlparse(url).hostname
     except ValueError:
         return None
     if not host:
         return None
+    if not host.isascii():
+        try:
+            host = idna.encode(host, uts46=True).decode("ascii")
+        except idna.IDNAError:
+            return None
+    if ":" in host:
+        host = f"[{host}]"
     return host.lower().removeprefix("www.")
 
 
 def classify_source(url: str) -> ClassifiedSource:
+    url = url.strip()
     host = _hostname(url)
     if host is None:
         return ClassifiedSource(url=url, domain=url, kind="other", source_type="other")

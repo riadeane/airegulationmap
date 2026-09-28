@@ -1,39 +1,4 @@
 {
   "schema_version": 1,
-  "checks": [
-    {
-      "run_id": "4a26e15b-381a-471a-93e9-ea7863c6674d",
-      "date": "2026-09-28",
-      "model": "claude-opus-5",
-      "prompt_version": "v3.2-2026-09",
-      "countries_compared": 1,
-      "countries_missing": [
-        "China",
-        "Japan",
-        "United States of America",
-        "United Kingdom",
-        "Singapore",
-        "Brazil",
-        "Kenya",
-        "Bhutan",
-        "Kiribati"
-      ],
-      "mae_by_dimension": {
-        "regulation_status": 0.0,
-        "policy_lever": 0.75,
-        "governance_type": 0.25,
-        "actor_involvement": 0.0,
-        "enforcement_level": 0.75
-      },
-      "within_one": 1.0,
-      "max_dev": 1,
-      "max_dev_at": {
-        "country": "Germany",
-        "dimension": "policy_lever",
-        "subindicator": "binding_instruments",
-        "gold": 4,
-        "run": 5
-      }
-    }
-  ]
+  "checks": []
 }

@@ -24,8 +24,12 @@ from . import history as history_mod
 from .api import ResearchClient
 from .batch import BatchRunner
 from .config import DEFAULT_MODEL, Settings, estimate_cost_usd
+from .consistency import eu_members, eu_outliers
+from .consistency import log_lines as eu_log_lines
+from .consistency import markdown_summary as eu_markdown_summary
 from .digest import write_run_digest
 from .gold import check_run, markdown_summary
+from .links import LinkChecker
 from .names import CountryNames
 from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION, RUBRIC_VERSION
 from .repository import Dataset
@@ -43,6 +47,9 @@ def configure_logging(verbose: bool) -> None:
         stream=sys.stderr,
         force=True,
     )
+    # httpx logs every request at INFO; the link check alone makes one per
+    # cited URL. Keep them for --verbose.
+    logging.getLogger("httpx").setLevel(logging.DEBUG if verbose else logging.WARNING)
 
 
 def _run(
@@ -95,6 +102,12 @@ def _run(
         help="With --no-gate: record a calibration break {date, model, "
         "prompt_version, reason} in history.json so the frontend labels the "
         "shift as a recalibration, not as policy change.",
+    ),
+    link_check: bool = typer.Option(
+        True, "--link-check/--no-link-check",
+        help="Fetch every cited URL after research and drop the dead ones (404, "
+        "410, a not-found page, a known-bad pattern) before they are written "
+        "(default). Blocked or unreachable URLs are kept.",
     ),
     digest: bool | None = typer.Option(
         None, "--digest/--no-digest",
@@ -160,6 +173,17 @@ def _run(
 
     logger.info("Loading existing data...")
     dataset = Dataset.load(settings, names)
+    inconsistent = dataset.consistency_errors()
+    if inconsistent:
+        # A save interrupted between two renames mixes old and new files;
+        # researching on top would bake the mismatch in (#149).
+        for error in inconsistent:
+            logger.error("data files disagree: %s", error)
+        logger.error(
+            "The data files in public/ disagree (an interrupted save?). Restore them "
+            "from git before running. Nothing was researched."
+        )
+        raise typer.Exit(code=1)
 
     targets = None
     if not full_run:
@@ -211,6 +235,7 @@ def _run(
         gate_enabled=gate_enabled,
         calibration_break=calibration_break,
         run_id=supabase_mirror.run_id if supabase_mirror is not None else None,
+        link_checker=LinkChecker() if link_check and not dry_run else None,
     )
     write_digest = digest if digest is not None else _is_scheduled()
 
@@ -235,7 +260,8 @@ def _run(
     for line in gate.review_lines(result.gate):
         logger.warning(line)
     _write_step_summary(gate.markdown_summary(result.gate, result.calibration_break))
-    _gold_check(result, settings, model, prompt_version, today, supabase_mirror)
+    _gold_check(result, settings, model, prompt_version, today, supabase_mirror, record=full_run)
+    _eu_check(settings)
     if write_digest and result.fatal:
         # An aborted run's changes are partial; a digest would publish them
         # (or "no changes") as the week's story.
@@ -262,15 +288,20 @@ def _write_digest(
 ) -> None:
     """Post-run digest. Downgraded to a warning on any failure: the data
     files are already saved, and a missing digest must not change the exit
-    code that drives the workflow's commit step."""
+    code that drives the workflow's commit step. Only a scheduled run may
+    replace the week's digest; a manual run fills a week without one (#101)."""
     try:
-        write_run_digest(result, client=client, settings=settings, model=model, run_date=today)
+        write_run_digest(
+            result, client=client, settings=settings, model=model, run_date=today,
+            replace=_is_scheduled(),
+        )
     except Exception:
         logger.warning("digest: failed - continuing", exc_info=True)
 
 
 def _gold_check(
     result: RunResult, settings: Settings, model: str, prompt_version: str, today: date, mirror,
+    *, record: bool = True,
 ) -> None:
     """Post-run gold-set drift check (gold.py): compare the raw results with
     the gold scores, append a drift.json row, mirror it, and put the metrics
@@ -279,13 +310,28 @@ def _gold_check(
     try:
         check = check_run(
             result, settings, model=model, prompt_version=prompt_version, run_date=today,
-            mirror=mirror,
+            mirror=mirror, record=record,
         )
     except Exception:
         logger.warning("gold: check failed - continuing", exc_info=True)
         return
     if check is not None:
         _write_step_summary(markdown_summary(check.metrics, check.gold))
+
+
+def _eu_check(settings: Settings) -> None:
+    """Post-run EU consistency check (consistency.py): list the members whose
+    AI Act sub-indicators differ from the EU's most common score, in the log
+    and the step summary. Never changes a score or the exit code."""
+    try:
+        subscores = json.loads(settings.subscores_json.read_text(encoding="utf-8"))
+        outliers = eu_outliers(subscores, eu_members(settings.blocs_json))
+    except Exception:
+        logger.warning("eu: consistency check failed - continuing", exc_info=True)
+        return
+    for line in eu_log_lines(outliers):
+        logger.info(line)
+    _write_step_summary(eu_markdown_summary(outliers))
 
 
 def _write_step_summary(markdown: str) -> None:

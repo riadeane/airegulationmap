@@ -21,6 +21,7 @@ from regulation_pipeline.gold import (
     check_run,
     compare,
     drift_row,
+    gold_version,
     load_gold_set,
     markdown_summary,
     parse_gold_set,
@@ -475,6 +476,48 @@ class TestCheckRun:
         assert row["mae_by_dimension"]["enforcement_level"] == 0.75
         assert mirror.rows == [row]
 
+    def test_the_row_records_the_gold_sets_verification_and_version(self, tmp_path):
+        # #99: a series computed against drafts must say so, and a changed
+        # gold file must not silently change what the series means.
+        verified = gold_entry("B", status="verified", verified_on="2026-09-20")
+        settings = _write_gold(tmp_path, gold_entry("A"), verified)
+        run = RunResult(updated=2, failed=[], run_id="r", raw_results={"A": result(), "B": result()})
+        row = check_run(run, settings, model="m", prompt_version="v", run_date=TODAY).row
+        assert row["gold_verified"] == 1
+        assert row["gold_version"] == gold_version(settings.gold_set_json)
+        assert len(row["gold_version"]) == 12
+        assert "grounded_countries" not in row  # not a grounded run
+
+    def test_a_partial_run_writes_no_row(self, tmp_path):
+        # #99: a --countries run that includes one gold country must not
+        # plot beside the weekly full-run rows.
+        settings = _write_gold(tmp_path, gold_entry("A"), gold_entry("B"))
+        run = RunResult(updated=1, failed=[], run_id="r", raw_results={"A": result()})
+        mirror = FakeMirror()
+        check = check_run(
+            run, settings, model="m", prompt_version="v", run_date=TODAY, mirror=mirror, record=False,
+        )
+        assert check is not None and check.metrics.compared == ("A",)
+        assert not settings.drift_json.exists()
+        assert mirror.rows == []
+
+    def test_a_grounded_run_counts_its_grounded_gold_countries(self, tmp_path):
+        from regulation_pipeline.models import ResearchProvenance
+        from regulation_pipeline.prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
+
+        settings = _write_gold(tmp_path, gold_entry("A"), gold_entry("B"))
+        grounded = result().with_provenance(ResearchProvenance(initiatives_used=4, search=True, model="m"))
+        fallback = result().with_provenance(ResearchProvenance(initiatives_used=0, search=True, model="m"))
+        run = RunResult(updated=2, failed=[], run_id="r", raw_results={"A": grounded, "B": fallback})
+        row = check_run(run, settings, model="m", prompt_version=GROUNDED_PROMPT_VERSION, run_date=TODAY).row
+        assert (row["prompt_version"], row["grounded_countries"]) == (GROUNDED_PROMPT_VERSION, 1)
+
+        # Every compared country fell back: the plain prompt is what ran.
+        settings.drift_json.unlink()
+        run = RunResult(updated=1, failed=[], run_id="r2", raw_results={"B": fallback})
+        row = check_run(run, settings, model="m", prompt_version=GROUNDED_PROMPT_VERSION, run_date=TODAY).row
+        assert (row["prompt_version"], row["grounded_countries"]) == (PROMPT_VERSION, 0)
+
     def test_mirror_failure_keeps_the_file_row(self, tmp_path):
         settings = _write_gold(tmp_path, gold_entry("A"))
         run = RunResult(updated=1, failed=[], run_id="r", raw_results={"A": result()})
@@ -543,6 +586,41 @@ class TestMirrorRow:
         assert db_row["mae_by_dimension"]["policy_lever"] == 0.5
         assert db_row["bias_by_dimension"]["policy_lever"] == 0.5
         assert "date" not in db_row
+
+    def test_a_database_without_migration_0013_still_gets_the_row(self):
+        # #99: the gold-set columns are new; until 0013 is applied the
+        # insert with them fails, and the row is written without them.
+        import httpx
+        from regulation_pipeline.db.client import SupabaseClient
+        from regulation_pipeline.db.mirror import RunMeta, SupabaseMirror
+
+        posted: list[dict] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            [body] = json.loads(request.content)
+            if "gold_verified" in body:
+                return httpx.Response(400, json={"code": "PGRST204", "message": "no gold_verified column"})
+            posted.append(body)
+            return httpx.Response(201, json=[])
+
+        client = SupabaseClient("https://x.supabase.co", "key", transport=httpx.MockTransport(handler))
+        mirror = SupabaseMirror(client, RunMeta(trigger="manual", model="m", strategy="sync", prompt_version="v"))
+        gold = gold_set(gold_entry("A"))
+        metrics = compare(gold, {"A": result()})
+        row = drift_row(
+            metrics, run_id=mirror.run_id, run_date=TODAY, model="m", prompt_version="v",
+            gold=gold, gold_version="abc123def456",
+        )
+        mirror.record_gold_check(row)
+        [written] = posted
+        assert written["run_id"] == mirror.run_id
+        assert "gold_verified" not in written and "gold_version" not in written
+
+    def test_migration_0013_adds_the_gold_set_columns(self):
+        sql = (REPO / "supabase" / "migrations" / "0013_gold_checks_gold_set.sql").read_text(encoding="utf-8")
+        for column in ("gold_verified", "gold_version", "grounded_countries"):
+            assert f"add column if not exists {column}" in sql
+            assert f"comment on column gold_checks.{column}" in sql
 
     def test_mirror_accepts_rows_written_before_signed_bias(self):
         from regulation_pipeline.db.mirror import _gold_check_row

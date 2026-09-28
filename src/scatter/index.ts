@@ -6,7 +6,8 @@
 //
 // Shows LATEST scores only - the timeline scrubber drives the map, not
 // this view (history snapshots are score-only and axis pairs would
-// silently mix vintages).
+// silently mix vintages). Opening it returns the timeline to "Latest"
+// (setMainView), so the panel beside it shows the same vintage.
 
 import { select } from 'd3-selection';
 import { el, maybeEl } from '../dom';
@@ -17,9 +18,9 @@ import { axisBottom, axisLeft } from 'd3-axis';
 import { format } from 'd3-format';
 import 'd3-transition';
 
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
 import { visibleCountrySet } from '../state/selectors';
-import { toggleScatter, showMap } from '../state/interactions';
+import { toggleScatter, showMap, selectCountry, setScatterAxes } from '../state/interactions';
 import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../constants';
 import type { AttributeGroup, AttributeKey } from '../constants';
 import { makeColorScale } from '../map/ramp';
@@ -87,7 +88,10 @@ function populateAxisSelects(): void {
     }
     sel.value = current;
     sel.addEventListener('change', () => {
-      setState(id === 'scatter-x' ? { scatterX: sel.value as AttributeKey } : { scatterY: sel.value as AttributeKey });
+      const { scatterX: x, scatterY: y } = getState();
+      const value = sel.value as AttributeKey;
+      if (id === 'scatter-x') setScatterAxes(value, y);
+      else setScatterAxes(x, value);
     });
   }
 }
@@ -128,7 +132,7 @@ function createChart(): void {
     const ro = new ResizeObserver(() => {
       if (getState().mainView === 'scatter') { layout(); updateChart(); }
     });
-    ro.observe(document.getElementById('scatter-chart')!);
+    ro.observe(el('scatter-chart'));
   }
 }
 
@@ -284,13 +288,13 @@ function onDotClick(name: string): void {
     updateChart();
   } else {
     previewedName = null;
-    setState({ selectedCountry: name });
+    selectCountry(name);
   }
 }
 
 function setVisible(open: boolean): void {
-  const container = document.getElementById('scatter-container')!;
-  const btn = document.getElementById('scatter-btn')!;
+  const container = el('scatter-container');
+  const btn = el('scatter-btn');
   container.hidden = !open;
   // The explorer takes over the map's slot; the map layer (svg, zoom,
   // bloc card, timeline) hides via this class but keeps its DOM and

@@ -45,6 +45,9 @@ export interface Digest {
   model: string;
   /** Set when the run recalibrated the scale (PRD 01, addendum A). */
   calibrationBreak: CalibrationBreak | null;
+  /** True for a digest rebuilt from the database after the run: it covers
+   * score changes only (the database keeps no history of the text). */
+  regenerated: boolean;
   lead: string;
   items: DigestItem[];
   changes: DigestChange[];
@@ -153,6 +156,7 @@ export function parseDigest(raw: unknown): Digest {
     runId: str(raw.run_id) ?? '',
     model: str(raw.model) ?? '',
     calibrationBreak: parseBreak(raw.calibration_break),
+    regenerated: raw.regenerated === true,
     lead,
     items: items.map(parseItem).filter((i): i is DigestItem => i !== null),
     changes: changes.map(parseChange).filter((c): c is DigestChange => c !== null),

@@ -29,6 +29,7 @@ from .strategies import ResearchStrategy
 
 if TYPE_CHECKING:  # avoid importing the db layer unless a mirror is used
     from .db.mirror import Mirror
+    from .links import LinkChecker
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,7 @@ class PipelineService:
         gate_enabled: bool = True,
         calibration_break: dict | None = None,
         run_id: str | None = None,
+        link_checker: LinkChecker | None = None,
     ):
         self._dataset = dataset
         self._staleness = staleness
@@ -104,6 +106,11 @@ class PipelineService:
         # in history.json so the frontend can label the shift.
         self._gate_enabled = gate_enabled
         self._break = calibration_break
+        # Optional link check (links.py): dead cited URLs are dropped before
+        # a result is gated and written. A checker failure keeps the result
+        # as it was.
+        self._links = link_checker
+        self._dead_links = 0
 
     def select(self, targets: list[str] | None, *, force: bool) -> tuple[list[str], list[str]]:
         """Return ``(all_targets, to_update)``. ``targets`` is an explicit
@@ -140,6 +147,7 @@ class PipelineService:
             for country, result in strategy.research(to_update, reg_rows):
                 if isinstance(result, ResearchResult):
                     raw[country] = result
+                    result = self._check_links(country, result)
                 applied = None if result is None else self._apply(country, result)
                 if applied is None:
                     failed.append(country)
@@ -163,17 +171,40 @@ class PipelineService:
                 logger.info("Saving partial progress...")
                 self._dataset.save()
             # Mirror AFTER the files are safe - same ordering as the happy path.
-            self._mirror_call("finish", updated, len(set(failed)), True, gate_counts=tally.counts)
+            self._mirror_call(
+                "finish", updated, len(set(failed)), True,
+                gate_counts=tally.counts, calibration_break=recorded,
+            )
             return self._result(updated, failed, tally, changes, raw, recorded, fatal=True)
 
         recorded = self._record_break(updated, len(to_update))
+        if self._links is not None:
+            logger.info("links: %d dead cited URLs dropped", self._dead_links)
         for error in self._dataset.validate():
             logger.warning("validation: %s", error)
 
         logger.info("Writing output files...")
         self._dataset.save()
-        self._mirror_call("finish", updated, len(set(failed)), False, gate_counts=tally.counts)
+        self._mirror_call(
+            "finish", updated, len(set(failed)), False,
+            gate_counts=tally.counts, calibration_break=recorded,
+        )
         return self._result(updated, failed, tally, changes, raw, recorded, fatal=False)
+
+    def _check_links(self, country: str, result: ResearchResult) -> ResearchResult:
+        """``result`` without its dead cited URLs (and with the live pages'
+        titles), or unchanged when no checker is attached or it fails."""
+        if self._links is None:
+            return result
+        try:
+            checked, dead = self._links.filter_result(result)
+        except Exception:
+            logger.warning("links: check failed for %s - kept every source", country, exc_info=True)
+            return result
+        for status in dead:
+            logger.info("links: %s dropped %s (%s)", country, status.url, status.reason)
+        self._dead_links += len(dead)
+        return checked
 
     def _record_break(self, updated: int, attempted: int) -> dict | None:
         """Record the calibration break only once the run has applied
@@ -215,13 +246,21 @@ class PipelineService:
         old_regulation = _copy(self._dataset.regulation_row(country))
         try:
             existing_scores = self._dataset.scores_row(country)
+            existing_reg = self._dataset.regulation_row(country)
             if self._gate_enabled:
                 decision = gate.decide(
-                    existing_scores, self._dataset.regulation_row(country), result,
+                    existing_scores, existing_reg, result,
                     self._dataset.pending_for(country), self._today,
+                    seen_sources=self._dataset.seen_sources_for(country),
                 )
             else:
                 decision = gate.ungated(existing_scores, result)
+            # Remember what the country cited before this result replaces the
+            # Sources column, and what it cites now, held or not.
+            self._dataset.remember_sources(
+                country,
+                gate.cited_urls((existing_reg or {}).get("Sources")) | gate.cited_urls(result.sources),
+            )
             outcome = self._dataset.apply(
                 country, result, self._today, apply_scores=decision.apply_scores,
             )
