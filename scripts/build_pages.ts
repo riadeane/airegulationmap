@@ -14,8 +14,8 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../src/constants';
-import type { AttributeKey, DimensionKey } from '../src/constants';
+import { ATTRIBUTES, ATTRIBUTE_KEYS, ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../src/constants';
+import type { AttributeGroup, AttributeKey, DimensionKey } from '../src/constants';
 import type { BlocsData } from '../src/data/blocs';
 import { parseRegulationCsv, parseScoresCsv } from '../src/data/loader';
 import type { RegulationData, RegulationEntry, ScoreData, ScoreEntry } from '../src/data/loader';
@@ -44,15 +44,14 @@ export const TOP_LEVEL_PATHS = [
   '/country/',
 ];
 
-const DIMENSIONS: DimensionKey[] = [
-  'regulationStatus',
-  'policyLever',
-  'governanceType',
-  'actorInvolvement',
-  'enforcementLevel',
-];
+// The five scored dimensions in display order: implementation, then
+// governance style (the shared vocabulary in src/constants.ts).
+const DIMENSIONS = ATTRIBUTE_KEYS.filter((k): k is DimensionKey => k !== 'averageScore');
 
-const DESCRIPTIVE_DIMENSIONS = new Set<DimensionKey>(['governanceType', 'actorInvolvement']);
+/** The one line under the scores table (PRD 16). */
+export const SCORES_NOTE =
+  'These scores show how much is in force and how the country governs. '
+  + 'They are not a judgement of the quality of its regulation.';
 
 const CONFIDENCE_LABELS: Record<string, string> = {
   high: 'High confidence',
@@ -84,8 +83,6 @@ export interface CountryPageModel {
   score: ScoreEntry;
   regulation: RegulationEntry | null;
   subscores: SubscoreEntry | null;
-  /** Maturity-index rank among scored countries; ties share a rank. */
-  rank: { rank: number; total: number } | null;
   /** Official sources first, original order within each kind. */
   sources: ClassifiedSource[];
   blocs: BlocPeers[];
@@ -112,24 +109,6 @@ export function orderSources(sources: ClassifiedSource[]): ClassifiedSource[] {
   ];
 }
 
-// Same rule as the app's maturityRank selector: descending, ties share the
-// rank of their first occurrence.
-function rankTable(scores: ScoreData): Map<string, { rank: number; total: number }> {
-  const values = Object.values(scores)
-    .map(d => d.averageScore)
-    .filter((v): v is number => v != null);
-  const sortedDesc = [...values].sort((a, b) => b - a);
-  const rankByValue = new Map<number, number>();
-  sortedDesc.forEach((v, i) => { if (!rankByValue.has(v)) rankByValue.set(v, i + 1); });
-  const out = new Map<string, { rank: number; total: number }>();
-  for (const [name, entry] of Object.entries(scores)) {
-    if (entry.averageScore != null) {
-      out.set(name, { rank: rankByValue.get(entry.averageScore)!, total: values.length });
-    }
-  }
-  return out;
-}
-
 const collator = new Intl.Collator('en');
 
 /** One model per scores.csv row, in alphabetical order, with prev/next links set. */
@@ -144,7 +123,6 @@ export function buildModels(inputs: BuildInputs): CountryPageModel[] {
     slugs.set(slug, name);
   }
 
-  const ranks = rankTable(inputs.scores);
   const blocEntries = Object.entries(inputs.blocs);
 
   const models = names.map((name): CountryPageModel => {
@@ -156,7 +134,6 @@ export function buildModels(inputs: BuildInputs): CountryPageModel[] {
       score: inputs.scores[name],
       regulation,
       subscores: inputs.subscores?.countries[name] ?? null,
-      rank: ranks.get(name) ?? null,
       sources: orderSources(classifySources(regulation?.sources)),
       blocs: blocEntries
         .filter(([, bloc]) => bloc.members.includes(name))
@@ -223,9 +200,7 @@ function evidenceLine(model: CountryPageModel): string | null {
 export function pageDescription(model: CountryPageModel): string {
   const parts = [`AI regulation in ${model.name} on six dimensions`];
   if (model.score.averageScore != null) {
-    let maturity = `maturity index ${formatScore(model.score.averageScore)} of 5`;
-    if (model.rank) maturity += ` (rank ${model.rank.rank} of ${model.rank.total})`;
-    parts.push(maturity);
+    parts.push(`implementation index ${formatScore(model.score.averageScore)} of 5`);
   }
   const asOf = dataAsOf(model);
   let text = parts.join(': ') + '. Scores, key legislation and sources';
@@ -236,17 +211,20 @@ export function pageDescription(model: CountryPageModel): string {
 /** Schema.org Dataset markup with the six scores as variableMeasured. */
 export function jsonLd(model: CountryPageModel): Record<string, unknown> {
   const url = SITE_ORIGIN + countryPagePath(model.name);
-  const variableMeasured = (Object.keys(ATTRIBUTE_LABELS) as AttributeKey[])
+  const variableMeasured = ATTRIBUTE_KEYS
     .map(key => ({ key, value: model.score[key] }))
     .filter(({ value }) => value != null)
-    .map(({ key, value }) => ({
-      '@type': 'PropertyValue',
-      name: ATTRIBUTE_LABELS[key],
-      value,
-      minValue: 1,
-      maxValue: 5,
-      description: `1 = ${LEGEND_ENDPOINTS[key][0]}, 5 = ${LEGEND_ENDPOINTS[key][1]}`,
-    }));
+    .map(({ key, value }) => {
+      const m = ATTRIBUTES[key];
+      return {
+        '@type': 'PropertyValue',
+        name: m.label,
+        value,
+        minValue: 1,
+        maxValue: 5,
+        description: `${m.question} 1 = ${m.low}, 5 = ${m.high}. ${m.notClaim}`,
+      };
+    });
   const asOf = dataAsOf(model);
   return {
     '@context': 'https://schema.org',
@@ -558,6 +536,23 @@ const STYLE = `
       white-space: nowrap;
     }
     td.scale { color: var(--text-tertiary); font-size: 0.82rem; }
+    table.scores { margin-bottom: 8px; }
+    tr.group th {
+      padding-top: 14px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      white-space: normal;
+    }
+    tr.group th span {
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+      font-style: italic;
+    }
+    p.scores-note { font-size: 0.85rem; font-style: italic; color: var(--text-tertiary); margin-bottom: 20px; }
     td.rationale { font-size: 0.85rem; line-height: 1.5; }
 
     table.subscores { font-size: 0.85rem; margin-top: 4px; }
@@ -774,25 +769,29 @@ ${o.body}
 // Country page
 
 function renderScoresTable(model: CountryPageModel): string {
-  const rows = (Object.keys(ATTRIBUTE_LABELS) as AttributeKey[]).map(key => {
-    const [low, high] = LEGEND_ENDPOINTS[key];
-    const descriptive = DESCRIPTIVE_DIMENSIONS.has(key as DimensionKey);
-    const label = escapeHtml(ATTRIBUTE_LABELS[key]) + (descriptive ? ' <small>(descriptive)</small>' : '');
+  const row = (key: AttributeKey): string => {
+    const m = ATTRIBUTES[key];
     return `        <tr>
-          <th scope="row">${label}</th>
+          <th scope="row">${escapeHtml(m.label)}</th>
           <td class="num">${formatScore(model.score[key])}</td>
-          <td class="scale">1 = ${escapeHtml(low)}, 5 = ${escapeHtml(high)}</td>
+          <td class="scale">1 = ${escapeHtml(m.low)}, 5 = ${escapeHtml(m.high)}</td>
         </tr>`;
+  };
+  const groups = (['implementation', 'style'] as AttributeGroup[]).map(group => {
+    const g = GROUPS[group];
+    return `        <tr class="group"><th scope="colgroup" colspan="3">${escapeHtml(g.label)}: <span>${escapeHtml(g.caption)}</span></th></tr>
+${attributesIn(group).map(row).join('\n')}`;
   });
-  return `      <table>
+  return `      <table class="scores">
         <caption>Six dimensions, scored 1 to 5</caption>
         <thead>
           <tr><th scope="col">Dimension</th><th scope="col">Score</th><th scope="col" class="scale">Scale</th></tr>
         </thead>
         <tbody>
-${rows.join('\n')}
+${groups.join('\n')}
         </tbody>
-      </table>`;
+      </table>
+      <p class="scores-note">${escapeHtml(SCORES_NOTE)}</p>`;
 }
 
 function renderSubscores(model: CountryPageModel, key: DimensionKey): string {
@@ -921,9 +920,9 @@ export function renderCountryPage(model: CountryPageModel): string {
     ? `      <p class="entry-codes"><abbr title="ISO 3166-1 alpha-2">${escapeHtml(model.iso.iso2)}</abbr> &middot; <abbr title="ISO 3166-1 alpha-3">${escapeHtml(model.iso.iso3)}</abbr>${model.iso.numeric ? ` &middot; <abbr title="ISO 3166-1 numeric">${escapeHtml(model.iso.numeric)}</abbr>` : ''}</p>\n`
     : '';
 
-  const maturity = model.score.averageScore != null
-    ? `      <p>Maturity index <strong>${formatScore(model.score.averageScore)}</strong> of 5${model.rank ? `, rank ${model.rank.rank} of ${model.rank.total}` : ''}. The index is the mean of regulation status, policy lever and enforcement level. Governance type and actor involvement describe how ${escapeHtml(model.name)} governs and do not enter the index.</p>`
-    : `      <p>No maturity index is available for ${escapeHtml(model.name)}.</p>`;
+  const index = model.score.averageScore != null
+    ? `      <p>Implementation index <strong>${formatScore(model.score.averageScore)}</strong> of 5: how much AI governance is in force and operating, not how good it is. The index is the mean of regulation status, policy lever and enforcement level. Governance type and actor involvement describe how ${escapeHtml(model.name)} governs, where neither end is better, and do not enter the index.</p>`
+    : `      <p>No implementation index is available for ${escapeHtml(model.name)}.</p>`;
 
   const laws = cleanRegulationText(model.regulation?.specificLaws);
   const lawsSection = laws
@@ -948,7 +947,7 @@ ${evidenceHtml}      <p class="entry-actions">
 
       <section id="scores" aria-labelledby="scores-heading">
       <h2 id="scores-heading">Scores</h2>
-${maturity}
+${index}
 ${renderScoresTable(model)}
       </section>
 ${noEntry}
@@ -979,7 +978,7 @@ export function renderCountryIndex(models: CountryPageModel[]): string {
   );
   const body = `    <p class="entry-kicker">Reference</p>
     <h1 class="doc-title">Countries</h1>
-    <p>One entry per country: scores on six dimensions, the regulatory posture in prose, key legislation and sources. The number beside each name is the maturity index out of 5.</p>
+    <p>One entry per country: scores on six dimensions, the regulatory posture in prose, key legislation and sources. The number beside each name is the implementation index out of 5: how much AI governance is in force, not how good it is.</p>
     <ul class="country-list">
 ${items.join('\n')}
     </ul>`;

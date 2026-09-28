@@ -9,6 +9,7 @@
 
 import SwaggerUIBundle from 'swagger-ui-dist/swagger-ui-bundle';
 import 'swagger-ui-dist/swagger-ui.css';
+import { apiColumnDescription, apiSummaryText } from './data/meaning';
 
 const API_HOST = 'wlakioilvvuuizxdhsdf.supabase.co';
 const API_BASE_PATH = '/rest/v1';
@@ -29,7 +30,10 @@ interface PostgrestSpec {
   schemes?: string[];
   paths: Record<string, Record<string, unknown>>;
   parameters?: Record<string, SpecParameter>;
-  definitions?: Record<string, { properties?: Record<string, { format?: string; type?: string }> }>;
+  definitions?: Record<string, {
+    description?: string;
+    properties?: Record<string, { format?: string; type?: string; description?: string }>;
+  }>;
 }
 
 function wireThemeToggle(): void {
@@ -71,8 +75,9 @@ async function boot(): Promise<void> {
   spec.info.description =
     'Read-only REST API (PostgREST) over the AI Regulation Map database: ' +
     'scores, summaries, score history, sources, and OECD/GAIIN policy ' +
-    'initiatives. Filter with PostgREST operators, e.g. ' +
-    '?select=name,avg_score&avg_score=gte.4&order=avg_score.desc';
+    'initiatives. avg_score is the implementation index: how much AI ' +
+    'governance is in force, not how good it is. Filter with PostgREST ' +
+    'operators, e.g. ?select=name,avg_score&avg_score=gte.4';
   spec.host = API_HOST;
   spec.basePath = API_BASE_PATH;
   spec.schemes = ['https'];
@@ -85,6 +90,31 @@ async function boot(): Promise<void> {
       if (verb !== 'get' && verb !== 'parameters') delete operations[verb];
     }
   }
+  // Score columns and summaries in the shared vocabulary (PRD 16): the
+  // composite is the implementation index, and no description calls a
+  // score better or worse. Before the type prefix below, so the filter
+  // parameters pick the new wording up too.
+  for (const definition of Object.values(spec.definitions ?? {})) {
+    for (const [column, property] of Object.entries(definition.properties ?? {})) {
+      const text = apiColumnDescription(column);
+      if (text) property.description = text;
+    }
+  }
+  for (const [key, param] of Object.entries(spec.parameters ?? {})) {
+    const m = /^rowFilter\.[^.]+\.(.+)$/.exec(key);
+    const text = m ? apiColumnDescription(m[1]) : null;
+    if (text) param.description = text;
+  }
+  for (const operations of Object.values(spec.paths)) {
+    for (const op of Object.values(operations) as { summary?: string; description?: string }[]) {
+      if (op && typeof op.summary === 'string') op.summary = apiSummaryText(op.summary);
+      if (op && typeof op.description === 'string') op.description = apiSummaryText(op.description);
+    }
+  }
+  for (const definition of Object.values(spec.definitions ?? {})) {
+    if (typeof definition.description === 'string') definition.description = apiSummaryText(definition.description);
+  }
+
   // Column-filter query parameters are all type "string" in the spec because
   // their value is a PostgREST filter expression (eq.4, gte.2020, is.null),
   // not a bare value. Prefix each description with the column's actual
