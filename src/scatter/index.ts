@@ -17,9 +17,9 @@ import { axisBottom, axisLeft } from 'd3-axis';
 import { format } from 'd3-format';
 import 'd3-transition';
 
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
 import { visibleCountrySet } from '../state/selectors';
-import { toggleScatter, showMap } from '../state/interactions';
+import { toggleScatter, showMap, selectCountry, setScatterAxes } from '../state/interactions';
 import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../constants';
 import type { AttributeGroup, AttributeKey } from '../constants';
 import { makeColorScale } from '../map/ramp';
@@ -87,7 +87,10 @@ function populateAxisSelects(): void {
     }
     sel.value = current;
     sel.addEventListener('change', () => {
-      setState(id === 'scatter-x' ? { scatterX: sel.value as AttributeKey } : { scatterY: sel.value as AttributeKey });
+      const { scatterX: x, scatterY: y } = getState();
+      const value = sel.value as AttributeKey;
+      if (id === 'scatter-x') setScatterAxes(value, y);
+      else setScatterAxes(x, value);
     });
   }
 }
@@ -284,7 +287,7 @@ function onDotClick(name: string): void {
     updateChart();
   } else {
     previewedName = null;
-    setState({ selectedCountry: name });
+    selectCountry(name);
   }
 }
 

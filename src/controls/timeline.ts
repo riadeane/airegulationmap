@@ -1,4 +1,5 @@
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
+import { setTimelineDate } from '../state/interactions';
 import { el } from '../dom';
 import { updateMap } from '../map/index';
 import { buildScoresAtDate, extractSortedDates, historyBreaks } from '../data/history';
@@ -83,7 +84,7 @@ export function initTimeline(history: HistoryData | null): void {
   if (initialDate) {
     const i = sortedDates.indexOf(initialDate);
     if (i >= 0 && i < lastIdx) initialIdx = i;
-    else setState({ timelineDate: null }); // sanitize unknown or latest date
+    else setTimelineDate(null); // sanitize unknown or latest date
   }
   slider.value = String(initialIdx);
   labelFor(initialIdx);
@@ -99,13 +100,13 @@ export function initTimeline(history: HistoryData | null): void {
     const idx = parseInt(this.value);
     const isLatest = idx === lastIdx;
     labelFor(idx);
-    setState({ timelineDate: isLatest ? null : sortedDates[idx] });
+    setTimelineDate(isLatest ? null : sortedDates[idx]);
   });
 
   el('timeline-reset').addEventListener('click', () => {
     slider.value = String(lastIdx);
     labelFor(lastIdx);
-    setState({ timelineDate: null });
+    setTimelineDate(null);
   });
 
   // Any change to `timelineDate` (slider, reset, popstate, URL load)

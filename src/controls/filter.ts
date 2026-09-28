@@ -1,6 +1,9 @@
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
 import type { ConfidenceLevel } from '../state/store';
 import { evidenceFacetCounts } from '../state/selectors';
+import {
+  setScoreRange, setConfidenceFilter, setOfficialOnly, setEvidenceFilter, resetFilters,
+} from '../state/interactions';
 import { el } from '../dom';
 import { parseEvidenceFilter } from '../data/evidence';
 import type { EvidenceFilter } from '../data/evidence';
@@ -54,7 +57,7 @@ export function initFilter(): void {
     }
     minLabel.textContent = String(min);
     maxLabel.textContent = String(max);
-    setState({ filterMin: min, filterMax: max });
+    setScoreRange(min, max);
   }
 
   minSlider.addEventListener('input', applyFilter);
@@ -64,17 +67,17 @@ export function initFilter(): void {
   // URL stays clean and the active-dot logic stays honest.
   function applyConfidence() {
     const checked = confBoxes.filter(b => b.checked).map(b => b.value as ConfidenceLevel);
-    setState({ filterConfidence: checked.length === ALL_LEVELS.length ? null : checked });
+    setConfidenceFilter(checked.length === ALL_LEVELS.length ? null : checked);
   }
   confBoxes.forEach(b => b.addEventListener('change', applyConfidence));
   officialBox.addEventListener('change', () => {
-    setState({ filterOfficialOnly: officialBox.checked });
+    setOfficialOnly(officialBox.checked);
   });
   // Evidence radios: 'any' is the default and the only value outside the
   // URL's vocabulary, so anything unparseable falls back to it.
   evidenceRadios.forEach(r => r.addEventListener('change', () => {
     if (!r.checked) return;
-    setState({ filterEvidence: parseEvidenceFilter(r.value) ?? 'any' });
+    setEvidenceFilter(parseEvidenceFilter(r.value) ?? 'any');
   }));
 
   // An Evidence option that would keep no country is disabled, with the
@@ -111,10 +114,7 @@ export function initFilter(): void {
     maxSlider.value = '5';
     minLabel.textContent = '1';
     maxLabel.textContent = '5';
-    setState({
-      filterMin: 1, filterMax: 5, selectedBloc: null,
-      filterConfidence: null, filterOfficialOnly: false, filterEvidence: 'any',
-    });
+    resetFilters();
   });
   resetRow.appendChild(resetBtn);
   popover.appendChild(resetRow);

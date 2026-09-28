@@ -1,7 +1,8 @@
 import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../constants';
 import type { AttributeGroup } from '../constants';
 import type { AttributeKey } from '../constants';
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
+import { selectAttribute } from '../state/interactions';
 import { el } from '../dom';
 
 // The score-type button opens a listbox (the ARIA "select-only combobox"
@@ -25,10 +26,6 @@ function syncSelected(attr: AttributeKey): void {
     li.classList.toggle('selected', selected);
     li.setAttribute('aria-selected', String(selected));
   });
-}
-
-export function switchAttribute(attr: AttributeKey): void {
-  setState({ currentAttribute: attr });
 }
 
 export function buildScoreSelector(): void {
@@ -102,7 +99,7 @@ export function buildScoreSelector(): void {
   }
 
   function pick(attr: AttributeKey): void {
-    switchAttribute(attr);
+    selectAttribute(attr);
     close(true);
   }
 
@@ -164,7 +161,7 @@ export function initDimensionClicks(): void {
     main.title = 'Colour the map by this dimension; click again to return to the implementation index';
     main.addEventListener('click', () => {
       const dimension = row.dataset.dimension as AttributeKey;
-      switchAttribute(getState().currentAttribute === dimension ? 'averageScore' : dimension);
+      selectAttribute(getState().currentAttribute === dimension ? 'averageScore' : dimension);
     });
   });
 }

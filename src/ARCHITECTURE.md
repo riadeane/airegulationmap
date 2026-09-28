@@ -67,7 +67,9 @@ unsubscribe. Listeners are typed per key (`Listener<K>`), so a handler for
 ### Single-writer orchestrator - `state/interactions.ts`
 The frontend's analogue of the backend `PipelineService`. Every transition that
 carries an invariant lives here as a named intent, and **intents are the only
-callers of `setState` for view/selection/comparison state**:
+callers of `setState` outside `state/`**, even for writes that carry no rule
+yet, so a rule added later has one home and no control can skip it
+(`tests/singleWriter.test.js` fails on a `setState` import anywhere else):
 
 - selection - `selectCountry`, `stepCountry` (arrow nav with wraparound)
 - committed search - `commitSearch` / `clearSearch`
@@ -78,6 +80,15 @@ callers of `setState` for view/selection/comparison state**:
 - the view FSM - `setMainView` (the single writer of `mainView`) /
   `showMap` / `openScatter` / `toggleScatter` / `openComparison` /
   `escapeMainView`
+- the map's lens and date - `selectAttribute` / `setTimelineDate`
+- filters - `selectBloc` (known blocs only) / `setScoreRange` /
+  `setConfidenceFilter` / `setOfficialOnly` / `setEvidenceFilter` /
+  `resetFilters` (one write; leaves the uncertainty hatch alone) /
+  `setShowUncertainty`
+- the scatter axes - `setScatterAxes`
+- data - `receiveData`, typed to the data slices only (`DataPatch`): the boot
+  loaders in `main.ts`, Supabase hydration (`data/hydrate.ts`) and source
+  titles (`data/sourceMeta.ts`) write through it
 
 Because it depends only on the store, constants, and the colour-slot leaf, it
 never forms a cycle with the features that call it. The rules that used to be
@@ -217,16 +228,16 @@ sequenceDiagram
 ## Where the rules live
 
 - **What can transition, and when** → `state/interactions.ts` (nowhere else
-  should write `mainView`, comparison membership, or drive Esc layering).
+  writes the store, and nowhere else drives Esc layering).
 - **What a value means once derived** → `state/selectors.ts`.
 - **What the data must look like** → `data/loader.ts` (the validation boundary).
 - **What DOM ids exist** → `dom.ts` accessors + `index.html`.
 
 ## Extending
 
-- **Add UI state**: add the field to `AppState` (+ default), then `on(key, …)`
-  where it matters. If a change has to enforce a rule, add an *intent* rather
-  than calling `setState` from the feature.
+- **Add UI state**: add the field to `AppState` (+ default), an *intent* in
+  `interactions.ts` that writes it (features never call `setState`), then
+  `on(key, …)` where it matters.
 - **Add a derived value used in >1 place**: add a memoized selector.
 - **Add a view/overlay**: extend `MainView` and the `setMainView` guard; the
   FSM keeps mutual exclusion automatic.

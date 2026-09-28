@@ -7,7 +7,8 @@
 // and never carried in the URL: a shared link opens with the reader's own
 // setting.
 
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
+import { setShowUncertainty } from '../state/interactions';
 
 export const UNCERTAINTY_STORAGE_KEY = 'showUncertainty';
 
@@ -39,7 +40,7 @@ function browserStorage(): PrefStore | null {
 
 export function initUncertaintyToggle(): void {
   const storage = browserStorage();
-  setState({ showUncertainty: readUncertaintyPref(storage) });
+  setShowUncertainty(readUncertaintyPref(storage));
 
   const popover = document.getElementById('filter-popover');
   if (!popover) return;
@@ -66,7 +67,7 @@ export function initUncertaintyToggle(): void {
   popover.appendChild(row);
 
   box.addEventListener('change', () => {
-    setState({ showUncertainty: box.checked });
+    setShowUncertainty(box.checked);
   });
 
   on('showUncertainty', (show) => {

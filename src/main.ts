@@ -1,7 +1,11 @@
 import './styles/main.css';
 
-import { getState, on, setState } from './state/store';
-import { restoreComparison, selectCountry, openScatter, commitSearch } from './state/interactions';
+import { getState, on } from './state/store';
+import {
+  restoreComparison, selectCountry, openScatter, commitSearch, receiveData,
+  selectAttribute, setTimelineDate, selectBloc, setScatterAxes,
+  setScoreRange, setConfidenceFilter, setOfficialOnly, setEvidenceFilter,
+} from './state/interactions';
 import { el } from './dom';
 import { loadScores, loadRegulation } from './data/loader';
 import { loadHistory } from './data/history';
@@ -87,7 +91,7 @@ async function main(): Promise<void> {
   }
 
   const sortedCountryNames = Object.keys(scoreData).sort();
-  setState({ scoreData, regulationData, sortedCountryNames });
+  receiveData({ scoreData, regulationData, sortedCountryNames });
 
   // Apply URL state BEFORE first render so `currentAttribute` and
   // `timelineDate` land correctly on initial paint. Theme was already
@@ -98,16 +102,16 @@ async function main(): Promise<void> {
   if (urlState.theme) {
     document.documentElement.setAttribute('data-theme', urlState.theme);
   }
-  if (urlState.mode) setState({ currentAttribute: urlState.mode });
-  if (urlState.date) setState({ timelineDate: urlState.date });
+  if (urlState.mode) selectAttribute(urlState.mode);
+  if (urlState.date) setTimelineDate(urlState.date);
   if (urlState.filterMin !== undefined || urlState.filterMax !== undefined) {
-    setState({ filterMin: urlState.filterMin ?? 1, filterMax: urlState.filterMax ?? 5 });
+    setScoreRange(urlState.filterMin ?? 1, urlState.filterMax ?? 5);
   }
-  if (urlState.filterConfidence) setState({ filterConfidence: urlState.filterConfidence });
-  if (urlState.filterOfficialOnly) setState({ filterOfficialOnly: true });
+  if (urlState.filterConfidence) setConfidenceFilter(urlState.filterConfidence);
+  if (urlState.filterOfficialOnly) setOfficialOnly(true);
   // The evidence records arrive with subscores.json (below); the map and
   // scatter repaint on 'subscores', so the facet can apply before they land.
-  if (urlState.filterEvidence) setState({ filterEvidence: urlState.filterEvidence });
+  if (urlState.filterEvidence) setEvidenceFilter(urlState.filterEvidence);
 
   // Wire up UI controls
   initTheme();
@@ -136,7 +140,7 @@ async function main(): Promise<void> {
   initOnboarding();
 
   if (urlState.scatter) {
-    setState({ scatterX: urlState.scatter.x, scatterY: urlState.scatter.y });
+    setScatterAxes(urlState.scatter.x, urlState.scatter.y);
   }
 
   // Render map
@@ -174,33 +178,33 @@ async function main(): Promise<void> {
   // Load history non-blocking. Stored in state for the panel changelog;
   // the timeline keeps its own module reference.
   loadHistory().then(history => {
-    setState({ history });
+    receiveData({ history });
     initTimeline(history);
   });
 
   // Sub-indicator audit trail (methodology v2) - non-blocking; the
   // dimension-row breakdown appears once it loads.
   // A Supabase hydration that lands first overlays its evidence records.
-  loadSubscores().then(subscores => setState({ subscores: withHydratedEvidence(subscores) }));
+  loadSubscores().then(subscores => receiveData({ subscores: withHydratedEvidence(subscores) }));
 
   // ISO codes for the panel name row and the printed brief - non-blocking.
-  loadCountryIso().then(countryIso => setState({ countryIso }));
+  loadCountryIso().then(countryIso => receiveData({ countryIso }));
 
   // Alternative country names for search ("Ivory Coast", "Czech
   // Republic") - non-blocking; the matcher's built-in list covers the
   // common ones until it lands.
-  loadCountryAliases().then(countryAliases => setState({ countryAliases }));
+  loadCountryAliases().then(countryAliases => receiveData({ countryAliases }));
 
   // Load bloc membership non-blocking; the bloc filter and summary
   // appear once the data exists. URL bloc is applied late, same as
   // country/compare above.
   loadBlocs(sortedCountryNames).then(blocsData => {
     if (!blocsData) return;
-    setState({ blocsData });
+    receiveData({ blocsData });
     initBlocSelector();
     initBlocSummary();
     if (urlState.bloc && blocsData[urlState.bloc]) {
-      setState({ selectedBloc: urlState.bloc });
+      selectBloc(urlState.bloc);
     }
   });
 

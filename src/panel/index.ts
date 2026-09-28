@@ -1,4 +1,4 @@
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
 import { el, maybeEl } from '../dom';
 import { renderScoreBar, renderAllDots } from './scores';
 import { renderTextSections } from './sections';
@@ -7,7 +7,7 @@ import { renderPeerRow } from './peers';
 import { renderEvidence } from './evidence';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { onThemeChange } from '../map/cssColors';
-import { toggleComparison } from '../state/interactions';
+import { selectCountry, toggleComparison } from '../state/interactions';
 import { scoresAtDate } from '../state/selectors';
 import { ATTRIBUTE_LABELS, GROUPS, MAX_COMPARISON } from '../constants';
 import type { AttributeGroup } from '../constants';
@@ -104,7 +104,7 @@ function initSheetDrag(): void {
     // Suppress the click that follows a real drag so it doesn't
     // double-fire; only a firm downward drag dismisses.
     if (dy > 6) grabber.dataset.dragged = '1';
-    if (dy > panel.offsetHeight * 0.3) setState({ selectedCountry: null });
+    if (dy > panel.offsetHeight * 0.3) selectCountry(null);
   };
   grabber.addEventListener('pointerup', end);
   grabber.addEventListener('pointercancel', end);
@@ -323,7 +323,7 @@ export function initPanel(): void {
   // Touch-equivalent of Esc - visible on coarse pointers only (CSS).
   const closeBtn = document.getElementById('panel-close');
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => setState({ selectedCountry: null }));
+    closeBtn.addEventListener('click', () => selectCountry(null));
   }
 
   // The mobile bottom sheet's grab handle: tap (or keyboard) dismisses;
@@ -333,7 +333,7 @@ export function initPanel(): void {
   if (grabber) {
     grabber.addEventListener('click', () => {
       if (grabber.dataset.dragged) { delete grabber.dataset.dragged; return; }
-      setState({ selectedCountry: null });
+      selectCountry(null);
     });
   }
   initSheetDrag();
