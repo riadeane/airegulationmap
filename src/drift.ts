@@ -10,6 +10,11 @@
 // Everything is built with DOM nodes, never innerHTML, except the chart
 // tooltips, which escape their inputs (charts/drift.ts).
 
+// The app's design tokens (custom properties only, no rules), so the charts
+// read the map's ramp (--ramp-impl-high) from the one file that defines it
+// (#166). drift.html keeps an inline mirror of the page's own tokens so the
+// prose renders even without the bundle.
+import './styles/_tokens.css';
 import { initTheme } from './controls/theme';
 import { createTooltip } from './map/tooltip';
 import { onThemeChange } from './map/cssColors';

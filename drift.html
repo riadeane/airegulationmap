@@ -46,8 +46,10 @@
 
   <style>
     /* Tokens: mirror of the main app's _tokens.css, trimmed to what this
-       page uses (plus the score and no-data tints the charts read). Kept
-       inline so the prose renders even if the bundle is unavailable.
+       page uses (plus the no-data tint the charts read). Kept inline so
+       the prose renders even if the bundle is unavailable. The charts'
+       ramp (--ramp-impl-high) is not copied here: the bundle imports
+       _tokens.css itself (src/drift.ts), so it is the map's own value.
        --text-tertiary follows _tokens.css (52% light / 62% dark) so the
        small chart labels clear WCAG AA. */
     :root {
@@ -70,8 +72,6 @@
       --accent-muted:    oklch(76% 0.13 var(--brand-hue) / 0.14);
 
       --no-data:         oklch(26% 0.007 var(--brand-hue));
-      --score-low:       oklch(58% 0.16 28);
-      --score-high:      oklch(62% 0.13 245);
 
       color-scheme: dark;
     }
@@ -89,8 +89,6 @@
         --accent:          oklch(48% 0.16 60);
         --accent-muted:    oklch(48% 0.16 60 / 0.10);
         --no-data:         oklch(93% 0.004 80);
-        --score-low:       oklch(52% 0.18 28);
-        --score-high:      oklch(45% 0.15 245);
         color-scheme: light;
       }
     }
@@ -107,8 +105,6 @@
       --accent:          oklch(48% 0.16 60);
       --accent-muted:    oklch(48% 0.16 60 / 0.10);
       --no-data:         oklch(93% 0.004 80);
-      --score-low:       oklch(52% 0.18 28);
-      --score-high:      oklch(45% 0.15 245);
       color-scheme: light;
     }
 

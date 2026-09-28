@@ -2,9 +2,10 @@
 // draws one figure into a host element with D3 and returns the legend
 // entries the page lists beside it, so the swatches always match the
 // marks. Colours come from the app's tokens at render time (cssVar), never
-// from literals: a single-hue ramp off the map legend's high pole for
-// ordered series and the neutral tints for everything else. The page
-// re-renders on theme change and resize.
+// from literals: a single-hue ramp off the map legend's high pole
+// (--ramp-impl-high, the implementation ramp) for ordered series and the
+// neutral tints for everything else. The page re-renders on theme change
+// and resize.
 //
 // Marks follow one spec: columns at most 24px wide with a 2px surface gap
 // between stacked segments, 2px lines, 8px markers with a 2px surface
@@ -70,7 +71,7 @@ export function readPalette(): Palette {
   const text = cssVar('--text-primary');
   const dark = lab(bg).l < 50;
   const toward = lab(bg).l > lab(text).l ? bg : text;
-  const high = cssVar('--score-high');
+  const high = cssVar('--ramp-impl-high');
   const rampInterp = interpolateLab(high, toward);
   const reach = dark ? RAMP_REACH_DARK : RAMP_REACH_LIGHT;
   const seqInterp = interpolateLab(cssVar('--border-subtle'), high);
