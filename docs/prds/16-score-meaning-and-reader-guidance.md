@@ -238,11 +238,9 @@ explanation reachable in one click from wherever a score appears.
 - Data files, CSV headers and API column names are unchanged.
 - Lint, typecheck, Vitest, pytest (page generator) and e2e pass in both themes.
 
-## Open decisions (#156)
+## Decisions (#156, decided 2026-09-28)
 
-1. Display name for the composite: "Implementation index" (recommended),
-   "Regulatory extent index", or keep "Maturity index".
-2. Remove rank everywhere (recommended), or keep it on the static pages only.
-3. The palette: single-hue sequential for implementation plus a distinct
-   neutral ramp for governance style (recommended, resolves #29 in #111), or
-   keep one ramp and rely on text.
+1. The composite is displayed as **"Implementation index"**.
+2. **Rank is removed** everywhere.
+3. **Two ramps:** single-hue sequential for implementation, a distinct
+   neutral ramp for governance style (supersedes PR #29).

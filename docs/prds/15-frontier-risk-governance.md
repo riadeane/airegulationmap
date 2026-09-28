@@ -194,8 +194,10 @@ evidence" as a 1.
 3. #160: whether a voluntary evaluation regime can reach 4 on
    `evaluation_oversight` (the anchors above say yes; the alternative caps
    voluntary regimes at 3).
-4. #161: the value statement's wording, the dimension's public name, and the
-   funding disclosure.
+4. #161: the public name is decided, **"Frontier Risk Governance"**
+   (2026-09-28). Still open: the value statement's wording, the right of
+   reply, and the funding disclosure (deferred by the maintainer; the
+   dimension does not launch without it).
 
 ## Risks
 
