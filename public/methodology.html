@@ -392,6 +392,24 @@
       last researched before v2.1 has none until its next research
       pass.
     </p>
+    <p id="insufficient-evidence">
+      <strong>Insufficient evidence is not a 1.</strong> From rubric v3.1
+      (September 2026), a sub-indicator can be marked
+      <strong>insufficient evidence</strong> when no source the research
+      found confirms either the presence or the absence of what it asks
+      about; its rationale then says what was searched. A 1 needs positive
+      evidence of absence: a source that says the thing does not exist, or
+      a well-covered country whose official record was checked and where
+      nothing exists. Sources are thinner for some countries and languages
+      than for others, so without this value a country the research could
+      not see into would drift to the floor of the scale. A dimension with
+      two or more insufficient sub-indicators has no score; with one, it
+      is the mean of the other three. The maturity index needs at least two
+      of its three dimensions scored. Any unscored dimension sets the
+      entry's confidence to low. The map paints such a country in a neutral
+      grey distinct from "No data" (no entry at all), and
+      <code>scores.csv</code> leaves the cell empty.
+    </p>
 
     <h3>Regulation Status</h3>
     <p>The existence and maturity of AI-specific regulation: binding law, a draft bill, a national strategy, or nothing at all.</p>
@@ -474,13 +492,14 @@
     <p><strong>Gold set and drift check (September 2026).</strong> Ten countries across the maturity range (China, Japan, the United States, Germany, the United Kingdom, Singapore, Brazil, Kenya, Bhutan and Kiribati) have a gold score for each of their twenty sub-indicators, with a one-line justification per dimension and the sources used, published in <a href="/data/gold_set.json"><code>gold_set.json</code></a>. Each entry states whether it is a <em>draft</em> or <em>verified</em>: an entry is verified only when the maintainer has checked every score against the listed sources and recorded the date, and the set is re-verified each quarter. All ten entries are currently drafts awaiting that check. After every research run the scores the model returned for these countries, taken before the stability gate so the check measures the model rather than the gate, are compared with the gold scores on three metrics: the mean absolute error per dimension, the share of sub-indicators within one point, and the largest single deviation. One row per run is appended to <a href="/data/drift.json"><code>drift.json</code></a> and mirrored to the <code>gold_checks</code> table of the API, so a model or prompt change that moves the calibration shows up as a break in that series rather than as silent drift. A run whose within-one share falls below 0.8 carries a calibration warning in its summary; it is never blocked.</p>
 
     <h2 id="rubric-versions">Rubric versions</h2>
-    <p>The scoring rubric has changed twice. Each change is a documented break in the series, never a silent drift. Earlier snapshots are kept as they were scored; nothing in the past is re-scored or offset, because past web content cannot be re-researched and an offset would be invented data.</p>
+    <p>The scoring rubric has changed three times. Each change is a documented break in the series, never a silent drift. Earlier snapshots are kept as they were scored; nothing in the past is re-scored or offset, because past web content cannot be re-researched and an offset would be invented data.</p>
     <ul>
       <li><strong>v1, March 2026.</strong> Integer scores per dimension, four-dimension composite.</li>
       <li><strong>v2, June 2026.</strong> Four sub-indicators per dimension, quarter-point means, three-dimension maturity index. A 5 meant the global frontier at the time of scoring.</li>
       <li><strong>v3, September 2026.</strong> Fixed anchors. The frontier definition made scores comparable across countries but not across time: a country could fall without changing anything because the frontier moved, and weekly runs re-estimated the frontier every week. Each level now describes an observable state, as set out under <a href="#the-six-dimensions">The six dimensions</a>. The sub-indicator definitions and the output structure are unchanged. The first v3 run is also the first on Claude Opus 5, so the two changes share one break in the series, not two.</li>
+      <li><strong>v3.1, September 2026.</strong> The v3 anchors plus an <a href="#insufficient-evidence">insufficient evidence</a> value, which is no longer scored as 1. The tie-break toward the lower of two levels now applies only when the evidence supports both. Countries with thin source coverage can move up at this break because gaps stop counting as absences.</li>
     </ul>
-    <p>Each break is recorded in <code>history.json</code> under <code>breaks</code> with its date, model, prompt version, and reason; the v3 break is recorded there when the first v3 run lands. The timeline marks the date, and a country's score history labels changes on that date as a recalibration rather than a policy change. A relative view (a score divided by that week's maximum) is a possible display option for the frontend; it is never the stored number.</p>
+    <p>Each break is recorded in <code>history.json</code> under <code>breaks</code> with its date, model, prompt version, and reason; the v3.1 break is recorded there when the first full v3.1 run lands (v3.1 followed v3 before a full v3 run had landed, so that run records a single break). The timeline marks the date, and a country's score history labels changes on that date as a recalibration rather than a policy change. A relative view (a score divided by that week's maximum) is a possible display option for the frontend; it is never the stored number.</p>
 
     <h2 id="limitations">Known limitations</h2>
     <ul>

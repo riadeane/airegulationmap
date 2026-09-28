@@ -98,7 +98,9 @@ derivations used in more than one place belong here.
 
 `visibleCountrySet()` is the single definition of "which countries pass the
 active filters" (score range + bloc + confidence + official-sources +
-evidence) - the export scope, scatter dimming, and map opacity all read it,
+evidence; a country with insufficient evidence on the current attribute,
+a row with a null value, passes the range only while it spans the full
+scale, see `scoreRangeIsFull()`) - the export scope, scatter dimming, and map opacity all read it,
 after three diverging copies let the export forget the bloc filter entirely.
 `passesCountryFilters()` is its score-independent half (the map range-checks
 per-datum because timeline playback filters historical snapshots), and
@@ -110,8 +112,10 @@ the legend when that fallback is in play).
 
 ### Mapper / repository - `data/*`
 `loader.ts` maps CSV rows to typed domain objects (`ScoreEntry`,
-`RegulationEntry`) and validates at the boundary (non-numeric/out-of-range →
-`null`, never `NaN`). `history.ts`, `blocs.ts`, `subscores.ts`, and
+`RegulationEntry`) and validates at the boundary (empty/non-numeric/out-of-range →
+`null`, never `NaN`). A `null` on an existing row is "insufficient evidence"
+(rubric v3.1), a missing row is "no data": `isInsufficient()` in
+`constants.ts` is the one test, and `map/fill.ts` the one fill rule. `history.ts`, `blocs.ts`, `subscores.ts`, and
 `searchIndex.ts` are the other read models; `evidence.ts` normalizes the
 per-country evidence record `subscores.ts` carries (PRD 14) and derives the
 panel sentence and the Evidence filter predicate; `peers.ts` derives the
