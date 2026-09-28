@@ -1,6 +1,8 @@
-/* ── Help overlay ─────────────────────────────────────────────
+/* ── Help overlay: "How to read this map" ─────────────────────
    Native <dialog> - gives us focus trap, Esc-to-close, and
-   ::backdrop for free. Sits over the full viewport.
+   ::backdrop for free. Sits over the full viewport. The first
+   section explains what a score means (PRD 16); the second lists
+   the keyboard shortcuts. Scrolls within itself on short screens.
    ----------------------------------------------------------- */
 .help-overlay {
   padding: 0;
@@ -8,8 +10,11 @@
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text-primary);
-  max-width: 480px;
+  max-width: 540px;
   width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
   /* Restore UA centering that the global `* { margin: 0 }` reset strips. */
   margin: auto;
   box-shadow: 0 20px 60px rgb(0 0 0 / 0.4);
@@ -27,15 +32,115 @@
 .help-overlay-inner {
   position: relative;
   padding: 28px 32px 24px;
+  max-height: calc(100vh - 34px);
+  max-height: calc(100dvh - 34px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .help-overlay-title {
   font-family: 'Literata', Georgia, serif;
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: 500;
   letter-spacing: -0.005em;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   color: var(--text-primary);
+}
+
+.help-overlay-title:focus {
+  outline: none;
+}
+
+.help-explainer {
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 62ch;
+}
+
+.help-explainer p {
+  margin: 0 0 12px;
+}
+
+.help-lede {
+  color: var(--text-primary);
+}
+
+.help-lenses {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  margin: 4px 0 16px;
+}
+
+.help-lenses dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.help-lenses dd {
+  margin: 0;
+}
+
+.help-lenses dd p {
+  margin: 0 0 6px;
+}
+
+/* A small ramp swatch beside each lens name: the colours the map uses. */
+.help-lens-key {
+  display: inline-block;
+  width: 28px;
+  height: 6px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.help-lens-key[data-group="implementation"] {
+  background: linear-gradient(to right, var(--ramp-impl-low), var(--ramp-impl-high));
+}
+
+.help-lens-key[data-group="style"] {
+  background: linear-gradient(to right, var(--ramp-style-low), var(--ramp-style-high));
+}
+
+.help-plain {
+  color: var(--text-primary);
+  padding: 10px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.help-plain strong {
+  font-weight: 600;
+}
+
+.help-shortcuts {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.help-section-title {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 14px;
+}
+
+/* Keyboard shortcuts mean nothing on a touchscreen. */
+@media (pointer: coarse) {
+  .help-shortcuts {
+    display: none;
+  }
 }
 
 .help-overlay-close {
@@ -63,7 +168,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px 28px;
-  margin-bottom: 20px;
 }
 
 .help-overlay-grid dl {
@@ -87,11 +191,10 @@
   margin: 0;
 }
 
-.help-overlay-footer {
-  font-size: 0.76rem;
+.help-explainer .help-overlay-footer {
+  margin: 0;
+  font-size: 0.78rem;
   color: var(--text-tertiary);
-  padding-top: 14px;
-  border-top: 1px solid var(--border-subtle);
 }
 
 .help-overlay-footer a {
@@ -107,6 +210,10 @@
 @media (max-width: 520px) {
   .help-overlay-grid {
     grid-template-columns: 1fr;
+  }
+
+  .help-overlay-inner {
+    padding: 24px 20px 20px;
   }
 }
 

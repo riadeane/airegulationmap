@@ -10,8 +10,8 @@
       <stop offset="100%" stop-color="#d4a04a" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="bar-grad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#5a6478"/>
-      <stop offset="100%" stop-color="#d4a04a"/>
+      <stop offset="0%" stop-color="#bbd4ee"/>
+      <stop offset="100%" stop-color="#3057a3"/>
     </linearGradient>
     <radialGradient id="pin-glow" cx="0.5" cy="0.4" r="0.5">
       <stop offset="0%" stop-color="#ffe0a0" stop-opacity="0.4"/>
@@ -88,10 +88,10 @@
   <!-- Subtitle -->
   <text x="600" y="458" text-anchor="middle" fill="#7d7a72" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="400" letter-spacing="0.5">Global AI governance status by country</text>
 
-  <!-- Score bar preview -->
-  <rect x="440" y="490" width="320" height="4" rx="2" fill="url(#bar-grad)" opacity="0.5"/>
-  <text x="440" y="516" fill="#4e4c46" font-family="ui-monospace, 'SF Mono', monospace" font-size="11" letter-spacing="1.5">MINIMAL</text>
-  <text x="760" y="516" text-anchor="end" fill="#4e4c46" font-family="ui-monospace, 'SF Mono', monospace" font-size="11" letter-spacing="1.5">COMPREHENSIVE</text>
+  <!-- Score bar preview: the implementation ramp, light = little in force -->
+  <rect x="440" y="490" width="320" height="4" rx="2" fill="url(#bar-grad)" opacity="0.7"/>
+  <text x="440" y="516" fill="#6a675f" font-family="ui-monospace, 'SF Mono', monospace" font-size="11" letter-spacing="1.5">LITTLE IN FORCE</text>
+  <text x="760" y="516" text-anchor="end" fill="#6a675f" font-family="ui-monospace, 'SF Mono', monospace" font-size="11" letter-spacing="1.5">EXTENSIVELY IN FORCE</text>
 
   <!-- Domain -->
   <text x="600" y="590" text-anchor="middle" fill="#4e4c46" font-family="ui-monospace, 'SF Mono', monospace" font-size="14" letter-spacing="2">airegulationmap.org</text>

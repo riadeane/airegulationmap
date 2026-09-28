@@ -247,9 +247,8 @@
   height: 100%;
   /* Solid fill coloured by the score's position on the choropleth ramp
      (set in renderScoreBar), so a given value reads the same colour here
-     as the country does on the map - the old gradient always ended in
-     "high/blue" regardless of the score. */
-  background: var(--fill-color, var(--score-high));
+     as the country does on the map. */
+  background: var(--fill-color, var(--ramp-impl-high));
   border-radius: 2px;
   transition: width 0.5s var(--ease-out);
   width: 0%;
@@ -263,7 +262,7 @@
   top: -1px;
   width: 6px;
   height: 6px;
-  background: var(--fill-color, var(--score-high));
+  background: var(--fill-color, var(--ramp-impl-high));
   border-radius: 50%;
 }
 
@@ -704,12 +703,11 @@
   margin: 2px 0 4px;
 }
 
-.changelog-direction.up {
-  color: var(--score-high);
-}
-
+/* Direction by glyph, not colour: up and down share one neutral tone,
+   since a move up is not an improvement (PRD 16). */
+.changelog-direction.up,
 .changelog-direction.down {
-  color: var(--score-low);
+  color: var(--change-mark);
 }
 
 .changelog-empty {
@@ -718,13 +716,50 @@
   font-style: italic;
 }
 
-/* Maturity rank under the overall score bar */
-.maturity-rank {
-  font-size: 0.68rem;
-  font-family: 'Geist Mono', 'JetBrains Mono', monospace;
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
-  margin-top: 4px;
+/* The two lenses (PRD 16). Each group opens with its name and what it
+   reads, in one line: "IMPLEMENTATION how much is in force, not how good
+   it is". The caption is plain words, quieter than the label. */
+.panel-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  row-gap: 2px;
+  margin-bottom: 12px;
+}
+
+.panel-group-head .panel-section-label {
+  margin-bottom: 0;
+}
+
+.panel-group-caption {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  font-family: 'Literata', Georgia, serif;
+}
+
+.index-row {
+  margin-bottom: 14px;
+}
+
+.index-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+/* #96: a note in place of the governance type dots where nothing is in
+   force at all. */
+.dim-dots.dim-dots-note {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  text-align: right;
+  white-space: normal;
+  max-width: 55%;
+  line-height: 1.3;
 }
 
 /* "Compare with" peer sets - pill chips in the comparison-chip idiom
@@ -861,8 +896,18 @@
 .subscore-fill {
   display: block;
   height: 100%;
-  background: var(--accent);
-  opacity: 0.7;
+  background: var(--text-tertiary);
+}
+
+/* What the sub-indicator's level means (PRD 16): the v3 ladder for the
+   implementation dimensions, the descriptive anchors for governance style.
+   Quiet mono number, plain-words meaning. */
+.subscore-panel .subscore-meaning {
+  margin: 1px 0 2px;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+  font-style: italic;
 }
 
 .subscore-value {
@@ -1087,9 +1132,69 @@
 
 .no-selection-message .panel-methodology-link {
   display: block;
-  margin-top: 10px;
+  margin-top: 6px;
   width: fit-content;
   font-style: normal;
+}
+
+/* "What a score means" / "How to read this map": the explainer's
+   openers in the panel. Buttons dressed as the quiet header links. */
+.panel-guide-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 6px 0 0;
+}
+
+.panel-guide-links .panel-methodology-link {
+  margin-top: 0;
+}
+
+.panel-explain-btn,
+.panel-intro-explain {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0 0 1px;
+  font: inherit;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+.panel-explain-btn:hover,
+.panel-intro-explain:hover,
+.panel-explain-btn:focus-visible,
+.panel-intro-explain:focus-visible {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.no-selection-message .panel-explain-btn {
+  display: block;
+  margin-top: 10px;
+  font-style: normal;
+}
+
+.panel-intro-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+}
+
+.panel-intro-explain {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.panel-intro-kbd {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
 }
 
 /* Policy initiatives - the verified evidence records behind the scores */

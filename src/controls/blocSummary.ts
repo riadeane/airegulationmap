@@ -1,7 +1,8 @@
 // Floating summary card on the map while a bloc is selected: member
 // coverage, the share of members grounded in verified policy initiatives,
-// average, spread (how aligned the bloc is), and the highest / lowest
-// scoring members as jump links.
+// average, spread (how aligned the bloc is), and the members at each end of
+// the scale as jump links, labelled in the lens's own words ("Most in
+// force", "Most centralised"), never as best or worst (PRD 16).
 
 import { getState, setState, on } from '../state/store';
 import { selectCountry } from '../state/interactions';
@@ -10,7 +11,10 @@ import {
   computeBlocStats, computeBlocEvidenceShare, blocEvidenceShareText, countInsufficient, blocCoverageText,
 } from '../data/blocs';
 import type { BlocMemberScore } from '../data/blocs';
-import { ATTRIBUTE_LABELS } from '../constants';
+import { ATTRIBUTES } from '../constants';
+import { blocExtremes } from '../data/meaning';
+import { makeColorScale } from '../map/ramp';
+import { onThemeChange } from '../map/cssColors';
 
 // Map a 1–5 score to a percentage along the range track.
 const pct = (score: number) => ((score - 1) / 4) * 100;
@@ -90,7 +94,7 @@ function render() {
 
   const dim = document.createElement('div');
   dim.className = 'bloc-summary-dim';
-  const label = ATTRIBUTE_LABELS[currentAttribute] || currentAttribute;
+  const label = ATTRIBUTES[currentAttribute].label;
   dim.textContent = past && timelineDate ? `${label} · as of ${timelineDate}` : label;
   card.appendChild(dim);
 
@@ -117,6 +121,9 @@ function render() {
   fill.className = 'bloc-range-fill';
   fill.style.left = `${pct(stats.min)}%`;
   fill.style.width = `${pct(stats.max) - pct(stats.min)}%`;
+  // The lens's own ramp between the bloc's two ends, as the map colours them.
+  const scale = makeColorScale(currentAttribute);
+  fill.style.background = `linear-gradient(to right, ${scale(stats.min)}, ${scale(stats.max)})`;
   const marker = document.createElement('div');
   marker.className = 'bloc-range-avg';
   marker.style.left = `${pct(stats.average)}%`;
@@ -126,16 +133,18 @@ function render() {
 
   const ends = document.createElement('div');
   ends.className = 'bloc-range-ends';
+  const { low, high } = ATTRIBUTES[currentAttribute];
   const lo = document.createElement('span');
-  lo.textContent = '1';
+  lo.textContent = `1 ${low}`;
   const hi = document.createElement('span');
-  hi.textContent = '5';
+  hi.textContent = `${high} 5`;
   ends.append(lo, hi);
   card.appendChild(ends);
 
-  card.appendChild(memberLink('Highest', stats.highest));
+  const extremes = blocExtremes(currentAttribute);
+  card.appendChild(memberLink(extremes.high, stats.highest));
   if (stats.lowest.name !== stats.highest.name) {
-    card.appendChild(memberLink('Lowest', stats.lowest));
+    card.appendChild(memberLink(extremes.low, stats.lowest));
   }
 }
 
@@ -149,5 +158,7 @@ export function initBlocSummary(): void {
   on('scoreData', render);
   // Evidence records arrive with subscores.json, possibly after the card.
   on('subscores', render);
+  // The range bar carries colours resolved from the ramp.
+  onThemeChange(render);
   render();
 }

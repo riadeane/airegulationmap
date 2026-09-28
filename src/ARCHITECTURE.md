@@ -21,14 +21,14 @@ so there are no import cycles (`madge --circular --extensions ts src/` is clean)
 flowchart TD
   subgraph Leaf["Leaf (no app imports)"]
     store["state/store.ts<br/>pub-sub + AppState"]
-    constants["constants.ts<br/>labels, MainView, MAX_COMPARISON"]
+    constants["constants.ts<br/>score vocabulary, MainView, MAX_COMPARISON"]
     dom["dom.ts<br/>typed element accessors"]
     colorSlots["comparison/colorSlots.ts<br/>stable colour assignment"]
     dataLayer["data/*<br/>loaders, search index, blocs"]
   end
 
   subgraph Derive["Derived + orchestration"]
-    selectors["state/selectors.ts<br/>memoized reads (rank…)"]
+    selectors["state/selectors.ts<br/>memoized reads (visibility…)"]
     interactions["state/interactions.ts<br/>the single WRITER - intents + invariants"]
   end
 
@@ -91,10 +91,11 @@ unrepresentable, and `setMainView` is the single writer, so switching to one
 view implicitly leaves the others - no manual "close the other" dance.
 
 ### Selectors (memoized derived state) - `state/selectors.ts`
-The read-side counterpart to the orchestrator. `maturityRank(country)` derives
-the whole ranking once per data load (memoized on the `scoreData` reference)
-instead of the panel rebuilding an O(n²) scan on every selection. New
-derivations used in more than one place belong here.
+The read-side counterpart to the orchestrator: derived values are memoized
+on their source reference instead of being recomputed on every render. New
+derivations used in more than one place belong here. (There is no rank
+selector: PRD 16 removed rank from every surface, since a higher score is
+not a better one.)
 
 `visibleCountrySet()` is the single definition of "which countries pass the
 active filters" (score range + bloc + confidence + official-sources +
@@ -119,7 +120,7 @@ the legend when that fallback is in play).
 `searchIndex.ts` are the other read models; `evidence.ts` normalizes the
 per-country evidence record `subscores.ts` carries (PRD 14) and derives the
 panel sentence and the Evidence filter predicate; `peers.ts` derives the
-panel's peer sets (bloc, similar maturity, similar profile) as pure
+panel's peer sets (bloc, similar implementation, similar profile) as pure
 functions over the score rows. This is the layer that most resembles the
 backend's `Dataset` repository.
 
@@ -190,16 +191,18 @@ sequenceDiagram
 | `state/store.ts` | `AppState` + typed pub-sub | Observer, single source of truth |
 | `state/interactions.ts` | intents + invariants (the only writer) | Orchestrator / "Service" |
 | `state/selectors.ts` | memoized derived reads | Selector |
-| `constants.ts` | labels, `MainView`, `MAX_COMPARISON` | shared contract |
+| `constants.ts` | the score vocabulary (`ATTRIBUTES`, `GROUPS`: label, lens, question, endpoints, what a score does not claim), `MainView`, `MAX_COMPARISON` | shared contract |
+| `data/meaning.ts` | the strings each surface shows about a score (tooltip line, legend caption, live region, bloc card labels, sub-indicator level meanings) | pure derivation |
 | `dom.ts` | typed element access | seam |
 | `data/*` | CSV/JSON → typed domain | Mapper / repository |
 | `data/countryIso.ts` | `country_iso.json`: ISO codes for the panel, ISO numeric → dataset name for the map join | Mapper |
-| `map/*` | choropleth render, zoom, tooltip, legend | imperative D3 |
+| `map/*` | choropleth render, zoom, tooltip, the HTML legend, the two ramps (`ramp.ts`) | imperative D3 |
+| `map/countryTable.ts` | the map as a keyboard and screen-reader table (#139) | subscriber view |
 | `map/geometryNames.ts` | gives world-atlas geometries the dataset's country names via their ISO numeric ids | Mapper |
 | `panel/*` | country detail | subscriber view |
 | `comparison/*` | staging strip + full comparison | subscriber view (+ `colorSlots` leaf) |
 | `scatter/*` | dimension explorer | subscriber view |
-| `controls/*` | search, filter, blocs, export, timeline, url, theme, menu, help, cite, share, print brief, issue report, this-week strip | subscriber views |
+| `controls/*` | search, filter, blocs, export, timeline, url, theme, menu, help ("How to read this map"), cite, share, print brief, issue report, this-week strip | subscriber views |
 | `charts/*` | the drift dashboard's D3 small multiples (`charts/drift.ts`) | imperative D3 |
 | `main.ts` | boot + wiring | composition root |
 | `changes.ts` | `changes.html` entry: renders the weekly digest from `public/digest/` | page entry |

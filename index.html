@@ -79,8 +79,9 @@
         id="header-help-btn"
         class="header-help-btn"
         type="button"
-        aria-label="Keyboard shortcuts and help"
-        title="Keyboard shortcuts"
+        aria-haspopup="dialog"
+        aria-label="How to read this map, and keyboard shortcuts"
+        title="How to read this map"
       >?</button>
       <button
         id="menu-toggle"
@@ -114,7 +115,7 @@
       </div>
       <div id="score-btn-container">
         <button id="score-btn" aria-haspopup="listbox" aria-expanded="false">
-          <span id="score-btn-label">Maturity Index</span>
+          <span id="score-btn-label">Implementation Index</span>
           <span class="caret">▾</span>
         </button>
         <ul id="score-dropdown" role="listbox" aria-label="Score type"></ul>
@@ -164,6 +165,7 @@
           <button type="button" data-format="json" data-scope="all">JSON · all countries</button>
           <button type="button" data-format="csv" data-scope="comparison">CSV · comparison</button>
           <button type="button" data-format="json" data-scope="comparison">JSON · comparison</button>
+          <button type="button" class="export-docs-link export-explain" data-explainer aria-haspopup="dialog">What the scores mean →</button>
           <a class="export-docs-link" href="/data.html">Data &amp; API docs →</a>
           <a class="export-docs-link" href="/api-docs.html">API reference →</a>
           <a class="export-docs-link" href="/digest/feed.xml">Weekly changes feed (Atom) →</a>
@@ -213,8 +215,8 @@
       </div>
       <div id="zoom-controls"></div>
       <div id="mobile-hint" class="mobile-hint" hidden>
-        <span>Tap a country to explore</span>
-        <a href="/methodology.html">Methodology</a>
+        <span>Tap a country to explore. Higher means more in force, not better.</span>
+        <button type="button" class="mobile-hint-explain" data-explainer aria-haspopup="dialog">How to read this map</button>
         <button id="mobile-hint-close" class="mobile-hint-close" type="button" aria-label="Dismiss hint">&times;</button>
       </div>
       <div id="bloc-summary" class="bloc-summary" hidden></div>
@@ -231,14 +233,18 @@
             Trend
           </label>
           <span class="scatter-colorkey">
-            <span class="scatter-colorkey-text">Dot colour: maturity index</span>
-            <span class="scatter-colorkey-ends" aria-hidden="true">low</span>
+            <span class="scatter-colorkey-text" id="scatter-colorkey-text">Dot colour: implementation index</span>
+            <span class="scatter-colorkey-ends" id="scatter-colorkey-low">Little in force</span>
             <span class="scatter-colorkey-bar" aria-hidden="true"></span>
-            <span class="scatter-colorkey-ends" aria-hidden="true">high</span>
+            <span class="scatter-colorkey-ends" id="scatter-colorkey-high">Extensively in force</span>
           </span>
         </div>
         <div id="scatter-chart"></div>
       </div>
+      <!-- The map as a table (#139): visually hidden until a keyboard user
+           tabs into it, always there for screen readers. Filled by
+           map/countryTable.ts. -->
+      <section id="country-table" class="country-table" aria-labelledby="country-table-title" hidden></section>
       <div
         id="map-live-region"
         class="sr-only"
@@ -250,16 +256,20 @@
     <aside id="country-panel">
       <button id="sheet-grabber" class="sheet-grabber" type="button" aria-label="Close country details"></button>
       <div id="panel-intro" class="panel-intro">
-        <p class="panel-intro-lede">Global AI governance across <span id="intro-country-count">196</span> countries, scored on six dimensions.</p>
+        <p class="panel-intro-lede">AI governance across <span id="intro-country-count">196</span> countries: how much is in force, and how each country governs.</p>
         <ol class="panel-intro-steps">
-          <li><span class="panel-intro-num">01</span> Select a country to read its regulatory posture.</li>
-          <li><span class="panel-intro-num">02</span> Use <strong>+&nbsp;Compare</strong> to stack up to four side-by-side.</li>
-          <li><span class="panel-intro-num">03</span> Press <kbd>?</kbd> for keyboard shortcuts.</li>
+          <li><span class="panel-intro-num">01</span> Select a country to read its entry and sources.</li>
+          <li><span class="panel-intro-num">02</span> Use <strong>+&nbsp;Compare</strong> to set up to four side by side.</li>
+          <li><span class="panel-intro-num">03</span> A higher score means more is in force, not better regulation.</li>
         </ol>
-        <a class="panel-intro-methodology" href="/methodology.html">Read the methodology &rarr;</a>
+        <p class="panel-intro-links">
+          <button type="button" class="panel-intro-explain" data-explainer aria-haspopup="dialog">How to read this map &rarr;</button>
+          <span class="panel-intro-kbd">Press <kbd>?</kbd> for this guide and keyboard shortcuts.</span>
+        </p>
       </div>
       <p id="no-selection-message" class="no-selection-message" hidden>
         Select a country to see details.
+        <button type="button" class="panel-explain-btn" data-explainer aria-haspopup="dialog">How to read this map</button>
         <a class="panel-methodology-link" href="/methodology.html">Methodology →</a>
       </p>
       <div id="search-results" class="search-results" hidden></div>
@@ -274,7 +284,10 @@
           </div>
           <small id="last-updated" class="data-freshness"></small>
           <small id="evidence-coverage" class="data-freshness evidence-coverage" hidden></small>
-          <a class="panel-methodology-link" href="/methodology.html">How scores are assigned →</a>
+          <p class="panel-guide-links">
+            <button type="button" class="panel-explain-btn" data-explainer aria-haspopup="dialog">What a score means</button>
+            <a class="panel-methodology-link" href="/methodology.html">How scores are assigned →</a>
+          </p>
           <p id="panel-history-notice" class="panel-history-notice" hidden>
             Viewing scores as of <span id="panel-history-date"></span>.
             Text, sources and sub-indicators reflect the latest research.
@@ -316,18 +329,20 @@
             hidden
           ></div>
         </div>
-        <div class="panel-section">
-          <div class="panel-section-label">MATURITY INDEX</div>
-          <div class="score-bar-row">
-            <div class="score-bar-track">
-              <div class="score-bar-fill" id="overall-bar-fill"></div>
-            </div>
-            <span class="score-value" id="average-score"></span>
+        <div class="panel-section panel-group" data-group="implementation">
+          <div class="panel-group-head">
+            <span class="panel-section-label" data-group-label="implementation">Implementation</span>
+            <span class="panel-group-caption" data-group-caption="implementation">how much is in force, not how good it is</span>
           </div>
-          <div class="maturity-rank" id="maturity-rank"></div>
-        </div>
-        <div class="panel-section">
-          <div class="panel-section-label">DIMENSIONS</div>
+          <div class="index-row">
+            <span class="index-label" id="index-label">Implementation Index</span>
+            <div class="score-bar-row">
+              <div class="score-bar-track">
+                <div class="score-bar-fill" id="overall-bar-fill"></div>
+              </div>
+              <span class="score-value" id="average-score"></span>
+            </div>
+          </div>
           <div class="dimensions-list">
             <div class="dimension-row" data-dimension="regulationStatus">
               <button type="button" class="dim-main">
@@ -347,6 +362,23 @@
                 <span class="dim-expand-caret" aria-hidden="true">▸</span>
               </button>
             </div>
+            <div class="dimension-row" data-dimension="enforcementLevel">
+              <button type="button" class="dim-main">
+                <span class="dim-label">Enforcement Level</span>
+                <span class="dim-dots" id="dots-enforcement"></span>
+              </button>
+              <button type="button" class="dim-expand" aria-expanded="false" aria-label="Show Enforcement Level sub-indicators">
+                <span class="dim-expand-caret" aria-hidden="true">▸</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="panel-section panel-group" data-group="style">
+          <div class="panel-group-head">
+            <span class="panel-section-label" data-group-label="style">Governance style</span>
+            <span class="panel-group-caption" data-group-caption="style">how, not how well</span>
+          </div>
+          <div class="dimensions-list">
             <div class="dimension-row" data-dimension="governanceType">
               <button type="button" class="dim-main">
                 <span class="dim-label">Governance Type</span>
@@ -365,16 +397,9 @@
                 <span class="dim-expand-caret" aria-hidden="true">▸</span>
               </button>
             </div>
-            <div class="dimension-row" data-dimension="enforcementLevel">
-              <button type="button" class="dim-main">
-                <span class="dim-label">Enforcement Level</span>
-                <span class="dim-dots" id="dots-enforcement"></span>
-              </button>
-              <button type="button" class="dim-expand" aria-expanded="false" aria-label="Show Enforcement Level sub-indicators">
-                <span class="dim-expand-caret" aria-hidden="true">▸</span>
-              </button>
-            </div>
           </div>
+          <!-- Print brief only (shown by _print.css). -->
+          <p class="print-scores-note" hidden>These scores show how much is in force and how the country governs. They are not a judgement of the quality of its regulation.</p>
         </div>
         <div class="panel-section" id="peers-section" hidden>
           <div class="panel-section-label">COMPARE WITH</div>
@@ -391,6 +416,10 @@
           <div class="panel-section-label">POLICY LEVER</div>
           <p id="policy-details"></p>
         </div>
+        <div class="panel-section" id="enforcement-section">
+          <div class="panel-section-label">ENFORCEMENT LEVEL</div>
+          <p id="enforcement-details"></p>
+        </div>
         <div class="panel-section" id="governance-section">
           <div class="panel-section-label">GOVERNANCE TYPE</div>
           <p id="governance-details"></p>
@@ -398,10 +427,6 @@
         <div class="panel-section" id="actors-section">
           <div class="panel-section-label">ACTOR INVOLVEMENT</div>
           <p id="actors-details"></p>
-        </div>
-        <div class="panel-section" id="enforcement-section">
-          <div class="panel-section-label">ENFORCEMENT LEVEL</div>
-          <p id="enforcement-details"></p>
         </div>
         <div class="panel-section" id="laws-section">
           <div class="panel-section-label">KEY LEGISLATION</div>
@@ -481,31 +506,53 @@
     </p>
   </footer>
 
-  <dialog id="help-overlay" class="help-overlay" aria-label="Keyboard shortcuts and help">
+  <dialog id="help-overlay" class="help-overlay" aria-labelledby="help-overlay-title">
     <div class="help-overlay-inner">
       <button id="help-overlay-close" class="help-overlay-close" type="button" aria-label="Close">&times;</button>
-      <h2 class="help-overlay-title">Keyboard shortcuts</h2>
-      <div class="help-overlay-grid">
-        <dl>
-          <dt><kbd>/</kbd> or <kbd>&#8984;</kbd><kbd>K</kbd></dt>
-          <dd>Focus search</dd>
-          <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd></dt>
-          <dd>Step through countries</dd>
-          <dt><kbd>?</kbd></dt>
-          <dd>This menu</dd>
+      <section class="help-section help-explainer" aria-labelledby="help-overlay-title">
+        <h2 class="help-overlay-title" id="help-overlay-title">How to read this map</h2>
+        <p class="help-lede">Every score runs from 1 to 5 and belongs to one of two lenses.</p>
+        <dl class="help-lenses">
+          <dt><span class="help-lens-key" data-group="implementation" aria-hidden="true"></span>Implementation</dt>
+          <dd>
+            <p>How much AI governance is in force and operating: the implementation index, regulation status, policy lever and enforcement level.</p>
+            <p>1 means no observable activity. 5 means the rules are in force, the bodies are staffed and acting, and enforcement is routine and published.</p>
+          </dd>
+          <dt><span class="help-lens-key" data-group="style" aria-hidden="true"></span>Governance style</dt>
+          <dd>
+            <p>How a country governs AI, not how well. Governance type runs from centralised (1) to distributed (5); actor involvement from narrow (1) to broad (5). Neither end is better.</p>
+          </dd>
         </dl>
-        <dl>
-          <dt>Click</dt>
-          <dd>Select country</dd>
-          <dt>Shift&#8239;+&#8239;click</dt>
-          <dd>Add to comparison</dd>
-          <dt><kbd>Esc</kbd></dt>
-          <dd>Close / deselect</dd>
-          <dt><kbd>&#8984;</kbd><kbd>P</kbd></dt>
-          <dd>Print country brief</dd>
-        </dl>
-      </div>
-      <p class="help-overlay-footer">More detail in the <a href="/methodology.html">methodology</a>.</p>
+        <p class="help-plain"><strong>A higher score is not a better score.</strong> The map shows how much is in force, not whether the rules are good, fair or effective.</p>
+        <p>The implementation index is the mean of the three implementation dimensions. Each dimension is the mean of four sub-indicators: open one in a country&rsquo;s entry to see each score and what its level means.</p>
+        <p>Every entry has a confidence rating for how well its sources support it. Countries rated low confidence are hatched on the map (switch this off under Filter). Grey countries have no data.</p>
+        <p class="help-overlay-footer"><a href="/methodology.html">Read the methodology</a> for every level of every sub-indicator.</p>
+      </section>
+      <section class="help-section help-shortcuts" aria-labelledby="help-shortcuts-title">
+        <h2 class="help-section-title" id="help-shortcuts-title">Keyboard shortcuts</h2>
+        <div class="help-overlay-grid">
+          <dl>
+            <dt><kbd>/</kbd> or <kbd>&#8984;</kbd><kbd>K</kbd></dt>
+            <dd>Focus search</dd>
+            <dt><kbd>&larr;</kbd> <kbd>&rarr;</kbd></dt>
+            <dd>Step through countries</dd>
+            <dt><kbd>Tab</kbd></dt>
+            <dd>Reach the country table under the map</dd>
+            <dt><kbd>?</kbd></dt>
+            <dd>This guide</dd>
+          </dl>
+          <dl>
+            <dt>Click</dt>
+            <dd>Select country</dd>
+            <dt>Shift&#8239;+&#8239;click</dt>
+            <dd>Add to comparison</dd>
+            <dt><kbd>Esc</kbd></dt>
+            <dd>Close / deselect</dd>
+            <dt><kbd>&#8984;</kbd><kbd>P</kbd></dt>
+            <dd>Print country brief</dd>
+          </dl>
+        </div>
+      </section>
     </div>
   </dialog>
 

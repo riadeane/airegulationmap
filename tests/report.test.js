@@ -130,12 +130,12 @@ describe('buildReportBody', () => {
     const body = buildReportBody(base);
     const rows = body.split('\n').filter(line => /^\| [A-Z]/.test(line) && !line.startsWith('| Dimension'));
     expect(rows).toEqual([
-      '| Maturity Index | 2.42 |',
+      '| Implementation Index | 2.42 |',
       '| Regulation Status | 3 |',
       '| Policy Lever | 2.25 |',
+      '| Enforcement Level | 2 |',
       '| Governance Type | 2.25 |',
       '| Actor Involvement | 3.50 |',
-      '| Enforcement Level | 2 |',
     ]);
   });
 
@@ -170,7 +170,7 @@ describe('buildReportBody', () => {
     expect(body).toContain('**Confidence:** Not stated');
     expect(body).toContain('**Last updated:** unknown');
     expect(body).toContain('**Data version:** unknown');
-    expect(body).toContain('| Maturity Index | N/A |');
+    expect(body).toContain('| Implementation Index | N/A |');
     expect(body).toContain('**Sources:** none on the entry');
   });
 
@@ -338,19 +338,19 @@ describe('buildReportBody on a past timeline date', () => {
     expect(body).toContain('**Scores as of:** 2026-03-21');
     const rows = body.split('\n').filter(line => /^\| [A-Z]/.test(line) && !line.startsWith('| Dimension'));
     expect(rows).toEqual([
-      '| Maturity Index | 1.75 |',
+      '| Implementation Index | 1.75 |',
       '| Regulation Status | 2 |',
       '| Policy Lever | 1.75 |',
+      '| Enforcement Level | 1.50 |',
       '| Governance Type | 2 |',
       '| Actor Involvement | 3 |',
-      '| Enforcement Level | 1.50 |',
     ]);
   });
 
   it('says N/A for a country the snapshot does not cover, never the latest', () => {
     const body = buildReportBody({ ...base, vintage: { date: '2026-03-21', scores: null } });
-    expect(body).toContain('| Maturity Index | N/A |');
-    expect(body).not.toContain('| Maturity Index | 2.42 |');
+    expect(body).toContain('| Implementation Index | N/A |');
+    expect(body).not.toContain('| Implementation Index | 2.42 |');
   });
 
   it('adds no vintage line at Latest', () => {

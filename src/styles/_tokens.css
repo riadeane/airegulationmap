@@ -55,13 +55,27 @@
      --no-data and the ramp's grey-ish midpoint, and never the colour for 1. */
   --score-insufficient: oklch(40% 0.008 var(--brand-hue));
 
-  /* Choropleth ramp endpoints (interpolated in Lab space by d3).
-     Red → blue divergent: low scores read "warning / less coverage"
-     at a glance, high scores read "mature / well-developed". Also
-     the most colorblind-safe divergent ramp - protan, deutan, and
-     tritan observers all see clear separation. */
-  --score-low:       oklch(58% 0.16 28);
-  --score-high:      oklch(62% 0.13 245);
+  /* Choropleth ramps (endpoints interpolated in Lab space by d3). Two
+     lenses, two ramps, and neither signals good or bad (PRD 16):
+     - Implementation (the index, regulation status, policy lever,
+       enforcement level): one blue hue, light = less in force, dark =
+       more. A single-hue lightness ramp reads the same for protan,
+       deutan and tritan observers, and no end is a warning colour.
+     - Governance style (governance type, actor involvement): a neutral
+       warm stone ramp, light = centralised or narrow, dark = distributed
+       or broad. Low chroma so it reads as position, not achievement, and
+       visibly different from the blue.
+     Both low ends keep enough chroma and distance from --no-data that
+     "little in force" never reads as "no data". */
+  --ramp-impl-low:   oklch(86% 0.045 250);
+  --ramp-impl-high:  oklch(47% 0.13 262);
+  --ramp-style-low:  oklch(84% 0.035 85);
+  --ramp-style-high: oklch(47% 0.04 55);
+
+  /* Direction of a score change (changelog, "This week"): one neutral
+     tone for up and down alike. The glyph and the signed number carry
+     the direction; colour must not say better or worse. */
+  --change-mark:     var(--text-secondary);
 
   /* Comparison palette - four distinct hues at matched lightness so
      they read well against both themes and against each other on
@@ -81,13 +95,9 @@
   color-scheme: dark;
 }
 
-/* Light theme - rethought as a two-hue divergent palette so the
-   choropleth gradient reads clearly across the cream background
-   instead of collapsing into a muddy warm monochrome.
-   - Low scores: saturated cool teal-blue.
-   - High scores: deep honey amber.
-   - Midpoint in Lab interpolation lands near neutral gray,
-     which reads unambiguously against either end of the range. */
+/* Light theme. The two choropleth ramps keep their meaning (light =
+   less in force / centralised, dark = more in force / distributed) and
+   darken at the high end for the cream background. */
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
@@ -112,8 +122,10 @@
     --no-data:         oklch(93% 0.004 80);
     --score-insufficient: oklch(79% 0.006 80);
 
-    --score-low:       oklch(52% 0.18 28);
-    --score-high:      oklch(45% 0.15 245);
+    --ramp-impl-low:   oklch(88% 0.04 250);
+    --ramp-impl-high:  oklch(37% 0.12 262);
+    --ramp-style-low:  oklch(87% 0.035 85);
+    --ramp-style-high: oklch(40% 0.035 55);
 
     --comparison-1:    oklch(48% 0.16 60);
     --comparison-2:    oklch(45% 0.16 245);
@@ -147,8 +159,10 @@
   --no-data:         oklch(93% 0.004 80);
   --score-insufficient: oklch(79% 0.006 80);
 
-  --score-low:       oklch(52% 0.18 28);
-  --score-high:      oklch(45% 0.15 245);
+  --ramp-impl-low:   oklch(88% 0.04 250);
+  --ramp-impl-high:  oklch(37% 0.12 262);
+  --ramp-style-low:  oklch(87% 0.035 85);
+  --ramp-style-high: oklch(40% 0.035 55);
 
   --comparison-1:    oklch(48% 0.16 60);
   --comparison-2:    oklch(45% 0.16 245);

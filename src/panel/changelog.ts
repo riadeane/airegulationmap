@@ -7,7 +7,7 @@ import { computeChangelog, isPolicyChange, formatChangeValue, changeDirection } 
 import { historyBreaks } from '../data/history';
 
 // Snapshots from this date onward use methodology v2 (sub-indicator
-// means, frontier calibration, 3-dimension maturity composite).
+// means, frontier calibration, 3-dimension composite index).
 const METHODOLOGY_V2_DATE = '2026-06-13';
 import type { ChangelogDiffEntry, ChangelogInitialEntry } from '../data/changelog';
 
@@ -64,7 +64,9 @@ function renderChangeEntry(entry: ChangelogDiffEntry): HTMLDivElement {
     arrowSpan.textContent = `${formatChangeValue(c.from)} → ${formatChangeValue(c.to)}`;
     li.appendChild(arrowSpan);
 
-    // A move to or from insufficient evidence has no direction to show.
+    // Direction by glyph only: the arrow takes one neutral colour for
+    // every dimension, since a move up is not an improvement (PRD 16). A
+    // move to or from insufficient evidence has no direction to show.
     const direction = changeDirection(c);
     if (direction) {
       const up = direction === 'up';

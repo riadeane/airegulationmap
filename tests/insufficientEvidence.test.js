@@ -157,7 +157,7 @@ describe('comparison radar', () => {
       averageScore: 3, regulationStatus: 3, policyLever: null,
       governanceType: 2, actorInvolvement: 2, enforcementLevel: 4,
     });
-    expect(values).toEqual([3, 3, null, 2, 2, 4]);
+    expect(values).toEqual([3, 3, null, 4]);
   });
 });
 
@@ -186,7 +186,7 @@ describe('issue report', () => {
       url: 'https://airegulationmap.org/?country=Fiji',
       accessed: '2026-10-05',
     });
-    expect(body).toContain('| Maturity Index | Insufficient evidence |');
+    expect(body).toContain('| Implementation Index | Insufficient evidence |');
     expect(body).toContain('| Enforcement Level | Insufficient evidence |');
     expect(body).toContain('| Enforcement Level | Actions taken | Insufficient evidence | Searched the gazette; nothing found. |');
   });
@@ -239,7 +239,7 @@ describe('static country page', () => {
     const html = renderCountryPage(model);
     expect(html).toContain('<td class="num">Insufficient evidence</td>');
     expect(html).toMatch(/Enforcement Level <span class="dim-score">Insufficient evidence<\/span>/);
-    expect(html).toContain('Maturity index: <strong>insufficient evidence</strong>');
+    expect(html).toContain('Implementation index: <strong>insufficient evidence</strong>');
     expect(html).not.toContain('<td class="num">n/a</td>');
   });
 

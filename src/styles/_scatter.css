@@ -94,9 +94,9 @@ body.view-scatter #timeline-strip {
   border-color: var(--accent);
 }
 
-/* Color key: dots are tinted by maturity index (same scale as the map's
-   choropleth), which is otherwise unexplained in this view. Pushed to
-   the right of the axis selects. */
+/* Colour key: dots are tinted by the implementation index (the map's
+   implementation ramp), which is otherwise unexplained in this view.
+   Pushed to the right of the axis selects. */
 .scatter-colorkey {
   display: flex;
   align-items: center;
@@ -109,8 +109,10 @@ body.view-scatter #timeline-strip {
 }
 
 .scatter-colorkey-ends {
-  font-family: 'Geist Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.62rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-secondary);
 }
 
 .scatter-colorkey-bar {
@@ -118,7 +120,7 @@ body.view-scatter #timeline-strip {
   height: 8px;
   border-radius: 2px;
   /* CSS custom props so the swatch restyles with the theme for free. */
-  background: linear-gradient(90deg, var(--score-low), var(--score-high));
+  background: linear-gradient(90deg, var(--ramp-impl-low), var(--ramp-impl-high));
 }
 
 @media (max-width: 768px), (max-height: 500px) and (pointer: coarse) {

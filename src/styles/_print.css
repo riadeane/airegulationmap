@@ -85,6 +85,7 @@
   body.print-brief .sheet-grabber,
   body.print-brief .panel-close,
   body.print-brief .panel-methodology-link,
+  body.print-brief .panel-guide-links,
   body.print-brief .panel-header-actions,
   body.print-brief #cite-popover,
   body.print-brief .dim-expand,
@@ -230,10 +231,39 @@
     color: inherit;
   }
 
-  /* Maturity index: the bar becomes its number, rank on the same line. */
-  body.print-brief .score-bar-row,
-  body.print-brief .maturity-rank {
+  /* Implementation index: the bar becomes its number, beside its label. */
+  body.print-brief .index-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0 0 3pt;
+  }
+
+  body.print-brief .index-label {
+    font-size: 10pt;
+    color: #000;
+  }
+
+  body.print-brief .score-bar-row {
     display: inline;
+  }
+
+  body.print-brief .panel-group-head {
+    margin: 0 0 3pt;
+  }
+
+  body.print-brief .panel-group-caption {
+    font-size: 9pt;
+    color: #333;
+  }
+
+  /* On paper the brief says once what its numbers do not claim. */
+  body.print-brief .print-scores-note {
+    display: block !important;
+    margin: 4pt 0 0;
+    font-size: 9pt !important;
+    font-style: italic;
+    color: #333 !important;
   }
 
   body.print-brief .score-value {
@@ -242,13 +272,6 @@
     font-size: 13pt;
     font-weight: 500;
     color: #000;
-  }
-
-  body.print-brief .maturity-rank {
-    margin: 0 0 0 8pt;
-    font-family: 'Geist', -apple-system, sans-serif;
-    font-size: 9.5pt;
-    color: #555;
   }
 
   /* Dimensions: a table of label and number, then every sub-indicator

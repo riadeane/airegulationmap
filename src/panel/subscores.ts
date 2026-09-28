@@ -2,12 +2,15 @@
 // Methodology v2 scores every dimension as the mean of four named
 // sub-indicators; this is the per-claim audit trail, one click deep.
 // Since v2.1 each sub-indicator also carries the model's one-sentence
-// rationale, shown under the score when present.
+// rationale, shown under the score when present. Beside each score, what
+// that level means (PRD 16): the v3 implementation ladder for the
+// implementation dimensions, the descriptive anchors for governance style.
 
 import { getState, on } from '../state/store';
-import { ATTRIBUTE_LABELS, INSUFFICIENT_EVIDENCE_LABEL, isInsufficient } from '../constants';
+import { ATTRIBUTES, ATTRIBUTE_LABELS, INSUFFICIENT_EVIDENCE_LABEL, isInsufficient } from '../constants';
 import type { DimensionKey } from '../constants';
 import { DIMENSION_TO_SNAKE, SUBSCORE_LABELS } from '../data/subscores';
+import { levelMeaning } from '../data/meaning';
 
 let expanded: DimensionKey | null = null;
 
@@ -41,6 +44,7 @@ function renderBreakdown(container: HTMLElement, dimension: DimensionKey): boole
   // from its row, so the caption names its dimension there.
   caption.dataset.dimension = ATTRIBUTE_LABELS[dimension];
   container.appendChild(caption);
+  const group = ATTRIBUTES[dimension].group;
 
   for (const [key, label] of SUBSCORE_LABELS[snake]) {
     const cell = block[key];
@@ -78,6 +82,16 @@ function renderBreakdown(container: HTMLElement, dimension: DimensionKey): boole
       row.append(name, track, num);
     }
     line.appendChild(row);
+
+    // An insufficient-evidence sub-indicator has no level to explain.
+    const meaning = isInsufficient(value) ? null : levelMeaning(group, key, value);
+    if (meaning) {
+      const level = document.createElement('p');
+      level.className = 'subscore-meaning';
+      level.dataset.group = group;
+      level.textContent = `${value}: ${meaning}`;
+      line.appendChild(level);
+    }
 
     if (cell.rationale) {
       const rationale = document.createElement('p');

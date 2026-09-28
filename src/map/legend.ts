@@ -1,209 +1,147 @@
-import { select } from 'd3-selection';
-import type { Selection } from 'd3-selection';
-import { scaleLinear } from 'd3-scale';
-import type { ScaleLinear } from 'd3-scale';
-import { interpolateLab } from 'd3-interpolate';
 import { range } from 'd3-array';
 
-import { INSUFFICIENT_EVIDENCE_LABEL, LEGEND_ENDPOINTS } from '../constants';
+import { ATTRIBUTES, INSUFFICIENT_EVIDENCE_LABEL } from '../constants';
 import { getState } from '../state/store';
 import { confidenceFallsBackAtDate } from '../state/selectors';
-import { cssVar } from './cssColors';
-import { appendHatchPattern } from './hatch';
+import { legendCaption } from '../data/meaning';
+import { makeColorScale } from './ramp';
 
-// The legend's own copy of the hatch: the map's pattern counter-scales with
-// the zoom, and the legend sits outside the zoomed group.
-const LEGEND_HATCH_ID = 'hatch-low-legend';
+// The map legend (PRD 16): an HTML key laid over the map's bottom-right
+// corner, so its text wraps at phone widths and its "What does this mean?"
+// button is reachable by keyboard and assistive technology (the map SVG
+// itself is one role="img"). It carries the ramp for the current lens, the
+// two endpoints in words, the lens's question and what it does not claim,
+// the "No data" key, the "Insufficient evidence" key (rubric v3.1, shown
+// only while a country on the map is in that state) and the low-confidence
+// hatch key.
+
+export { makeColorScale } from './ramp';
+export type { ColorScale } from './ramp';
+
+// Whether any shown country is "insufficient evidence" on the current
+// attribute (see setLegendInsufficient). Module state so a legend rebuilt
+// later comes back in the same state.
+let insufficientShown = false;
 
 const FALLBACK_NOTE_TITLE =
   'History records no confidence for this date, so the hatch shows each '
   + "country's current confidence.";
 
-export type ColorScale = ScaleLinear<string, string>;
-
-// Whether any shown country is "insufficient evidence" on the current
-// attribute (see setLegendInsufficient). Kept here so a legend rebuilt on
-// resize or a theme change comes back in the same state.
-let insufficientShown = false;
-
-export function makeColorScale(): ColorScale {
-  return scaleLinear<string>()
-    .domain([1, 5])
-    .range([cssVar('--score-low'), cssVar('--score-high')])
-    .interpolate(interpolateLab)
-    .clamp(true);
+function span(className: string, text = ''): HTMLSpanElement {
+  const s = document.createElement('span');
+  s.className = className;
+  s.textContent = text;
+  return s;
 }
 
-export function addLegend(
-  svg: Selection<SVGSVGElement, unknown, HTMLElement, unknown>,
-  colorScale: ColorScale,
-  size?: { w: number; h: number }
-): void {
-  const { w, h } = size || { w: 1000, h: 500 };
-  // Legend width scales with viewport. Min 190 so endpoint labels like
-  // "Comprehensive" / "Centralized" don't crowd the midpoint.
-  const legendWidth = Math.round(Math.min(300, Math.max(190, w * 0.28)));
-  const legendHeight = 30;
-  const legendMargin = { top: 10, right: 16, bottom: 10, left: 16 };
-
-  const legend = svg.append('g')
-    .attr('class', 'legend')
-    .attr('transform', `translate(${w - legendWidth - legendMargin.right}, ${h - legendHeight - legendMargin.bottom})`);
-
-  const gradientData = range(0, 1, 0.02).map(d => ({
-    offset: d,
-    color: colorScale(1 + d * 4),
-  }));
-
-  const gradient = legend.append('defs')
-    .append('linearGradient')
-    .attr('id', 'legend-gradient')
-    .attr('x1', '0%')
-    .attr('y1', '0%')
-    .attr('x2', '100%')
-    .attr('y2', '0%');
-
-  gradient.selectAll('stop')
-    .data(gradientData)
-    .enter().append('stop')
-    .attr('offset', d => `${d.offset * 100}%`)
-    .attr('stop-color', d => d.color);
-
-  legend.append('rect')
-    .attr('width', legendWidth)
-    .attr('height', legendHeight - legendMargin.bottom - legendMargin.top)
-    .attr('rx', 2)
-    .style('fill', 'url(#legend-gradient)');
-
-  const { currentAttribute } = getState();
-  const endpoints = LEGEND_ENDPOINTS[currentAttribute] || ['Low', 'High'];
-
-  legend.append('text')
-    .attr('class', 'legend-label legend-label-low')
-    .attr('x', 0)
-    .attr('y', legendHeight - legendMargin.bottom + 4)
-    .attr('text-anchor', 'start')
-    .text(endpoints[0]);
-
-  legend.append('text')
-    .attr('class', 'legend-label legend-label-high')
-    .attr('x', legendWidth)
-    .attr('y', legendHeight - legendMargin.bottom + 4)
-    .attr('text-anchor', 'end')
-    .text(endpoints[1]);
-
-  // "No data" key - countries with no score render in --no-data grey,
-  // and without this the reader can't tell "no information" from a low
-  // score (or from a country filtered out of the current view).
-  const noData = legend.append('g')
-    .attr('class', 'legend-nodata')
-    .attr('transform', 'translate(0, -11)');
-
-  // A filled dot reads as a colour key; the old bordered square read as
-  // an unchecked checkbox. The thin ring keeps the dot visible in the
-  // light theme, where --no-data is nearly the ocean colour and the
-  // legend sits over Antarctica (itself no data).
-  noData.append('circle')
-    .attr('cx', 4)
-    .attr('cy', -4)
-    .attr('r', 4.5)
-    .style('fill', cssVar('--no-data'))
-    .style('stroke', cssVar('--text-tertiary'))
-    .style('stroke-width', 1);
-
-  noData.append('text')
-    .attr('class', 'legend-label')
-    .attr('x', 14)
-    .attr('y', 0)
-    .attr('text-anchor', 'start')
-    .text('No data');
-
-  // "Insufficient evidence" key (rubric v3.1), on the "No data" row. It
-  // appears only while at least one shown country is in that state.
-  const insufficient = legend.append('g')
-    .attr('class', 'legend-insufficient')
-    .attr('transform', 'translate(62, -11)');
-
-  insufficient.append('circle')
-    .attr('cx', 4)
-    .attr('cy', -4)
-    .attr('r', 4.5)
-    .style('fill', cssVar('--score-insufficient'))
-    .style('stroke', cssVar('--text-tertiary'))
-    .style('stroke-width', 1);
-
-  insufficient.append('text')
-    .attr('class', 'legend-label')
-    .attr('x', 14)
-    .attr('y', 0)
-    .attr('text-anchor', 'start')
-    .text(INSUFFICIENT_EVIDENCE_LABEL);
-
-  setLegendInsufficient(insufficientShown);
-
-  // Uncertainty key (PRD 13) - a mid-ramp swatch under the same hatch the
-  // map draws. Its row sits above "No data"; updateLegendUncertainty shows
-  // it only while "Show uncertainty" is on, and adds the fallback note
-  // when a past date is shown without recorded confidence.
-  appendHatchPattern(legend.select<SVGDefsElement>('defs'), LEGEND_HATCH_ID);
-  const uncertainty = legend.append('g')
-    .attr('class', 'legend-uncertainty');
-
-  for (const fill of [colorScale(3), `url(#${LEGEND_HATCH_ID})`]) {
-    uncertainty.append('rect')
-      .attr('x', -0.5)
-      .attr('y', -8.5)
-      .attr('width', 9)
-      .attr('height', 9)
-      .attr('rx', 1.5)
-      .style('fill', fill);
+/** Build the legend once, inside #map after the SVG. Idempotent. */
+export function addLegend(): void {
+  const host = document.getElementById('map');
+  if (!host || host.querySelector('.map-legend')) {
+    updateLegend();
+    return;
   }
 
-  uncertainty.append('text')
-    .attr('class', 'legend-label')
-    .attr('x', 14)
-    .attr('y', 0)
-    .attr('text-anchor', 'start')
-    .text('Hatched: low confidence');
+  const legend = document.createElement('div');
+  legend.className = 'map-legend legend';
+  legend.id = 'map-legend';
+  legend.setAttribute('role', 'group');
+  legend.setAttribute('aria-label', 'Map legend');
 
-  const note = uncertainty.append('text')
-    .attr('class', 'legend-label legend-uncertainty-note')
-    .attr('x', 14)
-    .attr('y', 11)
-    .attr('text-anchor', 'start')
-    .text('(current rating)');
-  note.append('title').text(FALLBACK_NOTE_TITLE);
+  const keys = document.createElement('div');
+  keys.className = 'legend-keys';
 
-  updateLegendUncertainty();
+  const uncertainty = document.createElement('div');
+  uncertainty.className = 'legend-uncertainty';
+  // Hatch swatch: the map's diagonal lines (--map-stroke at
+  // --hatch-opacity, _legend.css) over a mid-ramp fill set below.
+  const swatch = span('legend-swatch');
+  swatch.setAttribute('aria-hidden', 'true');
+  uncertainty.append(swatch);
+  const note = span('legend-label legend-uncertainty-note', '(current rating)');
+  note.title = FALLBACK_NOTE_TITLE;
+  uncertainty.append(span('legend-label', 'Hatched: low confidence'), note);
+
+  const noData = document.createElement('div');
+  noData.className = 'legend-nodata';
+  noData.append(span('legend-nodata-dot'), span('legend-label', 'No data'));
+
+  const insufficient = document.createElement('div');
+  insufficient.className = 'legend-insufficient';
+  insufficient.append(span('legend-insufficient-dot'), span('legend-label', INSUFFICIENT_EVIDENCE_LABEL));
+  insufficient.hidden = !insufficientShown;
+
+  keys.append(noData, insufficient, uncertainty);
+
+  const ramp = document.createElement('div');
+  ramp.className = 'legend-ramp';
+  ramp.setAttribute('aria-hidden', 'true');
+
+  const ends = document.createElement('div');
+  ends.className = 'legend-ends';
+  ends.append(span('legend-label legend-label-low'), span('legend-label legend-label-high'));
+
+  const caption = document.createElement('p');
+  caption.className = 'legend-caption';
+  caption.append(span('legend-question'), ' ', span('legend-notclaim'));
+
+  const explain = document.createElement('button');
+  explain.type = 'button';
+  explain.className = 'legend-explain';
+  explain.textContent = 'What does this mean?';
+  explain.setAttribute('aria-haspopup', 'dialog');
+  // Opened by the delegated [data-explainer] listener (controls/helpOverlay.ts).
+  explain.dataset.explainer = '';
+
+  legend.append(keys, ramp, ends, caption, explain);
+  host.appendChild(legend);
+  updateLegend();
 }
 
 /**
  * Show the uncertainty key while "Show uncertainty" is on. While a past
  * date is shown and history records no confidence for it, the hatch uses
- * current confidence and a second line says so; the row moves up a line
- * to make room above "No data".
+ * current confidence and a note says so.
  */
 export function updateLegendUncertainty(): void {
-  const key = select('#map .legend-uncertainty');
-  if (key.empty()) return;
+  const key = document.querySelector<HTMLElement>('#map .legend-uncertainty');
+  if (!key) return;
   const { showUncertainty } = getState();
   const fallback = showUncertainty && confidenceFallsBackAtDate();
-  key
-    .attr('display', showUncertainty ? null : 'none')
-    .attr('transform', `translate(0, ${fallback ? -36 : -25})`);
-  key.select('.legend-uncertainty-note').attr('display', fallback ? null : 'none');
+  key.hidden = !showUncertainty;
+  const note = key.querySelector<HTMLElement>('.legend-uncertainty-note');
+  if (note) note.hidden = !fallback;
 }
 
 /** Show the "Insufficient evidence" key only while at least one country
  * on the map is in that state for the current attribute. */
 export function setLegendInsufficient(show: boolean): void {
   insufficientShown = show;
-  select('#map .legend-insufficient').attr('display', show ? null : 'none');
+  const key = document.querySelector<HTMLElement>('#map .legend-insufficient');
+  if (key) key.hidden = !show;
 }
 
-export function updateLegendLabels(): void {
+/** Repaint the ramp and relabel the legend for the current lens and theme. */
+export function updateLegend(): void {
+  const legend = document.querySelector<HTMLElement>('#map .map-legend');
+  if (!legend) return;
   const { currentAttribute } = getState();
-  const endpoints = LEGEND_ENDPOINTS[currentAttribute] || ['Low', 'High'];
-  select('.legend-label-low').text(endpoints[0]);
-  select('.legend-label-high').text(endpoints[1]);
+  const meaning = ATTRIBUTES[currentAttribute];
+  const scale = makeColorScale(currentAttribute);
+
+  const stops = range(0, 1.0001, 0.1).map(t => `${scale(1 + t * 4)} ${Math.round(t * 100)}%`);
+  legend.querySelector<HTMLElement>('.legend-ramp')!.style.background =
+    `linear-gradient(to right, ${stops.join(', ')})`;
+  legend.querySelector<HTMLElement>('.legend-swatch')?.style.setProperty('--swatch-fill', scale(3));
+  legend.dataset.group = meaning.group;
+
+  legend.querySelector('.legend-label-low')!.textContent = `1 ${meaning.low}`;
+  legend.querySelector('.legend-label-high')!.textContent = `${meaning.high} 5`;
+  const { question, notClaim } = legendCaption(currentAttribute);
+  legend.querySelector('.legend-question')!.textContent = question;
+  legend.querySelector('.legend-notclaim')!.textContent = notClaim;
+  updateLegendUncertainty();
 }
+
+/** Kept for the map subscriptions: the labels follow the lens. */
+export const updateLegendLabels = updateLegend;

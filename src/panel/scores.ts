@@ -1,7 +1,7 @@
 import type { ScoreEntry } from '../data/loader';
 import { INSUFFICIENT_EVIDENCE_LABEL, isInsufficient } from '../constants';
-import { makeColorScale } from '../map/legend';
-import { cssVar } from '../map/cssColors';
+import { makeColorScale } from '../map/ramp';
+import { NO_ACTIVITY_TEXT, noGovernanceActivity } from '../data/meaning';
 
 // The five dimension values the dots render. Live rows (ScoreEntry) and
 // historical snapshots (HistorySnapshot) both satisfy this structurally,
@@ -24,6 +24,7 @@ export function renderDots(elId: string, score: number | null | undefined, color
   const el = document.getElementById(elId);
   if (!el) return;
   el.replaceChildren();
+  el.classList.remove('dim-dots-note');
   if (isInsufficient(score)) {
     // No dots: empty dots would read as a score of 0, filled ones as a 1.
     const label = document.createElement('span');
@@ -63,6 +64,15 @@ export function renderDots(elId: string, score: number | null | undefined, color
   }
 }
 
+// #96, display only: where nothing is in force at all, governance type 1
+// would read as "a single national authority". Say what the record shows.
+function renderNoActivity(elId: string): void {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.classList.add('dim-dots-note');
+  el.textContent = NO_ACTIVITY_TEXT;
+}
+
 /** `avg` is the composite: a number, `null` for "insufficient evidence"
  * (fewer than two normative dimensions scored), `undefined` for no row. */
 export function renderScoreBar(avg: number | null | undefined): void {
@@ -71,24 +81,24 @@ export function renderScoreBar(avg: number | null | undefined): void {
     : isInsufficient(avg) ? INSUFFICIENT_EVIDENCE_LABEL : 'N/A';
   const fill = document.getElementById('overall-bar-fill')!;
   fill.style.width = avg != null ? `${((avg - 1) / 4) * 100}%` : '0%';
-  // Colour the fill by where the score lands on the ramp, so it reads the
-  // same as the country on the map - instead of the old gradient that
-  // always ended in "high/blue" no matter the score.
-  fill.style.setProperty('--fill-color', avg != null ? makeColorScale()(avg) : 'transparent');
+  // Colour the fill by where the score lands on the implementation ramp,
+  // so it reads the same as the country on the map.
+  fill.style.setProperty('--fill-color', avg != null ? makeColorScale('averageScore')(avg) : 'transparent');
 }
 
 export function renderAllDots(scoreData: DimensionScores | null | undefined): void {
-  const scale = makeColorScale();
-  // Normative dimensions carry the same red→blue quality language as the
-  // map; the two descriptive dimensions (governance, actor) are NOT a
-  // quality scale, so they stay a neutral tone rather than borrow it.
-  const quality: ColorFor = (v) => scale(v);
-  const neutral: ColorFor = () => cssVar('--text-tertiary');
+  // Each lens in its own ramp, as on the map: implementation in the blue
+  // "how much is in force" ramp, governance style in the neutral one.
+  const implementation = makeColorScale('regulationStatus');
+  const style = makeColorScale('governanceType');
+  const impl: ColorFor = (v) => implementation(v);
+  const neutral: ColorFor = (v) => style(v);
   // `?.` keeps a missing row `undefined` (empty dots) apart from a null
   // value (insufficient evidence).
-  renderDots('dots-regulation', scoreData?.regulationStatus, quality);
-  renderDots('dots-policy',     scoreData?.policyLever, quality);
-  renderDots('dots-governance', scoreData?.governanceType, neutral);
+  renderDots('dots-regulation', scoreData?.regulationStatus, impl);
+  renderDots('dots-policy',     scoreData?.policyLever, impl);
+  renderDots('dots-enforcement', scoreData?.enforcementLevel, impl);
+  if (noGovernanceActivity(scoreData)) renderNoActivity('dots-governance');
+  else renderDots('dots-governance', scoreData?.governanceType, neutral);
   renderDots('dots-actors',     scoreData?.actorInvolvement, neutral);
-  renderDots('dots-enforcement', scoreData?.enforcementLevel, quality);
 }

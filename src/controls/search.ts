@@ -1,5 +1,6 @@
 import { getState } from '../state/store';
-import { el, maybeEl } from '../dom';
+import { el } from '../dom';
+import { openHelpOverlay } from './helpOverlay';
 import { selectCountry, stepCountry, escapeMainView, commitSearch, clearSearch } from '../state/interactions';
 import { updateSearchHighlight } from '../map/index';
 import { matchCountryNames } from '../data/countryMatch';
@@ -272,10 +273,7 @@ export function initKeyboardNav(): void {
 
     if (e.key === '?') {
       e.preventDefault();
-      const dialog = maybeEl<HTMLDialogElement>('help-overlay');
-      if (dialog && !dialog.open && typeof dialog.showModal === 'function') {
-        dialog.showModal();
-      }
+      openHelpOverlay(target);
       return;
     }
 

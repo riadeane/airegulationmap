@@ -11,7 +11,7 @@ import { loadCountryAliases } from './data/countryMatch';
 import { initBlocSelector } from './controls/blocSelector';
 import { initBlocSummary } from './controls/blocSummary';
 import { initSubscores } from './panel/subscores';
-import { generateMap, initMapSubscriptions, updateMap } from './map/index';
+import { generateMap, initMapSubscriptions, updateMap, initCountryTable } from './map/index';
 import { initPanel } from './panel/index';
 import { initComparison } from './comparison/index';
 import { initScatter } from './scatter/index';
@@ -127,6 +127,7 @@ async function main(): Promise<void> {
   initInitiatives();
   initKeyboardNav();
   initMapSubscriptions();
+  initCountryTable();
   initScatter();
   initHelpOverlay();
   initMenu();
