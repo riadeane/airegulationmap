@@ -13,6 +13,8 @@ import {
   latestResearchRun,
   latestWeek,
   parseDriftChecks,
+  goldBasis,
+  goldBasisText,
   parseGateCounts,
   parseResearchRun,
   percent,
@@ -212,6 +214,30 @@ describe('confidenceByVintage', () => {
     expect(totals).toEqual({ date: '2026-09-01', counts: { high: 1, medium: 1, low: 2 }, total: 4 });
     expect(percent(totals.counts.low, totals.total)).toBe(50);
     expect(percent(0, 0)).toBe(0);
+  });
+});
+
+describe('gold basis (#99)', () => {
+  const base = {
+    run_id: 'r1', date: '2026-09-28', model: 'm', prompt_version: 'v', countries_compared: 10,
+    countries_missing: [], mae_by_dimension: {}, within_one: 0.9, max_dev: 1, max_dev_at: null,
+  };
+  it('reads the verified count and the gold version', () => {
+    const [check] = parseDriftChecks({ checks: [{ ...base, gold_verified: 3, gold_version: 'abc123def456' }] });
+    expect(check.goldVerified).toBe(3);
+    expect(check.goldVersion).toBe('abc123def456');
+    expect(goldBasis(check)).toBe('draft');
+    expect(goldBasisText(check)).toBe('3 of 10 verified');
+  });
+  it('is verified only when every compared country is', () => {
+    const [check] = parseDriftChecks({ checks: [{ ...base, gold_verified: 10 }] });
+    expect(goldBasis(check)).toBe('verified');
+  });
+  it('says so when a row predates the field', () => {
+    const [check] = parseDriftChecks({ checks: [base] });
+    expect(check.goldVerified).toBeNull();
+    expect(goldBasis(check)).toBe('unknown');
+    expect(goldBasisText(check)).toBe('not recorded');
   });
 });
 

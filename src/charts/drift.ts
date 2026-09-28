@@ -31,6 +31,7 @@ import {
   binDeltas,
   dimensionLabel,
   formatBias,
+  goldBasisText,
   largestLean,
   percent,
   snakeDimensionLabel,
@@ -568,7 +569,7 @@ export function goldTooltip(check: DriftCheck): string {
     parts.push(`largest lean: ${escapeHtml(snakeDimensionLabel(lean.dimension))} ${formatBias(lean.bias)}`
       + ` (run ${lean.bias >= 0 ? 'higher' : 'lower'} than gold)`);
   }
-  parts.push(`${check.countriesCompared} countries compared`);
+  parts.push(`${check.countriesCompared} countries compared; gold scores ${goldBasisText(check)}`);
   return parts.join('<br>');
 }
 

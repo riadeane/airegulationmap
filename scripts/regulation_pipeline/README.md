@@ -583,14 +583,21 @@ fails loudly.
   where it happened, plus the gold countries the run did not cover.
   Sub-indicators the run left without a score (insufficient evidence) are
   counted as skipped, not compared.
-- **Record.** One row per run is appended to `public/data/drift.json`
+- **Record.** One row per full run is appended to `public/data/drift.json`
   (`{run_id, date, model, prompt_version, countries_compared,
   countries_missing, mae_by_dimension, bias_by_dimension, within_one,
-  max_dev, max_dev_at}`) and mirrored to the Supabase `gold_checks` table
-  (`supabase/migrations/0007_gold_checks.sql`, bias column in
-  `0011_gold_checks_bias.sql`). The workflow commits the
-  file with the other data files. A run covering none of the gold
-  countries records nothing.
+  max_dev, max_dev_at, gold_verified, gold_version}`, plus
+  `grounded_countries` on a grounded run) and mirrored to the Supabase
+  `gold_checks` table (`supabase/migrations/0007_gold_checks.sql`, bias
+  column in `0011_gold_checks_bias.sql`, gold-set columns in
+  `0013_gold_checks_gold_set.sql`). `gold_verified` counts the compared
+  countries whose gold entry was verified and `gold_version` hashes the
+  gold file, so a series computed against drafts, or against an older gold
+  file, says so (#99). A grounded run whose compared countries all fell
+  back to the plain prompt records the plain prompt version. The workflow
+  commits the file with the other data files. A run covering none of the
+  gold countries records nothing, and a `--countries` run logs the metrics
+  but writes no row, so the series holds full runs only.
 - **Summary.** The metrics go to the run log (`gold:` line) and to the
   GitHub step summary. When `within_one` is below 0.8, or any dimension's
   signed bias is beyond 0.5 either way, both start with "Calibration

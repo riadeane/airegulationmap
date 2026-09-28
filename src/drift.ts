@@ -41,6 +41,8 @@ import {
   latestResearchRun,
   latestWeek,
   parseDriftChecks,
+  goldBasis,
+  goldBasisText,
   percent,
   snakeDimensionLabel,
   summarizeDeltas,
@@ -319,6 +321,9 @@ function goldFigure(checks: DriftCheck[], driftFileFound: boolean): FigureSpec {
       best === null || latest.maeByDimension[d] > latest.maeByDimension[best] ? d : best, null);
     caption = `Latest check, ${formatDate(latest.date)}${latest.model ? ` (${latest.model})` : ''}: `
       + `${Math.round(latest.withinOne * 100)}% of the compared sub-indicators are within one point of the gold scores `
+      + (goldBasis(latest) === 'draft'
+        ? `(drafts awaiting the maintainer's check: ${goldBasisText(latest)}) `
+        : goldBasis(latest) === 'unknown' ? '(verification status not recorded) ' : '')
       + `(warning below ${Math.round(WARN_WITHIN_ONE * 100)}%)`
       + (latest.maxDev != null
         ? `; largest deviation ${latest.maxDev}${latest.maxDevAt ? ` at ${latest.maxDevAt.country}, ${snakeDimensionLabel(latest.maxDevAt.dimension)}` : ''}`
@@ -336,7 +341,7 @@ function goldFigure(checks: DriftCheck[], driftFileFound: boolean): FigureSpec {
     caption,
     table: checks.length ? {
       head: [
-        'Run', 'Model', 'Prompt', 'Compared', 'Within one', 'Largest deviation',
+        'Run', 'Model', 'Prompt', 'Compared', 'Gold scores', 'Within one', 'Largest deviation',
         ...dims.map(d => `MAE: ${snakeDimensionLabel(d)}`),
         ...dims.map(d => `Bias: ${snakeDimensionLabel(d)}`),
       ],
@@ -345,6 +350,7 @@ function goldFigure(checks: DriftCheck[], driftFileFound: boolean): FigureSpec {
         c.model,
         c.promptVersion,
         String(c.countriesCompared),
+        goldBasisText(c),
         `${Math.round(c.withinOne * 100)}%`,
         c.maxDev == null ? '' : String(c.maxDev),
         ...dims.map(d => (d in c.maeByDimension ? c.maeByDimension[d].toFixed(2) : '')),

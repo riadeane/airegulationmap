@@ -249,7 +249,7 @@ def _run(
     for line in gate.review_lines(result.gate):
         logger.warning(line)
     _write_step_summary(gate.markdown_summary(result.gate, result.calibration_break))
-    _gold_check(result, settings, model, prompt_version, today, supabase_mirror)
+    _gold_check(result, settings, model, prompt_version, today, supabase_mirror, record=full_run)
     _eu_check(settings)
     if write_digest and result.fatal:
         # An aborted run's changes are partial; a digest would publish them
@@ -286,6 +286,7 @@ def _write_digest(
 
 def _gold_check(
     result: RunResult, settings: Settings, model: str, prompt_version: str, today: date, mirror,
+    *, record: bool = True,
 ) -> None:
     """Post-run gold-set drift check (gold.py): compare the raw results with
     the gold scores, append a drift.json row, mirror it, and put the metrics
@@ -294,7 +295,7 @@ def _gold_check(
     try:
         check = check_run(
             result, settings, model=model, prompt_version=prompt_version, run_date=today,
-            mirror=mirror,
+            mirror=mirror, record=record,
         )
     except Exception:
         logger.warning("gold: check failed - continuing", exc_info=True)

@@ -172,7 +172,21 @@ class SupabaseMirror:
         ``gold_checks``. Called by the CLI after ``finish``, outside the
         service, so it is not part of the :class:`Mirror` protocol; the CLI
         downgrades a failure to a warning like every other mirror call."""
-        self._client.insert("gold_checks", [_gold_check_row(row)])
+        full = _gold_check_row(row)
+        try:
+            self._client.insert("gold_checks", [full])
+        except SupabaseError:
+            # Migration 0013 adds the gold-set columns; before it is applied
+            # the insert fails on them, so the check still lands without.
+            legacy = {k: v for k, v in full.items() if k not in _GOLD_SET_COLUMNS}
+            if legacy == full:
+                raise
+            logger.warning(
+                "mirror: gold_checks has no %s columns (is migration "
+                "0013_gold_checks_gold_set.sql applied?) - row written without them",
+                "/".join(_GOLD_SET_COLUMNS),
+            )
+            self._client.insert("gold_checks", [legacy])
 
     # -- flush ----------------------------------------------------------------
 
@@ -378,7 +392,13 @@ def _gold_check_row(row: dict) -> dict:
         "within_one": row["within_one"],
         "max_dev": row["max_dev"],
         "max_dev_at": row["max_dev_at"],
+        # #99: rows written before these existed carry none; all nullable.
+        **{column: row.get(column) for column in _GOLD_SET_COLUMNS},
     }
+
+
+# gold_checks columns added by migration 0013 (#99).
+_GOLD_SET_COLUMNS = ("gold_verified", "gold_version", "grounded_countries")
 
 
 def _history_rows(
