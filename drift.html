@@ -72,6 +72,7 @@
       --accent-muted:    oklch(76% 0.13 var(--brand-hue) / 0.14);
 
       --no-data:         oklch(26% 0.007 var(--brand-hue));
+      --shadow-color:    oklch(10% 0.01 var(--brand-hue));
 
       color-scheme: dark;
     }
@@ -89,6 +90,7 @@
         --accent:          oklch(48% 0.16 60);
         --accent-muted:    oklch(48% 0.16 60 / 0.10);
         --no-data:         oklch(93% 0.004 80);
+        --shadow-color:    oklch(20% 0.015 80);
         color-scheme: light;
       }
     }
@@ -105,6 +107,7 @@
       --accent:          oklch(48% 0.16 60);
       --accent-muted:    oklch(48% 0.16 60 / 0.10);
       --no-data:         oklch(93% 0.004 80);
+      --shadow-color:    oklch(20% 0.015 80);
       color-scheme: light;
     }
 
@@ -491,7 +494,7 @@
       pointer-events: none;
       font-family: 'Geist', -apple-system, sans-serif;
       font-size: 0.78rem;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 28px color-mix(in oklch, var(--shadow-color) 25%, transparent);
       color: var(--text-secondary);
       max-width: 260px;
       z-index: 200;

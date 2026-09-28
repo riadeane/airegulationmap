@@ -1,8 +1,8 @@
 /* Map legend (PRD 16): HTML over the map's bottom-right corner. The ramp
    of the current lens, what 1 and 5 mean in words, the lens's question and
-   what it does not claim, then a quiet "What does this mean?" button. A
-   faint surface keeps the text legible over any country without hiding
-   the map under a card. */
+   what it does not claim, then a quiet "What does this mean?" button. An
+   opaque --bg surface with no border or shadow keeps the text legible
+   over any country without dressing the legend up as a card. */
 .map-legend {
   position: absolute;
   right: 16px;
@@ -11,9 +11,7 @@
   width: min(300px, calc(100% - 96px));
   padding: 8px 10px 8px;
   border-radius: var(--radius-sm);
-  background: color-mix(in oklch, var(--bg) 82%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: var(--bg);
   font-family: 'Geist', -apple-system, sans-serif;
   animation: fadeUp 0.6s var(--ease-out) 0.3s both;
 }

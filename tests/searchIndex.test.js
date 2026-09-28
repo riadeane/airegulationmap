@@ -180,6 +180,21 @@ describe('full-text search ignores diacritics', () => {
     expect(findFolded(text, 'cafe rules')).toEqual({ start: 0, end: text.indexOf(' and') });
   });
 
+  // #138: "İ".toLowerCase() is two code units ("i" + U+0307), so offsets
+  // taken on a lower-cased copy would land five characters late here.
+  it('keeps offsets aligned after a dotted capital I', () => {
+    const text = 'İİİ İzmir and İstanbul host a regulatory sandbox for AI.';
+    expect(text.toLowerCase().length).toBeGreaterThan(text.length);
+    const idx = buildSearchIndex({ Turkey: { regulationStatus: text } });
+
+    const [r] = searchRegulationText(idx, 'sandbox');
+    expect(r.snippet.slice(r.matchStart, r.matchStart + r.matchLength)).toBe('sandbox');
+
+    const [s] = searchRegulationText(idx, 'istanbul');
+    expect(s.snippet.slice(s.matchStart, s.matchStart + s.matchLength)).toBe('İstanbul');
+    expect(findFolded(text, 'İSTANBUL')).toEqual({ start: text.indexOf('İstanbul'), end: text.indexOf(' host') });
+  });
+
   it('folds case, marks and curly apostrophes', () => {
     expect(foldText('Côte d’Ivoire')).toBe("cote d'ivoire");
   });

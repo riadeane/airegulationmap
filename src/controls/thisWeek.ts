@@ -9,6 +9,7 @@
 // the URL. The strip only shows in the map view and never shows empty.
 
 import { getState, on } from '../state/store';
+import { maybeEl } from '../dom';
 import { selectCountry } from '../state/interactions';
 import { recentScoreChanges } from '../state/selectors';
 import { formatRecentMove } from '../data/changelog';
@@ -117,7 +118,7 @@ function buildRestoreButton(): HTMLButtonElement {
 export function initThisWeek(): void {
   const strip = document.getElementById('this-week-strip');
   const list = document.getElementById('this-week-list');
-  const more = document.getElementById('this-week-more') as HTMLAnchorElement | null;
+  const more = maybeEl<HTMLAnchorElement>('this-week-more');
   const close = document.getElementById('this-week-close');
   if (!strip || !list || !more || !close) return;
 

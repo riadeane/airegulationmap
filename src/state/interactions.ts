@@ -8,8 +8,13 @@
 // It depends only on the store, the constants, and the colour-slot leaf - never
 // on a feature module - so it introduces no import cycles. Feature modules
 // subscribe to the resulting store changes as usual.
+//
+// It is also the only module outside src/state/ that calls `setState`, even
+// for writes that carry no rule today (tests/singleWriter.test.js enforces
+// it): a rule added later then has one home, and no control can skip it.
 
 import { getState, setState } from './store';
+import type { AppState } from './store';
 import { MAX_COMPARISON } from '../constants';
 import type { MainView } from '../constants';
 import { syncColorSlots } from '../comparison/colorSlots';
@@ -60,6 +65,83 @@ export function commitSearch(query: string): void {
 
 export function clearSearch(): void {
   setState({ searchQuery: '' });
+}
+
+// -- dataset -------------------------------------------------------------------
+
+/** What the loaders write: parsed data files, never view or selection state. */
+export type DataPatch = Partial<Pick<AppState,
+  'scoreData' | 'regulationData' | 'sortedCountryNames' | 'history' | 'blocsData'
+  | 'subscores' | 'sourceMeta' | 'countryIso' | 'countryAliases'>>;
+
+/**
+ * The loaders' one write path: the boot files, the async ones as they land,
+ * and Supabase hydration. A patch commits atomically, so hydrated scores,
+ * text and names reach subscribers together.
+ */
+export function receiveData(patch: DataPatch): void {
+  setState(patch);
+}
+
+// -- score dimension and timeline -------------------------------------------------
+
+/** The attribute the map, legend and panel read (the score selector, a dimension row, a URL). */
+export function selectAttribute(attr: AppState['currentAttribute']): void {
+  setState({ currentAttribute: attr });
+}
+
+/** A history snapshot date (YYYY-MM-DD), or null for the latest data. */
+export function setTimelineDate(date: string | null): void {
+  setState({ timelineDate: date });
+}
+
+// -- filters ---------------------------------------------------------------------
+
+/** Select a bloc by its blocs.json key, or clear it with null. Unknown keys are ignored. */
+export function selectBloc(key: string | null): void {
+  if (key !== null && !getState().blocsData?.[key]) return;
+  setState({ selectedBloc: key });
+}
+
+export function setScoreRange(min: number, max: number): void {
+  setState({ filterMin: min, filterMax: max });
+}
+
+/** null = every confidence level (no filter). */
+export function setConfidenceFilter(levels: AppState['filterConfidence']): void {
+  setState({ filterConfidence: levels });
+}
+
+export function setOfficialOnly(officialOnly: boolean): void {
+  setState({ filterOfficialOnly: officialOnly });
+}
+
+export function setEvidenceFilter(facet: AppState['filterEvidence']): void {
+  setState({ filterEvidence: facet });
+}
+
+/**
+ * "Reset filters": the score range, bloc, confidence, official-source and
+ * evidence filters back to their defaults in one write. The uncertainty hatch
+ * is a display preference, not a filter, and stays as it is.
+ */
+export function resetFilters(): void {
+  setState({
+    filterMin: 1, filterMax: 5, selectedBloc: null,
+    filterConfidence: null, filterOfficialOnly: false, filterEvidence: 'any',
+  });
+}
+
+/** The low-confidence hatch on the map (a per-browser display preference). */
+export function setShowUncertainty(show: boolean): void {
+  setState({ showUncertainty: show });
+}
+
+// -- scatter axes ------------------------------------------------------------------
+
+/** The explorer's axes; they persist across open and close. */
+export function setScatterAxes(x: AppState['scatterX'], y: AppState['scatterY']): void {
+  setState({ scatterX: x, scatterY: y });
 }
 
 // -- comparison membership ---------------------------------------------------

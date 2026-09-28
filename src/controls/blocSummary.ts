@@ -4,8 +4,8 @@
 // the scale as jump links, labelled in the lens's own words ("Most in
 // force", "Most centralised"), never as best or worst (PRD 16).
 
-import { getState, setState, on } from '../state/store';
-import { selectCountry } from '../state/interactions';
+import { getState, on } from '../state/store';
+import { selectBloc, selectCountry } from '../state/interactions';
 import { evidenceOf, scoresAtDate } from '../state/selectors';
 import {
   computeBlocStats, computeBlocEvidenceShare, blocEvidenceShareText, countInsufficient, blocCoverageText,
@@ -70,7 +70,7 @@ function render() {
   close.className = 'bloc-summary-close';
   close.setAttribute('aria-label', 'Clear bloc filter');
   close.textContent = '×';
-  close.addEventListener('click', () => setState({ selectedBloc: null }));
+  close.addEventListener('click', () => selectBloc(null));
 
   header.append(title, close);
   card.appendChild(header);

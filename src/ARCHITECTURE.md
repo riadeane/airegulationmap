@@ -67,7 +67,9 @@ unsubscribe. Listeners are typed per key (`Listener<K>`), so a handler for
 ### Single-writer orchestrator - `state/interactions.ts`
 The frontend's analogue of the backend `PipelineService`. Every transition that
 carries an invariant lives here as a named intent, and **intents are the only
-callers of `setState` for view/selection/comparison state**:
+callers of `setState` outside `state/`**, even for writes that carry no rule
+yet, so a rule added later has one home and no control can skip it
+(`tests/singleWriter.test.js` fails on a `setState` import anywhere else):
 
 - selection - `selectCountry`, `stepCountry` (arrow nav with wraparound)
 - committed search - `commitSearch` / `clearSearch`
@@ -78,6 +80,15 @@ callers of `setState` for view/selection/comparison state**:
 - the view FSM - `setMainView` (the single writer of `mainView`) /
   `showMap` / `openScatter` / `toggleScatter` / `openComparison` /
   `escapeMainView`
+- the map's lens and date - `selectAttribute` / `setTimelineDate`
+- filters - `selectBloc` (known blocs only) / `setScoreRange` /
+  `setConfidenceFilter` / `setOfficialOnly` / `setEvidenceFilter` /
+  `resetFilters` (one write; leaves the uncertainty hatch alone) /
+  `setShowUncertainty`
+- the scatter axes - `setScatterAxes`
+- data - `receiveData`, typed to the data slices only (`DataPatch`): the boot
+  loaders in `main.ts`, Supabase hydration (`data/hydrate.ts`) and source
+  titles (`data/sourceMeta.ts`) write through it
 
 Because it depends only on the store, constants, and the colour-slot leaf, it
 never forms a cycle with the features that call it. The rules that used to be
@@ -133,8 +144,10 @@ barrel, not into private files.
 
 ### Typed DOM seam - `dom.ts`
 `el<T>(id)` (required; throws with the id if missing) and `maybeEl<T>(id)`
-(optional) replace unchecked `getElementById(x) as HTMLInputElement` casts. One
-place to reason about the element contract.
+(optional) replace unchecked `getElementById(x) as HTMLInputElement` casts and
+non-null `getElementById(x)!` lookups. One place to reason about the element
+contract; a bare `getElementById` is left only where the element is optional
+and the call site checks for null.
 
 ### Serialization seam - `controls/url.ts`
 State ⇄ URL query string, so any view is a shareable link. `buildPermalink`
@@ -142,7 +155,10 @@ omits defaults (and the theme, for citations); `applyUrlState` restores through
 the same intents, with an explicit precedence (comparison > scatter > country).
 Params: `country`, `compare`, `mode`, `date`, `bloc`, `min`/`max` (score
 range), `conf`/`official`/`evidence` (country filters), `q` (committed search),
-`scatter`, `theme`. The header Share popover (`controls/share.ts`) surfaces
+`scatter`, `theme`. A `theme` param applies for that visit only (the boot
+script and `applyUrlState` set `data-theme` but never write localStorage;
+only the theme toggle persists a choice), so opening a shared link does not
+change the reader's stored theme. The header Share popover (`controls/share.ts`) surfaces
 the permalink + formatted citations for ANY view, no selection required.
 `showUncertainty` (the map hatch toggle) is a per-browser preference in
 `localStorage` and, unlike `theme`, is not carried in the URL, so a shared
@@ -215,25 +231,22 @@ sequenceDiagram
 ## Where the rules live
 
 - **What can transition, and when** → `state/interactions.ts` (nowhere else
-  should write `mainView`, comparison membership, or drive Esc layering).
+  writes the store, and nowhere else drives Esc layering).
 - **What a value means once derived** → `state/selectors.ts`.
 - **What the data must look like** → `data/loader.ts` (the validation boundary).
 - **What DOM ids exist** → `dom.ts` accessors + `index.html`.
 
 ## Extending
 
-- **Add UI state**: add the field to `AppState` (+ default), then `on(key, …)`
-  where it matters. If a change has to enforce a rule, add an *intent* rather
-  than calling `setState` from the feature.
+- **Add UI state**: add the field to `AppState` (+ default), an *intent* in
+  `interactions.ts` that writes it (features never call `setState`), then
+  `on(key, …)` where it matters.
 - **Add a derived value used in >1 place**: add a memoized selector.
 - **Add a view/overlay**: extend `MainView` and the `setMainView` guard; the
   FSM keeps mutual exclusion automatic.
 
 ## Known incremental migrations
 
-- `dom.ts` is adopted for the unchecked casts; the remaining
-  `getElementById(...)!` sites (correct type, just non-null) can move to `el()`
-  opportunistically.
 - Rendering is deliberately imperative. If the panel/comparison DOM churn ever
   justifies it, a ~30-line tagged-template helper - not a framework - is the
   intended next step; the map stays hand-written D3.

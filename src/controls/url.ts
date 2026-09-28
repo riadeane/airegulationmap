@@ -13,11 +13,13 @@
 // `history.replaceState`, and `popstate` writes back into the store.
 // Defaults are omitted from the URL to keep links short.
 
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
 import type { AppState } from '../state/store';
 import {
   restoreComparison, selectCountry, openScatter,
   commitSearch, clearSearch, MAX_SEARCH_QUERY,
+  selectAttribute, setTimelineDate, selectBloc, setScatterAxes,
+  setScoreRange, setConfidenceFilter, setOfficialOnly, setEvidenceFilter,
 } from '../state/interactions';
 import { SCORE_OPTIONS, MAX_COMPARISON } from '../constants';
 import type { AttributeKey } from '../constants';
@@ -261,31 +263,31 @@ function writeReplace(): void {
 }
 
 function applyUrlState(urlState: UrlState, { initial = false }: { initial?: boolean } = {}): void {
+  // A URL theme applies for this visit only; only the toggle persists one.
   if (urlState.theme) {
     document.documentElement.setAttribute('data-theme', urlState.theme);
-    try { localStorage.setItem('theme', urlState.theme); } catch (e) { /* storage blocked */ }
   }
 
-  if (urlState.mode) setState({ currentAttribute: urlState.mode });
-  else if (!initial) setState({ currentAttribute: DEFAULT_MODE });
+  if (urlState.mode) selectAttribute(urlState.mode);
+  else if (!initial) selectAttribute(DEFAULT_MODE);
 
-  if (urlState.date !== undefined) setState({ timelineDate: urlState.date || null });
-  else if (!initial) setState({ timelineDate: null });
+  if (urlState.date !== undefined) setTimelineDate(urlState.date || null);
+  else if (!initial) setTimelineDate(null);
 
   if (urlState.filterMin !== undefined || urlState.filterMax !== undefined) {
-    setState({ filterMin: urlState.filterMin ?? 1, filterMax: urlState.filterMax ?? 5 });
+    setScoreRange(urlState.filterMin ?? 1, urlState.filterMax ?? 5);
   } else if (!initial) {
-    setState({ filterMin: 1, filterMax: 5 });
+    setScoreRange(1, 5);
   }
 
-  if (urlState.filterConfidence) setState({ filterConfidence: urlState.filterConfidence });
-  else if (!initial) setState({ filterConfidence: null });
+  if (urlState.filterConfidence) setConfidenceFilter(urlState.filterConfidence);
+  else if (!initial) setConfidenceFilter(null);
 
-  if (urlState.filterOfficialOnly) setState({ filterOfficialOnly: true });
-  else if (!initial) setState({ filterOfficialOnly: false });
+  if (urlState.filterOfficialOnly) setOfficialOnly(true);
+  else if (!initial) setOfficialOnly(false);
 
-  if (urlState.filterEvidence) setState({ filterEvidence: urlState.filterEvidence });
-  else if (!initial) setState({ filterEvidence: 'any' });
+  if (urlState.filterEvidence) setEvidenceFilter(urlState.filterEvidence);
+  else if (!initial) setEvidenceFilter('any');
 
   // Committed search BEFORE country/compare: commitSearch deselects to show
   // the results list, so a country in the same URL wins by applying later.
@@ -294,14 +296,14 @@ function applyUrlState(urlState: UrlState, { initial = false }: { initial?: bool
 
   const { blocsData } = getState();
   if (urlState.bloc && blocsData && blocsData[urlState.bloc]) {
-    setState({ selectedBloc: urlState.bloc });
+    selectBloc(urlState.bloc);
   } else if (!initial) {
-    setState({ selectedBloc: null });
+    selectBloc(null);
   }
 
   // Scatter axes are independent of which view is showing; apply them first.
   if (urlState.scatter) {
-    setState({ scatterX: urlState.scatter.x, scatterY: urlState.scatter.y });
+    setScatterAxes(urlState.scatter.x, urlState.scatter.y);
   }
 
   // The main view is a single slot, so precedence is explicit:

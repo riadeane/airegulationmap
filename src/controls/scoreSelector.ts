@@ -1,7 +1,9 @@
 import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../constants';
 import type { AttributeGroup } from '../constants';
 import type { AttributeKey } from '../constants';
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
+import { selectAttribute } from '../state/interactions';
+import { el } from '../dom';
 
 // The score-type button opens a listbox (the ARIA "select-only combobox"
 // pattern's popup): options carry role="option" and aria-selected, focus
@@ -18,7 +20,7 @@ import { getState, setState, on } from '../state/store';
 // Label and aria-selected follow the state, whoever wrote it (a dimension
 // row, a URL, popstate).
 function syncSelected(attr: AttributeKey): void {
-  document.getElementById('score-btn-label')!.textContent = ATTRIBUTE_LABELS[attr];
+  el('score-btn-label').textContent = ATTRIBUTE_LABELS[attr];
   document.querySelectorAll<HTMLLIElement>('#score-dropdown [role="option"]').forEach(li => {
     const selected = li.dataset.value === attr;
     li.classList.toggle('selected', selected);
@@ -26,13 +28,9 @@ function syncSelected(attr: AttributeKey): void {
   });
 }
 
-export function switchAttribute(attr: AttributeKey): void {
-  setState({ currentAttribute: attr });
-}
-
 export function buildScoreSelector(): void {
-  const btn = document.getElementById('score-btn')!;
-  const dropdown = document.getElementById('score-dropdown')!;
+  const btn = el('score-btn');
+  const dropdown = el('score-dropdown');
   btn.setAttribute('aria-controls', 'score-dropdown');
 
   const options: HTMLLIElement[] = [];
@@ -89,9 +87,9 @@ export function buildScoreSelector(): void {
 
   function open(focusIndex: number = selectedIndex()): void {
     setOpen(true);
-    document.getElementById('filter-popover')!.classList.remove('open');
-    document.getElementById('filter-btn')!.classList.remove('active');
-    document.getElementById('filter-btn')!.setAttribute('aria-expanded', 'false');
+    el('filter-popover').classList.remove('open');
+    el('filter-btn').classList.remove('active');
+    el('filter-btn').setAttribute('aria-expanded', 'false');
     options[focusIndex].focus();
   }
 
@@ -101,7 +99,7 @@ export function buildScoreSelector(): void {
   }
 
   function pick(attr: AttributeKey): void {
-    switchAttribute(attr);
+    selectAttribute(attr);
     close(true);
   }
 
@@ -163,7 +161,7 @@ export function initDimensionClicks(): void {
     main.title = 'Colour the map by this dimension; click again to return to the implementation index';
     main.addEventListener('click', () => {
       const dimension = row.dataset.dimension as AttributeKey;
-      switchAttribute(getState().currentAttribute === dimension ? 'averageScore' : dimension);
+      selectAttribute(getState().currentAttribute === dimension ? 'averageScore' : dimension);
     });
   });
 }

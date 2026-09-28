@@ -1,4 +1,4 @@
-import { maybeEl } from '../dom';
+import { el, maybeEl } from '../dom';
 import type { DimensionKey } from '../constants';
 import { cleanRegulationText } from './normalize';
 import { classifySources, safeHttpUrl } from '../data/sources';
@@ -71,7 +71,7 @@ export function renderTextSections(
     for (const s of SECTION_MAP) showSection(s.sectionId, false);
     showSection('laws-section', false);
     showSection('sources-section', false);
-    document.getElementById('no-details-message')!.style.display = '';
+    el('no-details-message').style.display = '';
     return;
   }
 
@@ -83,7 +83,7 @@ export function renderTextSections(
     cleanedTexts[s.key] = text;
     showSection(s.sectionId, !!text);
     if (text) {
-      document.getElementById(s.detailId)!.textContent = text;
+      el(s.detailId).textContent = text;
       hasAny = true;
     }
   }
@@ -91,13 +91,13 @@ export function renderTextSections(
   const lawsText = cleanRegulationText(regData.specificLaws);
   showSection('laws-section', !!lawsText);
   if (lawsText) {
-    document.getElementById('specific-laws')!.textContent = lawsText;
+    el('specific-laws').textContent = lawsText;
     hasAny = true;
   }
 
   // Sources - official (government/legislature/regulator) sources get
   // a tag so analysts can spot primary-source coverage at a glance.
-  const sourcesContainer = document.getElementById('sources-list')!;
+  const sourcesContainer = el('sources-list');
   const sources = classifySources(regData.sources);
   renderSources(sourcesContainer, sources, meta);
 
@@ -111,7 +111,7 @@ export function renderTextSections(
     showSection('sources-section', false);
   }
 
-  document.getElementById('no-details-message')!.style.display = hasAny ? 'none' : '';
+  el('no-details-message').style.display = hasAny ? 'none' : '';
 
   if (regData.confidence === 'low') {
     document.querySelectorAll('#panel-content .panel-section').forEach(s => s.classList.add('low-quality'));

@@ -1,7 +1,8 @@
 // Bloc filter - a third row inside the existing filter popover. Blocs
 // are semantically a filter, and the header is already at capacity.
 
-import { getState, setState, on } from '../state/store';
+import { getState, on } from '../state/store';
+import { selectBloc } from '../state/interactions';
 
 export function initBlocSelector(): void {
   const popover = document.getElementById('filter-popover');
@@ -32,7 +33,7 @@ export function initBlocSelector(): void {
   }
 
   select.addEventListener('change', () => {
-    setState({ selectedBloc: select.value || null });
+    selectBloc(select.value || null);
   });
 
   // Keep the select in sync when the bloc changes elsewhere (URL

@@ -1,5 +1,5 @@
-import { getState, setState, on } from '../state/store';
-import { maybeEl } from '../dom';
+import { getState, on } from '../state/store';
+import { el, maybeEl } from '../dom';
 import { renderScoreBar, renderAllDots } from './scores';
 import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
@@ -7,7 +7,7 @@ import { renderPeerRow } from './peers';
 import { renderEvidence } from './evidence';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { onThemeChange } from '../map/cssColors';
-import { toggleComparison } from '../state/interactions';
+import { selectCountry, toggleComparison } from '../state/interactions';
 import { scoresAtDate } from '../state/selectors';
 import { ATTRIBUTE_LABELS, GROUPS, MAX_COMPARISON } from '../constants';
 import type { AttributeGroup } from '../constants';
@@ -104,7 +104,7 @@ function initSheetDrag(): void {
     // Suppress the click that follows a real drag so it doesn't
     // double-fire; only a firm downward drag dismisses.
     if (dy > 6) grabber.dataset.dragged = '1';
-    if (dy > panel.offsetHeight * 0.3) setState({ selectedCountry: null });
+    if (dy > panel.offsetHeight * 0.3) selectCountry(null);
   };
   grabber.addEventListener('pointerup', end);
   grabber.addEventListener('pointercancel', end);
@@ -209,7 +209,7 @@ function renderScores(countryName: string): void {
 function revealEntry(): void {
   const fallback = document.getElementById('no-selection-message');
   if (fallback) fallback.hidden = true;
-  document.getElementById('panel-content')!.style.display = '';
+  el('panel-content').style.display = '';
 }
 
 // Slide the mobile bottom sheet up (the class is inert on desktop) and,
@@ -236,10 +236,10 @@ function renderPanel(countryName: string, { refresh = false }: { refresh?: boole
   // (view closed), the panel stays usable so the user keeps browsing.
   if (!comparisonOpen) revealEntry();
 
-  document.getElementById('country-name')!.textContent = countryName;
+  el('country-name').textContent = countryName;
   renderIsoCodes(countryName);
 
-  const badge = document.getElementById('confidence-badge')!;
+  const badge = el('confidence-badge');
   const level = normalizeConfidence(reg && reg.confidence);
   if (level) {
     badge.textContent = CONFIDENCE_LABELS[level];
@@ -263,7 +263,7 @@ function renderPanel(countryName: string, { refresh = false }: { refresh?: boole
     ? `${sources.length} source${sources.length === 1 ? '' : 's'}`
       + (officialCount > 0 ? ` · ${officialCount} official` : '')
     : 'no primary sources';
-  document.getElementById('last-updated')!.textContent = dateStr
+  el('last-updated').textContent = dateStr
     ? `Data as of ${dateStr} · ${countText}`
     : countText;
   renderEvidence();
@@ -300,7 +300,7 @@ function clearPanel(): void {
   // as a contradictory double empty-state - which a bare Esc (deselect
   // with nothing selected) would otherwise trigger.
   if (fallback) fallback.hidden = document.getElementById('panel-intro') !== null;
-  document.getElementById('panel-content')!.style.display = 'none';
+  el('panel-content').style.display = 'none';
   // Slide the mobile bottom sheet back down (inert on desktop).
   document.body.classList.remove('sheet-open');
   closeSheetDialog();
@@ -323,7 +323,7 @@ export function initPanel(): void {
   // Touch-equivalent of Esc - visible on coarse pointers only (CSS).
   const closeBtn = document.getElementById('panel-close');
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => setState({ selectedCountry: null }));
+    closeBtn.addEventListener('click', () => selectCountry(null));
   }
 
   // The mobile bottom sheet's grab handle: tap (or keyboard) dismisses;
@@ -333,7 +333,7 @@ export function initPanel(): void {
   if (grabber) {
     grabber.addEventListener('click', () => {
       if (grabber.dataset.dragged) { delete grabber.dataset.dragged; return; }
-      setState({ selectedCountry: null });
+      selectCountry(null);
     });
   }
   initSheetDrag();

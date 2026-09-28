@@ -154,7 +154,7 @@ function buildChip(name: string): HTMLElement {
 }
 
 function renderChips(names: readonly string[]): void {
-  const container = document.getElementById('comparison-chips')!;
+  const container = el('comparison-chips');
   container.replaceChildren();
   names.forEach(name => container.appendChild(buildChip(name)));
 }
@@ -163,7 +163,7 @@ function renderChips(names: readonly string[]): void {
 // staged countries. The "View comparison" button (enabled at 2+) opens
 // the full view.
 export function renderTray(names: readonly string[]): void {
-  const chips = document.getElementById('tray-chips')!;
+  const chips = el('tray-chips');
   const btn = el<HTMLButtonElement>('tray-view-btn');
   chips.replaceChildren();
   names.forEach(name => chips.appendChild(buildChip(name)));
@@ -198,7 +198,7 @@ export function renderTray(names: readonly string[]): void {
 // the old radar data table (numbers) AND the separate text grid, so
 // every label appears exactly once.
 function renderComparisonTable(names: readonly string[]): void {
-  const container = document.getElementById('comparison-table')!;
+  const container = el('comparison-table');
   container.replaceChildren();
   // The flex columns fill the view for 2-3 countries; 4 may exceed the
   // width and scroll. min-width on cells keeps prose legible either way.
@@ -348,8 +348,8 @@ export function renderComparisonPanel(names: readonly string[]): void {
   renderAddBar();
   renderChips(names);
 
-  const radarEl = document.getElementById('radar-chart')!;
-  const tableEl = document.getElementById('comparison-table')!;
+  const radarEl = el('radar-chart');
+  const tableEl = el('comparison-table');
 
   // Radar + table need two or more countries to be meaningful. At
   // exactly one country, clear them and show a friendly prompt so the
