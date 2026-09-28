@@ -8,7 +8,8 @@ body.view-scatter #bloc-summary {
   visibility: hidden;
 }
 
-/* The scatter is latest-data-only; the timeline drives the map. */
+/* The scatter is latest-data-only (opening it resets the timeline to
+   Latest); the timeline drives the map. */
 body.view-scatter #timeline-strip {
   display: none !important;
 }

@@ -1,15 +1,22 @@
 // CSV / JSON export of the dataset - the whole thing or the current
 // filtered view. Researchers feed this straight into R / Python / Excel.
 //
-// Exports always reflect the LATEST data, even while the timeline is
-// scrubbed to a historical date: history snapshots carry scores only,
-// so a historical export would silently pair old scores with current
-// text descriptions.
+// Exports follow the timeline (#142). At "Latest" they carry the latest
+// data. While the timeline shows a past date they carry the scores as of
+// that date, the vintage the map and panel show, and the file name and
+// the JSON meta block name the date. History records scores only (plus
+// confidence on snapshots that carry it), so on a past date the columns
+// with no historical record (the five text descriptions, Specific Laws,
+// Sources) export empty and the JSON leaves out the sub-indicators and the
+// evidence record: a file labelled "as of" a date never pairs its scores
+// with text researched after it. The CSV columns keep their names and
+// order either way.
 
 import { csvFormat } from 'd3-dsv';
 import { getState, on } from '../state/store';
-import { visibleCountrySet } from '../state/selectors';
-import type { ScoreEntry, RegulationEntry } from '../data/loader';
+import { scoresAtDate, visibleCountriesIn, visibleCountrySet } from '../state/selectors';
+import type { ScoreEntry, RegulationEntry, ScoreData, RegulationData } from '../data/loader';
+import type { HistorySnapshot } from '../data/history';
 import type { SubscoreEntry } from '../data/subscores';
 import { localIsoDate } from '../data/localDate';
 import { ATTRIBUTES, GROUPS } from '../constants';
@@ -35,10 +42,33 @@ export interface ExportFieldMeta {
   notClaim: string;
 }
 
+// An export at a past timeline date, by column in CSV order (#142): the
+// columns that follow the date (see buildExportRows), and the ones history
+// has no record of, which are empty.
+const AS_OF_COLUMNS = [
+  'Average Score', 'Regulation Status (Score)', 'Policy Lever (Score)',
+  'Governance Type (Score)', 'Actor Involvement (Score)', 'Enforcement Level (Score)',
+  'Confidence', 'Last Updated',
+];
+const CURRENT_ONLY_COLUMNS = [
+  'Regulation Status', 'Policy Lever', 'Governance Type', 'Actor Involvement',
+  'Enforcement Level', 'Specific Laws', 'Sources',
+];
+
+/** What an export at a past timeline date carries, for the meta block. */
+export interface ExportVintageMeta {
+  asOfColumns: string[];
+  emptyColumns: string[];
+  note: string;
+}
+
 export interface ExportMeta {
   title: string;
   exported: string;
+  /** The timeline date the rows are as of; absent for the latest data. */
+  asOf?: string;
   note: string;
+  vintage?: ExportVintageMeta;
   explainer: string;
   fields: Record<string, ExportFieldMeta>;
 }
@@ -46,9 +76,11 @@ export interface ExportMeta {
 /**
  * The JSON export's `meta` block (PRD 16): for each score column, the
  * display label, its lens, the question it answers, what 1 and 5 mean,
- * and what it does not claim. Keyed by the export's column names.
+ * and what it does not claim. Keyed by the export's column names. With
+ * `asOf` (an export at a past timeline date) it also names the date and
+ * says which columns follow it and which are empty (#142).
  */
-export function buildExportMeta(date: string = localIsoDate()): ExportMeta {
+export function buildExportMeta(date: string = localIsoDate(), asOf: string | null = null): ExportMeta {
   const fields: Record<string, ExportFieldMeta> = {};
   for (const [key, column] of Object.entries(SCORE_COLUMNS) as [AttributeKey, string][]) {
     const m = ATTRIBUTES[key];
@@ -60,24 +92,64 @@ export function buildExportMeta(date: string = localIsoDate()): ExportMeta {
       notClaim: m.notClaim,
     };
   }
+  const title = 'AI Regulation Map';
+  const note = 'Implementation scores measure how much AI governance is in force, not whether it is good. '
+    + 'Governance style scores describe how a country governs; neither end is better. '
+    + '"Average Score" is the implementation index.';
+  const explainer = 'https://airegulationmap.org/methodology.html';
+  if (!asOf) return { title, exported: date, note, explainer, fields };
   return {
-    title: 'AI Regulation Map',
+    title,
     exported: date,
-    note: 'Implementation scores measure how much AI governance is in force, not whether it is good. '
-      + 'Governance style scores describe how a country governs; neither end is better. '
-      + '"Average Score" is the implementation index.',
-    explainer: 'https://airegulationmap.org/methodology.html',
+    asOf,
+    note,
+    vintage: {
+      asOfColumns: [...AS_OF_COLUMNS],
+      emptyColumns: [...CURRENT_ONLY_COLUMNS],
+      note: `Scores are as of ${asOf}: for each country, the history snapshot in effect on that date, `
+        + 'as the map shows it. "Last Updated" is the date of the research run that produced those '
+        + 'scores; it falls after the as-of date for a country first researched later, whose earliest '
+        + 'scores are carried back. "Confidence" is the confidence recorded with the snapshot, empty '
+        + 'where history recorded none. History keeps no text, sources, sub-indicators or evidence '
+        + 'record, so those columns are empty and those keys are left out; export at Latest for them. '
+        + 'A country with no history record carries its latest scores, confidence and "Last Updated".',
+    },
+    explainer,
     fields,
   };
 }
 
-// A null score ("insufficient evidence", rubric v3.1) exports as an empty
-// CSV cell and a JSON null, the same as scores.csv; it is never a number.
-function buildExportRows(countries: string[]) {
-  const { scoreData, regulationData } = getState();
+/** The timeline vintage an export is taken at: the scrubbed date and the
+ *  snapshots in effect on it (scoresAtDate). Null at "Latest". */
+export interface ExportVintage {
+  date: string;
+  snapshots: Readonly<Record<string, HistorySnapshot>>;
+}
+
+/**
+ * The export rows for `countries`. At "Latest" (`vintage` null) every
+ * column comes from the latest entry. On a past date a row's scores come
+ * from the country's snapshot in effect on that date (the map's scores),
+ * its "Last Updated" is that snapshot's date (the run that produced them)
+ * and its "Confidence" the confidence recorded with it, or empty; a country
+ * history has no record of keeps its latest scores, confidence and date.
+ * The columns history has no record of are empty on a past date.
+ *
+ * A null score ("insufficient evidence", rubric v3.1) exports as an empty
+ * CSV cell and a JSON null, the same as scores.csv; it is never a number.
+ */
+export function buildExportRows(
+  countries: readonly string[],
+  scoreData: ScoreData,
+  regulationData: RegulationData,
+  vintage: ExportVintage | null = null
+) {
   return countries.map(name => {
-    const scores: Partial<ScoreEntry> = scoreData[name] || {};
+    const latest: Partial<ScoreEntry> = scoreData[name] || {};
     const reg: Partial<RegulationEntry> = regulationData[name] || {};
+    const snapshot = vintage?.snapshots[name];
+    const scores: Partial<Record<AttributeKey, number | null>> = snapshot ?? latest;
+    const text = (value: string | null | undefined): string => (vintage ? '' : value || '');
     return {
       'Country': name,
       'Average Score': scores.averageScore,
@@ -86,15 +158,15 @@ function buildExportRows(countries: string[]) {
       'Governance Type (Score)': scores.governanceType,
       'Actor Involvement (Score)': scores.actorInvolvement,
       'Enforcement Level (Score)': scores.enforcementLevel,
-      'Regulation Status': reg.regulationStatus || '',
-      'Policy Lever': reg.policyLever || '',
-      'Governance Type': reg.governanceType || '',
-      'Actor Involvement': reg.actorInvolvement || '',
-      'Enforcement Level': reg.enforcementLevel || '',
-      'Specific Laws': reg.specificLaws || '',
-      'Sources': reg.sources || '',
-      'Confidence': reg.confidence || '',
-      'Last Updated': scores.lastUpdated || reg.lastUpdated || '',
+      'Regulation Status': text(reg.regulationStatus),
+      'Policy Lever': text(reg.policyLever),
+      'Governance Type': text(reg.governanceType),
+      'Actor Involvement': text(reg.actorInvolvement),
+      'Enforcement Level': text(reg.enforcementLevel),
+      'Specific Laws': text(reg.specificLaws),
+      'Sources': text(reg.sources),
+      'Confidence': snapshot ? snapshot.confidence || '' : reg.confidence || '',
+      'Last Updated': snapshot ? snapshot.date : latest.lastUpdated || reg.lastUpdated || '',
     };
   });
 }
@@ -142,13 +214,46 @@ export function withSubindicators(
   });
 }
 
+/** The export's vintage for the current view: the timeline date and its
+ *  snapshots, or null at "Latest" (and for a date history does not know,
+ *  where the map shows the latest data too). */
+function currentVintage(): ExportVintage | null {
+  const snapshots = scoresAtDate();
+  const { timelineDate } = getState();
+  return snapshots && timelineDate ? { date: timelineDate, snapshots } : null;
+}
+
+/** Each dataset country's scores as buildExportRows writes them on a past
+ *  date: the snapshot in effect on it, else the latest row. */
+export function scoresAsOf(
+  scoreData: ScoreData,
+  vintage: ExportVintage
+): Record<string, Partial<Record<AttributeKey, number | null>>> {
+  const rows: Record<string, Partial<Record<AttributeKey, number | null>>> = {};
+  for (const [name, latest] of Object.entries(scoreData)) {
+    rows[name] = vintage.snapshots[name] ?? latest;
+  }
+  return rows;
+}
+
+/** The download's file name. The date in it is the data's: the export day
+ *  at "Latest", the timeline date as "as-of-<date>" on a past date. */
+export function exportFileName(scopeLabel: string, format: string, exported: string, asOf: string | null): string {
+  const ext = format === 'csv' ? 'csv' : 'json';
+  return `ai-regulation-data-${scopeLabel}-${asOf ? `as-of-${asOf}` : exported}.${ext}`;
+}
+
 // Countries passing the active filters - the same visibility predicate the
 // map and scatter use (score range AND bloc), so "filtered view" exports
-// exactly what the user is looking at. Countries with no score for the
-// current attribute are excluded - they're dimmed on the map, and "all
-// countries" covers them.
-function getFilteredCountries(): string[] {
-  return [...visibleCountrySet()].sort();
+// exactly what the user is looking at. On a past timeline date the score
+// range applies to the scores as of that date, as on the map. Countries
+// with no score for the current attribute are excluded - they're dimmed on
+// the map, and "all countries" covers them.
+function getFilteredCountries(vintage: ExportVintage | null): string[] {
+  const visible = vintage
+    ? visibleCountriesIn(scoresAsOf(getState().scoreData, vintage))
+    : visibleCountrySet();
+  return [...visible].sort();
 }
 
 function downloadFile(content: string, filename: string, mimeType: string): void {
@@ -185,7 +290,9 @@ function showToast(message: string): void {
 /**
  * Download the given countries as CSV/JSON. `scopeLabel` names the set in
  * the filename and the toast ("filtered", "all", "comparison", "search"),
- * so the researcher can see which scope they actually got.
+ * so the researcher can see which scope they actually got. On a past
+ * timeline date the rows are as of that date and the file name, the JSON
+ * meta block and the toast say so.
  */
 export function exportCountries(
   countries: readonly string[],
@@ -193,18 +300,24 @@ export function exportCountries(
   scopeLabel: string,
   toastLabel: string = scopeLabel
 ): void {
-  const rows = buildExportRows([...countries]);
+  const { scoreData, regulationData, subscores } = getState();
+  const vintage = currentVintage();
+  const asOf = vintage?.date ?? null;
+  const rows = buildExportRows(countries, scoreData, regulationData, vintage);
   const date = localIsoDate();
+  const filename = exportFileName(scopeLabel, format, date, asOf);
   if (format === 'csv') {
-    downloadFile(csvFormat(rows), `ai-regulation-data-${scopeLabel}-${date}.csv`, 'text/csv');
+    downloadFile(csvFormat(rows), filename, 'text/csv');
   } else {
-    const withAudit = withSubindicators(rows, getState().subscores?.countries);
-    const payload = { meta: buildExportMeta(date), countries: withAudit };
-    downloadFile(JSON.stringify(payload, null, 2), `ai-regulation-data-${scopeLabel}-${date}.json`, 'application/json');
+    // Sub-indicators and the evidence record describe the latest research
+    // pass only, so an export at a past date leaves them out.
+    const withAudit = vintage ? rows : withSubindicators(rows, subscores?.countries);
+    const payload = { meta: buildExportMeta(date, asOf), countries: withAudit };
+    downloadFile(JSON.stringify(payload, null, 2), filename, 'application/json');
   }
   showToast(
     `Exported ${rows.length} ${rows.length === 1 ? 'country' : 'countries'} · ` +
-    `${toastLabel} · ${format.toUpperCase()}`
+    `${toastLabel} · ${asOf ? `as of ${asOf} · ` : ''}${format.toUpperCase()}`
   );
 }
 
@@ -215,7 +328,7 @@ function scopeCountries(scope: string | undefined): { countries: string[]; label
   if (scope === 'comparison') {
     return { countries: [...getState().comparisonCountries], label: 'comparison', toast: 'comparison set' };
   }
-  return { countries: getFilteredCountries(), label: 'filtered', toast: 'filtered view' };
+  return { countries: getFilteredCountries(currentVintage()), label: 'filtered', toast: 'filtered view' };
 }
 
 export function initExport(): void {
