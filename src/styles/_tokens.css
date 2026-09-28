@@ -92,6 +92,11 @@
      so shared borders between hatched countries still read. */
   --hatch-opacity:   0.4;
 
+  /* Shadows and scrims: a near-black tinted toward the brand hue, never
+     pure black. Each use sets its own strength with
+     color-mix(in oklch, var(--shadow-color) N%, transparent). */
+  --shadow-color:    oklch(10% 0.01 var(--brand-hue));
+
   color-scheme: dark;
 }
 
@@ -134,6 +139,7 @@
 
     --map-stroke:      oklch(100% 0 0);
     --hatch-opacity:   0.35;
+    --shadow-color:    oklch(20% 0.015 80);
 
     color-scheme: light;
   }
@@ -171,6 +177,7 @@
 
   --map-stroke:      oklch(100% 0 0);
   --hatch-opacity:   0.35;
+  --shadow-color:    oklch(20% 0.015 80);
 
   color-scheme: light;
 }

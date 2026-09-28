@@ -72,6 +72,7 @@
       --no-data:         oklch(26% 0.007 var(--brand-hue));
       --score-low:       oklch(58% 0.16 28);
       --score-high:      oklch(62% 0.13 245);
+      --shadow-color:    oklch(10% 0.01 var(--brand-hue));
 
       color-scheme: dark;
     }
@@ -91,6 +92,7 @@
         --no-data:         oklch(93% 0.004 80);
         --score-low:       oklch(52% 0.18 28);
         --score-high:      oklch(45% 0.15 245);
+        --shadow-color:    oklch(20% 0.015 80);
         color-scheme: light;
       }
     }
@@ -109,6 +111,7 @@
       --no-data:         oklch(93% 0.004 80);
       --score-low:       oklch(52% 0.18 28);
       --score-high:      oklch(45% 0.15 245);
+      --shadow-color:    oklch(20% 0.015 80);
       color-scheme: light;
     }
 
@@ -495,7 +498,7 @@
       pointer-events: none;
       font-family: 'Geist', -apple-system, sans-serif;
       font-size: 0.78rem;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 28px color-mix(in oklch, var(--shadow-color) 25%, transparent);
       color: var(--text-secondary);
       max-width: 260px;
       z-index: 200;

@@ -43,11 +43,15 @@
   }
 
   body.print-brief {
+    /* Ink and paper for the whole brief: near-black and near-white
+       tinted toward the neutral hue, never pure black or white. */
+    --print-ink: oklch(16% 0.012 80);
+    --print-paper: oklch(99.5% 0.002 80);
     display: block;
     height: auto;
     min-height: 0;
-    background: #fff;
-    color: #000;
+    background: var(--print-paper);
+    color: var(--print-ink);
     font-family: 'Literata', Georgia, serif;
     font-size: 11pt;
     line-height: 1.4;
@@ -125,7 +129,7 @@
   body.print-brief #panel-content {
     display: flex !important;
     flex-direction: column;
-    color: #000;
+    color: var(--print-ink);
   }
 
   /* Dissolve the header wrappers so their children take part in the
@@ -141,7 +145,7 @@
     font-weight: 500;
     line-height: 1.2;
     letter-spacing: -0.01em;
-    color: #000;
+    color: var(--print-ink);
   }
 
   body.print-brief .country-iso {
@@ -210,7 +214,7 @@
   body.print-brief .panel-section p {
     font-size: 11pt;
     line-height: 1.4;
-    color: #000;
+    color: var(--print-ink);
     orphans: 3;
     widows: 3;
   }
@@ -222,7 +226,7 @@
 
   body.print-brief .panel-section.low-quality p {
     opacity: 1;
-    color: #000;
+    color: var(--print-ink);
   }
 
   body.print-brief .panel-field-mark {
@@ -241,7 +245,7 @@
 
   body.print-brief .index-label {
     font-size: 10pt;
-    color: #000;
+    color: var(--print-ink);
   }
 
   body.print-brief .score-bar-row {
@@ -271,7 +275,7 @@
     font-family: 'Geist Mono', ui-monospace, monospace;
     font-size: 13pt;
     font-weight: 500;
-    color: #000;
+    color: var(--print-ink);
   }
 
   /* Dimensions: a table of label and number, then every sub-indicator
@@ -303,14 +307,14 @@
     border: 0;
     background: none;
     font: inherit;
-    color: #000;
+    color: var(--print-ink);
     text-align: left;
   }
 
   body.print-brief .dim-label {
     font-size: 10pt;
     font-weight: 400;
-    color: #000;
+    color: var(--print-ink);
   }
 
   body.print-brief .dim-dots {
@@ -322,7 +326,7 @@
     margin: 0;
     font-family: 'Geist Mono', ui-monospace, monospace;
     font-size: 10pt;
-    color: #000;
+    color: var(--print-ink);
   }
 
   /* Sub-indicators: printBrief.ts renders every block before printing;
@@ -355,7 +359,7 @@
 
   body.print-brief .subscore-caption::before {
     content: attr(data-dimension) ' · ';
-    color: #000;
+    color: var(--print-ink);
   }
 
   body.print-brief .subscore-line {
@@ -373,14 +377,14 @@
 
   body.print-brief .subscore-label {
     font-size: 9.5pt;
-    color: #000;
+    color: var(--print-ink);
   }
 
   body.print-brief .subscore-value {
     min-width: 0;
     font-family: 'Geist Mono', ui-monospace, monospace;
     font-size: 9.5pt;
-    color: #000;
+    color: var(--print-ink);
   }
 
   body.print-brief .subscore-panel .subscore-rationale {
@@ -413,7 +417,7 @@
     padding: 0;
     background: none;
     font: inherit;
-    color: #000;
+    color: var(--print-ink);
     text-decoration: none;
   }
 
@@ -432,7 +436,7 @@
     font-size: 7pt;
     font-weight: 600;
     letter-spacing: 0.08em;
-    color: #000;
+    color: var(--print-ink);
   }
 
   /* Record: data date and source count, evidence coverage, confidence,
@@ -440,7 +444,7 @@
   body.print-brief .data-freshness {
     margin: 4pt 0 0;
     padding-top: 6pt;
-    border-top: 0.5pt solid #000;
+    border-top: 0.5pt solid var(--print-ink);
     font-family: 'Geist', -apple-system, sans-serif;
     font-size: 8pt;
     letter-spacing: 0.06em;
@@ -484,7 +488,7 @@
     margin-top: 6pt;
     font-size: 9.5pt;
     line-height: 1.4;
-    color: #000;
+    color: var(--print-ink);
   }
 
   body.print-brief .print-citation p {
