@@ -358,7 +358,7 @@ flowchart TD
     B -- no --> E["applied:evidence"]
     B -- yes --> C{"any dimension<br/>score changed?"}
     C -- no --> U["unchanged<br/>(clears pending)"]
-    C -- yes --> D{"new source URL,<br/>or Specific Laws changed?"}
+    C -- yes --> D{"a URL the country never cited,<br/>or a changed set of named laws?"}
     D -- yes --> E
     D -- no --> P{"pending candidate<br/>with the same dimensions<br/>moving the same way?"}
     P -- yes --> Q["applied:persisted<br/>(clears pending)"]
@@ -370,12 +370,19 @@ flowchart TD
   its direction is "to insufficient evidence" or "from insufficient evidence",
   and it always goes on the review list, since it has no size. A row whose five
   scores are all empty counts as no prior scores.
-- **Evidence rule.** A cited URL that the existing `Sources` column does not
-  contain counts as new. URLs compare after the same normalisation as
-  `sources.py` (no scheme, no `www.`, no trailing slash). `Specific Laws`
-  compares after whitespace normalisation. A confidence drop is not evidence.
+- **Evidence rule.** A cited URL counts as new only when the country has
+  never cited it: it is in neither the existing `Sources` column nor the
+  gate's memory of every URL the country cited on earlier runs
+  (`pending.json` `seen_sources`, updated for every result, held or not), so
+  a URL dropped one week and cited again the next is not evidence (#88). URLs
+  compare after the same normalisation as `sources.py` (no scheme, no `www.`,
+  no trailing slash). `Specific Laws` compares as a set of named instruments
+  (split on `;`, newlines and `, ` outside parentheses; each name case-folded
+  with punctuation collapsed), so reordering or re-punctuating the list is not
+  a change; naming a new instrument, or dropping one, is. A confidence drop is
+  not evidence.
 - **Persistence rule.** A held candidate lives in `public/data/pending.json`
-  as `{country, candidate_scores, first_seen}`. The next result for that
+  (`pending`) as `{country, candidate_scores, first_seen}`. The next result for that
   country applies when it moves the same dimensions in the same direction.
   A result that reverts to the stored scores clears the candidate. A result
   that moves differently replaces it. The window is two consecutive results.

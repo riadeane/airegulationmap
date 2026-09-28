@@ -221,13 +221,21 @@ class PipelineService:
         old_regulation = _copy(self._dataset.regulation_row(country))
         try:
             existing_scores = self._dataset.scores_row(country)
+            existing_reg = self._dataset.regulation_row(country)
             if self._gate_enabled:
                 decision = gate.decide(
-                    existing_scores, self._dataset.regulation_row(country), result,
+                    existing_scores, existing_reg, result,
                     self._dataset.pending_for(country), self._today,
+                    seen_sources=self._dataset.seen_sources_for(country),
                 )
             else:
                 decision = gate.ungated(existing_scores, result)
+            # Remember what the country cited before this result replaces the
+            # Sources column, and what it cites now, held or not.
+            self._dataset.remember_sources(
+                country,
+                gate.cited_urls((existing_reg or {}).get("Sources")) | gate.cited_urls(result.sources),
+            )
             outcome = self._dataset.apply(
                 country, result, self._today, apply_scores=decision.apply_scores,
             )

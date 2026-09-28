@@ -48,8 +48,6 @@ SCORE_COLUMNS = {
     "enforcement_level": "Enforcement Level",
 }
 
-_WHITESPACE_RE = re.compile(r"\s+")
-
 
 @dataclass(frozen=True)
 class LargeMove:
@@ -149,12 +147,15 @@ def decide(
     result: ResearchResult,
     pending: dict | None,
     today: date,
+    seen_sources: frozenset[str] = frozenset(),
 ) -> Decision:
     """Apply the evidence rule, then the persistence rule.
 
     ``existing_scores`` and ``existing_reg`` are the country's current CSV
     rows (``None`` for a new country). ``pending`` is the stored candidate
     from an earlier run: ``{"candidate_scores": {...}, "first_seen": "..."}``.
+    ``seen_sources`` is every URL the country has cited before
+    (:func:`normalise_url` form), so a URL dropped and re-cited is not new.
     """
     candidate = result.dimension_scores()
     old = _existing_dimension_scores(existing_scores)
@@ -167,7 +168,7 @@ def decide(
         return Decision(UNCHANGED, True, "scores unchanged")
 
     moves = _large_moves(changes)
-    new_sources = new_source_urls(existing_reg, result)
+    new_sources = new_source_urls(existing_reg, result, seen_sources)
     if new_sources:
         return Decision(
             APPLIED_EVIDENCE, True, f"new source: {new_sources[0]}",
@@ -247,9 +248,19 @@ def normalise_url(url: str) -> str:
     return f"{host}{path}{query}"
 
 
-def new_source_urls(existing_reg: dict | None, result: ResearchResult) -> tuple[str, ...]:
-    """Cited URLs that the existing ``Sources`` column does not contain."""
-    known = {normalise_url(s.url) for s in classify_sources((existing_reg or {}).get("Sources"))}
+def cited_urls(sources: str | None) -> frozenset[str]:
+    """The URLs in a ``Sources`` value, in :func:`normalise_url` form."""
+    return frozenset(normalise_url(s.url) for s in classify_sources(sources))
+
+
+def new_source_urls(
+    existing_reg: dict | None, result: ResearchResult, seen: frozenset[str] = frozenset(),
+) -> tuple[str, ...]:
+    """Cited URLs new to the country: in neither the existing ``Sources``
+    column nor ``seen`` (every URL it cited on earlier runs). ``Sources``
+    is rewritten on every run, so without ``seen`` a URL dropped one week
+    and cited again the next would count as new evidence (#88)."""
+    known = cited_urls((existing_reg or {}).get("Sources")) | seen
     fresh = []
     for source in classify_sources(result.sources):
         if normalise_url(source.url) not in known:
@@ -258,13 +269,42 @@ def new_source_urls(existing_reg: dict | None, result: ResearchResult) -> tuple[
 
 
 def laws_changed(existing_reg: dict | None, result: ResearchResult) -> bool:
-    before = _squash((existing_reg or {}).get("Specific Laws", ""))
-    after = _squash(result.specific_laws)
-    return before != after
+    """True when the result names a different set of instruments. The list
+    is compared as a set of normalised names, so reordering it, or changing
+    only punctuation, case or spacing, is no change (#88)."""
+    return law_names((existing_reg or {}).get("Specific Laws", "")) != law_names(result.specific_laws)
 
 
-def _squash(text: str | None) -> str:
-    return _WHITESPACE_RE.sub(" ", (text or "")).strip()
+# Separators between named instruments: a semicolon, a newline, or a comma
+# followed by whitespace (a comma inside a number, "13,709/2018", is not).
+_LAW_SEPARATOR_RE = re.compile(r";|\n|,(?=\s)")
+_NON_WORD_RE = re.compile(r"[^\w]+")
+
+
+def law_names(text: str | None) -> frozenset[str]:
+    """The named instruments in a ``Specific Laws`` value, each normalised
+    (case-folded, punctuation and spacing collapsed). Separators inside
+    parentheses belong to the name: "AI Promotion Act (AI Act, 2025)" is
+    one instrument."""
+    names: set[str] = set()
+    depth = 0
+    start = 0
+    raw = text or ""
+    for i, char in enumerate(raw):
+        if char in "([":
+            depth += 1
+        elif char in ")]":
+            depth = max(depth - 1, 0)
+        elif depth == 0 and _LAW_SEPARATOR_RE.match(raw, i):
+            names.add(_law_key(raw[start:i]))
+            start = i + 1
+    names.add(_law_key(raw[start:]))
+    names.discard("")
+    return frozenset(names)
+
+
+def _law_key(name: str) -> str:
+    return _NON_WORD_RE.sub(" ", name.casefold()).strip()
 
 
 # -- score helpers ---------------------------------------------------------------

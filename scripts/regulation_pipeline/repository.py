@@ -5,8 +5,10 @@ and ``pending.json`` are loaded, mutated, and saved as a unit. :class:`Dataset`
 owns all five, folds a validated
 :class:`~regulation_pipeline.models.ResearchResult` into them via :meth:`apply`,
 and persists them with atomic writes so an interrupted run can't leave a
-half-written CSV behind. ``pending.json`` holds the score candidates the
-stability gate (:mod:`gate`) held back for one run.
+half-written CSV behind. ``pending.json`` holds the stability gate's state
+(:mod:`gate`): the score candidates it held back for one run, and under
+``seen_sources`` every source URL each country has cited, so the evidence
+rule can tell a new source from a re-cited one.
 
 Each researched country's ``subscores.json`` entry also carries an
 ``evidence`` block (PRD 14, :meth:`Dataset.set_evidence`): how the most recent
@@ -115,6 +117,19 @@ class Dataset:
         block), as a copy."""
         entry = self._subscores.get("countries", {}).get(country)
         return dict(entry) if entry is not None else None
+
+    def seen_sources_for(self, country: str) -> frozenset[str]:
+        """Every source URL ``country`` has cited on earlier runs, in
+        :func:`gate.normalise_url` form (``pending.json`` ``seen_sources``)."""
+        return frozenset(self._pending.get("seen_sources", {}).get(country, ()))
+
+    def remember_sources(self, country: str, urls: frozenset[str]) -> None:
+        """Add ``urls`` (normalised) to the country's cited-source memory."""
+        if not urls:
+            return
+        seen = self._pending.setdefault("seen_sources", {})
+        seen[country] = sorted(set(seen.get(country, ())) | set(urls))
+        self._pending["seen_sources"] = dict(sorted(seen.items()))
 
     def pending_for(self, country: str) -> dict | None:
         """The gate's stored candidate for ``country``:

@@ -108,6 +108,15 @@ class TestSelectChanges:
         [selected] = select_changes([new_laws])
         assert selected.laws == ("AI Act (2024)", "AI Act (2024); Digital Act (2026)")
 
+    def test_a_reordered_law_list_is_not_a_change(self):
+        # Same comparison as the gate (#88): a set of named instruments.
+        reordered = change(
+            "A", old_scores=scores_row("A"),
+            old_reg=reg_row("A", **{"Specific Laws": "AI Act (2024); Digital Act (2026)"}),
+            new_reg=reg_row("A", **{"Specific Laws": "Digital Act 2026, AI Act (2024)"}),
+        )
+        assert select_changes([reordered]) == []
+
     def test_confidence_rising_to_high_needs_new_sources(self):
         no_new_sources = change(
             "A", old_scores=scores_row("A"), old_reg=reg_row("A"),

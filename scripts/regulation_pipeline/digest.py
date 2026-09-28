@@ -39,6 +39,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 
 from .api import parse_message
 from .config import SITE_URL, Settings
+from .gate import law_names
 from .models import INSUFFICIENT_EVIDENCE, ResearchResult, strip_titles
 from .retry import call_with_retries
 from .service import CountryChange, RunResult
@@ -196,9 +197,12 @@ def _score(row: dict | None, column: str) -> float | None:
 
 
 def _laws_delta(old: dict | None, new: dict) -> tuple[str | None, str] | None:
+    """The old and new law lists when they name different instruments. A
+    reordered or re-punctuated list is no change, as in the gate
+    (``gate.law_names``)."""
     after = _normalise(new.get("Specific Laws"))
     before = _normalise(old.get("Specific Laws")) if old else None
-    if before == after:
+    if before == after or (before is not None and law_names(before) == law_names(after)):
         return None
     return (before, after)
 
