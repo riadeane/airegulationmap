@@ -34,6 +34,7 @@ import logging
 import os
 import re
 import sys
+import time
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -79,7 +80,11 @@ _ATTR_RE = re.compile(r"""([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')""")
 # Enough of an HTML page to reach its <head>.
 MAX_BODY_BYTES = 64 * 1024
 MAX_TITLE_CHARS = 300
-TIMEOUT_SECONDS = 15.0
+# httpx's timeout bounds each connect and read; the body read also stops at
+# this total per URL, so a server trickling bytes cannot hold a check. With
+# 8 workers and ~5 URLs per country, a run's check stays within minutes
+# even when many hosts hang.
+TIMEOUT_SECONDS = 10.0
 WORKERS = 8
 # A browser-like agent: many government sites answer 403 to unknown bots,
 # which the checker would have to treat as unknown.
@@ -204,10 +209,11 @@ def _classify(url: str, response: httpx.Response) -> LinkStatus:
 def _read_head(response: httpx.Response) -> str:
     chunks: list[bytes] = []
     size = 0
+    deadline = time.monotonic() + TIMEOUT_SECONDS
     for chunk in response.iter_bytes():
         chunks.append(chunk)
         size += len(chunk)
-        if size >= MAX_BODY_BYTES:
+        if size >= MAX_BODY_BYTES or time.monotonic() > deadline:
             break
     raw = b"".join(chunks)[:MAX_BODY_BYTES]
     return raw.decode(response.encoding or "utf-8", errors="replace")
