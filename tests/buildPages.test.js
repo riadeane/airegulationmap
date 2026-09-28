@@ -143,11 +143,8 @@ describe('buildModels', () => {
     expect(argentina.blocs[1].peers).toEqual([]);
   });
 
-  it('ranks by maturity index with shared ranks for ties', () => {
-    expect(modelFor('Chile').rank).toEqual({ rank: 1, total: 3 });
-    expect(modelFor('Argentina').rank).toEqual({ rank: 2, total: 3 });
-    expect(modelFor("Côte d'Ivoire").rank).toEqual({ rank: 2, total: 3 });
-    expect(modelFor('Nowhere').rank).toBeNull();
+  it('carries no rank (PRD 16: a higher score is not a better one)', () => {
+    expect(modelFor('Chile')).not.toHaveProperty('rank');
   });
 
   it('carries ISO codes, ordered sources and sub-indicators', () => {
@@ -189,17 +186,30 @@ describe('renderCountryPage', () => {
     expect(data.dateModified).toBe('2026-06-13');
     expect(data.spatialCoverage).toEqual({ '@type': 'Country', name: 'Chile', identifier: 'CL' });
     expect(data.variableMeasured).toHaveLength(6);
-    expect(data.variableMeasured[0]).toMatchObject({ name: 'Maturity Index', value: 2.42, minValue: 1, maxValue: 5 });
+    expect(data.variableMeasured[0]).toMatchObject({ name: 'Implementation Index', value: 2.42, minValue: 1, maxValue: 5 });
+    expect(data.variableMeasured[0].description).toBe(
+      'How much AI governance is in force and operating? 1 = Little in force, 5 = Extensively in force. '
+      + 'Higher means more in force, not better regulation.'
+    );
+    expect(data.variableMeasured.map(v => v.name)).toEqual([
+      'Implementation Index', 'Regulation Status', 'Policy Lever', 'Enforcement Level',
+      'Governance Type', 'Actor Involvement',
+    ]);
   });
 
-  it('renders the entry content: codes, scores, rank, prose, laws', () => {
+  it('renders the entry content: codes, scores, prose, laws, and no rank', () => {
     expect(html).toContain('<h1 class="doc-title">Chile</h1>');
     expect(html).toContain('>CL</abbr>');
     expect(html).toContain('>CHL</abbr>');
     expect(html).toContain('>152</abbr>');
     expect(html).toContain('Medium confidence');
     expect(html).toContain('<time datetime="2026-06-13">2026-06-13</time>');
-    expect(html).toContain('Maturity index <strong>2.42</strong> of 5, rank 1 of 3.');
+    expect(html).toContain('Implementation index <strong>2.42</strong> of 5: how much AI governance is in force and operating, not how good it is.');
+    expect(html).not.toMatch(/\brank\b/i);
+    expect(html).not.toMatch(/maturity/i);
+    expect(html).toContain('<td class="scale">1 = No binding AI rules, 5 = Binding cross-sector rules in force</td>');
+    expect(html).toContain('Governance style: <span>how, not how well</span>');
+    expect(html).toContain('They are not a judgement of the quality of its regulation.');
     expect(html).toContain('<td class="num">2.25</td>');
     expect(html).toContain('under Senate review');
     expect(html).toContain('Law 21.663 on Cybersecurity');

@@ -35,12 +35,17 @@ test('the score-type listbox works from the keyboard', async ({ page }) => {
   await expect(page.locator('#score-option-averageScore')).toHaveAttribute('aria-selected', 'false');
   await expect.poll(() => new URL(page.url()).searchParams.get('mode')).toBe('regulationStatus');
 
-  // ArrowDown on the button opens it too; Left/Right inside the list do not
-  // step the selected country; Esc closes without a change.
+  // ArrowDown on the button opens it too; the arrows rove across both
+  // groups; Left/Right inside the list do not step the selected country;
+  // Esc closes without a change.
   await page.keyboard.press('ArrowDown');
   await expect(listbox).toHaveClass(/open/);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('#score-option-governanceType')).toBeFocused();
   await page.keyboard.press('End');
-  await expect(page.locator('#score-option-enforcementLevel')).toBeFocused();
+  await expect(page.locator('#score-option-actorInvolvement')).toBeFocused();
   await page.keyboard.press('ArrowRight');
   await expect(page.locator('#panel-content')).toBeHidden();
   await page.keyboard.press('Escape');

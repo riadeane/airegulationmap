@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { nearestByMaturity, nearestByProfile, blocPeers, peerSets } from '../src/data/peers';
+import { nearestByImplementation, nearestByProfile, blocPeers, peerSets } from '../src/data/peers';
 import { getState } from '../src/state/store';
 import { startComparison } from '../src/state/interactions';
 import { buildQueryString, parseUrl } from '../src/controls/url';
 import { MAX_COMPARISON } from '../src/constants';
 
-// Fixture rows in the ScoreEntry shape. The maturity index is the mean of
-// the three normative dimensions, as in the dataset, so a row can share a
-// maturity index with the base country while its profile differs.
+// Fixture rows in the ScoreEntry shape. The implementation index is the
+// mean of the three normative dimensions, as in the dataset, so a row can
+// share an index with the base country while its profile differs.
 function row(name, [reg, pol, gov, act, enf]) {
   const normative = [reg, pol, enf];
   const averageScore = normative.every(v => v != null)
@@ -30,7 +30,7 @@ function dataset(rows) {
   return Object.fromEntries(rows.map(r => [r.country, r]));
 }
 
-// Base sits at 3 on every dimension (maturity index 3).
+// Base sits at 3 on every dimension (implementation index 3).
 const scoreData = dataset([
   row('Base',    [3, 3, 3, 3, 3]),
   row('Charlie', [3, 3.75, 3, 3, 3]),        // index 3.25 (d 0.25); profile d² 0.5625
@@ -43,23 +43,23 @@ const scoreData = dataset([
   row('Blank',   [null, null, null, null, null]),
 ]);
 
-describe('nearestByMaturity', () => {
-  it('orders by maturity-index distance, alphabetical on ties, and excludes the selected country', () => {
-    expect(nearestByMaturity('Base', scoreData, 5))
+describe('nearestByImplementation', () => {
+  it('orders by implementation-index distance, alphabetical on ties, and excludes the selected country', () => {
+    expect(nearestByImplementation('Base', scoreData, 5))
       .toEqual(['Partial', 'Shape', 'Charlie', 'Alpha', 'Bravo']);
   });
 
   it('keeps only the first `limit` (most similar first)', () => {
-    expect(nearestByMaturity('Base', scoreData, 2)).toEqual(['Partial', 'Shape']);
+    expect(nearestByImplementation('Base', scoreData, 2)).toEqual(['Partial', 'Shape']);
   });
 
-  it('excludes countries with no maturity index', () => {
-    expect(nearestByMaturity('Base', scoreData, 20)).not.toContain('Blank');
+  it('excludes countries with no implementation index', () => {
+    expect(nearestByImplementation('Base', scoreData, 20)).not.toContain('Blank');
   });
 
   it('is empty for an unscored or unknown country', () => {
-    expect(nearestByMaturity('Blank', scoreData, 4)).toEqual([]);
-    expect(nearestByMaturity('Nowhere', scoreData, 4)).toEqual([]);
+    expect(nearestByImplementation('Blank', scoreData, 4)).toEqual([]);
+    expect(nearestByImplementation('Nowhere', scoreData, 4)).toEqual([]);
   });
 });
 
@@ -70,12 +70,12 @@ describe('nearestByProfile', () => {
   });
 
   it('weights the descriptive dimensions equally with the normative ones', () => {
-    // Shape shares Base's maturity index exactly but differs on the two
-    // descriptive dimensions, so maturity ranks it first and profile last
+    // Shape shares Base's implementation index exactly but differs on the two
+    // descriptive dimensions, so the index puts it first and profile last
     // among the full-profile rows.
-    const byMaturity = nearestByMaturity('Base', scoreData, 20);
+    const byIndex = nearestByImplementation('Base', scoreData, 20);
     const byProfile = nearestByProfile('Base', scoreData, 20);
-    expect(byMaturity.indexOf('Shape')).toBeLessThan(byMaturity.indexOf('Charlie'));
+    expect(byIndex.indexOf('Shape')).toBeLessThan(byIndex.indexOf('Charlie'));
     expect(byProfile.indexOf('Shape')).toBeGreaterThan(byProfile.indexOf('Delta'));
   });
 
@@ -98,20 +98,21 @@ describe('blocPeers', () => {
     G7: { name: 'G7', members: ['Alpha', 'Delta'] },
     ASEAN: { name: 'ASEAN', members: ['Base', 'Blank'] },
   };
-  // Foxtrot ties Alpha on the maturity index.
+  // Foxtrot ties Alpha and Bravo on distance from Base's index (0.5).
   const data = { ...scoreData, Foxtrot: row('Foxtrot', [3, 4.5, 3, 3, 3]) };
 
-  it('yields one set per bloc the country is in, top members by maturity index, ties alphabetical', () => {
+  it('yields one set per bloc the country is in, members closest in implementation index, ties alphabetical', () => {
     const sets = blocPeers('Base', blocsData, data, 4);
     expect(sets.map(s => s.label)).toEqual(['EU']);
     expect(sets[0].kind).toBe('bloc');
     expect(sets[0].criterion).toContain('European Union');
-    expect(sets[0].members).toEqual(['Delta', 'Alpha', 'Foxtrot', 'Bravo']);
+    expect(sets[0].criterion).toContain('closest in implementation index');
+    expect(sets[0].members).toEqual(['Alpha', 'Bravo', 'Foxtrot', 'Delta']);
   });
 
   it('excludes the selected country and unscored members, and truncates to the limit', () => {
     const [eu] = blocPeers('Base', blocsData, data, 2);
-    expect(eu.members).toEqual(['Delta', 'Alpha']);
+    expect(eu.members).toEqual(['Alpha', 'Bravo']);
     expect(blocPeers('Base', blocsData, data, 20)[0].members).not.toContain('Blank');
   });
 
@@ -126,10 +127,10 @@ describe('blocPeers', () => {
 });
 
 describe('peerSets', () => {
-  it('lists bloc sets first, then similar maturity, then similar profile', () => {
+  it('lists bloc sets first, then similar implementation, then similar profile', () => {
     const blocsData = { G20: { name: 'G20', members: ['Base', 'Echo'] } };
     const sets = peerSets('Base', scoreData, blocsData, 3);
-    expect(sets.map(s => s.kind)).toEqual(['bloc', 'maturity', 'profile']);
+    expect(sets.map(s => s.kind)).toEqual(['bloc', 'implementation', 'profile']);
     expect(sets[1].members).toEqual(['Partial', 'Shape', 'Charlie']);
     expect(sets[2].members).toEqual(['Charlie', 'Alpha', 'Bravo']);
     for (const set of sets) expect(set.members).not.toContain('Base');
@@ -137,7 +138,7 @@ describe('peerSets', () => {
 
   it('omits empty sets', () => {
     expect(peerSets('Blank', scoreData, null, 3)).toEqual([]);
-    expect(peerSets('Partial', scoreData, null, 3).map(s => s.kind)).toEqual(['maturity']);
+    expect(peerSets('Partial', scoreData, null, 3).map(s => s.kind)).toEqual(['implementation']);
   });
 });
 

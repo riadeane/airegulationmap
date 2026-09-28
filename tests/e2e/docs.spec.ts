@@ -50,7 +50,15 @@ test('drift.html renders its figures from the committed files', async ({ page })
   const captions = page.locator('figure.chart figcaption');
   await expect(captions).toHaveCount(5);
   for (const text of await captions.allInnerTexts()) expect(text.trim().length).toBeGreaterThan(20);
-  await expect(page.locator('figure.chart details table')).toHaveCount(4);
+  // Four plotted figures always; the gold-set figure plots (and gains its
+  // table) once drift.json carries a check.
+  const checks = await page.evaluate(async () => {
+    const res = await fetch('/data/drift.json');
+    if (!res.ok) return 0;
+    const data = await res.json() as { checks?: unknown[] } | unknown[];
+    return Array.isArray(data) ? data.length : (data.checks?.length ?? 0);
+  });
+  await expect(page.locator('figure.chart details table')).toHaveCount(checks > 0 ? 5 : 4);
   // The latest run section lists the largest moves with app deep links.
   await expect(page.locator('#drift-run h2')).toHaveText('Latest run');
   await expect(page.locator('#drift-run table a[href^="/?country="]').first()).toBeVisible();
