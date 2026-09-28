@@ -283,6 +283,16 @@ class TestSignedBias:
         assert metrics.mae_by_dimension["enforcement_level"] == 0.0
         assert "insufficient_evidence=2" in summary_line(metrics, gold_set(gold_entry("A", uniform(3))))
 
+    def test_a_real_result_with_null_sub_scores_is_compared_without_error(self):
+        # #162: a validated ResearchResult may carry None sub-scores.
+        block = dict(full_result()["enforcement_level"])
+        block["actions_taken"] = {"score": None, "rationale": "No enforcement record found in searches."}
+        run = result(enforcement_level=block)
+        metrics = compare(gold_set(gold_entry("A")), {"A": run})
+        assert metrics.skipped == 1
+        assert metrics.count == 19
+        assert metrics.mae_by_dimension["enforcement_level"] == 0.0
+
     def test_a_dimension_with_nothing_scored_is_left_out(self):
         run = uniform(3, enforcement_level=dict.fromkeys(gold.SUBINDICATORS["enforcement_level"], None))
         metrics = compare(gold_set(gold_entry("A", uniform(3))), {"A": _StubResult(run)})
