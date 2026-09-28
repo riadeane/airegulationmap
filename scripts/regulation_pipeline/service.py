@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 from . import gate
 from .errors import FatalAPIError
-from .models import ResearchResult
+from .models import ResearchResult, format_score
 from .repository import Dataset
 from .staleness import StalenessPolicy
 from .strategies import ResearchStrategy
@@ -241,11 +241,13 @@ class PipelineService:
         note = "(new snapshot)" if outcome.history_added else "(no snapshot)"
         logger.info(
             "%s: %s - %s; avg %s, confidence %s %s",
-            country, decision.rule, decision.reason, outcome.average, outcome.confidence, note,
+            country, decision.rule, decision.reason, format_score(outcome.average),
+            outcome.confidence, note,
         )
         for move in decision.large_moves:
             logger.warning(
-                "%s: large move %s %s -> %s", country, move.dimension, move.old, move.new,
+                "%s: large move %s %s -> %s", country, move.dimension,
+                format_score(move.old), format_score(move.new),
             )
         change = CountryChange(
             country=country,

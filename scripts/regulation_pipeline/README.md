@@ -140,7 +140,8 @@ partial progress saved.
 `ResearchResult` is the **single source of truth**: it generates the
 structured-output JSON schema handed to the API, validates responses, and computes
 every projection (dimension means, maturity composite, confidence). Each dimension
-is four named sub-indicators (integers 1–5); the dimension score is their mean.
+is four named sub-indicators (integers 1–5, or `null` for insufficient evidence);
+the dimension score is the mean of the numeric ones.
 
 ```mermaid
 classDiagram
@@ -155,7 +156,8 @@ classDiagram
         +str confidence
         +dimensions() dict
         +dimension_scores() dict
-        +average_score() float
+        +average_score() float | None
+        +has_unscored_dimension() bool
         +effective_confidence() str
         +output_schema() dict$
     }
@@ -168,10 +170,10 @@ classDiagram
         +subindicators() tuple$
         +subscores() dict
         +rationales() dict
-        +score() float
+        +score() float | None
     }
     class SubIndicator {
-        +int score
+        +int | None score
         +str rationale
     }
     Dimension *-- "4" SubIndicator
@@ -185,10 +187,29 @@ classDiagram
     note for ResearchResult "average_score = mean of the three\nnormative dimensions only\n(governance_type & actor_involvement\nare descriptive, excluded)"
 ```
 
-Scores are typed `Literal[1..5]` (rendered as an `enum` in the schema, since
-structured outputs don't support `minimum`/`maximum`) with a `BeforeValidator` that
-rejects booleans - so a malformed response raises instead of landing an empty CSV
-cell.
+Scores are typed `Literal[1..5] | None` (rendered as `anyOf: [enum, null]` in the
+schema, since structured outputs don't support `minimum`/`maximum`; the field stays
+required, so the model must choose) with a `BeforeValidator` that rejects booleans -
+so a malformed response raises instead of landing an empty CSV cell.
+
+**Insufficient evidence (rubric v3.1, #162).** A `null` sub-indicator score means no
+source confirms either the presence or the absence of what it asks about; the
+rationale (still required, non-empty) says what was searched. It is not a 1, which
+needs positive evidence of absence. The projections follow from it:
+
+- `Dimension.score` is the mean of the numeric sub-indicators, to 2 decimals, and
+  `None` when fewer than 3 of the 4 are numeric (`MIN_SCORED_SUBINDICATORS`).
+- `average_score()` is the mean of the scored normative dimensions and `None` with
+  fewer than 2 of the 3 (`MIN_SCORED_NORMATIVE`).
+- Any unscored dimension caps confidence at `low` (the model validator and
+  `effective_confidence`), so staleness re-researches the country.
+- Files: `scores.csv` gets an empty cell, `history.json` and `pending.json` hold
+  `null`, `subscores.json` holds `{"score": null, "rationale": ...}`. The mirror
+  writes SQL nulls (the `numeric(3,2)` columns allow them) and nulls inside the
+  `subscores` jsonb. `format_score` prints `None` as "insufficient evidence" in the
+  run log and the step summary.
+- `prompt.RUBRIC_VERSION` is `v3.1`, so the rubric guard (`history.calibration_due`)
+  records a calibration break on the next full forced run.
 
 A validated result also carries a `ResearchProvenance` (initiatives embedded in
 the prompt, web search on or off, model id), held in a pydantic private
@@ -344,6 +365,11 @@ flowchart TD
     P -- no --> H["held<br/>(stores the candidate)"]
 ```
 
+- **Insufficient evidence.** An empty score cell is `None`. A move to or from
+  `None` is a score change like any other (same evidence and persistence rules);
+  its direction is "to insufficient evidence" or "from insufficient evidence",
+  and it always goes on the review list, since it has no size. A row whose five
+  scores are all empty counts as no prior scores.
 - **Evidence rule.** A cited URL that the existing `Sources` column does not
   contain counts as new. URLs compare after the same normalisation as
   `sources.py` (no scheme, no `www.`, no trailing slash). `Specific Laws`
@@ -357,7 +383,8 @@ flowchart TD
   `applied:evidence`, `applied:persisted`, `applied:ungated`, `held`, or
   `unchanged`. The counts go to the run log (`Gate:` line), the GitHub step
   summary, and `research_runs.notes`. An applied move of 0.75 or more on any
-  dimension appears under "Review these" with old, new, and the new sources.
+  dimension, or to or from insufficient evidence, appears under "Review these"
+  with old, new, and the new sources.
 - **Mirror.** The Supabase mirror receives the gated scores row, so the
   database never runs ahead of the static files.
 - **Escape hatch.** `--no-gate` applies every score. On a full run it needs
@@ -491,7 +518,10 @@ Claude for the prose once, and writes `public/digest/`.
   confidence rose to `high` with a source URL the old row did not have. On a
   calibration-break run (`--no-gate --break-reason`) score-only changes are
   left out and the lead opens with the recalibration sentence (PRD 01,
-  addendum A).
+  addendum A). A `None` score prints as "insufficient evidence" in the prompt;
+  each change carries `first_scored` (the country had no scores row), so the
+  week file and the changes page can tell "not scored yet" from "insufficient
+  evidence".
 - **Generation.** One request on the run's model with structured output
   (`DigestText.output_schema()`, the same pydantic pattern as `ResearchResult`).
   The prompt forbids claims without a source from the supplied list, em dashes,
@@ -527,19 +557,24 @@ fails loudly.
   in `RunResult.raw_results`, before the stability gate, so the check reads
   what the model returned for a held country too. It costs no extra API
   calls on a scheduled run. `gold.compare` is pure: it returns the mean
-  absolute error per dimension, the share of sub-indicators within one
-  point, and the largest single deviation with where it happened, plus the
-  gold countries the run did not cover.
+  absolute error per dimension, the mean signed error per dimension (run
+  minus gold, so a model that leans high or low shows), the share of
+  sub-indicators within one point, and the largest single deviation with
+  where it happened, plus the gold countries the run did not cover.
+  Sub-indicators the run left without a score (insufficient evidence) are
+  counted as skipped, not compared.
 - **Record.** One row per run is appended to `public/data/drift.json`
   (`{run_id, date, model, prompt_version, countries_compared,
-  countries_missing, mae_by_dimension, within_one, max_dev, max_dev_at}`)
-  and mirrored to the Supabase `gold_checks` table
-  (`supabase/migrations/0007_gold_checks.sql`). The workflow commits the
+  countries_missing, mae_by_dimension, bias_by_dimension, within_one,
+  max_dev, max_dev_at}`) and mirrored to the Supabase `gold_checks` table
+  (`supabase/migrations/0007_gold_checks.sql`, bias column in
+  `0011_gold_checks_bias.sql`). The workflow commits the
   file with the other data files. A run covering none of the gold
   countries records nothing.
 - **Summary.** The metrics go to the run log (`gold:` line) and to the
-  GitHub step summary. When `within_one` is below 0.8 both start with
-  "Calibration warning". The check never changes the exit code: a
+  GitHub step summary. When `within_one` is below 0.8, or any dimension's
+  signed bias is beyond 0.5 either way, both start with "Calibration
+  warning". The check never changes the exit code: a
   malformed gold file or an unwritable drift file is a warning.
 - **Model comparison.** `python -m regulation_pipeline.gold --model <id>`
   researches only the gold countries with that model (synchronous by

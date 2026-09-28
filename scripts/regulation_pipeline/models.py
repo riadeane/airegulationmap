@@ -23,6 +23,14 @@ Methodology v2.1 (2026-09): every sub-indicator carries a one-sentence
 ``rationale`` that states the fact the score rests on, so a reader can check a
 score without repeating the research.
 
+Rubric v3.1 (2026-09, issue #162): a sub-indicator score may be ``None``,
+meaning *insufficient evidence*: no source the model found confirms either
+the presence or the absence of what the sub-indicator asks about. It is not a
+1 (a 1 is a verified absence). The rationale then says what was searched. A
+dimension with two or more insufficient sub-indicators has no score, the
+composite needs two of its three normative dimensions, and any unscored
+dimension caps confidence at "low".
+
 Evidence coverage (PRD 14): a validated result can carry a
 :class:`ResearchProvenance` - how many verified policy initiatives the prompt
 embedded, whether the model had web search, and the model id. It is attached
@@ -71,6 +79,22 @@ def _reject_bool(value: Any) -> Any:
 Score = Annotated[Literal[1, 2, 3, 4, 5], BeforeValidator(_reject_bool)]
 Confidence = Literal["high", "medium", "low"]
 
+# A dimension needs at least this many numeric sub-indicators (of four) to
+# carry a score; with fewer it is "insufficient evidence" (``None``).
+MIN_SCORED_SUBINDICATORS = 3
+# The maturity composite needs at least this many of its three normative
+# dimensions scored; with fewer it is ``None``.
+MIN_SCORED_NORMATIVE = 2
+
+# How a ``None`` score reads in logs, the step summary and the digest prompt.
+INSUFFICIENT_EVIDENCE = "insufficient evidence"
+
+
+def format_score(value: float | None) -> str:
+    """A score for the run log and step summary: the number as Python prints
+    it (``2.5``, ``4.0``) or "insufficient evidence" for ``None``."""
+    return INSUFFICIENT_EVIDENCE if value is None else str(value)
+
 _STRICT: ConfigDict = ConfigDict(extra="forbid")
 
 
@@ -97,11 +121,18 @@ Rationale = Annotated[str, AfterValidator(_check_rationale)]
 
 class SubIndicator(BaseModel):
     """One scored sub-indicator: the integer score and the single fact that
-    justifies it."""
+    justifies it.
+
+    ``score`` is ``None`` when the evidence is insufficient: no source
+    confirms either the presence or the absence of what the sub-indicator
+    asks about. The rationale stays required (non-empty) and then says what
+    was searched and not found. In the output schema the field is
+    ``anyOf: [enum 1-5, null]``; it stays required, so the model must choose
+    explicitly."""
 
     model_config = _STRICT
 
-    score: Score
+    score: Score | None
     rationale: Rationale
 
 
@@ -127,8 +158,9 @@ class Dimension(BaseModel):
         """The four sub-indicator field names, in declaration order."""
         return tuple(name for name in cls.model_fields if name != "text")
 
-    def subscores(self) -> dict[str, int]:
-        """Map ``sub-indicator name -> integer score``."""
+    def subscores(self) -> dict[str, int | None]:
+        """Map ``sub-indicator name -> integer score`` (``None`` =
+        insufficient evidence)."""
         return {name: getattr(self, name).score for name in self.subindicators()}
 
     def rationales(self) -> dict[str, str]:
@@ -136,9 +168,14 @@ class Dimension(BaseModel):
         return {name: getattr(self, name).rationale for name in self.subindicators()}
 
     @property
-    def score(self) -> float:
-        """Dimension score = mean of the four sub-indicators, to 2 decimals."""
-        values = list(self.subscores().values())
+    def score(self) -> float | None:
+        """Dimension score = mean of the numeric sub-indicators, to 2
+        decimals. ``None`` (insufficient evidence) when fewer than
+        :data:`MIN_SCORED_SUBINDICATORS` of the four are numeric, so two
+        unverifiable sub-indicators never turn into a number."""
+        values = [v for v in self.subscores().values() if v is not None]
+        if len(values) < MIN_SCORED_SUBINDICATORS:
+            return None
         return round(sum(values) / len(values), 2)
 
 
@@ -278,19 +315,32 @@ class ResearchResult(BaseModel):
         """Map ``dimension key -> Dimension instance`` in canonical order."""
         return {dim.key: getattr(self, dim.key) for dim in self.DIMENSIONS}
 
-    def dimension_scores(self) -> dict[str, float]:
-        """Map ``dimension key -> mean sub-indicator score``."""
+    def dimension_scores(self) -> dict[str, float | None]:
+        """Map ``dimension key -> mean sub-indicator score`` (``None`` =
+        insufficient evidence)."""
         return {key: dim.score for key, dim in self.dimensions().items()}
 
     def rationales(self) -> dict[str, dict[str, str]]:
         """Map ``dimension key -> {sub-indicator name -> rationale}``."""
         return {key: dim.rationales() for key, dim in self.dimensions().items()}
 
-    def average_score(self) -> float:
+    def average_score(self) -> float | None:
         """Maturity index: mean of the normative dimension scores
-        (regulation_status, policy_lever, enforcement_level), to 2 decimals."""
-        scores = [dim.score for dim in self.dimensions().values() if dim.normative]
+        (regulation_status, policy_lever, enforcement_level), to 2 decimals.
+        An unscored dimension is left out; with fewer than
+        :data:`MIN_SCORED_NORMATIVE` of the three scored the index is
+        ``None``."""
+        scores = [
+            dim.score for dim in self.dimensions().values()
+            if dim.normative and dim.score is not None
+        ]
+        if len(scores) < MIN_SCORED_NORMATIVE:
+            return None
         return round(sum(scores) / len(scores), 2)
+
+    def has_unscored_dimension(self) -> bool:
+        """True when any dimension is ``None`` (insufficient evidence)."""
+        return any(dim.score is None for dim in self.dimensions().values())
 
     @model_validator(mode="after")
     def _cap_unsourced_confidence(self) -> ResearchResult:
@@ -300,18 +350,25 @@ class ResearchResult(BaseModel):
         in-memory result never advertises a confidence its sources don't
         support. "Unsourced" means no citable URL: a Sources field of "N/A"
         or "-" counts as empty. Placeholder segments ("-", "N/A") are dropped
-        from the field. (``object.__setattr__`` avoids re-triggering
-        validation.)"""
+        from the field. A dimension without a score (insufficient evidence)
+        caps confidence at "low" too: the entry is incomplete, and a low
+        rating makes staleness re-research it. (``object.__setattr__`` avoids
+        re-triggering validation.)"""
         object.__setattr__(self, "sources", _drop_placeholder_sources(self.sources))
-        if self.confidence != "low" and not _has_citable_url(self.sources):
+        if self.confidence != "low" and (
+            not _has_citable_url(self.sources) or self.has_unscored_dimension()
+        ):
             object.__setattr__(self, "confidence", "low")
         return self
 
     def effective_confidence(self) -> Confidence:
-        """Unsourced claims are not citable - cap confidence at "low" so the UI
+        """Unsourced claims are not citable, and an unscored dimension leaves
+        the entry incomplete - cap confidence at "low" in both cases so the UI
         flags them and staleness re-researches them. The model validator above
         already applies this, so this is now a stable, idempotent accessor."""
-        return self.confidence if _has_citable_url(self.sources) else "low"
+        if not _has_citable_url(self.sources) or self.has_unscored_dimension():
+            return "low"
+        return self.confidence
 
     @classmethod
     def output_schema(cls) -> dict[str, Any]:
@@ -319,8 +376,9 @@ class ResearchResult(BaseModel):
 
         Derived from the models so the sub-indicator field names are defined in
         exactly one place. ``$title`` annotations pydantic adds are stripped to
-        keep the schema minimal; the shape (``enum`` scores, ``additionalProperties:
-        false``, every field ``required``) matches what the API expects.
+        keep the schema minimal; the shape (``enum`` scores, ``anyOf`` enum-or-null
+        for a sub-indicator score, ``additionalProperties: false``, every field
+        ``required``) matches what the API expects.
         """
         return strip_titles(cls.model_json_schema())
 

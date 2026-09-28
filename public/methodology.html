@@ -317,6 +317,39 @@
       what this tool can and cannot tell you.
     </p>
 
+    <h2 id="what-a-score-means">What a score means, and what it does not</h2>
+    <p>
+      Every score runs from 1 to 5 and belongs to one of two lenses.
+    </p>
+    <ul>
+      <li><strong>Implementation</strong> (the implementation index,
+        regulation status, policy lever and enforcement level): how much
+        AI governance is in force and operating in a country. A 1 means
+        no observable activity. A 5 means the rules are in force, the
+        bodies are staffed and acting, and enforcement is routine and
+        published.</li>
+      <li><strong>Governance style</strong> (governance type and actor
+        involvement): how a country governs AI. Governance type runs from
+        centralised (1) to distributed (5); actor involvement from narrow
+        (1) to broad (5). Neither end is better.</li>
+    </ul>
+    <p>
+      <strong>A higher score is not a better score.</strong> An
+      implementation score says how much is in force, not whether the
+      rules are good, fair, proportionate or effective. A country at 4.5
+      has more in force than a country at 2; the map does not say that it
+      regulates AI better, and it does not rank countries. A governance
+      style score describes a structure, not an achievement.
+    </p>
+    <p>
+      Every score can be traced: each dimension is the mean of four
+      sub-indicators, each sub-indicator carries a one-sentence rationale,
+      and every entry lists its sources and a confidence rating. The
+      sections below set out each level and how the scores are produced.
+      In the app, the <em>How to read this map</em> guide (the
+      "?" button in the header) says the same in brief.
+    </p>
+
     <h2 id="what-this-is">What this is</h2>
     <p>
       The AI Regulation Map visualizes the current state of AI governance in
@@ -346,13 +379,16 @@
     <h2 id="the-six-dimensions">The six dimensions</h2>
     <p>
       Each country is scored on five dimensions, plus a composite
-      <strong>maturity index</strong> shown by default. Three dimensions
-      (regulation status, policy lever, enforcement level) are
-      <em>normative</em>: higher means more developed. Two
-      (governance type, actor involvement) are <em>descriptive</em>:
-      they record how a country governs (centralized vs. distributed,
-      narrow vs. broad participation), not how well. Descriptive
-      dimensions are excluded from the composite.
+      <strong>implementation index</strong> shown by default. In the app
+      they appear in two groups. Three dimensions (regulation status,
+      policy lever, enforcement level) are the <em>implementation
+      dimensions</em> (<em>normative</em> in the rubric and the code):
+      a higher score means more is in force and operating, not that it
+      is better. Two (governance type, actor involvement) are the
+      <em>governance style dimensions</em> (<em>descriptive</em>): they
+      record how a country governs (centralised vs. distributed, narrow
+      vs. broad participation), not how well. Governance style is
+      excluded from the composite.
     </p>
     <p>
       Since June 2026, each dimension score is the mean of <strong>four
@@ -369,9 +405,10 @@
       the v2 calibration (see <a href="#rubric-versions">Rubric versions</a>).
       A 5 means the state is fully in place and operating: the instrument
       is in force, the body is staffed and acting, the practice is routine
-      and published. Today's leading jurisdictions
-      reach 5 on most sub-indicators; perfection is not required, and a
-      country's score changes only when its own record changes. Reference
+      and published. A jurisdiction reaches 5 when its own record shows
+      that state; it does not need to be ahead of any other country, and
+      perfection is not required. A country's score changes only when
+      its own record changes. Reference
       points (an EU member state implementing the AI Act near 4 to 5 on
       regulation status, the United States near 3) are examples of where
       the anchors land, not the definition. Countries scored before June
@@ -392,9 +429,27 @@
       last researched before v2.1 has none until its next research
       pass.
     </p>
+    <p id="insufficient-evidence">
+      <strong>Insufficient evidence is not a 1.</strong> From rubric v3.1
+      (September 2026), a sub-indicator can be marked
+      <strong>insufficient evidence</strong> when no source the research
+      found confirms either the presence or the absence of what it asks
+      about; its rationale then says what was searched. A 1 needs positive
+      evidence of absence: a source that says the thing does not exist, or
+      a well-covered country whose official record was checked and where
+      nothing exists. Sources are thinner for some countries and languages
+      than for others, so without this value a country the research could
+      not see into would drift to the floor of the scale. A dimension with
+      two or more insufficient sub-indicators has no score; with one, it
+      is the mean of the other three. The implementation index needs at least two
+      of its three dimensions scored. Any unscored dimension sets the
+      entry's confidence to low. The map paints such a country in a neutral
+      grey distinct from "No data" (no entry at all), and
+      <code>scores.csv</code> leaves the cell empty.
+    </p>
 
     <h3>Regulation Status</h3>
-    <p>The existence and maturity of AI-specific regulation: binding law, a draft bill, a national strategy, or nothing at all.</p>
+    <p>How much binding, AI-specific regulation is in force: binding law, a draft bill, a national strategy, or nothing at all.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">No regulation or minimal engagement; AI is not named in policy documents. <em>Example: many least-developed countries with no ICT ministry position on AI.</em></div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Early-stage engagement: voluntary guidelines, a sectoral code of practice, or an advisory committee. <em>Example: a national ethics advisory board with non-binding recommendations.</em></div></div>
@@ -414,7 +469,7 @@
     </div>
 
     <h3>Governance Type</h3>
-    <p>Where authority for AI regulation sits: concentrated in a single body vs. distributed across agencies, sectors, and levels of government. <strong>Descriptive, not a quality scale:</strong> a 1 here means highly centralized, not bad; a 5 means highly distributed, not good. This dimension does not enter the maturity index.</p>
+    <p>Where authority for AI regulation sits: concentrated in a single body vs. distributed across agencies, sectors, and levels of government. <strong>Descriptive, not a quality scale:</strong> a 1 here means highly centralised, not bad; a 5 means highly distributed, not good. This dimension does not enter the implementation index.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Centralized: a single national authority sets and enforces policy.</div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Lead authority with informal delegation to one or two sectoral bodies; coordination happens ad hoc.</div></div>
@@ -424,7 +479,7 @@
     </div>
 
     <h3>Actor Involvement</h3>
-    <p>Which actors shape AI policy: narrow expert circles vs. broad engagement with industry, civil society, academia, and the public. <strong>Descriptive, not a quality scale</strong>, and scored on domestic process: international standard-setting activity does not substitute for civil-society access at home. This dimension does not enter the maturity index.</p>
+    <p>Which actors shape AI policy: narrow expert circles vs. broad engagement with industry, civil society, academia, and the public. <strong>Descriptive, not a quality scale</strong>, and scored on domestic process: international standard-setting activity does not substitute for civil-society access at home. This dimension does not enter the implementation index.</p>
     <div class="rubric">
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Limited: policy is set inside government with minimal external input.</div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Industry is consulted informally; civil society and academia have no structured access.</div></div>
@@ -443,16 +498,17 @@
       <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Active enforcement: penalties have been issued, audits are routine, and a dedicated authority publishes enforcement actions.</div></div>
     </div>
 
-    <h3>Maturity Index</h3>
-    <p>A <strong>regulatory maturity index</strong> (the arithmetic mean of the three normative dimensions: regulation status, policy lever, and enforcement level), labelled <em>Maturity Index</em> on the map and exported as the <code>Average Score</code> column. Governance type and actor involvement are excluded because they describe regulatory <em>style</em>, not development; averaging them in would reward or punish countries for being centralized or distributed. Shown by default on the map because it gives the fastest cross-country read, but the individual dimensions are where the interesting signal lives.</p>
+    <h3 id="implementation-index">Implementation Index</h3>
+    <p>The <strong>implementation index</strong> is the arithmetic mean of the three implementation (normative) dimensions: regulation status, policy lever, and enforcement level. It is labelled <em>Implementation Index</em> on the map, exported as the <code>Average Score</code> column, and served as <code>avg_score</code> by the API. It measures how much AI governance is in force and operating, not its quality. Governance type and actor involvement are excluded because they describe <em>how</em> a country governs, where neither end is higher on any scale of extent; averaging them in would move the index up or down for being centralised or distributed. Shown by default on the map because it gives the fastest cross-country read, but the individual dimensions are where the interesting signal lives.</p>
+    <p><em>Name history:</em> until September 2026 this composite was called the <em>maturity index</em>. It was renamed because readers took a high "maturity" as praise; the formula and the data did not change.</p>
     <div class="callout"><strong>Continuity note:</strong> Before June 2026 the composite averaged four dimensions (including the two descriptive ones, excluding enforcement) and all scores were integers. Comparisons across that boundary should use the per-dimension scores, which kept their definitions.</div>
 
     <h3 id="peer-sets">Peer sets</h3>
     <p>The country panel has a <em>Compare with</em> row. Each chip opens a side-by-side comparison of the selected country with a set of peers. Three kinds of set exist. Each lists the closest countries first and is cut to the comparison limit of four countries, so a set holds the selected country plus three peers. Countries without the scores a set needs are left out. Ties resolve alphabetically.</p>
     <ul>
-      <li><strong>Bloc peers</strong>: for each bloc the country belongs to (EU, G7, G20, ASEAN, African Union, BRICS+, NATO, OECD), the other members with the highest maturity index.</li>
-      <li><strong>Similar maturity</strong>: the countries whose maturity index is closest to the selected country's.</li>
-      <li><strong>Similar profile</strong>: the countries at the smallest Euclidean distance across all five dimensions. The dimensions carry equal weight, including the two descriptive ones. The aim is a similar regulatory <em>shape</em>, not a similar level; the maturity set already covers level.</li>
+      <li><strong>Bloc peers</strong>: for each bloc the country belongs to (EU, G7, G20, ASEAN, African Union, BRICS+, NATO, OECD), the other members closest to it in implementation index.</li>
+      <li><strong>Similar implementation</strong>: the countries whose implementation index is closest to the selected country's.</li>
+      <li><strong>Similar profile</strong>: the countries at the smallest Euclidean distance across all five dimensions. The dimensions carry equal weight, including the two governance style ones. The aim is a similar regulatory <em>shape</em>, not a similar level; the implementation set already covers level.</li>
     </ul>
     <p>The sets rest only on bloc membership and score distance. No other signal (region, language, income group) is used.</p>
 
@@ -471,16 +527,17 @@
     <p>Every run's score changes are preserved as snapshots in <code>public/history.json</code>, which drives the timeline slider on the main page, so the "score at date X" view is always reproducible from the raw data.</p>
     <p><strong>Stability gate (September 2026).</strong> Two research passes on the same real-world situation can disagree by a quarter point. A score change therefore lands only when the run gives evidence for it (a source URL not cited before, or a change in the named laws) or when the same change repeats on the next weekly run. Held candidates are published in <a href="/data/pending.json"><code>pending.json</code></a>. Text fields, confidence, and the last-updated date always refresh. Every recorded score change in the history therefore corresponds to new evidence, a repeated finding, or a documented recalibration.</p>
     <p><strong>Evidence grounding (July 2026).</strong> Research runs can be grounded in verified policy-initiative records from the <a href="https://oecd.ai" rel="noopener noreferrer">OECD.AI Policy Observatory</a> (Policy Navigator/GAIIN): for covered countries, the model scores against those records as stated facts rather than open-ended recall, and the records themselves are shown in each country's <em>Policy initiatives</em> panel section. Every run, grounded or not, is recorded with its model, prompt version, and token counts in a public <code>research_runs</code> provenance table (see <a href="/data.html">Data &amp; API</a>).</p>
-    <p><strong>Gold set and drift check (September 2026).</strong> Ten countries across the maturity range (China, Japan, the United States, Germany, the United Kingdom, Singapore, Brazil, Kenya, Bhutan and Kiribati) have a gold score for each of their twenty sub-indicators, with a one-line justification per dimension and the sources used, published in <a href="/data/gold_set.json"><code>gold_set.json</code></a>. Each entry states whether it is a <em>draft</em> or <em>verified</em>: an entry is verified only when the maintainer has checked every score against the listed sources and recorded the date, and the set is re-verified each quarter. All ten entries are currently drafts awaiting that check. After every research run the scores the model returned for these countries, taken before the stability gate so the check measures the model rather than the gate, are compared with the gold scores on three metrics: the mean absolute error per dimension, the share of sub-indicators within one point, and the largest single deviation. One row per run is appended to <a href="/data/drift.json"><code>drift.json</code></a> and mirrored to the <code>gold_checks</code> table of the API, so a model or prompt change that moves the calibration shows up as a break in that series rather than as silent drift. A run whose within-one share falls below 0.8 carries a calibration warning in its summary; it is never blocked.</p>
+    <p><strong>Gold set and drift check (September 2026).</strong> Ten countries across the range of the implementation index (China, Japan, the United States, Germany, the United Kingdom, Singapore, Brazil, Kenya, Bhutan and Kiribati) have a gold score for each of their twenty sub-indicators, with a one-line justification per dimension and the sources used, published in <a href="/data/gold_set.json"><code>gold_set.json</code></a>. Each entry states whether it is a <em>draft</em> or <em>verified</em>: an entry is verified only when the maintainer has checked every score against the listed sources and recorded the date, and the set is re-verified each quarter. All ten entries are currently drafts awaiting that check. After every research run the scores the model returned for these countries, taken before the stability gate so the check measures the model rather than the gate, are compared with the gold scores on four metrics: the mean absolute error per dimension, the mean signed error per dimension (whether the model scores higher or lower than the gold set, which the absolute error cannot show), the share of sub-indicators within one point, and the largest single deviation. One row per run is appended to <a href="/data/drift.json"><code>drift.json</code></a> and mirrored to the <code>gold_checks</code> table of the API, so a model or prompt change that moves the calibration shows up as a break in that series rather than as silent drift. A run whose within-one share falls below 0.8, or that leans by more than half a point on any dimension, carries a calibration warning in its summary; it is never blocked.</p>
 
     <h2 id="rubric-versions">Rubric versions</h2>
-    <p>The scoring rubric has changed twice. Each change is a documented break in the series, never a silent drift. Earlier snapshots are kept as they were scored; nothing in the past is re-scored or offset, because past web content cannot be re-researched and an offset would be invented data.</p>
+    <p>The scoring rubric has changed three times. Each change is a documented break in the series, never a silent drift. Earlier snapshots are kept as they were scored; nothing in the past is re-scored or offset, because past web content cannot be re-researched and an offset would be invented data.</p>
     <ul>
       <li><strong>v1, March 2026.</strong> Integer scores per dimension, four-dimension composite.</li>
-      <li><strong>v2, June 2026.</strong> Four sub-indicators per dimension, quarter-point means, three-dimension maturity index. A 5 meant the global frontier at the time of scoring.</li>
+      <li><strong>v2, June 2026.</strong> Four sub-indicators per dimension, quarter-point means, three-dimension composite index. A 5 meant the global frontier at the time of scoring.</li>
       <li><strong>v3, September 2026.</strong> Fixed anchors. The frontier definition made scores comparable across countries but not across time: a country could fall without changing anything because the frontier moved, and weekly runs re-estimated the frontier every week. Each level now describes an observable state, as set out under <a href="#the-six-dimensions">The six dimensions</a>. The sub-indicator definitions and the output structure are unchanged. The first v3 run is also the first on Claude Opus 5, so the two changes share one break in the series, not two.</li>
+      <li><strong>v3.1, September 2026.</strong> The v3 anchors plus an <a href="#insufficient-evidence">insufficient evidence</a> value, which is no longer scored as 1. The tie-break toward the lower of two levels now applies only when the evidence supports both. Countries with thin source coverage can move up at this break because gaps stop counting as absences.</li>
     </ul>
-    <p>Each break is recorded in <code>history.json</code> under <code>breaks</code> with its date, model, prompt version, and reason; the v3 break is recorded there when the first v3 run lands. The timeline marks the date, and a country's score history labels changes on that date as a recalibration rather than a policy change. A relative view (a score divided by that week's maximum) is a possible display option for the frontend; it is never the stored number.</p>
+    <p>Each break is recorded in <code>history.json</code> under <code>breaks</code> with its date, model, prompt version, and reason; the v3.1 break is recorded there when the first full v3.1 run lands (v3.1 followed v3 before a full v3 run had landed, so that run records a single break). The timeline marks the date, and a country's score history labels changes on that date as a recalibration rather than a policy change. A relative view (a score divided by that week's maximum) is a possible display option for the frontend; it is never the stored number.</p>
 
     <h2 id="limitations">Known limitations</h2>
     <ul>
@@ -489,7 +546,7 @@
       <li><strong>Aggregate hides regional variance.</strong> Federations (US, India, Brazil) are scored at the national level; substantial sub-national variation is flattened.</li>
       <li><strong>Draft vs. enacted.</strong> The rubric tries to distinguish these, but a bill that passes the week after a research pass will not update until the next weekly run.</li>
       <li><strong>No independent audit.</strong> Scores are LLM-inferred, not human-coded, and have not been audited by domain experts. The sub-indicator breakdown in <code>subscores.json</code> exists precisely so that every dimension score can be checked claim-by-claim.</li>
-      <li><strong>Methodology changes.</strong> Sub-indicator scoring and the three-dimension maturity composite arrived in June 2026; fixed anchors replaced the frontier calibration in September 2026 (see <a href="#rubric-versions">Rubric versions</a>). Score movements on those dates partly reflect the methodology change, not only regulatory change.</li>
+      <li><strong>Methodology changes.</strong> Sub-indicator scoring and the three-dimension composite index arrived in June 2026; fixed anchors replaced the frontier calibration in September 2026 (see <a href="#rubric-versions">Rubric versions</a>). Score movements on those dates partly reflect the methodology change, not only regulatory change.</li>
     </ul>
 
     <h2 id="data-access">Data access for analysts</h2>

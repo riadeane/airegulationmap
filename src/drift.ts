@@ -22,6 +22,7 @@ import { formatSignedDelta } from './data/changelog';
 import {
   CONFIDENCE_LEVELS,
   DIMENSIONS,
+  WARN_ABS_BIAS,
   WARN_WITHIN_ONE,
   binDeltas,
   computeBlocDrift,
@@ -29,6 +30,8 @@ import {
   confidenceByVintage,
   confidenceTotals,
   dimensionLabel,
+  formatBias,
+  largestLean,
   largestMoves,
   latestResearchRun,
   latestWeek,
@@ -287,6 +290,17 @@ function confidenceFigure(cohorts: ConfidenceCohort[]): FigureSpec {
   };
 }
 
+// The latest run's largest systematic lean, for the gold caption. Empty for
+// rows recorded before signed bias existed.
+function leanText(check: DriftCheck): string {
+  const lean = largestLean(check);
+  if (!lean) return '';
+  const direction = lean.bias >= 0 ? 'higher' : 'lower';
+  const warn = Math.abs(lean.bias) > WARN_ABS_BIAS ? `, beyond the \u00b1${WARN_ABS_BIAS} warning line` : '';
+  return `; the run scores ${direction} than the gold set most on ${snakeDimensionLabel(lean.dimension)}`
+    + ` (mean signed error ${formatBias(lean.bias)}${warn})`;
+}
+
 function goldFigure(checks: DriftCheck[], driftFileFound: boolean): FigureSpec {
   const latest = checks[checks.length - 1];
   const dims = latest ? Object.keys(latest.maeByDimension) : [];
@@ -305,17 +319,22 @@ function goldFigure(checks: DriftCheck[], driftFileFound: boolean): FigureSpec {
         ? `; largest deviation ${latest.maxDev}${latest.maxDevAt ? ` at ${latest.maxDevAt.country}, ${snakeDimensionLabel(latest.maxDevAt.dimension)}` : ''}`
         : '')
       + (worst ? `; mean absolute error highest for ${snakeDimensionLabel(worst)} (${latest.maeByDimension[worst].toFixed(2)})` : '')
+      + leanText(latest)
       + `. ${plural(checks.length, 'check')} since ${formatDate(checks[0].date)}.`;
   }
   return {
     id: 'gold',
     title: 'Gold-set agreement per run',
-    subtitle: 'The run’s raw scores for the ten hand-checked countries against the gold set: share within one point, then mean absolute error by dimension.',
+    subtitle: 'The run’s raw scores for the ten hand-checked countries against the gold set: share within one point, then mean absolute error by dimension. The table adds the signed bias (run minus gold), which shows whether a model leans high or low.',
     render: checks.length ? (host, palette) => renderGoldChart(host, checks, palette) : null,
     empty: caption,
     caption,
     table: checks.length ? {
-      head: ['Run', 'Model', 'Prompt', 'Compared', 'Within one', 'Largest deviation', ...dims.map(snakeDimensionLabel)],
+      head: [
+        'Run', 'Model', 'Prompt', 'Compared', 'Within one', 'Largest deviation',
+        ...dims.map(d => `MAE: ${snakeDimensionLabel(d)}`),
+        ...dims.map(d => `Bias: ${snakeDimensionLabel(d)}`),
+      ],
       rows: checks.map(c => [
         formatDate(c.date),
         c.model,
@@ -324,6 +343,7 @@ function goldFigure(checks: DriftCheck[], driftFileFound: boolean): FigureSpec {
         `${Math.round(c.withinOne * 100)}%`,
         c.maxDev == null ? '' : String(c.maxDev),
         ...dims.map(d => (d in c.maeByDimension ? c.maeByDimension[d].toFixed(2) : '')),
+        ...dims.map(d => (d in c.biasByDimension ? formatBias(c.biasByDimension[d]) : '')),
       ]),
     } : null,
   };

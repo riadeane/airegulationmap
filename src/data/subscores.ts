@@ -6,7 +6,9 @@
 // sub-indicator; v2.1 entries (since September 2026) store
 // `{ score, rationale }`, where the rationale is the one sentence the
 // model gave for the score. Both normalize to `SubscoreCell` on load so
-// the rest of the app sees a single shape.
+// the rest of the app sees a single shape. Since rubric v3.1 a v2.1
+// `score` may be `null`: insufficient evidence, with the rationale saying
+// what was searched (see isInsufficient in constants.ts).
 
 import type { DimensionKey } from '../constants';
 import { normalizeEvidence } from './evidence';
@@ -19,9 +21,10 @@ export type SnakeDimension =
   | 'actor_involvement'
   | 'enforcement_level';
 
-/** One sub-indicator after normalization. `rationale` is null for v2 entries. */
+/** One sub-indicator after normalization. `rationale` is null for v2
+ * entries; `score` is null for "insufficient evidence" (rubric v3.1). */
 export interface SubscoreCell {
-  score: number;
+  score: number | null;
   rationale: string | null;
 }
 
@@ -57,9 +60,12 @@ interface RawEntry {
 function normalizeCell(raw: RawCell): SubscoreCell | null {
   if (typeof raw === 'number') return Number.isFinite(raw) ? { score: raw, rationale: null } : null;
   if (!raw || typeof raw !== 'object') return null;
+  const rationale = typeof raw.rationale === 'string' && raw.rationale.trim() ? raw.rationale.trim() : null;
+  // An explicit null is insufficient evidence; a missing or garbled score
+  // is a malformed cell and is skipped.
+  if (raw.score === null) return { score: null, rationale };
   const score = typeof raw.score === 'number' && Number.isFinite(raw.score) ? raw.score : null;
   if (score == null) return null;
-  const rationale = typeof raw.rationale === 'string' && raw.rationale.trim() ? raw.rationale.trim() : null;
   return { score, rationale };
 }
 
@@ -138,6 +144,54 @@ export const SUBSCORE_LABELS: Record<SnakeDimension, [string, string][]> = {
     ['actions_taken', 'Actions taken'],
     ['dedicated_authority', 'Dedicated authority'],
     ['monitoring_practice', 'Monitoring practice'],
+  ],
+};
+
+/**
+ * The governance style sub-indicators are descriptive: each level is a
+ * position, not an achievement. Their 1 / 3 / 5 anchors, from the v3 rubric
+ * in scripts/regulation_pipeline/prompt.py, in plain words.
+ */
+export const STYLE_ANCHORS: Record<string, [string, string, string]> = {
+  regulator_plurality: [
+    'A single authority sets and enforces policy',
+    'A lead body plus sectoral regulators',
+    'Many independent regulators with their own remits',
+  ],
+  formal_coordination: [
+    'A single actor, nothing to coordinate',
+    'Ad hoc coordination',
+    'Formal coordination across many bodies',
+  ],
+  subnational_role: [
+    'No sub-national role',
+    'Sub-national bodies implement national rules',
+    'States or provinces regulate AI independently',
+  ],
+  nongovernmental_checks: [
+    'No court, ombudsman or independent review role',
+    'Occasional judicial or independent review',
+    'Courts and independent bodies actively shape AI rules',
+  ],
+  industry: [
+    'No structured industry input',
+    'Published consultations and working groups',
+    'Standing formal roles in policy-making',
+  ],
+  civil_society: [
+    'Civil society excluded from the domestic process',
+    'Consulted occasionally',
+    'Standing formal roles for NGOs and unions',
+  ],
+  academia: [
+    'No academic involvement',
+    'Some advisory input',
+    'Formal standing advisory roles',
+  ],
+  international: [
+    'No part in international AI governance',
+    'Signatory to declarations',
+    'Active in treaties and standards bodies',
   ],
 };
 

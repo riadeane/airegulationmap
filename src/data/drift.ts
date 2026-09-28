@@ -15,7 +15,7 @@ import { historyBreaks } from './history';
 import type { HistoryData } from './history';
 import type { RegulationData } from './loader';
 
-/** The five scored dimensions in rubric order (the maturity index is derived). */
+/** The five scored dimensions in rubric order (the implementation index is derived). */
 export const DIMENSIONS: DimensionKey[] = [
   'regulationStatus',
   'policyLever',
@@ -273,6 +273,11 @@ export interface DriftCheck {
   countriesMissing: string[];
   /** Keyed by snake_case dimension (`regulation_status`, …). */
   maeByDimension: Record<string, number>;
+  /**
+   * Mean signed error (run minus gold) by dimension, keyed like
+   * `maeByDimension`. Empty for rows written before signed bias existed (#163).
+   */
+  biasByDimension: Record<string, number>;
   withinOne: number;
   maxDev: number | null;
   maxDevAt: { country: string; dimension: string; subindicator: string; gold: number; run: number } | null;
@@ -280,6 +285,9 @@ export interface DriftCheck {
 
 /** The within-one share below which a run carries a calibration warning. */
 export const WARN_WITHIN_ONE = 0.8;
+
+/** A dimension's mean signed error beyond this, either way, also warns (gold.WARN_ABS_BIAS). */
+export const WARN_ABS_BIAS = 0.5;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -291,6 +299,36 @@ function num(value: unknown): number | null {
 
 function str(value: unknown): string {
   return typeof value === 'string' ? value : '';
+}
+
+function numberRecord(value: unknown): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (isRecord(value)) {
+    for (const [key, raw] of Object.entries(value)) {
+      const v = num(raw);
+      if (v != null) out[key] = v;
+    }
+  }
+  return out;
+}
+
+/**
+ * The dimension a check leans on most (largest absolute mean signed error),
+ * or null when the row carries no bias. Ties keep the first dimension.
+ */
+export function largestLean(check: DriftCheck): { dimension: string; bias: number } | null {
+  let best: { dimension: string; bias: number } | null = null;
+  for (const [dimension, bias] of Object.entries(check.biasByDimension)) {
+    if (best === null || Math.abs(bias) > Math.abs(best.bias)) best = { dimension, bias };
+  }
+  return best;
+}
+
+/** `+0.25` / `-0.50` / `0.00`: a signed bias for captions and tables. */
+export function formatBias(bias: number): string {
+  const fixed = Math.abs(bias).toFixed(2);
+  if (fixed === '0.00') return '0.00';
+  return `${bias > 0 ? '+' : '\u2212'}${fixed}`;
 }
 
 /**
@@ -307,13 +345,8 @@ export function parseDriftChecks(raw: unknown): DriftCheck[] {
     const withinOne = num(row.within_one);
     if (!date || withinOne == null) continue;
 
-    const maeByDimension: Record<string, number> = {};
-    if (isRecord(row.mae_by_dimension)) {
-      for (const [key, value] of Object.entries(row.mae_by_dimension)) {
-        const v = num(value);
-        if (v != null) maeByDimension[key] = v;
-      }
-    }
+    const maeByDimension = numberRecord(row.mae_by_dimension);
+    const biasByDimension = numberRecord(row.bias_by_dimension);
 
     let maxDevAt: DriftCheck['maxDevAt'] = null;
     if (isRecord(row.max_dev_at)) {
@@ -340,6 +373,7 @@ export function parseDriftChecks(raw: unknown): DriftCheck[] {
         ? row.countries_missing.filter((v): v is string => typeof v === 'string')
         : [],
       maeByDimension,
+      biasByDimension,
       withinOne,
       maxDev: num(row.max_dev),
       maxDevAt,

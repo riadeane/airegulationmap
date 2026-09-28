@@ -84,7 +84,7 @@ test('arrow-stepping in the comparison view, then Esc, shows the stepped country
 });
 
 // Regression: the comparison chips, table header and radar, and the
-// panel's maturity bar, resolved their colours once at render time, so a
+// panel's index bar, resolved their colours once at render time, so a
 // theme switch left the dark theme's colours on the light theme.
 test('comparison and panel colours follow a theme switch', async ({ page }) => {
   await page.goto('/?compare=France,Japan&theme=dark');
@@ -105,7 +105,7 @@ test('comparison and panel colours follow a theme switch', async ({ page }) => {
   expect(colours.header).toBe(colours.token);
   expect(colours.stroke).toBe(colours.token);
 
-  // The panel's maturity bar repaints with the new theme's ramp.
+  // The panel's index bar repaints with the new theme's ramp.
   await page.click('#comparison-back-btn');
   await page.fill('#country-search', 'Germany');
   await page.waitForSelector('#search-suggestions li[role="option"]');

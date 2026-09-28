@@ -12,6 +12,11 @@ Each researched country's ``subscores.json`` entry also carries an
 ``evidence`` block (PRD 14, :meth:`Dataset.set_evidence`): how the most recent
 research pass was done. It is metadata beside the dimension blocks, not a
 dimension, so :func:`split_subscores_entry` leaves it out.
+
+A dimension or composite score can be ``None`` (insufficient evidence,
+rubric v3.1): ``scores.csv`` then holds an empty cell (the csv module writes
+``None`` as ``""``), the history snapshot holds ``null``, and the
+subscores.json sub-indicator is ``{"score": null, "rationale": ...}``.
 """
 
 from __future__ import annotations
@@ -46,7 +51,7 @@ EVIDENCE_KEY = "evidence"
 class ApplyOutcome:
     """What :meth:`Dataset.apply` did, for logging."""
 
-    average: float
+    average: float | None
     confidence: str
     history_added: bool
     scores_applied: bool = True
@@ -189,7 +194,7 @@ class Dataset:
             held["Data Version"] = version + 1
             self._scores[country] = held
             return ApplyOutcome(
-                average=_as_float(held.get("Average Score")),
+                average=_as_score(held.get("Average Score")),
                 confidence=result.effective_confidence(),
                 history_added=False,
                 scores_applied=False,
@@ -214,9 +219,9 @@ class Dataset:
     # -- validation ------------------------------------------------------------
 
     def validate(self) -> list[str]:
-        """Final safety net before writing: every score column must be numeric
-        and in [1, 5], and every emitted row must carry exactly the contracted
-        columns. Structured outputs make range violations unlikely, but a
+        """Final safety net before writing: every score column must be empty
+        (insufficient evidence) or numeric and in [1, 5], and every emitted
+        row must carry exactly the contracted columns. Structured outputs make range violations unlikely, but a
         projection bug that dropped or mistyped a column would be caught here."""
         errors: list[str] = []
         for country, row in self._scores.items():
@@ -226,7 +231,7 @@ class Dataset:
                 errors.append(f"{country}: scores columns off (missing={missing}, extra={extra})")
             for field in _SCORE_COLUMNS:
                 value = row.get(field, "")
-                if value in ("", "NA"):
+                if value in ("", "NA", None):
                     continue
                 try:
                     score = float(value)
@@ -294,7 +299,9 @@ def _regulation_row(country: str, result: ResearchResult, today: date) -> dict:
 
 def _subscores_entry(result: ResearchResult, today: date) -> dict:
     """Methodology v2.1 shape: ``{"score": int, "rationale": str}`` per
-    sub-indicator, so the audit trail carries the fact behind each score."""
+    sub-indicator, so the audit trail carries the fact behind each score.
+    An insufficient-evidence sub-indicator is ``{"score": null, ...}``, its
+    rationale saying what was searched."""
     entry: dict = {"date": today.isoformat()}
     for key, dim in result.dimensions().items():
         scores, rationales = dim.subscores(), dim.rationales()
@@ -308,7 +315,8 @@ def split_subscores_entry(entry: dict) -> tuple[dict, dict | None]:
     """Split one subscores.json country entry into the integer sub-scores
     (with ``date``) and the rationales (without). Accepts both file shapes:
     v2 (``"binding_force": 4``) and v2.1 (``"binding_force": {"score": 4,
-    "rationale": "..."}``). Returns ``None`` rationales for a v2 entry. The
+    "rationale": "..."}``, where ``score`` may be ``null`` for insufficient
+    evidence and stays ``None`` here). Returns ``None`` rationales for a v2 entry. The
     ``evidence`` block is not a dimension and appears in neither."""
     scores: dict = {}
     rationales: dict = {}
@@ -344,11 +352,15 @@ def _empty_pending() -> dict:
     return {"schema_version": 1, "pending": []}
 
 
-def _as_float(value) -> float:
+def _as_score(value) -> float | None:
+    """A scores.csv cell as a number, ``None`` for an empty cell
+    (insufficient evidence) or anything non-numeric."""
+    if value in (None, "", "NA"):
+        return None
     try:
         return float(value)
     except (TypeError, ValueError):
-        return 0.0
+        return None
 
 
 # -- low-level IO --------------------------------------------------------------

@@ -20,9 +20,9 @@ import 'd3-transition';
 import { getState, setState, on } from '../state/store';
 import { visibleCountrySet } from '../state/selectors';
 import { toggleScatter, showMap } from '../state/interactions';
-import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants';
-import type { AttributeKey } from '../constants';
-import { makeColorScale } from '../map/legend';
+import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../constants';
+import type { AttributeGroup, AttributeKey } from '../constants';
+import { makeColorScale } from '../map/ramp';
 import { cssVar, onThemeChange } from '../map/cssColors';
 import { createTooltip, showTooltip, hideTooltip } from '../map/tooltip';
 import { jitterFor } from './jitter';
@@ -35,7 +35,6 @@ let WIDTH = 760;
 let HEIGHT = 540;
 const MARGIN = { top: 24, right: 28, bottom: 52, left: 52 };
 
-const AXIS_DIMENSIONS = SCORE_OPTIONS.filter(o => o.value !== 'averageScore');
 
 function isCoarse(): boolean {
   return typeof window.matchMedia === 'function'
@@ -72,11 +71,19 @@ function populateAxisSelects(): void {
   const { scatterX, scatterY } = getState();
   for (const [id, current] of [['scatter-x', scatterX], ['scatter-y', scatterY]]) {
     const sel = el<HTMLSelectElement>(id);
-    for (const dim of AXIS_DIMENSIONS) {
-      const opt = document.createElement('option');
-      opt.value = dim.value;
-      opt.textContent = dim.text;
-      sel.appendChild(opt);
+    // Grouped by lens, as in the score selector. The index is derived, so
+    // it is the dot colour rather than an axis.
+    for (const group of ['implementation', 'style'] as AttributeGroup[]) {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = GROUPS[group].label;
+      for (const value of attributesIn(group)) {
+        if (value === 'averageScore') continue;
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = ATTRIBUTES[value].label;
+        optgroup.appendChild(opt);
+      }
+      sel.appendChild(optgroup);
     }
     sel.value = current;
     sel.addEventListener('change', () => {
@@ -155,7 +162,19 @@ function layout(): void {
 function dotTooltipHtml(d: PlottedDot, xKey: AttributeKey, yKey: AttributeKey): string {
   return `<strong>${d.name}</strong><br>` +
     `${ATTRIBUTE_LABELS[xKey]}: ${d.x}<br>` +
-    `${ATTRIBUTE_LABELS[yKey]}: ${d.y}`;
+    `${ATTRIBUTE_LABELS[yKey]}: ${d.y}` +
+    (d.avg != null ? `<br>${ATTRIBUTE_LABELS.averageScore}: ${d.avg}` : '');
+}
+
+// The dot-colour key names the index and its endpoints in the shared words.
+function renderColorKey(): void {
+  const { label, low, high } = ATTRIBUTES.averageScore;
+  const text = maybeEl('scatter-colorkey-text');
+  if (text) text.textContent = `Dot colour: ${label.toLowerCase()}`;
+  const lo = maybeEl('scatter-colorkey-low');
+  if (lo) lo.textContent = low;
+  const hi = maybeEl('scatter-colorkey-high');
+  if (hi) hi.textContent = high;
 }
 
 function updateChart(): void {
@@ -177,10 +196,12 @@ function updateChart(): void {
       avg: scores.averageScore,
       visible: visibleSet.has(name),
     }))
+    // Insufficient evidence (null) on either axis has no position: left out.
     .filter((d): d is PlottedDot => d.x != null && d.y != null);
 
-  const colorScale = makeColorScale();
-  const noData = cssVar('--no-data');
+  const colorScale = makeColorScale('averageScore');
+  // Every dot has a score row, so a null composite is insufficient evidence.
+  const insufficient = cssVar('--score-insufficient');
   const strokeColor = cssVar('--surface');
   const coarse = isCoarse();
   const baseR = coarse ? 6 : 4.5;      // easier to hit on touch
@@ -204,7 +225,7 @@ function updateChart(): void {
     .attr('cx', d => xScale(d.x + jitterFor(d.name).dx))
     .attr('cy', d => yScale(d.y + jitterFor(d.name).dy))
     .attr('r', d => isMarked(d.name) ? bigR : baseR)
-    .attr('fill', d => d.avg != null ? colorScale(d.avg) : noData)
+    .attr('fill', d => d.avg != null ? colorScale(d.avg) : insufficient)
     .attr('stroke', strokeColor)
     .attr('stroke-width', d => isMarked(d.name) ? 2 : 0.6)
     .style('opacity', d => d.visible ? 0.85 : 0.15);
@@ -297,6 +318,7 @@ export function initScatter(): void {
   if (!btn || !closeBtn) return;
 
   populateAxisSelects();
+  renderColorKey();
 
   const trendBox = maybeEl<HTMLInputElement>('scatter-trend');
   if (trendBox) {

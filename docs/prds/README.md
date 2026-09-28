@@ -21,9 +21,16 @@ ornament, designed for comparison, citeable by default, calm density.
 | 12 | [Monthly trend piece](12-monthly-trend-piece.md) | Pipeline + site | 02 | Proposed |
 | 13 | [Uncertainty on the map](13-uncertainty-on-map.md) | Frontend | - | Implemented (#58) |
 | 14 | [Evidence coverage per country](14-evidence-coverage.md) | Pipeline + panel | - | Implemented (#57) |
+| 15 | [Frontier risk governance dimension](15-frontier-risk-governance.md) | Pipeline + site | 16 (presentation) | Proposed |
+| 16 | [Score meaning and reader guidance](16-score-meaning-and-reader-guidance.md) | Frontend + site | 15 (phase 2 only) | Proposed |
 
 Suggested order: 01, 02, 03, then the rest in any order. 01 protects the data
 quality that every other PRD assumes.
+
+16 phase 1 can start now; it changes how every score is read. 15 needs the
+decisions in its tracking issue and a verified gold set (#106) first. The
+research behind both is in
+[`docs/research/frontier-risk-governance-scoring.md`](../research/frontier-risk-governance-scoring.md).
 
 ## Conventions for every PRD
 

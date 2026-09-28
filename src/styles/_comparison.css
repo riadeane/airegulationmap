@@ -316,6 +316,101 @@
   font-weight: 500;
 }
 
+/* Lens headings over the radar and the governance style strip (PRD 16):
+   the radar plots implementation only, so a larger shape reads as "more
+   in force"; governance style is a position on a line, not a length. */
+.style-strip-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin: 0 0 6px;
+}
+
+.style-strip-title {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.style-strip-caption {
+  font-family: 'Literata', Georgia, serif;
+  font-style: italic;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+.radar-head {
+  max-width: 460px;
+  margin: 0 auto 2px;
+}
+
+.style-strip {
+  max-width: 460px;
+  margin: 8px auto 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.style-strip-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-areas:
+    "label track"
+    ".     ends";
+  column-gap: 12px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.style-strip-label {
+  grid-area: label;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.style-strip-track {
+  grid-area: track;
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(to right,
+    color-mix(in oklch, var(--ramp-style-low) 45%, transparent),
+    color-mix(in oklch, var(--ramp-style-high) 45%, transparent));
+}
+
+.style-strip-dot {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  background: var(--dot-color);
+  box-shadow: 0 0 0 1.5px var(--surface);
+  transform: translateY(calc(var(--stack, 0) * -7px));
+}
+
+.style-strip-ends {
+  grid-area: ends;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+  font-size: 0.62rem;
+  color: var(--text-secondary);
+}
+
+/* Group heading rows in the comparison table. */
+.comparison-table tr.ct-group th {
+  padding: 18px 0 6px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border);
+}
+
 /* ── Full comparison view ─────────────────────────────────────
    Two or more countries: the map and single-country panel hide so the
    comparison reads at full width. body.view-compare is toggled in
@@ -357,6 +452,7 @@ body.view-compare .comparison-body {
 
 body.view-compare .radar-chart {
   align-self: center;
+  width: min(460px, 100%);
   border-bottom: none;
 }
 

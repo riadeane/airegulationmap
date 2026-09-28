@@ -8,20 +8,23 @@ import type { Topology } from 'topojson-specification';
 import type { Feature, FeatureCollection, Geometry, MultiLineString } from 'geojson';
 import 'd3-transition';
 
-import { ATTRIBUTE_LABELS } from '../constants';
+import { ATTRIBUTE_LABELS, isInsufficient } from '../constants';
 import type { AttributeKey } from '../constants';
 import { getState } from '../state/store';
 import type { ScoreData, ScoreEntry } from '../data/loader';
 import type { HistorySnapshot } from '../data/history';
-import { makeColorScale, addLegend } from './legend';
-import type { ColorScale } from './legend';
+import { makeColorScale } from './ramp';
+import type { ColorScale } from './ramp';
+import { addLegend, setLegendInsufficient, updateLegend } from './legend';
+import { fillColor, anyInsufficient } from './fill';
+import { scoreLine } from '../data/meaning';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip';
 import { setupZoom } from './zoom';
 import type { ZoomHandle } from './zoom';
 import { HATCH_ID, appendHatchPattern, hatchTransform, hatchedCountries } from './hatch';
 import { toggleComparison, selectCountry } from '../state/interactions';
 import {
-  passesCountryFilters, scoresAtDate, confidenceAtDate, isLowConfidenceAtDate,
+  passesCountryFilters, scoresAtDate, confidenceAtDate, isLowConfidenceAtDate, scoreRangeIsFull,
 } from '../state/selectors';
 import { getColorIndex } from '../comparison/colorSlots';
 import { cssVar, onThemeChange } from './cssColors';
@@ -77,16 +80,19 @@ function scoreOf(entry: MapScoreEntry | undefined, attr: AttributeKey): number |
 }
 
 // Resolve a country's fill. The color scale clamps its domain, but a
-// null/NaN score must read as "no data" grey, not as the low-end color
-// (a clamped scale maps null→0→domain floor). One guard, three callers
-// (initial paint, theme swap, updateMap) so the boundary stays honest.
+// null/NaN score must never read as the low-end color (a clamped scale
+// maps null→0→domain floor): no row is "no data", a null value is
+// "insufficient evidence" (fill.ts). One guard, three callers (initial
+// paint, theme swap, updateMap) so the boundary stays honest.
 function fillFor(
   entry: MapScoreEntry | undefined,
   attr: AttributeKey,
   colorScale: ColorScale
 ): string {
-  const value = scoreOf(entry, attr);
-  return value != null ? colorScale(value) : cssVar('--no-data');
+  return fillColor(entry, attr, colorScale, {
+    noData: cssVar('--no-data'),
+    insufficient: cssVar('--score-insufficient'),
+  });
 }
 
 /** True when the map currently draws the low-confidence hatch on `name`. */
@@ -227,9 +233,6 @@ function fitToSize({ w, h }: Size): void {
   mapGroupRef!.selectAll<SVGPathElement, CountryFeature>('.country-hatch').attr('d', pathRef!);
 
   if (zoomHandle) zoomHandle.updateBounds({ w, h });
-
-  select('#map .legend').remove();
-  addLegend(svgRef, makeColorScale(), { w, h });
 }
 
 export async function generateMap(): Promise<void> {
@@ -241,7 +244,7 @@ export async function generateMap(): Promise<void> {
   const svg = select('#map')
     .append<SVGSVGElement>('svg')
     .attr('role', 'img')
-    .attr('aria-label', 'World map showing AI regulation scores by country. Select a country for its profile.')
+    .attr('aria-label', 'World map of AI regulation scores by country. The same data follows as a table of countries.')
     .attr('width', size.w)
     .attr('height', size.h)
     .attr('viewBox', [0, 0, size.w, size.h])
@@ -264,7 +267,7 @@ export async function generateMap(): Promise<void> {
   fitProjectionToFill(projection, size.w, size.h);
 
   const path = geoPath().projection(projection);
-  const colorScale = makeColorScale();
+  const colorScale = makeColorScale(currentAttribute);
 
   svgRef = svg;
   projectionRef = projection;
@@ -321,8 +324,7 @@ export async function generateMap(): Promise<void> {
       const countryName = d.properties.name;
       const { currentAttribute: attr, comparisonCountries } = getState();
       const { entry, vintage } = displayedEntry(countryName);
-      const score = entry ? entry[attr] : null;
-      const label = ATTRIBUTE_LABELS[attr] || attr;
+      const score = entry?.[attr];
       const inComparison = comparisonCountries.includes(countryName);
       const hint = inComparison
         ? '<br><em>Shift+click to remove from comparison</em>'
@@ -335,7 +337,11 @@ export async function generateMap(): Promise<void> {
       const confidence = confidenceAtDate(countryName);
       showTooltip(event,
         `<strong>${countryName}${flag}</strong>` +
-        (score != null ? `<br>${label}: ${score} / 5${vintage ? ` (${vintage})` : ''}` : '<br>No data') +
+        (score != null
+          ? `<br>${scoreLine(attr, score, vintage)}`
+          : isInsufficient(score)
+            ? `<br>${ATTRIBUTE_LABELS[attr] || attr}: insufficient evidence${vintage ? ` (${vintage})` : ''}`
+            : '<br>No data') +
         (confidence ? `<br>Confidence: ${confidence}` : '') +
         hint
       );
@@ -378,7 +384,8 @@ export async function generateMap(): Promise<void> {
     hatchTransformValue = next;
     hatchPatternRef?.attr('patternTransform', next);
   });
-  addLegend(svg, colorScale, size);
+  addLegend();
+  setLegendInsufficient(anyInsufficient(scoreData, currentAttribute));
 
   // Tap anywhere that ISN'T a country (ocean, sphere edge, graticule, bare
   // svg) to deselect - the click-away that closes the mobile sheet and
@@ -404,12 +411,10 @@ export async function generateMap(): Promise<void> {
     // separate fill-only transition here would interrupt an in-flight
     // filter fade and strand countries half dimmed.
     updateMap();
-    const refreshed = makeColorScale();
     selectAll('#map .country').attr('stroke', cssVar('--map-stroke'));
     select('#map .sphere').attr('fill', cssVar('--ocean'));
     select('#map .graticule').attr('stroke', cssVar('--text-tertiary'));
-    select('#map .legend').remove();
-    addLegend(svgRef!, refreshed, currentSize);
+    updateLegend();
   });
 
   // Observe the wrapper so the map grows/shrinks with the viewport.
@@ -453,7 +458,13 @@ function countryOpacity(
     countryFiltersActive: boolean;
   }
 ): number {
-  if (!entry || entry[currentAttribute] == null) {
+  const value = entry?.[currentAttribute];
+  if (isInsufficient(value)) {
+    // Insufficient evidence: nothing to range-check, so it stays in view
+    // only while the score range is the full scale.
+    return (scoreRangeIsFull(filterMin, filterMax) && passesCountryFilters(country)) ? 1 : 0.15;
+  }
+  if (!entry || value == null) {
     // No data: keep the usual soft presence, but recede fully while a
     // country-level filter (bloc/confidence/official/evidence) is
     // highlighting a subset, so that subset reads cleanly.
@@ -485,7 +496,7 @@ export function updateMap(overrideScoreData?: MapScores): void {
   // filter change mid-scrub repaints the SAME historical date instead of
   // silently snapping the map back to the latest data.
   const data = overrideScoreData || scoresAtDate() || scoreData;
-  const colorScale = makeColorScale();
+  const colorScale = makeColorScale(currentAttribute);
   const countryFiltersActive = !!(selectedBloc && blocsData?.[selectedBloc])
     || filterConfidence != null
     || filterOfficialOnly
@@ -503,6 +514,7 @@ export function updateMap(overrideScoreData?: MapScores): void {
     .style('opacity', d => countryOpacity(d.properties.name, data[d.properties.name], {
       currentAttribute, filterMin, filterMax, countryFiltersActive,
     }));
+  setLegendInsufficient(anyInsufficient(data, currentAttribute));
 
   // The hatch follows its country's opacity, so a filtered-out country's
   // texture recedes with its fill. (No layer yet while the map loads;

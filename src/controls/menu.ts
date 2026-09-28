@@ -1,10 +1,12 @@
 // Header menu. Owns the "This week's changes" link to the digest page,
-// the "Drift" link to the drift dashboard, and the mobile-only ☰ toggle
-// that folds the secondary header controls (filter, scatter, export, the
-// page links) away so the map keeps the screen; tapping it reveals them. The theme toggle and the freshness
-// metadata stay OUT of the menu (persistent theme + trust signal). On
-// desktop the button is hidden and the full toolbar shows inline, so the
-// toggled `controls-open` class has no effect there.
+// the "Drift" link to the drift dashboard, and the menu toggle that folds
+// the secondary header controls away. On phones it folds the filter,
+// scatter, export, share and the page links so the map keeps the screen;
+// between 769 and 1,439px (#73) it folds the page links (and below 960px
+// Export and Share too), which open as a second toolbar row, so the
+// toolbar never covers the wordmark. The theme toggle stays out of the menu. From 1,440px the
+// button is hidden and the full toolbar shows inline, so the toggled
+// `controls-open` class has no effect there.
 
 import { on } from '../state/store';
 

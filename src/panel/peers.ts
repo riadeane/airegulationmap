@@ -1,11 +1,11 @@
 // "Compare with" row - one chip per peer set (each bloc the country is in,
-// similar maturity, similar profile). A click replaces the comparison set
+// similar implementation, similar profile). A click replaces the comparison set
 // with the selected country plus the set and opens the full view, so the
 // URL's `compare` parameter makes the result shareable.
 //
 // The row renders synchronously with the rest of the panel, so it never
-// pops in after the scores. It is a latest-data derivation like the rank,
-// so the caller hides it while the timeline shows a historical vintage.
+// pops in after the scores. It is a latest-data derivation, so the caller
+// hides it while the timeline shows a historical vintage.
 
 import { getState } from '../state/store';
 import { startComparison } from '../state/interactions';

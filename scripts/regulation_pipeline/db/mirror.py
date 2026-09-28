@@ -348,6 +348,8 @@ def _gold_check_row(row: dict) -> dict:
         "countries_compared": row["countries_compared"],
         "countries_missing": list(row["countries_missing"]),
         "mae_by_dimension": row["mae_by_dimension"],
+        # Rows written before #163 carry no bias; the column is nullable.
+        "bias_by_dimension": row.get("bias_by_dimension"),
         "within_one": row["within_one"],
         "max_dev": row["max_dev"],
         "max_dev_at": row["max_dev_at"],

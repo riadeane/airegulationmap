@@ -39,8 +39,12 @@ test('drift.html renders its figures from the committed files', async ({ page })
   // env here, so the run table falls back to what the files record.
   await page.goto('/drift.html');
   await expect(page.locator('figure.chart')).toHaveCount(5);
-  // Score movement, deltas, confidence and the bloc grid plot; the gold-set
-  // figure shows its empty state until drift.json carries a check.
+  // The gold-set figure plots once drift.json carries a check and shows its
+  // empty state until then, so read the committed file rather than assume
+  // either (the first weekly runs append rows to it).
+  const drift = await (await page.request.get('/data/drift.json')).json().catch(() => null);
+  const goldChecks = Array.isArray(drift?.checks) ? drift.checks.length : 0;
+  // Score movement, deltas, confidence and the bloc grid always plot.
   await expect(page.locator('figure#changes svg')).toBeVisible();
   await expect(page.locator('figure#deltas svg')).toBeVisible();
   await expect(page.locator('figure#confidence svg')).toBeVisible();
@@ -50,7 +54,8 @@ test('drift.html renders its figures from the committed files', async ({ page })
   const captions = page.locator('figure.chart figcaption');
   await expect(captions).toHaveCount(5);
   for (const text of await captions.allInnerTexts()) expect(text.trim().length).toBeGreaterThan(20);
-  await expect(page.locator('figure.chart details table')).toHaveCount(4);
+  await expect(page.locator('figure#gold svg')).toHaveCount(goldChecks > 0 ? 1 : 0);
+  await expect(page.locator('figure.chart details table')).toHaveCount(goldChecks > 0 ? 5 : 4);
   // The latest run section lists the largest moves with app deep links.
   await expect(page.locator('#drift-run h2')).toHaveText('Latest run');
   await expect(page.locator('#drift-run table a[href^="/?country="]').first()).toBeVisible();

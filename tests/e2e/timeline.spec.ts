@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 // The panel must show the same score vintage the map is painting while the
 // timeline is scrubbed - and say so. Uses the real history.json served by
 // the preview build, so we only assert vintage-agnostic facts (notice
-// visibility, rank hiding, expander locking), not specific score values.
+// visibility, peer-row hiding, expander locking), not specific score values.
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -20,7 +20,7 @@ test('scrubbing the timeline re-vintages the open panel and shows the notice', a
   await page.keyboard.press('Enter');
   await expect(page.locator('#country-name')).toHaveText('Germany');
   await expect(page.locator('#panel-history-notice')).toBeHidden();
-  await expect(page.locator('#maturity-rank')).not.toHaveText('');
+  await expect(page.locator('#peers-section')).toBeVisible();
 
   // Scrub to the earliest snapshot date.
   const slider = page.locator('#timeline-slider');
@@ -31,8 +31,8 @@ test('scrubbing the timeline re-vintages the open panel and shows the notice', a
 
   await expect(page.locator('#panel-history-notice')).toBeVisible();
   await expect(page.locator('#panel-history-date')).not.toHaveText('');
-  // Rank is a latest-data derivation - it hides for historical vintages.
-  await expect(page.locator('#maturity-rank')).toHaveText('');
+  // Peer sets are a latest-data derivation - they hide for historical vintages.
+  await expect(page.locator('#peers-section')).toBeHidden();
   // Sub-indicator disclosures lock (they cover the latest research only).
   const firstExpander = page.locator('.dim-expand').first();
   await expect(firstExpander).toBeDisabled();
@@ -40,7 +40,7 @@ test('scrubbing the timeline re-vintages the open panel and shows the notice', a
   // Reset to Latest restores the live rendering.
   await page.click('#timeline-reset');
   await expect(page.locator('#panel-history-notice')).toBeHidden();
-  await expect(page.locator('#maturity-rank')).not.toHaveText('');
+  await expect(page.locator('#peers-section')).toBeVisible();
   await expect(firstExpander).toBeEnabled();
 });
 
@@ -95,7 +95,7 @@ test('a ?date= deep link re-vintages the panel when history lands last', async (
 
   await expect(page.locator('#average-score')).toHaveText(`${expected} / 5`);
   await expect(page.locator('#panel-history-notice')).toBeVisible();
-  await expect(page.locator('#maturity-rank')).toHaveText('');
+  await expect(page.locator('#peers-section')).toBeHidden();
   await expect(page.locator('#map-live-region')).toContainText(`as of ${date}`);
 });
 

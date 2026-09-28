@@ -203,8 +203,10 @@ class TestCompare:
         # Every actor_involvement sub-indicator off by two: 4 of 20 beyond one
         # point -> within_one 0.8, on the threshold, no warning. Every
         # governance one too -> 8 of 20 -> 0.6, warning.
+        # Two up and two down, so the dimension has no signed bias and only
+        # the within-one rule decides.
         actor = dict(full_result()["actor_involvement"], industry=sub(2), civil_society=sub(4),
-                     academia=sub(5), international=sub(5))
+                     academia=sub(1), international=sub(5))
         governance = dict(full_result()["governance_type"], regulator_plurality=sub(4),
                           formal_coordination=sub(5), subnational_role=sub(3),
                           nongovernmental_checks=sub(4))
@@ -215,6 +217,88 @@ class TestCompare:
         metrics = compare(gold_set(gold_entry("A")), {"A": eight_off})
         assert metrics.within_one == 0.6
         assert metrics.warning is True
+
+
+class _StubDimension:
+    def __init__(self, scores: dict):
+        self._scores = scores
+
+    def subscores(self) -> dict:
+        return self._scores
+
+
+class _StubResult:
+    """Just enough of a ResearchResult for compare(): sub-scores per
+    dimension, where None stands for insufficient evidence (#162)."""
+
+    def __init__(self, scores: dict):
+        self._scores = scores
+
+    def dimensions(self) -> dict:
+        return {dim: _StubDimension(subs) for dim, subs in self._scores.items()}
+
+
+def uniform(score: int | None, **by_dimension: dict) -> dict:
+    """Every sub-indicator at ``score``, with per-dimension overrides."""
+    out = {dim: dict.fromkeys(names, score) for dim, names in gold.SUBINDICATORS.items()}
+    for dim, subs in by_dimension.items():
+        out[dim].update(subs)
+    return out
+
+
+class TestSignedBias:
+    def test_bias_shows_the_direction_mae_hides(self):
+        gs = gold_set(gold_entry("A", uniform(3)))
+        high = compare(gs, {"A": _StubResult(uniform(4))})
+        low = compare(gs, {"A": _StubResult(uniform(2))})
+        assert high.mae_by_dimension == low.mae_by_dimension == dict.fromkeys(gold.DIMENSIONS, 1.0)
+        assert high.bias_by_dimension == dict.fromkeys(gold.DIMENSIONS, 1.0)
+        assert low.bias_by_dimension == dict.fromkeys(gold.DIMENSIONS, -1.0)
+
+    def test_a_lean_warns_even_when_most_scores_are_within_one(self):
+        # regulation_status three sub-indicators one point high: bias +0.75,
+        # every score still within one point.
+        run = uniform(3, regulation_status={"binding_force": 4, "scope": 4, "implementation": 4})
+        metrics = compare(gold_set(gold_entry("A", uniform(3))), {"A": _StubResult(run)})
+        assert metrics.within_one == 1.0
+        assert metrics.bias_by_dimension["regulation_status"] == 0.75
+        assert metrics.biased_dimensions == ["regulation_status"]
+        assert metrics.warning is True
+        assert summary_line(metrics, gold_set(gold_entry("A", uniform(3)))).startswith("Calibration warning")
+        block = markdown_summary(metrics, gold_set(gold_entry("A", uniform(3))))
+        assert "leans systematically" in block and "`regulation_status` +0.75" in block
+        assert "| `regulation_status` | 0.75 | +0.75 |" in block
+
+    def test_a_small_lean_does_not_warn(self):
+        run = uniform(3, policy_lever={"soft_law": 4, "economic_tools": 4})  # +0.5, on the line
+        metrics = compare(gold_set(gold_entry("A", uniform(3))), {"A": _StubResult(run)})
+        assert metrics.bias_by_dimension["policy_lever"] == 0.5
+        assert metrics.warning is False
+
+    def test_insufficient_evidence_is_skipped_not_scored(self):
+        run = uniform(3, enforcement_level={"actions_taken": None, "monitoring_practice": None})
+        metrics = compare(gold_set(gold_entry("A", uniform(3))), {"A": _StubResult(run)})
+        assert metrics.count == 18
+        assert metrics.skipped == 2
+        assert metrics.mae_by_dimension["enforcement_level"] == 0.0
+        assert "insufficient_evidence=2" in summary_line(metrics, gold_set(gold_entry("A", uniform(3))))
+
+    def test_a_real_result_with_null_sub_scores_is_compared_without_error(self):
+        # #162: a validated ResearchResult may carry None sub-scores.
+        block = dict(full_result()["enforcement_level"])
+        block["actions_taken"] = {"score": None, "rationale": "No enforcement record found in searches."}
+        run = result(enforcement_level=block)
+        metrics = compare(gold_set(gold_entry("A")), {"A": run})
+        assert metrics.skipped == 1
+        assert metrics.count == 19
+        assert metrics.mae_by_dimension["enforcement_level"] == 0.0
+
+    def test_a_dimension_with_nothing_scored_is_left_out(self):
+        run = uniform(3, enforcement_level=dict.fromkeys(gold.SUBINDICATORS["enforcement_level"], None))
+        metrics = compare(gold_set(gold_entry("A", uniform(3))), {"A": _StubResult(run)})
+        assert "enforcement_level" not in metrics.mae_by_dimension
+        assert "enforcement_level" not in metrics.bias_by_dimension
+        assert metrics.skipped == 4
 
 
 # -- the drift record ---------------------------------------------------------------
@@ -232,6 +316,10 @@ class TestDrift:
             "countries_compared": 1,
             "countries_missing": [],
             "mae_by_dimension": {
+                "regulation_status": 0.0, "policy_lever": 0.5, "governance_type": 0.0,
+                "actor_involvement": 0.0, "enforcement_level": 0.0,
+            },
+            "bias_by_dimension": {
                 "regulation_status": 0.0, "policy_lever": 0.5, "governance_type": 0.0,
                 "actor_involvement": 0.0, "enforcement_level": 0.0,
             },
@@ -453,7 +541,21 @@ class TestMirrorRow:
         assert db_row["max_dev"] == 2
         assert db_row["max_dev_at"]["subindicator"] == "soft_law"
         assert db_row["mae_by_dimension"]["policy_lever"] == 0.5
+        assert db_row["bias_by_dimension"]["policy_lever"] == 0.5
         assert "date" not in db_row
+
+    def test_mirror_accepts_rows_written_before_signed_bias(self):
+        from regulation_pipeline.db.mirror import _gold_check_row
+
+        metrics = compare(gold_set(gold_entry("A")), {"A": result()})
+        row = drift_row(metrics, run_id="r", run_date=TODAY, model="m", prompt_version="v")
+        del row["bias_by_dimension"]
+        assert _gold_check_row(row)["bias_by_dimension"] is None
+
+    def test_migration_adds_the_bias_column_with_a_comment(self):
+        sql = (REPO / "supabase" / "migrations" / "0011_gold_checks_bias.sql").read_text(encoding="utf-8")
+        assert "add column if not exists bias_by_dimension jsonb" in sql
+        assert "comment on column gold_checks.bias_by_dimension" in sql
 
     def test_migration_creates_the_table_with_public_read(self):
         sql = (REPO / "supabase" / "migrations" / "0007_gold_checks.sql").read_text(encoding="utf-8")

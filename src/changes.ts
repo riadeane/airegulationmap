@@ -72,7 +72,7 @@ function renderMeta(digest: Digest): HTMLElement {
 function renderChangeFacts(change: DigestChange): HTMLElement {
   const dl = el('dl', { class: 'change-facts' });
   for (const [key, delta] of Object.entries(change.scores)) {
-    dl.append(el('dt', {}, [dimensionLabel(key)]), el('dd', {}, [formatDelta(delta)]));
+    dl.append(el('dt', {}, [dimensionLabel(key)]), el('dd', {}, [formatDelta(delta, change.firstScored)]));
   }
   if (change.laws) {
     dl.append(

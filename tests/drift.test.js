@@ -7,6 +7,8 @@ import {
   confidenceByVintage,
   confidenceTotals,
   dominantDimension,
+  formatBias,
+  largestLean,
   largestMoves,
   latestResearchRun,
   latestWeek,
@@ -239,11 +241,43 @@ describe('parseDriftChecks', () => {
     expect(parseDriftChecks({ checks: [{ date: '2026-09-08' }, 'x', { ...row, within_one: 'high' }] })).toEqual([]);
   });
 
+  it('reads signed bias, and leaves it empty for rows written before it existed', () => {
+    const [withBias, withoutBias] = parseDriftChecks({
+      checks: [
+        { ...row, bias_by_dimension: { regulation_status: 0.25, policy_lever: -0.75, x: 'n/a' } },
+        { ...row, date: '2026-09-15' },
+      ],
+    });
+    expect(withBias.biasByDimension).toEqual({ regulation_status: 0.25, policy_lever: -0.75 });
+    expect(withoutBias.biasByDimension).toEqual({});
+  });
+
   it('tolerates a row without a deviation', () => {
     const [check] = parseDriftChecks({ checks: [{ ...row, max_dev: null, max_dev_at: null, countries_missing: ['Bhutan'] }] });
     expect(check.maxDev).toBeNull();
     expect(check.maxDevAt).toBeNull();
     expect(check.countriesMissing).toEqual(['Bhutan']);
+  });
+});
+
+describe('largestLean and formatBias', () => {
+  it('picks the dimension with the largest absolute bias, in either direction', () => {
+    const [check] = parseDriftChecks({
+      checks: [{ date: '2026-09-28', within_one: 1, bias_by_dimension: { a: 0.5, b: -0.75, c: 0.75 } }],
+    });
+    expect(largestLean(check)).toEqual({ dimension: 'b', bias: -0.75 });
+  });
+
+  it('is null without bias', () => {
+    const [check] = parseDriftChecks({ checks: [{ date: '2026-09-28', within_one: 1 }] });
+    expect(largestLean(check)).toBeNull();
+  });
+
+  it('signs the value with a plus or a minus sign, and none for zero', () => {
+    expect(formatBias(0.25)).toBe('+0.25');
+    expect(formatBias(-0.5)).toBe('\u22120.50');
+    expect(formatBias(0)).toBe('0.00');
+    expect(formatBias(-0.001)).toBe('0.00');
   });
 });
 
@@ -354,6 +388,13 @@ describe('goldTooltip', () => {
     expect(html).toContain('&lt;b&gt;m&lt;/b&gt;');
     expect(html).toContain('&lt;i&gt;C&lt;/i&gt;');
     expect(html).toContain('&lt;svg onload=x&gt;');
+  });
+
+  it('names the largest lean and its direction', () => {
+    const [check] = parseDriftChecks({
+      checks: [{ date: '2026-09-28', within_one: 1, countries_compared: 10, bias_by_dimension: { enforcement_level: -0.6 } }],
+    });
+    expect(goldTooltip(check)).toContain('largest lean: Enforcement Level \u22120.60 (run lower than gold)');
   });
 
   it('leaves out the location parts drift.json does not give', () => {

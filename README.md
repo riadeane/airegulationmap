@@ -7,11 +7,11 @@ Live at [airegulationmap.org](https://airegulationmap.org)
 ## What it does
 
 - Choropleth world map coloured by regulation score, built with D3.js and TopoJSON
-- Six scoring dimensions: regulation status, policy lever, governance type, actor involvement, enforcement level, and a composite maturity index
+- Six scoring dimensions: regulation status, policy lever, governance type, actor involvement, enforcement level, and a composite implementation index (how much AI governance is in force, not how good it is), read through two lenses: implementation and governance style
 - Click any country to see detailed descriptions, relevant laws, source links, and a per-country score change history
 - Each dimension score breaks down into four sub-indicators; research passes since September 2026 add a one-sentence rationale to each
 - Entries researched since September 2026 state their evidence coverage: whether the research pass was grounded in verified OECD.AI policy initiatives, and whether it used web search
-- Compare up to four countries side-by-side on a radar chart, or start a comparison from the panel's "Compare with" peer shortcuts (bloc, similar maturity, similar profile)
+- Compare up to four countries side-by-side on a radar chart, or start a comparison from the panel's "Compare with" peer shortcuts (bloc, similar implementation, similar profile)
 - Full-text search across regulation text ("sandbox", "facial recognition", …) alongside country-name search
 - Filter by score range, bloc (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD), confidence, official sources or evidence coverage, with aggregate stats per bloc
 - Cross-dimension scatter plot to explore governance clusters

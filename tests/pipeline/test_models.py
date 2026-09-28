@@ -148,6 +148,94 @@ class TestConfidence:
             assert model.effective_confidence() == "low"
 
 
+def _with_nulls(dimension: str, *names: str, **overrides) -> dict:
+    """``full_result`` with the named sub-indicators of ``dimension`` set to
+    insufficient evidence (``score: null``)."""
+    result = full_result(**overrides)
+    for name in names:
+        result[dimension][name] = {"score": None, "rationale": "Searched the gazette; nothing found."}
+    return result
+
+
+class TestInsufficientEvidence:
+    """Rubric v3.1 (issue #162): a null sub-indicator score is insufficient
+    evidence, never a 1."""
+
+    def test_schema_accepts_null_score(self):
+        result = ResearchResult.model_validate(_with_nulls("enforcement_level", "actions_taken"))
+        assert result.enforcement_level.actions_taken.score is None
+        assert result.enforcement_level.subscores()["actions_taken"] is None
+
+    def test_null_needs_a_rationale(self):
+        result = _with_nulls("enforcement_level", "actions_taken")
+        result["enforcement_level"]["actions_taken"]["rationale"] = "  "
+        with pytest.raises(ValidationError):
+            ResearchResult.model_validate(result)
+
+    def test_missing_score_key_still_fails(self):
+        # null must be explicit: an absent score is a malformed answer.
+        result = full_result()
+        del result["enforcement_level"]["actions_taken"]["score"]
+        with pytest.raises(ValidationError):
+            ResearchResult.model_validate(result)
+
+    def test_one_null_is_the_mean_of_the_other_three(self):
+        # enforcement 5, [4], 4, 3 -> mean of 5, 4, 3 = 4.0
+        result = ResearchResult.model_validate(_with_nulls("enforcement_level", "actions_taken"))
+        assert result.enforcement_level.score == 4.0
+        # policy 3, 3, [2], 4 -> 3.33
+        result = ResearchResult.model_validate(_with_nulls("policy_lever", "economic_tools"))
+        assert result.policy_lever.score == 3.33
+
+    def test_two_nulls_leave_the_dimension_unscored(self):
+        result = ResearchResult.model_validate(
+            _with_nulls("enforcement_level", "actions_taken", "monitoring_practice"),
+        )
+        assert result.enforcement_level.score is None
+        assert result.dimension_scores()["enforcement_level"] is None
+
+    def test_composite_skips_one_unscored_normative_dimension(self):
+        # regulation 4.0, policy 3.0, enforcement None -> (4 + 3) / 2
+        result = ResearchResult.model_validate(
+            _with_nulls("enforcement_level", "actions_taken", "monitoring_practice"),
+        )
+        assert result.average_score() == 3.5
+
+    def test_composite_needs_two_normative_dimensions(self):
+        result = _with_nulls("enforcement_level", "actions_taken", "monitoring_practice")
+        result["policy_lever"]["soft_law"] = {"score": None, "rationale": "Nothing found."}
+        result["policy_lever"]["economic_tools"] = {"score": None, "rationale": "Nothing found."}
+        model = ResearchResult.model_validate(result)
+        assert model.policy_lever.score is None
+        assert model.average_score() is None
+
+    def test_descriptive_dimension_does_not_affect_composite(self):
+        result = ResearchResult.model_validate(
+            _with_nulls("governance_type", "regulator_plurality", "subnational_role"),
+        )
+        assert result.governance_type.score is None
+        assert result.average_score() == 3.67
+
+    def test_unscored_dimension_caps_confidence_low(self):
+        result = ResearchResult.model_validate(
+            _with_nulls("actor_involvement", "industry", "academia", confidence="high"),
+        )
+        assert result.confidence == "low"
+        assert result.effective_confidence() == "low"
+
+    def test_one_null_keeps_confidence(self):
+        result = ResearchResult.model_validate(
+            _with_nulls("actor_involvement", "industry", confidence="high"),
+        )
+        assert result.effective_confidence() == "high"
+
+    def test_format_score(self):
+        from regulation_pipeline.models import format_score
+
+        assert format_score(None) == "insufficient evidence"
+        assert format_score(2.5) == "2.5"
+
+
 class TestOutputSchema:
     def test_schema_shape(self):
         schema = ResearchResult.output_schema()
@@ -155,13 +243,18 @@ class TestOutputSchema:
         assert "title" not in schema
         assert set(schema["required"]) == set(schema["properties"])
 
-    def test_scores_are_integer_enums(self):
-        # Structured outputs can't express minimum/maximum, so 1-5 is an enum.
+    def test_scores_are_integer_enums_or_null(self):
+        # Structured outputs can't express minimum/maximum, so 1-5 is an enum;
+        # null (insufficient evidence, rubric v3.1) is the other anyOf branch.
         defs = ResearchResult.output_schema()["$defs"]
         block = defs["RegulationStatus"]
         assert block["additionalProperties"] is False
         assert block["properties"]["binding_force"] == {"$ref": "#/$defs/SubIndicator"}
-        assert defs["SubIndicator"]["properties"]["score"] == {"enum": [1, 2, 3, 4, 5], "type": "integer"}
+        assert defs["SubIndicator"]["properties"]["score"] == {
+            "anyOf": [{"enum": [1, 2, 3, 4, 5], "type": "integer"}, {"type": "null"}],
+        }
+        # The score stays required: the model must choose a level or null.
+        assert set(defs["SubIndicator"]["required"]) == {"score", "rationale"}
 
     def test_rationale_required_and_unconstrained_in_schema(self):
         # Structured outputs reject minLength/maxLength - the length rule

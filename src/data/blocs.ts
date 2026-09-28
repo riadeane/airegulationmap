@@ -3,6 +3,7 @@
 // loadBlocs mirrors loadHistory's contract (null on any failure, callers
 // degrade).
 
+import { isInsufficient } from '../constants';
 import type { AttributeKey } from '../constants';
 import type { EvidenceRecord } from './evidence';
 
@@ -108,6 +109,34 @@ export function computeBlocStats(
     highest,
     lowest,
   };
+}
+
+/**
+ * Members with a score row whose value on `attribute` is null: "insufficient
+ * evidence" (rubric v3.1). computeBlocStats leaves them out of the math;
+ * the card says how many there are.
+ */
+export function countInsufficient(
+  members: readonly string[],
+  scoreData: AttributeScores,
+  attribute: AttributeKey
+): number {
+  return members.filter(name => isInsufficient(scoreData[name]?.[attribute])).length;
+}
+
+/**
+ * The card's coverage line: "12 of 27 members scored", plus ", 2 with
+ * insufficient evidence" when any member is in that state.
+ */
+export function blocCoverageText(
+  memberCount: number,
+  scoredCount: number,
+  insufficient: number
+): string {
+  const base = scoredCount > 0
+    ? `${scoredCount} of ${memberCount} members scored`
+    : `${memberCount} members · no scores for this dimension`;
+  return insufficient > 0 ? `${base}, ${insufficient} with insufficient evidence` : base;
 }
 
 /**

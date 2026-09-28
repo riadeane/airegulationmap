@@ -8,10 +8,15 @@ metrics per run is appended to ``public/data/drift.json`` and mirrored to
 the Supabase ``gold_checks`` table. The check costs no extra API calls on a
 scheduled run and never fails one: drift is reported, not enforced.
 
-Three metrics, all pure functions of the two score sets (:func:`compare`):
+Four metrics, all pure functions of the two score sets (:func:`compare`):
 
 * ``mae_by_dimension`` - mean absolute error over the sub-indicators of each
   dimension, across the compared countries;
+* ``bias_by_dimension`` - mean signed error (run minus gold) per dimension.
+  MAE cannot show direction: a model 0.5 too generous everywhere and one 0.5
+  too harsh have the same MAE. LLM coders of governance indicators drift in a
+  direction that differs by model (Weidmann et al. 2025), so the direction is
+  what a model switch needs to show;
 * ``within_one`` - the share of compared sub-indicators whose run score is
   within one point of the gold score;
 * ``max_dev`` - the largest single deviation, with where it happened.
@@ -28,7 +33,7 @@ import logging
 import os
 import uuid
 from collections.abc import Iterator, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -51,6 +56,9 @@ DRIFT_SCHEMA_VERSION = 1
 # A run whose within-one share falls below this prefixes its summary with
 # "Calibration warning". It never changes the exit code.
 WARN_WITHIN_ONE = 0.8
+# ... and so does a run whose mean signed error on any dimension is larger
+# than this, in either direction: a systematic lean, not scatter.
+WARN_ABS_BIAS = 0.5
 
 STATUSES = ("draft", "verified")
 
@@ -228,6 +236,11 @@ class Deviation:
     def delta(self) -> int:
         return abs(self.run - self.gold)
 
+    @property
+    def signed(self) -> int:
+        """Run minus gold: positive when the run scores higher."""
+        return self.run - self.gold
+
     def to_json(self) -> dict:
         return {
             "country": self.country,
@@ -244,8 +257,10 @@ class GoldMetrics:
 
     ``compared`` lists the gold countries the run returned a result for, in
     gold-set order; ``missing`` the rest. The three metrics cover every
-    sub-indicator of every compared country. ``max_dev`` is ``None`` only
-    when nothing was compared.
+    sub-indicator of every compared country that both sides score. A run
+    sub-indicator without a score (insufficient evidence, #162) is not
+    compared; ``skipped`` counts them. ``max_dev`` is ``None`` only when
+    nothing was compared.
     """
 
     compared: tuple[str, ...]
@@ -254,16 +269,29 @@ class GoldMetrics:
     within_one: float
     max_dev: Deviation | None
     count: int
+    bias_by_dimension: dict[str, float] = field(default_factory=dict)
+    skipped: int = 0
+
+    @property
+    def biased_dimensions(self) -> list[str]:
+        """Dimensions whose mean signed error exceeds :data:`WARN_ABS_BIAS`."""
+        return [d for d, b in self.bias_by_dimension.items() if abs(b) > WARN_ABS_BIAS]
 
     @property
     def warning(self) -> bool:
-        """True when the within-one share is below :data:`WARN_WITHIN_ONE`."""
-        return bool(self.compared) and self.within_one < WARN_WITHIN_ONE
+        """True when the within-one share is below :data:`WARN_WITHIN_ONE`
+        or any dimension leans by more than :data:`WARN_ABS_BIAS`."""
+        return bool(self.compared) and (
+            self.within_one < WARN_WITHIN_ONE or bool(self.biased_dimensions)
+        )
 
 
-def deviations(gold: GoldSet, results: Mapping[str, ResearchResult]) -> Iterator[Deviation]:
-    """Every (country, dimension, sub-indicator) pair the run and the gold
-    set both score, in gold-set order."""
+def _pairs(
+    gold: GoldSet, results: Mapping[str, ResearchResult],
+) -> Iterator[tuple[str, str, str, int, int | None]]:
+    """``(country, dimension, sub-indicator, gold, run)`` for every gold
+    sub-indicator of every country in the run; ``run`` is ``None`` where the
+    run found insufficient evidence."""
     for entry in gold.countries:
         result = results.get(entry.country)
         if result is None:
@@ -272,28 +300,39 @@ def deviations(gold: GoldSet, results: Mapping[str, ResearchResult]) -> Iterator
         for dimension, names in SUBINDICATORS.items():
             run_scores = run_dims[dimension].subscores()
             for sub in names:
-                yield Deviation(
-                    entry.country, dimension, sub, entry.subscores[dimension][sub], run_scores[sub],
-                )
+                yield entry.country, dimension, sub, entry.subscores[dimension][sub], run_scores[sub]
+
+
+def deviations(gold: GoldSet, results: Mapping[str, ResearchResult]) -> Iterator[Deviation]:
+    """Every (country, dimension, sub-indicator) the run and the gold set
+    both score, in gold-set order."""
+    for country, dimension, sub, gold_score, run_score in _pairs(gold, results):
+        if run_score is not None:
+            yield Deviation(country, dimension, sub, gold_score, run_score)
 
 
 def compare(gold: GoldSet, results: Mapping[str, ResearchResult]) -> GoldMetrics:
     """The three metrics for ``results`` (raw, ungated ``ResearchResult`` per
     country) against ``gold``. Pure: no I/O, no logging."""
     devs = list(deviations(gold, results))
+    skipped = sum(1 for *_, run in _pairs(gold, results) if run is None)
     compared = tuple(c for c in gold.names() if c in results)
     missing = tuple(c for c in gold.names() if c not in results)
     if not devs:
-        return GoldMetrics(compared, missing, {}, 0.0, None, 0)
+        return GoldMetrics(compared, missing, {}, 0.0, None, 0, {}, skipped)
 
     mae: dict[str, float] = {}
+    bias: dict[str, float] = {}
     for dimension in DIMENSIONS:
-        in_dim = [d.delta for d in devs if d.dimension == dimension]
-        mae[dimension] = round(sum(in_dim) / len(in_dim), 3)
+        in_dim = [d for d in devs if d.dimension == dimension]
+        if not in_dim:  # every sub-indicator of the dimension was skipped
+            continue
+        mae[dimension] = round(sum(d.delta for d in in_dim) / len(in_dim), 3)
+        bias[dimension] = round(sum(d.signed for d in in_dim) / len(in_dim), 3)
     within = sum(1 for d in devs if d.delta <= 1) / len(devs)
     # max() keeps the first of equal deltas, so ties resolve in gold-set order.
     worst = max(devs, key=lambda d: d.delta)
-    return GoldMetrics(compared, missing, mae, round(within, 3), worst, len(devs))
+    return GoldMetrics(compared, missing, mae, round(within, 3), worst, len(devs), bias, skipped)
 
 
 # -- the drift record ----------------------------------------------------------
@@ -311,6 +350,7 @@ def drift_row(
         "countries_compared": len(metrics.compared),
         "countries_missing": list(metrics.missing),
         "mae_by_dimension": dict(metrics.mae_by_dimension),
+        "bias_by_dimension": dict(metrics.bias_by_dimension),
         "within_one": metrics.within_one,
         "max_dev": metrics.max_dev.delta if metrics.max_dev else None,
         "max_dev_at": metrics.max_dev.to_json() if metrics.max_dev else None,
@@ -351,7 +391,10 @@ def summary_line(metrics: GoldMetrics, gold: GoldSet) -> str:
         f"within_one={metrics.within_one:.3f}",
         f"max_dev={_max_dev_text(metrics)}",
         "mae " + " ".join(f"{k}={v:.2f}" for k, v in metrics.mae_by_dimension.items()),
+        "bias " + " ".join(f"{k}={v:+.2f}" for k, v in metrics.bias_by_dimension.items()),
     ]
+    if metrics.skipped:
+        parts.append(f"insufficient_evidence={metrics.skipped}")
     line = "gold: " + ", ".join(parts)
     return f"Calibration warning: {line}" if metrics.warning else line
 
@@ -364,11 +407,20 @@ def markdown_summary(metrics: GoldMetrics, gold: GoldSet) -> str:
     if not metrics.compared:
         out.append(f"None of the {len(gold)} gold countries were in this run.")
         return "\n".join(out) + "\n"
-    if metrics.warning:
+    if metrics.warning and metrics.within_one < WARN_WITHIN_ONE:
         out += [
             f"Only {metrics.within_one:.0%} of the compared sub-indicators are within one "
             f"point of the gold scores (threshold {WARN_WITHIN_ONE:.0%}). The run is not "
             "failed; check the model and prompt before trusting this week's scores.",
+            "",
+        ]
+    if metrics.biased_dimensions:
+        leans = ", ".join(
+            f"`{d}` {metrics.bias_by_dimension[d]:+.2f}" for d in metrics.biased_dimensions
+        )
+        out += [
+            f"The run leans systematically against the gold scores (mean signed error "
+            f"beyond ±{WARN_ABS_BIAS}): {leans}. Positive means the run scores higher.",
             "",
         ]
     verified = len(gold.verified())
@@ -379,14 +431,21 @@ def markdown_summary(metrics: GoldMetrics, gold: GoldSet) -> str:
         f"({verified} verified, {len(gold) - verified} draft) |"
     )
     out.append(f"| Sub-indicators compared | {metrics.count} |")
+    if metrics.skipped:
+        out.append(f"| Insufficient evidence (not compared) | {metrics.skipped} |")
     out.append(f"| Within one point | {metrics.within_one:.3f} |")
     out.append(f"| Largest deviation | {_max_dev_text(metrics)} |")
-    out += ["", "| Dimension | MAE |", "|-----------|-----|"]
+    out += ["", "| Dimension | MAE | Bias (run − gold) |", "|-----------|-----|------|"]
     for dimension, value in metrics.mae_by_dimension.items():
-        out.append(f"| `{dimension}` | {value:.2f} |")
+        bias = metrics.bias_by_dimension.get(dimension)
+        out.append(f"| `{dimension}` | {value:.2f} | {_signed(bias)} |")
     if metrics.missing:
         out += ["", "Missing from this run: " + ", ".join(metrics.missing)]
     return "\n".join(out) + "\n"
+
+
+def _signed(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:+.2f}"
 
 
 def _max_dev_text(metrics: GoldMetrics) -> str:
@@ -402,9 +461,11 @@ def text_report(metrics: GoldMetrics, gold: GoldSet, results: Mapping[str, Resea
     lines = [summary_line(metrics, gold), ""]
     if not metrics.compared:
         return "\n".join(lines)
-    lines.append(f"{'dimension':<20} {'MAE':>6}")
+    lines.append(f"{'dimension':<20} {'MAE':>6} {'bias':>6}")
     for dimension, value in metrics.mae_by_dimension.items():
-        lines.append(f"{dimension:<20} {value:>6.2f}")
+        lines.append(
+            f"{dimension:<20} {value:>6.2f} {_signed(metrics.bias_by_dimension.get(dimension)):>6}"
+        )
     lines.append("")
     big = [d for d in deviations(gold, results) if d.delta >= 2]
     if big:

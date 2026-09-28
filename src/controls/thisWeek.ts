@@ -11,7 +11,7 @@
 import { getState, on } from '../state/store';
 import { selectCountry } from '../state/interactions';
 import { recentScoreChanges } from '../state/selectors';
-import { formatSignedDelta } from '../data/changelog';
+import { formatRecentMove } from '../data/changelog';
 import type { RecentChange } from '../data/changelog';
 import { highlightCountry, clearHighlight } from '../map/index';
 
@@ -51,13 +51,16 @@ function buildItem(change: RecentChange): HTMLLIElement {
   btn.className = 'this-week-item';
   btn.dataset.country = change.country;
 
-  const up = change.delta > 0;
-  const delta = formatSignedDelta(change.delta);
+  // A move to or from insufficient evidence has no size and no direction.
+  const direction = change.delta == null ? null : change.delta > 0 ? 'up' : 'down';
+  const delta = formatRecentMove(change);
   const when = dateFormat.format(new Date(`${change.date}T00:00:00`));
   btn.title = `${change.country}: ${change.label} ${delta} on ${when}. Select to read more.`;
   btn.setAttribute(
     'aria-label',
-    `${change.country}, ${change.label} ${up ? 'up' : 'down'} ${Math.abs(change.delta)}`
+    change.delta == null
+      ? `${change.country}, ${change.label} ${delta}`
+      : `${change.country}, ${change.label} ${direction} ${Math.abs(change.delta)}`
   );
 
   const name = document.createElement('span');
@@ -69,7 +72,7 @@ function buildItem(change: RecentChange): HTMLLIElement {
   dim.textContent = change.label;
 
   const move = document.createElement('span');
-  move.className = `this-week-delta ${up ? 'up' : 'down'}`;
+  move.className = direction ? `this-week-delta ${direction}` : 'this-week-delta';
   move.textContent = delta;
 
   btn.append(name, dim, move);

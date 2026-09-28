@@ -1,3 +1,98 @@
+/* Desktop and tablet header (#73). The full toolbar needs about 1,440px
+   beside the wordmark and the freshness metadata; below that it used to
+   draw over them. Three steps, each measured with Geist loaded:
+   - below 1,440px the menu toggle shows and the page links ("This week's
+     changes", Drift, "Show this week's changes") fold behind it, opening
+     as a second toolbar row, as the mobile tier does;
+   - below 1,280px the freshness metadata yields (the panel's "Data as of"
+     line and the "This week" strip carry it);
+   - below 960px Export and Share fold as well.
+   The wordmark never shrinks. The min-height guard keeps landscape phones
+   in the mobile tier. */
+@media (min-width: 769px) and (max-width: 1439px) and (min-height: 501px),
+       (min-width: 769px) and (max-width: 1439px) and (pointer: fine) {
+  .header-left h1,
+  .header-help-btn {
+    flex-shrink: 0;
+  }
+
+  #menu-toggle {
+    display: inline-flex;
+    order: 5;
+    align-self: center;
+  }
+
+  /* The wordmark block keeps its width; the toolbar takes the rest and
+     wraps inside it, so an open second row never slides under the left
+     block (a max-content toolbar would). */
+  .header-left {
+    flex-shrink: 0;
+  }
+
+  .header-right {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 8px;
+    min-width: 0;
+  }
+
+  .header-right > * {
+    order: 1;
+  }
+
+  /* The search box grows less on focus, so it cannot reach the metadata. */
+  #country-search:focus {
+    width: 220px;
+  }
+
+  .header-right > .header-changes-link,
+  .header-right > .this-week-restore {
+    order: 3;
+  }
+
+  body:not(.controls-open) .header-right > .header-changes-link,
+  body:not(.controls-open) .header-right > .this-week-restore {
+    display: none;
+  }
+
+  /* Open: the folded entries take a second row under the toolbar. */
+  body.controls-open #app-header {
+    height: auto;
+    min-height: var(--header-h);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    align-items: flex-start;
+  }
+
+  body.controls-open .header-right::before {
+    content: '';
+    order: 2;
+    flex-basis: 100%;
+    height: 0;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1279px) and (min-height: 501px),
+       (min-width: 769px) and (max-width: 1279px) and (pointer: fine) {
+  .header-meta {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 959px) and (min-height: 501px),
+       (min-width: 769px) and (max-width: 959px) and (pointer: fine) {
+  #export-btn-container,
+  #share-btn-container {
+    order: 3;
+  }
+
+  body:not(.controls-open) #export-btn-container,
+  body:not(.controls-open) #share-btn-container {
+    display: none;
+  }
+}
+
 /* Tablet tier - compact the panel and search without collapsing
    the layout. Covers the gap between mobile (768px) and full
    desktop (1041px+). The min-height guard keeps landscape phones
@@ -12,7 +107,11 @@
     min-width: 320px;
   }
   #country-search { width: 140px; }
-  #country-search:focus { width: 180px; }
+  #country-search:focus { width: 160px; }
+  /* #73: the narrowest tablets need the gutter back for the toolbar. */
+  #app-header {
+    padding: 0 16px;
+  }
 }
 
 /* The mobile tier also covers landscape phones and other short touch
@@ -413,15 +512,23 @@
     align-items: center;
   }
 
-  /* Keyboard-shortcut UI is meaningless on a touchscreen. Hide the
-     header trigger and the intro step that explains it. The ? key
-     handler stays intact so paired Bluetooth keyboards on tablets
-     still work. */
+  /* The ? button opens "How to read this map", which touch readers need
+     too (its keyboard section hides on coarse pointers, _overlay.css).
+     A 44px hit area around the small visual circle. */
   .header-help-btn {
-    display: none;
+    width: 26px;
+    height: 26px;
+    font-size: 0.8rem;
+    position: relative;
   }
 
-  .panel-intro-steps li:has(kbd) {
+  .header-help-btn::after {
+    content: '';
+    position: absolute;
+    inset: -9px;
+  }
+
+  .panel-intro-kbd {
     display: none;
   }
 }
