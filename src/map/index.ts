@@ -1,7 +1,7 @@
 import { on, getState } from '../state/store';
 import { generateMap, updateMap, markComparisonCountries, displayedEntry, isHatched } from './renderer';
 import { updateLegendLabels, updateLegendUncertainty } from './legend';
-import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../constants';
+import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS, isInsufficient } from '../constants';
 
 export { updateMap, highlightCountry, clearHighlight, updateSearchHighlight, markComparisonCountries } from './renderer';
 export { generateMap };
@@ -38,7 +38,9 @@ function announceCountry(name: string | null) {
   const flag = isHatched(name) ? ' Low confidence.' : '';
   region.textContent = score != null
     ? `Selected ${name}. ${label}: ${score} of 5${vintage ? ` as of ${vintage}` : ''}.${flag}`
-    : `Selected ${name}. No ${label} data.`;
+    : isInsufficient(score)
+      ? `Selected ${name}. ${label}: insufficient evidence${vintage ? ` as of ${vintage}` : ''}.`
+      : `Selected ${name}. No ${label} data.`;
 }
 
 // Coalesce map recolors to one per frame. Several state keys can flip in

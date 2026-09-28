@@ -13,6 +13,8 @@ import type { ScoreEntry, RegulationEntry } from '../data/loader';
 import type { SubscoreEntry } from '../data/subscores';
 import { localIsoDate } from '../data/localDate';
 
+// A null score ("insufficient evidence", rubric v3.1) exports as an empty
+// CSV cell and a JSON null, the same as scores.csv; it is never a number.
 function buildExportRows(countries: string[]) {
   const { scoreData, regulationData } = getState();
   return countries.map(name => {

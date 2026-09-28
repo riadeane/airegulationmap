@@ -184,7 +184,7 @@ function renderScores(countryName: string): void {
     ? snapshots[countryName] ?? null
     : scoreData[countryName] ?? null;
 
-  renderScoreBar(entry ? entry.averageScore : null);
+  renderScoreBar(entry?.averageScore);
   renderAllDots(entry);
 
   // Rank and peer sets are latest-data derivations; both hide while a

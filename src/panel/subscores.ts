@@ -5,7 +5,7 @@
 // rationale, shown under the score when present.
 
 import { getState, on } from '../state/store';
-import { ATTRIBUTE_LABELS } from '../constants';
+import { ATTRIBUTE_LABELS, INSUFFICIENT_EVIDENCE_LABEL, isInsufficient } from '../constants';
 import type { DimensionKey } from '../constants';
 import { DIMENSION_TO_SNAKE, SUBSCORE_LABELS } from '../data/subscores';
 
@@ -56,18 +56,27 @@ function renderBreakdown(container: HTMLElement, dimension: DimensionKey): boole
     name.className = 'subscore-label';
     name.textContent = label;
 
-    const track = document.createElement('span');
-    track.className = 'subscore-track';
-    const fill = document.createElement('span');
-    fill.className = 'subscore-fill';
-    fill.style.width = `${((value - 1) / 4) * 100}%`;
-    track.appendChild(fill);
+    if (isInsufficient(value)) {
+      // Rubric v3.1: no track (an empty one would read as a 1); the
+      // rationale below says what was searched.
+      const none = document.createElement('span');
+      none.className = 'subscore-value subscore-insufficient';
+      none.textContent = INSUFFICIENT_EVIDENCE_LABEL;
+      row.append(name, none);
+    } else {
+      const track = document.createElement('span');
+      track.className = 'subscore-track';
+      const fill = document.createElement('span');
+      fill.className = 'subscore-fill';
+      fill.style.width = `${((value - 1) / 4) * 100}%`;
+      track.appendChild(fill);
 
-    const num = document.createElement('span');
-    num.className = 'subscore-value';
-    num.textContent = String(value);
+      const num = document.createElement('span');
+      num.className = 'subscore-value';
+      num.textContent = String(value);
 
-    row.append(name, track, num);
+      row.append(name, track, num);
+    }
     line.appendChild(row);
 
     if (cell.rationale) {

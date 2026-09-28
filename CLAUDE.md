@@ -100,7 +100,7 @@ python scripts/update_data.py --no-gate --break-reason "Model switch to Opus 5"
 
 # Rubric guard: prompt.RUBRIC_VERSION names the rubric generation. When the
 # newest break in history.json is for an older rubric, the first full forced
-# run records a break ("Switch to scoring rubric v3 (model ...)") and runs
+# run records a break ("Switch to scoring rubric v3.1 (model ...)") and runs
 # ungated by itself; partial runs stay gated and log that the break is due.
 # Bump RUBRIC_VERSION only when the rubric changes (not for prompt context).
 
@@ -131,7 +131,8 @@ python -m regulation_pipeline.gold --model claude-sonnet-5
 Requests use structured outputs (`output_config.format`, schema generated from
 the pydantic model via `models.ResearchResult.output_schema()`), so responses are
 guaranteed schema-valid JSON - every sub-indicator arrives as `{score, rationale}` with the
-score an int 1–5 and all fields present (rationale length is checked in pydantic).
+score an int 1–5 or null (insufficient evidence, rubric v3.1: `anyOf` enum-or-null, still
+required) and all fields present (rationale length is checked in pydantic).
 
 Requires `ANTHROPIC_API_KEY` in environment. Install Python dependencies:
 
@@ -230,13 +231,13 @@ Python package that calls the Claude API to research regulation status per count
 
 | File | Purpose |
 |------|---------|
-| `public/scores.csv` | Numeric scores (1–5) for 6 dimensions per country |
+| `public/scores.csv` | Numeric scores (1–5) for 6 dimensions per country; an empty cell is "insufficient evidence" (rubric v3.1), distinct from a country with no row ("no data") |
 | `public/regulation_data.csv` | Text descriptions, laws, source URLs, confidence, last_updated |
-| `public/history.json` | Change-point score snapshots per country (a snapshot's `date` is the run that produced those scores; the timeline, changelog, "This week" strip and drift dashboard all read it that way), plus `breaks` (calibration breaks: `{date, model, prompt_version, rubric, reason, complete}`, recorded only when the run applied something; `complete: false` means some countries kept older-rubric scores, so the rubric guard still treats the switch as due; the June 2026 methodology v2 break is the first) |
+| `public/history.json` | Change-point score snapshots per country (a dimension or `averageScore` may be `null`, insufficient evidence; a snapshot's `date` is the run that produced those scores; the timeline, changelog, "This week" strip and drift dashboard all read it that way), plus `breaks` (calibration breaks: `{date, model, prompt_version, rubric, reason, complete}`, recorded only when the run applied something; `complete: false` means some countries kept older-rubric scores, so the rubric guard still treats the switch as due; the June 2026 methodology v2 break is the first) |
 | `public/data/country_names.json` | Canonical country names with alias arrays for normalization |
 | `public/data/blocs.json` | Bloc membership lists (EU, G7, G20, ASEAN, AU, BRICS+, NATO, OECD); names must exactly match `scores.csv` |
-| `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1), plus the `evidence` record of each country's latest research pass (PRD 14; absent = no run record yet) |
-| `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`) |
+| `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1, `score: null` for insufficient evidence since rubric v3.1), plus the `evidence` record of each country's latest research pass (PRD 14; absent = no run record yet) |
+| `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`; a candidate score may be `null`) |
 | `public/data/gold_set.json` | Gold sub-indicator scores for ten countries across the maturity range: 20 scores, a justification per dimension, sources, and `status` (`draft` until the maintainer verifies, then `verified` + `verified_on`). All ten are drafts awaiting the maintainer's hand-check (September 2026). Validated by `gold.load_gold_set` |
 | `public/data/drift.json` | One row per run from the gold-set drift check: `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, bias_by_dimension, within_one, max_dev, max_dev_at}`; `bias_by_dimension` is the mean signed error (run minus gold), absent on rows from before #163. Mirrored to Supabase `gold_checks` |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
@@ -399,7 +400,9 @@ Six attributes scored 1–5 (used in the score selector dropdown):
 - **actor_involvement** - narrow↔broad participation (descriptive - excluded from the composite)
 - **enforcement_level** - enforcement rigor (normative)
 
-**Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` was `v3-2026-09` for the rubric switch, `v3.1-2026-09` once the v2.1 rationale field changed the output structure, and is `v3.2-2026-09` since the existing-data block also shows the Enforcement Level text (context only; same rubric). `RUBRIC_VERSION = "v3"` is what the rubric guard compares. The switch is recorded as a calibration break in `history.json` (`breaks`) by the first full v3 run (automatically, via the guard), which the timeline marks and the changelog labels as "Recalibration". Until that run lands, all scores are rubric v2.
+**Rubric v3 (September 2026):** the calibration block uses fixed anchors. Each level describes an observable state, and a 5 no longer means "the global frontier today", so scores compare across time. `PROMPT_VERSION` was `v3-2026-09` for the rubric switch, `v3.1-2026-09` once the v2.1 rationale field changed the output structure, `v3.2-2026-09` once the existing-data block also showed the Enforcement Level text (context only; same rubric), and is `v3.3-2026-09` for rubric v3.1.
+
+**Rubric v3.1 (September 2026, #162):** the v3 anchors plus an insufficient-evidence value. A sub-indicator score is `null` when no source confirms either the presence or the absence of what it asks about (the rationale then says what was searched); a 1 needs positive evidence of absence. The "give the lower level" tie-break applies only when evidence supports both levels. Downstream: a dimension is the mean of its numeric sub-indicators, `None` when two or more are null; the maturity index is the mean of the scored normative dimensions, `None` with fewer than two; any unscored dimension caps confidence at `low` (so staleness re-researches it). Files: `scores.csv` writes an empty cell, `history.json` and `pending.json` hold `null`, `subscores.json` holds `{"score": null, "rationale": ...}`; the gate treats a move to or from null as a score change (always on the review list); the digest and changelog print "insufficient evidence" with no direction. Frontend: `isInsufficient(value)` and `INSUFFICIENT_EVIDENCE_LABEL` in `src/constants.ts` are the one test (read values as `entry?.[key]` so a missing row stays `undefined`, "no data"); the map paints `--score-insufficient` (`src/map/fill.ts`, never the colour for 1), and the legend adds an "Insufficient evidence" key only while a shown country is in that state; with the score range at the full scale such a country stays visible, with a narrowed range it is filtered out. `RUBRIC_VERSION = "v3.1"` is what the rubric guard compares. The switch is recorded as a calibration break in `history.json` (`breaks`) by the first full forced run (automatically, via the guard), which the timeline marks and the changelog labels as "Recalibration"; no v3 break was ever recorded, so that one break covers v2 to v3.1. Until that run lands, all scores are rubric v2.
 
 **Methodology v2 (June 2026):** each dimension score is the mean of 4 named sub-indicators (integers 1–5, defined in the `RESEARCH_PROMPT` in `scripts/regulation_pipeline/prompt.py` and modeled in `models.py`), producing quarter-point decimals. Sub-scores are persisted to `public/data/subscores.json`. **Methodology v2.1 (September 2026):** every sub-indicator also carries a one-sentence `rationale` (1–200 characters, validated in pydantic; the structured-output schema requires the field but cannot express length). The pipeline writes `{score, rationale}` per sub-indicator and a top-level `methodology: "v2.1"` tag from the first v2.1 run on (entries researched before keep v2 integers); the frontend loader (`src/data/subscores.ts`) accepts both v2 integers and v2.1 objects. Supabase mirrors rationales into `country_scores.rationales` (jsonb). governance_type and actor_involvement are explicitly scored as descriptive, not quality, scales. Full write-up in `public/methodology.html`.
 

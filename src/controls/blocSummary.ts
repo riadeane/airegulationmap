@@ -6,7 +6,9 @@
 import { getState, setState, on } from '../state/store';
 import { selectCountry } from '../state/interactions';
 import { evidenceOf, scoresAtDate } from '../state/selectors';
-import { computeBlocStats, computeBlocEvidenceShare, blocEvidenceShareText } from '../data/blocs';
+import {
+  computeBlocStats, computeBlocEvidenceShare, blocEvidenceShareText, countInsufficient, blocCoverageText,
+} from '../data/blocs';
 import type { BlocMemberScore } from '../data/blocs';
 import { ATTRIBUTE_LABELS } from '../constants';
 
@@ -48,6 +50,7 @@ function render() {
   // else the latest rows (scoresAtDate() is null for Latest).
   const past = scoresAtDate();
   const stats = computeBlocStats(bloc.members, past ?? scoreData, currentAttribute);
+  const insufficient = countInsufficient(bloc.members, past ?? scoreData, currentAttribute);
   card.replaceChildren();
   card.hidden = false;
 
@@ -70,9 +73,7 @@ function render() {
 
   const coverage = document.createElement('div');
   coverage.className = 'bloc-summary-coverage';
-  coverage.textContent = stats
-    ? `${stats.scoredCount} of ${stats.memberCount} members scored`
-    : `${bloc.members.length} members · no scores for this dimension`;
+  coverage.textContent = blocCoverageText(bloc.members.length, stats?.scoredCount ?? 0, insufficient);
   card.appendChild(coverage);
 
   // Independent of the current dimension, so it renders before the

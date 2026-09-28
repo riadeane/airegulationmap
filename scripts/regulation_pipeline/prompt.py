@@ -18,18 +18,25 @@ from datetime import date
 # unchanged, so this bump is a structure change, not a calibration break.
 # v3.2 (2026-09): the existing-data block also shows the Enforcement Level
 # text (it showed four of the five dimensions). Context only; same rubric.
-PROMPT_VERSION = "v3.2-2026-09"
+# v3.3 (2026-09, issue #162): a sub-indicator score may be null (insufficient
+# evidence), and a 1 needs positive evidence of absence. The lower-level
+# tie-break applies only when evidence supports both levels. This changes
+# the scale (thinly covered countries no longer default to 1), so it comes
+# with rubric v3.1.
+PROMPT_VERSION = "v3.3-2026-09"
 
 # The rubric generation alone (the part of PROMPT_VERSION a calibration
 # break is about). Bump it with the rubric: the first full run on a new
 # rubric then records a calibration break and runs ungated automatically
 # (history.calibration_due), so a scale change never lands as silent drift.
-RUBRIC_VERSION = "v3"
+# v3.1 (2026-09, issue #162): the v3 anchors plus the insufficient-evidence
+# value (null), which is no longer scored as 1.
+RUBRIC_VERSION = "v3.1"
 
 # The evidence-grounded variant (same rubric + output schema, plus a
 # verified-records block). Grounded prompts are LONGER than plain ones -
 # pair grounded runs with --batch for the 50% token pricing.
-GROUNDED_PROMPT_VERSION = "v3.2-grounded-2026-09"
+GROUNDED_PROMPT_VERSION = "v3.3-grounded-2026-09"
 
 # Caps keeping the evidence block bounded: the most recent initiatives
 # carry the signal, and full overviews would dwarf the rubric.
@@ -52,16 +59,19 @@ Research the current state of AI regulation in {country} as of {today}.
 Consider recent legislation, executive orders, national strategies, and international agreements.
 
 Each of the five dimensions is scored through FOUR concrete sub-indicators, each
-scored 1-5. The dimension score is computed downstream as the mean of the four
-scores - you never report a dimension total. Score every sub-indicator strictly against its written
-definition.
+scored 1-5 (or null for insufficient evidence, see below). The dimension score is
+computed downstream as the mean of the numeric scores - you never report a dimension
+total. Score every sub-indicator strictly against its written definition.
 
-Every sub-indicator is an object {{"score": <integer 1-5>, "rationale": "<one sentence>"}}.
+Every sub-indicator is an object {{"score": <integer 1-5, or null>, "rationale": "<one sentence>"}}.
 The rationale states the single fact the score rests on. Name the instrument, body,
 or date where one exists (e.g. "AI Act (Regulation 2024/1689) in force since 1 August
 2024"). One sentence, at most 200 characters. State facts only: no hedging phrases
 such as "appears to", "may", "likely", or "it is possible that". If no fact supports
 a higher score, say what is absent ("No AI-specific instrument exists or is proposed").
+A null score means insufficient evidence; its rationale says what you searched and
+did not find (e.g. "No source on AI enforcement found on the ministry, gazette or
+regulator sites").
 
 Calibration - read before scoring:
 - Each level describes an observable state. Score the state that sources dated on or
@@ -79,13 +89,23 @@ Calibration - read before scoring:
   actions, or rules drafted but not in force.
 - 2 = only non-binding or preparatory activity: a strategy, a consultation, or general
   law with no AI-specific provision.
-- 1 = no observable activity for that sub-indicator.
+- 1 = no observable activity for that sub-indicator. A 1 needs positive evidence of
+  absence: a source that states the thing does not exist, or a well-covered country
+  whose official record you checked (e.g. the government, legislature, gazette and
+  regulator portals) and where nothing exists. Not finding anything is not by itself
+  evidence of absence.
+- null = insufficient evidence: no source you found confirms either the presence or the
+  absence of what the sub-indicator asks about. Return null for the score and say in the
+  rationale what you searched. Null is not a low score; do not use it to avoid a hard
+  judgment when the evidence supports a level.
 - Examples of where the anchors land (illustrations, not the definition): an EU
   member state implementing the EU AI Act sits near 4-5 on most regulation_status
   sub-indicators; the United States (sectoral rules and executive action, no
   horizontal statute) near 3; a country whose only instrument is a published national
   AI strategy near 2; no AI-specific policy activity is 1.
-- When torn between two levels, give the lower one.
+- When the evidence supports two adjacent levels and you are torn between them, give
+  the lower one. This tie-break applies only between levels the evidence supports; it
+  never turns missing evidence into a 1.
 - governance_type and actor_involvement are DESCRIPTIVE scales, not quality scales.
   They record HOW a country governs, not how well. A highly centralized
   single-authority system scores LOW on governance_type sub-indicators even when it is

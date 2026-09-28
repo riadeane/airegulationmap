@@ -39,7 +39,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 
 from .api import parse_message
 from .config import SITE_URL, Settings
-from .models import ResearchResult, strip_titles
+from .models import INSUFFICIENT_EVIDENCE, ResearchResult, strip_titles
 from .retry import call_with_retries
 from .service import CountryChange, RunResult
 
@@ -48,7 +48,8 @@ logger = logging.getLogger(__name__)
 SCHEMA_VERSION = 1
 # Recorded in every digest file so prose can be traced to the prompt that
 # produced it. Bump when the prompt changes.
-DIGEST_PROMPT_VERSION = "digest-v1-2026-09"
+# v1.1 (2026-09, issue #162): a score can read "insufficient evidence".
+DIGEST_PROMPT_VERSION = "digest-v1.1-2026-09"
 
 # One request covers every changed country (a full weekly run can move
 # 40-55), and the model thinks first. 20k stays under the SDK's threshold for
@@ -102,7 +103,12 @@ class DigestText(BaseModel):
 @dataclass(frozen=True)
 class DigestChange:
     """One country the digest covers, reduced to what the prompt and the
-    page need. ``scores`` holds only the dimensions that moved."""
+    page need. ``scores`` holds only the dimensions that moved.
+
+    A ``None`` score is insufficient evidence (an empty scores.csv cell),
+    except an ``old`` score of a country with no prior row at all
+    (``first_scored``). The week file carries the flag so the changes page
+    can tell "first scored" from "insufficient evidence -> 3"."""
 
     country: str
     scores: dict[str, tuple[float | None, float | None]]
@@ -110,10 +116,12 @@ class DigestChange:
     confidence: tuple[str | None, str]
     sources: tuple[str, ...]
     new_sources: tuple[str, ...]
+    first_scored: bool = False
 
     def to_json(self) -> dict:
         return {
             "country": self.country,
+            "first_scored": self.first_scored,
             "scores": {
                 key: {"old": old, "new": new} for key, (old, new) in self.scores.items()
             },
@@ -160,6 +168,7 @@ def select_changes(
             confidence=confidence,
             sources=sources,
             new_sources=new_sources,
+            first_scored=change.old_scores is None,
         ))
     return selected
 
@@ -224,7 +233,7 @@ DIGEST_PROMPT = """You write the weekly changes digest for the AI Regulation Map
 
 Run date: {date}
 
-Below is every country whose scores or named laws changed in this run. For each country you get the old and new dimension scores (1 to 5), the old and new "Specific Laws" text, the confidence label, and the source URLs the run cited.
+Below is every country whose scores or named laws changed in this run. For each country you get the old and new dimension scores (1 to 5, or "insufficient evidence" when the research found no source confirming either presence or absence; that is not a score of 1), the old and new "Specific Laws" text, the confidence label, and the source URLs the run cited.
 
 Return:
 - "lead": one or two sentences, at most 60 words, that say how many countries changed and name the largest score movements. State facts only.
@@ -260,7 +269,8 @@ def _country_block(change: DigestChange) -> str:
     if change.scores:
         lines.append("Scores (old -> new):")
         for key, (old, new) in change.scores.items():
-            lines.append(f"- {key}: {_fmt(old)} -> {_fmt(new)}")
+            old_text = "none" if old is None and change.first_scored else _fmt(old)
+            lines.append(f"- {key}: {old_text} -> {_fmt(new)}")
     else:
         lines.append("Scores: unchanged")
     if change.laws is not None:
@@ -280,7 +290,8 @@ def _country_block(change: DigestChange) -> str:
 
 
 def _fmt(score: float | None) -> str:
-    return "none" if score is None else f"{score:g}"
+    """``3.75``, or "insufficient evidence" for an unscored dimension."""
+    return INSUFFICIENT_EVIDENCE if score is None else f"{score:g}"
 
 
 def _clip(text: str | None) -> str:

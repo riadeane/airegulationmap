@@ -5,7 +5,7 @@ import type { ScaleLinear } from 'd3-scale';
 import { interpolateLab } from 'd3-interpolate';
 import { range } from 'd3-array';
 
-import { LEGEND_ENDPOINTS } from '../constants';
+import { INSUFFICIENT_EVIDENCE_LABEL, LEGEND_ENDPOINTS } from '../constants';
 import { getState } from '../state/store';
 import { confidenceFallsBackAtDate } from '../state/selectors';
 import { cssVar } from './cssColors';
@@ -20,6 +20,11 @@ const FALLBACK_NOTE_TITLE =
   + "country's current confidence.";
 
 export type ColorScale = ScaleLinear<string, string>;
+
+// Whether any shown country is "insufficient evidence" on the current
+// attribute (see setLegendInsufficient). Kept here so a legend rebuilt on
+// resize or a theme change comes back in the same state.
+let insufficientShown = false;
 
 export function makeColorScale(): ColorScale {
   return scaleLinear<string>()
@@ -113,6 +118,29 @@ export function addLegend(
     .attr('text-anchor', 'start')
     .text('No data');
 
+  // "Insufficient evidence" key (rubric v3.1), on the "No data" row. It
+  // appears only while at least one shown country is in that state.
+  const insufficient = legend.append('g')
+    .attr('class', 'legend-insufficient')
+    .attr('transform', 'translate(62, -11)');
+
+  insufficient.append('circle')
+    .attr('cx', 4)
+    .attr('cy', -4)
+    .attr('r', 4.5)
+    .style('fill', cssVar('--score-insufficient'))
+    .style('stroke', cssVar('--text-tertiary'))
+    .style('stroke-width', 1);
+
+  insufficient.append('text')
+    .attr('class', 'legend-label')
+    .attr('x', 14)
+    .attr('y', 0)
+    .attr('text-anchor', 'start')
+    .text(INSUFFICIENT_EVIDENCE_LABEL);
+
+  setLegendInsufficient(insufficientShown);
+
   // Uncertainty key (PRD 13) - a mid-ramp swatch under the same hatch the
   // map draws. Its row sits above "No data"; updateLegendUncertainty shows
   // it only while "Show uncertainty" is on, and adds the fallback note
@@ -164,6 +192,13 @@ export function updateLegendUncertainty(): void {
     .attr('display', showUncertainty ? null : 'none')
     .attr('transform', `translate(0, ${fallback ? -36 : -25})`);
   key.select('.legend-uncertainty-note').attr('display', fallback ? null : 'none');
+}
+
+/** Show the "Insufficient evidence" key only while at least one country
+ * on the map is in that state for the current attribute. */
+export function setLegendInsufficient(show: boolean): void {
+  insufficientShown = show;
+  select('#map .legend-insufficient').attr('display', show ? null : 'none');
 }
 
 export function updateLegendLabels(): void {

@@ -318,7 +318,9 @@ describe('renderCountryIndex', () => {
     expect(html).toContain(`<link rel="canonical" href="${SITE_ORIGIN}/country/">`);
     expect(html).toContain('<a href="/country/argentina/">Argentina</a><span class="num">1.92</span>');
     expect(html).toContain('<a href="/country/cote-divoire/">Côte d&#39;Ivoire</a>');
-    expect(html).toContain('<a href="/country/nowhere/">Nowhere</a><span class="num">n/a</span>');
+    // Every listed country has a scores.csv row, so a null index is
+    // insufficient evidence (rubric v3.1), not missing data.
+    expect(html).toContain('<a href="/country/nowhere/">Nowhere</a><span class="num">Insufficient evidence</span>');
   });
 });
 

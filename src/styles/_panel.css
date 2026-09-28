@@ -387,6 +387,14 @@
   text-align: right;
 }
 
+/* Rubric v3.1: a dimension the research could not verify either way.
+   Words in place of the dots, so it never reads as a score of 0 or 1. */
+.dim-insufficient {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
 .dim-dot {
   width: 7px;
   height: 7px;
@@ -864,6 +872,14 @@
   font-variant-numeric: tabular-nums;
   min-width: 12px;
   text-align: right;
+}
+
+/* An insufficient-evidence sub-indicator: words, not a number, in the
+   body face and the muted tone. */
+.subscore-value.subscore-insufficient {
+  font-family: inherit;
+  color: var(--text-tertiary);
+  margin-left: auto;
 }
 
 /* Sources: official tag + copy-all */

@@ -14,7 +14,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../src/constants';
+import { ATTRIBUTE_LABELS, INSUFFICIENT_EVIDENCE_LABEL, LEGEND_ENDPOINTS, isInsufficient } from '../src/constants';
 import type { AttributeKey, DimensionKey } from '../src/constants';
 import type { BlocsData } from '../src/data/blocs';
 import { parseRegulationCsv, parseScoresCsv } from '../src/data/loader';
@@ -191,7 +191,10 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function formatScore(value: number | null): string {
+// Every page renders a scores.csv row, so a null value is "insufficient
+// evidence" (rubric v3.1), never missing data.
+function formatScore(value: number | null | undefined): string {
+  if (isInsufficient(value)) return INSUFFICIENT_EVIDENCE_LABEL;
   if (value == null) return 'n/a';
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
@@ -236,6 +239,7 @@ export function pageDescription(model: CountryPageModel): string {
 /** Schema.org Dataset markup with the six scores as variableMeasured. */
 export function jsonLd(model: CountryPageModel): Record<string, unknown> {
   const url = SITE_ORIGIN + countryPagePath(model.name);
+  // An insufficient-evidence (null) score has no value to publish.
   const variableMeasured = (Object.keys(ATTRIBUTE_LABELS) as AttributeKey[])
     .map(key => ({ key, value: model.score[key] }))
     .filter(({ value }) => value != null)
@@ -832,7 +836,9 @@ function renderDimensionSections(model: CountryPageModel): string {
     if (!text && !subscores) return '';
     const id = DIMENSION_TO_SNAKE[key].replace('_', '-');
     const score = model.score[key];
-    const scoreTag = score != null ? ` <span class="dim-score">${formatScore(score)}</span>` : '';
+    const scoreTag = score != null || isInsufficient(score)
+      ? ` <span class="dim-score">${formatScore(score)}</span>`
+      : '';
     const body = text ? `      <p>${escapeHtml(text)}</p>\n` : '';
     return `      <section id="${id}" aria-labelledby="${id}-heading">
       <h2 id="${id}-heading">${escapeHtml(ATTRIBUTE_LABELS[key])}${scoreTag}</h2>
@@ -923,7 +929,9 @@ export function renderCountryPage(model: CountryPageModel): string {
 
   const maturity = model.score.averageScore != null
     ? `      <p>Maturity index <strong>${formatScore(model.score.averageScore)}</strong> of 5${model.rank ? `, rank ${model.rank.rank} of ${model.rank.total}` : ''}. The index is the mean of regulation status, policy lever and enforcement level. Governance type and actor involvement describe how ${escapeHtml(model.name)} governs and do not enter the index.</p>`
-    : `      <p>No maturity index is available for ${escapeHtml(model.name)}.</p>`;
+    : isInsufficient(model.score.averageScore)
+      ? `      <p>Maturity index: <strong>${INSUFFICIENT_EVIDENCE_LABEL.toLowerCase()}</strong>. The index is the mean of regulation status, policy lever and enforcement level, and needs at least two of them scored. Research found too little evidence either way for ${escapeHtml(model.name)}; that is not a score of 1.</p>`
+      : `      <p>No maturity index is available for ${escapeHtml(model.name)}.</p>`;
 
   const laws = cleanRegulationText(model.regulation?.specificLaws);
   const lawsSection = laws
@@ -975,7 +983,7 @@ ${renderEntryNav(model)}
 /** The alphabetical list at /country/. */
 export function renderCountryIndex(models: CountryPageModel[]): string {
   const items = models.map(m =>
-    `        <li><a href="/country/${m.slug}/">${escapeHtml(m.name)}</a><span class="num">${m.score.averageScore != null ? m.score.averageScore.toFixed(2) : 'n/a'}</span></li>`
+    `        <li><a href="/country/${m.slug}/">${escapeHtml(m.name)}</a><span class="num">${m.score.averageScore != null ? m.score.averageScore.toFixed(2) : formatScore(m.score.averageScore)}</span></li>`
   );
   const body = `    <p class="entry-kicker">Reference</p>
     <h1 class="doc-title">Countries</h1>

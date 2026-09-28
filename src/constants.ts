@@ -43,7 +43,24 @@ export const SCORE_OPTIONS: { value: AttributeKey; text: string }[] = [
   { value: 'enforcementLevel', text: 'Enforcement Level' },
 ];
 
-export const PLACEHOLDER_RE = /^(na|n\/a|idem|unknown|none|\s*[-–—]\s*|\.\s*)$/i;
+/**
+ * Rubric v3.1 (issue #162): a score the research could not verify either
+ * way. The pipeline writes it as an empty scores.csv cell / JSON null; it is
+ * not a 1, which is a verified absence.
+ */
+export const INSUFFICIENT_EVIDENCE_LABEL = 'Insufficient evidence';
+
+/**
+ * True when a country HAS a score row but this value is null: "insufficient
+ * evidence". Distinct from "no data", where there is no row at all - read
+ * values as `entry?.[key]` so a missing row stays `undefined` and never
+ * counts. The one shared test every view uses.
+ */
+export function isInsufficient(value: number | null | undefined): value is null {
+  return value === null;
+}
+
+export const PLACEHOLDER_RE =/^(na|n\/a|idem|unknown|none|\s*[-–—]\s*|\.\s*)$/i;
 
 // Display-time cleanup of LLM-generated regulation descriptions.
 // Set to false for A/B eyeballing against the raw CSV text.
