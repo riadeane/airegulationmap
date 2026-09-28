@@ -225,6 +225,34 @@
     }
 
     .rubric-body { color: var(--text-secondary); line-height: 1.55; }
+    .rubric-body strong { color: var(--text-primary); font-weight: 500; }
+
+    /* One sub-indicator: its name and key, then its anchors in the same
+       52px score column as .rubric-row. */
+    .rubric-sub {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .rubric-sub:first-child { border-top: 0; }
+
+    .rubric-sub h4 {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .rubric-sub h4 code { font-size: 0.78rem; font-weight: 400; margin-left: 4px; }
+
+    .rubric-sub dl {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 4px 16px;
+    }
+
+    .rubric-sub dd { color: var(--text-secondary); line-height: 1.55; }
+
     .rubric-body em {
       color: var(--text-tertiary);
       font-style: italic;
@@ -284,7 +312,7 @@
       a { color: black; text-decoration: none; }
       a[href]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #555; }
       .rubric { border-color: #bbb; }
-      .rubric-row { border-color: #ddd; }
+      .rubric-row, .rubric-sub { border-color: #ddd; }
       .rubric-score { color: black; }
       .callout { background: #f2f2f2; }
     }
@@ -401,18 +429,10 @@
       <a href="/data/subscores.json"><code>subscores.json</code></a>.
       Under rubric v3 (September 2026), each level of the 1&ndash;5 scale
       describes an <strong>observable state</strong> that a jurisdiction can
-      be verified to be in; scores researched before the first v3 run use
-      the v2 calibration (see <a href="#rubric-versions">Rubric versions</a>).
-      A 5 means the state is fully in place and operating: the instrument
-      is in force, the body is staffed and acting, the practice is routine
-      and published. A jurisdiction reaches 5 when its own record shows
-      that state; it does not need to be ahead of any other country, and
-      perfection is not required. A country's score changes only when
-      its own record changes. Reference
-      points (an EU member state implementing the AI Act near 4 to 5 on
-      regulation status, the United States near 3) are examples of where
-      the anchors land, not the definition. Countries scored before June
-      2026 carry integer scores until their next research pass.
+      be verified to be in (see <a href="#levels">Levels</a> below); scores
+      researched before the first v3 run use the v2 calibration (see
+      <a href="#rubric-versions">Rubric versions</a>). Countries scored
+      before June 2026 carry integer scores until their next research pass.
     </p>
     <p>
       From methodology v2.1 (late September 2026), each research pass
@@ -448,54 +468,230 @@
       <code>scores.csv</code> leaves the cell empty.
     </p>
 
-    <h3>Regulation Status</h3>
-    <p>How much binding, AI-specific regulation is in force: binding law, a draft bill, a national strategy, or nothing at all.</p>
+    <h3 id="levels">Levels</h3>
+    <p>
+      Every sub-indicator is scored on one ladder of observable states.
+      Each row gives the short label the country panel shows for an
+      implementation sub-indicator, then the level's definition, quoted
+      from the model's research prompt in
+      <a href="https://github.com/riadeane/airegulationmap/blob/main/scripts/regulation_pipeline/prompt.py" rel="noopener noreferrer"><code>prompt.py</code></a>.
+    </p>
     <div class="rubric">
-      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">No regulation or minimal engagement; AI is not named in policy documents. <em>Example: many least-developed countries with no ICT ministry position on AI.</em></div></div>
-      <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Early-stage engagement: voluntary guidelines, a sectoral code of practice, or an advisory committee. <em>Example: a national ethics advisory board with non-binding recommendations.</em></div></div>
-      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">National strategy or draft legislation in progress; public consultation underway. <em>Example: a published national AI strategy without enabling legislation.</em></div></div>
-      <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body">Active, enacted AI regulation covering a substantial slice of deployment contexts. <em>Example: a jurisdiction with binding sector-specific AI rules (finance, health).</em></div></div>
-      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Comprehensive, binding, cross-sector AI regulation with explicit enforcement mechanisms. <em>Example: the EU under the AI Act.</em></div></div>
+      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body"><strong>No observable activity.</strong> &ldquo;no observable activity for that sub-indicator.&rdquo; A 1 needs positive evidence of absence (see <a href="#insufficient-evidence">above</a>).</div></div>
+      <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body"><strong>Non-binding or preparatory only.</strong> &ldquo;only non-binding or preparatory activity: a strategy, a consultation, or general law with no AI-specific provision.&rdquo;</div></div>
+      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body"><strong>Exists in part.</strong> &ldquo;the state exists in part: partial scope, one instrument or body, isolated actions, or rules drafted but not in force.&rdquo;</div></div>
+      <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body"><strong>In place, one element incomplete or not yet exercised.</strong> &ldquo;the state is in place, but one element is incomplete, in a transition period, or not yet exercised in practice.&rdquo;</div></div>
+      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body"><strong>In place and operating.</strong> &ldquo;the state is fully in place and operating: the instrument is in force, the body is staffed and acting, the practice is routine and published.&rdquo;</div></div>
+      <div class="rubric-row"><div class="rubric-score">null</div><div class="rubric-body"><strong>Insufficient evidence.</strong> &ldquo;insufficient evidence: no source you found confirms either the presence or the absence of what the sub-indicator asks about.&rdquo; Not a low score: it is left out of the dimension mean.</div></div>
+    </div>
+    <p>
+      A jurisdiction reaches 5 when its own record shows that state; it
+      does not need to be ahead of any other country, and perfection is
+      not required. The research scores the state that sources dated on or
+      before the research date confirm, not the direction of travel and not
+      the gap to other countries, so a country's score changes only when
+      its own record changes. When the evidence supports two adjacent
+      levels, the lower one is given; this tie-break never turns missing
+      evidence into a 1. Announcements, ambition and the volume of activity
+      are not scored, only what a sub-indicator's definition asks about.
+    </p>
+    <p>
+      Each sub-indicator also has its own anchors, listed under the
+      dimensions below: the prompt defines what a 1, a 3 and a 5 mean for
+      that sub-indicator and tells the model to score strictly against that
+      definition. The anchors are quoted verbatim, as the model reads them;
+      a 2 or a 4 sits between two anchors. The code name beside each
+      sub-indicator is its key in <code>subscores.json</code> and in the
+      API's <code>subscores</code> column. On the governance style
+      dimensions a level is a position, not an amount, so the country panel
+      shows the anchor (or the two anchors a score sits between) in place of
+      the labels above.
+    </p>
+
+    <h3 id="regulation-status">Regulation Status</h3>
+    <p>How much binding, AI-specific regulation is in force: whether rules bind, how far they reach across sectors, how far they are in operation, and whether they are written for AI. Not a judgement of whether the rules are good.</p>
+    <div class="rubric">
+      <div class="rubric-sub">
+        <h4>Binding force <code>binding_force</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>nothing binding exists or proposed</dd>
+          <dt class="rubric-score">3</dt><dd>binding AI legislation drafted/in legislative process</dd>
+          <dt class="rubric-score">5</dt><dd>binding AI rules in force</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Scope <code>scope</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no AI coverage in any sector</dd>
+          <dt class="rubric-score">3</dt><dd>a few sectors or use-cases covered</dd>
+          <dt class="rubric-score">5</dt><dd>horizontal cross-sector coverage</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Implementation <code>implementation</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>paper commitments only</dd>
+          <dt class="rubric-score">3</dt><dd>partially in force or in transition period</dd>
+          <dt class="rubric-score">5</dt><dd>fully operational with secondary rules and guidance issued</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>AI specificity <code>ai_specificity</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>only general law incidentally touching AI</dd>
+          <dt class="rubric-score">3</dt><dd>AI explicitly addressed within adapted general law</dd>
+          <dt class="rubric-score">5</dt><dd>dedicated AI-specific instruments</dd>
+        </dl>
+      </div>
+    </div>
+    <p><em>Illustrations, not definitions.</em> An EU member state implementing the EU AI Act sits near 4 to 5 on most regulation status sub-indicators; the United States (sectoral rules and executive action, no horizontal statute) near 3; a country whose only instrument is a published national AI strategy near 2. A country with no AI-specific policy activity scores 1 once its official record confirms the absence.</p>
+
+    <h3 id="policy-lever">Policy Lever</h3>
+    <p>How many kinds of policy instrument are in use: binding law, guidance and standards, funding and other economic tools, and the institutions that carry them. It counts instruments in use, not whether they work.</p>
+    <div class="rubric">
+      <div class="rubric-sub">
+        <h4>Binding instruments <code>binding_instruments</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no binding instruments</dd>
+          <dt class="rubric-score">3</dt><dd>one binding instrument</dd>
+          <dt class="rubric-score">5</dt><dd>multiple binding instruments across domains</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Soft law &amp; standards <code>soft_law</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no guidance/standards/codes</dd>
+          <dt class="rubric-score">3</dt><dd>some published guidance</dd>
+          <dt class="rubric-score">5</dt><dd>mature, maintained suite of standards and codes</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Economic tools <code>economic_tools</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no funding/procurement/sandbox programs</dd>
+          <dt class="rubric-score">3</dt><dd>one or two programs</dd>
+          <dt class="rubric-score">5</dt><dd>several active programs</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Institutional capacity <code>institutional_capacity</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no dedicated bodies</dd>
+          <dt class="rubric-score">3</dt><dd>bodies designated but thinly resourced</dd>
+          <dt class="rubric-score">5</dt><dd>staffed, operational institutions with compliance infrastructure</dd>
+        </dl>
+      </div>
     </div>
 
-    <h3>Policy Lever</h3>
-    <p>The breadth of policy instruments in use, from narrow, sector-specific tools to broad, cross-cutting frameworks.</p>
+    <h3 id="governance-type">Governance Type</h3>
+    <p>Whether authority over AI is held by one body or spread across regulators, levels of government, courts and independent bodies. <strong>Descriptive, not a quality scale:</strong> a 1 here means highly centralised, not bad; a 5 means highly distributed, not good. A centralised single-authority system scores low on these sub-indicators even when it is highly effective. A 1 describes a single authority, not the absence of governance: where every implementation dimension is 1, the country panel shows &ldquo;No AI governance activity observed&rdquo; instead of a governance type score. This dimension does not enter the implementation index.</p>
     <div class="rubric">
-      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Narrow: one tool, one sector, or indirect leverage only (e.g. data protection law being bent to cover AI).</div></div>
-      <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Two or three instruments in related areas: e.g. a national strategy paired with sectoral guidance, or a regulatory sandbox alongside a code of practice.</div></div>
-      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Mixed: several instruments: standards, procurement guidance, R&amp;D funding, some sectoral rules.</div></div>
-      <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body">Multiple instruments across several domains, with at least one binding regulation and active funding, standards, or capacity-building work in parallel.</div></div>
-      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Broad: a horizontal regulatory framework plus sectoral adaptations, public investment, and compliance infrastructure.</div></div>
+      <div class="rubric-sub">
+        <h4>Regulator plurality <code>regulator_plurality</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>single authority sets and enforces policy</dd>
+          <dt class="rubric-score">3</dt><dd>lead body plus sectoral regulators</dd>
+          <dt class="rubric-score">5</dt><dd>many independent regulators with their own remits</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Formal coordination <code>formal_coordination</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>single actor, nothing to coordinate</dd>
+          <dt class="rubric-score">3</dt><dd>ad hoc coordination</dd>
+          <dt class="rubric-score">5</dt><dd>formal coordination mechanisms across many bodies</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Sub-national role <code>subnational_role</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no sub-national role</dd>
+          <dt class="rubric-score">3</dt><dd>sub-national implementation of national rules</dd>
+          <dt class="rubric-score">5</dt><dd>states/provinces regulate AI independently</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Non-governmental checks <code>nongovernmental_checks</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no court/ombudsman/independent-review role</dd>
+          <dt class="rubric-score">3</dt><dd>occasional judicial or independent review</dd>
+          <dt class="rubric-score">5</dt><dd>courts and independent bodies actively shape AI rules</dd>
+        </dl>
+      </div>
     </div>
 
-    <h3>Governance Type</h3>
-    <p>Where authority for AI regulation sits: concentrated in a single body vs. distributed across agencies, sectors, and levels of government. <strong>Descriptive, not a quality scale:</strong> a 1 here means highly centralised, not bad; a 5 means highly distributed, not good. This dimension does not enter the implementation index.</p>
+    <h3 id="actor-involvement">Actor Involvement</h3>
+    <p>How widely industry, civil society, academia and international partners take part in AI policy-making, from narrow (1) to broad (5). <strong>Descriptive, not a quality scale</strong>, and scored on domestic process: international activity does not substitute for civil-society access at home, so a government that excludes domestic civil society scores low on civil society however active it is abroad. This dimension does not enter the implementation index.</p>
     <div class="rubric">
-      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Centralized: a single national authority sets and enforces policy.</div></div>
-      <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Lead authority with informal delegation to one or two sectoral bodies; coordination happens ad hoc.</div></div>
-      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Hybrid: a lead body coordinates with sectoral regulators or sub-national jurisdictions.</div></div>
-      <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body">Multi-actor network with formal coordination mechanisms; independent regulators hold clearly delineated remits.</div></div>
-      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Distributed: authority is spread across independent regulators, courts, and sub-national governments; coordination is emergent rather than imposed.</div></div>
+      <div class="rubric-sub">
+        <h4>Industry <code>industry</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no structured industry input</dd>
+          <dt class="rubric-score">3</dt><dd>published consultations and working groups</dd>
+          <dt class="rubric-score">5</dt><dd>standing formal roles in policy-making</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Civil society <code>civil_society</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>civil society excluded from domestic process</dd>
+          <dt class="rubric-score">3</dt><dd>consulted occasionally</dd>
+          <dt class="rubric-score">5</dt><dd>standing formal roles for NGOs/unions</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Academia <code>academia</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no academic involvement</dd>
+          <dt class="rubric-score">3</dt><dd>some advisory input</dd>
+          <dt class="rubric-score">5</dt><dd>formal standing advisory roles</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>International <code>international</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no participation in international AI governance</dd>
+          <dt class="rubric-score">3</dt><dd>signatory to declarations</dd>
+          <dt class="rubric-score">5</dt><dd>active treaty/standards participation</dd>
+        </dl>
+      </div>
     </div>
 
-    <h3>Actor Involvement</h3>
-    <p>Which actors shape AI policy: narrow expert circles vs. broad engagement with industry, civil society, academia, and the public. <strong>Descriptive, not a quality scale</strong>, and scored on domestic process: international standard-setting activity does not substitute for civil-society access at home. This dimension does not enter the implementation index.</p>
+    <h3 id="enforcement-level">Enforcement Level</h3>
+    <p>How much enforcement of AI rules is observed: the penalties defined, the actions taken, the authority that owns enforcement, and the monitoring it carries out. It measures enforcement activity, not whether it is fair or effective.</p>
     <div class="rubric">
-      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">Limited: policy is set inside government with minimal external input.</div></div>
-      <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Industry is consulted informally; civil society and academia have no structured access.</div></div>
-      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Consultative: published consultations, industry working groups, some academic input.</div></div>
-      <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body">Standing multi-stakeholder bodies include industry, academia, and at least one civil-society voice; international coordination is ad hoc.</div></div>
-      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Broad: structured multi-stakeholder processes including civil society, trade unions, and international partners.</div></div>
-    </div>
-
-    <h3>Enforcement Level</h3>
-    <p>How strictly existing rules are enforced, from rules on paper only, to active supervision with penalties.</p>
-    <div class="rubric">
-      <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body">No enforcement mechanism; obligations are not tied to any authority.</div></div>
-      <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body">Obligations reference an authority but no sanctioning framework is in place; compliance is effectively voluntary.</div></div>
-      <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body">Soft enforcement: oversight bodies exist but audits and penalties are rare.</div></div>
-      <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body">Sanctioning framework exists and has been used selectively; enforcement is inconsistent across sectors or regions.</div></div>
-      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body">Active enforcement: penalties have been issued, audits are routine, and a dedicated authority publishes enforcement actions.</div></div>
+      <div class="rubric-sub">
+        <h4>Sanctions framework <code>sanctions_framework</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no penalties defined</dd>
+          <dt class="rubric-score">3</dt><dd>penalties defined for some obligations</dd>
+          <dt class="rubric-score">5</dt><dd>comprehensive penalty framework</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Actions taken <code>actions_taken</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>never enforced</dd>
+          <dt class="rubric-score">3</dt><dd>isolated enforcement actions</dd>
+          <dt class="rubric-score">5</dt><dd>routine, published enforcement actions</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Dedicated authority <code>dedicated_authority</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>nobody owns AI enforcement</dd>
+          <dt class="rubric-score">3</dt><dd>authority designated without dedicated resources</dd>
+          <dt class="rubric-score">5</dt><dd>resourced authority with explicit AI remit</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Monitoring practice <code>monitoring_practice</code></h4>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no audits or monitoring</dd>
+          <dt class="rubric-score">3</dt><dd>occasional reviews</dd>
+          <dt class="rubric-score">5</dt><dd>routine audits and public reporting</dd>
+        </dl>
+      </div>
     </div>
 
     <h3 id="implementation-index">Implementation Index</h3>
@@ -534,7 +730,7 @@
     <ul>
       <li><strong>v1, March 2026.</strong> Integer scores per dimension, four-dimension composite.</li>
       <li><strong>v2, June 2026.</strong> Four sub-indicators per dimension, quarter-point means, three-dimension composite index. A 5 meant the global frontier at the time of scoring.</li>
-      <li><strong>v3, September 2026.</strong> Fixed anchors. The frontier definition made scores comparable across countries but not across time: a country could fall without changing anything because the frontier moved, and weekly runs re-estimated the frontier every week. Each level now describes an observable state, as set out under <a href="#the-six-dimensions">The six dimensions</a>. The sub-indicator definitions and the output structure are unchanged. The first v3 run is also the first on Claude Opus 5, so the two changes share one break in the series, not two.</li>
+      <li><strong>v3, September 2026.</strong> Fixed anchors. The frontier definition made scores comparable across countries but not across time: a country could fall without changing anything because the frontier moved, and weekly runs re-estimated the frontier every week. Each level now describes an observable state, as set out under <a href="#levels">Levels</a>. The sub-indicator definitions and the output structure are unchanged. The first v3 run is also the first on Claude Opus 5, so the two changes share one break in the series, not two.</li>
       <li><strong>v3.1, September 2026.</strong> The v3 anchors plus an <a href="#insufficient-evidence">insufficient evidence</a> value, which is no longer scored as 1. The tie-break toward the lower of two levels now applies only when the evidence supports both. Countries with thin source coverage can move up at this break because gaps stop counting as absences.</li>
     </ul>
     <p>Each break is recorded in <code>history.json</code> under <code>breaks</code> with its date, model, prompt version, and reason; the v3.1 break is recorded there when the first full v3.1 run lands (v3.1 followed v3 before a full v3 run had landed, so that run records a single break). The timeline marks the date, and a country's score history labels changes on that date as a recalibration rather than a policy change. A relative view (a score divided by that week's maximum) is a possible display option for the frontend; it is never the stored number.</p>
