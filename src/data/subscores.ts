@@ -141,6 +141,54 @@ export const SUBSCORE_LABELS: Record<SnakeDimension, [string, string][]> = {
   ],
 };
 
+/**
+ * The governance style sub-indicators are descriptive: each level is a
+ * position, not an achievement. Their 1 / 3 / 5 anchors, from the v3 rubric
+ * in scripts/regulation_pipeline/prompt.py, in plain words.
+ */
+export const STYLE_ANCHORS: Record<string, [string, string, string]> = {
+  regulator_plurality: [
+    'A single authority sets and enforces policy',
+    'A lead body plus sectoral regulators',
+    'Many independent regulators with their own remits',
+  ],
+  formal_coordination: [
+    'A single actor, nothing to coordinate',
+    'Ad hoc coordination',
+    'Formal coordination across many bodies',
+  ],
+  subnational_role: [
+    'No sub-national role',
+    'Sub-national bodies implement national rules',
+    'States or provinces regulate AI independently',
+  ],
+  nongovernmental_checks: [
+    'No court, ombudsman or independent review role',
+    'Occasional judicial or independent review',
+    'Courts and independent bodies actively shape AI rules',
+  ],
+  industry: [
+    'No structured industry input',
+    'Published consultations and working groups',
+    'Standing formal roles in policy-making',
+  ],
+  civil_society: [
+    'Civil society excluded from the domestic process',
+    'Consulted occasionally',
+    'Standing formal roles for NGOs and unions',
+  ],
+  academia: [
+    'No academic involvement',
+    'Some advisory input',
+    'Formal standing advisory roles',
+  ],
+  international: [
+    'No part in international AI governance',
+    'Signatory to declarations',
+    'Active in treaties and standards bodies',
+  ],
+};
+
 export async function loadSubscores(): Promise<SubscoresData | null> {
   try {
     const response = await fetch('/data/subscores.json');
