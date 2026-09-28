@@ -26,6 +26,7 @@ from .batch import BatchRunner
 from .config import DEFAULT_MODEL, Settings, estimate_cost_usd
 from .digest import write_run_digest
 from .gold import check_run, markdown_summary
+from .links import LinkChecker
 from .names import CountryNames
 from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION, RUBRIC_VERSION
 from .repository import Dataset
@@ -43,6 +44,9 @@ def configure_logging(verbose: bool) -> None:
         stream=sys.stderr,
         force=True,
     )
+    # httpx logs every request at INFO; the link check alone makes one per
+    # cited URL. Keep them for --verbose.
+    logging.getLogger("httpx").setLevel(logging.DEBUG if verbose else logging.WARNING)
 
 
 def _run(
@@ -95,6 +99,12 @@ def _run(
         help="With --no-gate: record a calibration break {date, model, "
         "prompt_version, reason} in history.json so the frontend labels the "
         "shift as a recalibration, not as policy change.",
+    ),
+    link_check: bool = typer.Option(
+        True, "--link-check/--no-link-check",
+        help="Fetch every cited URL after research and drop the dead ones (404, "
+        "410, a not-found page, a known-bad pattern) before they are written "
+        "(default). Blocked or unreachable URLs are kept.",
     ),
     digest: bool | None = typer.Option(
         None, "--digest/--no-digest",
@@ -211,6 +221,7 @@ def _run(
         gate_enabled=gate_enabled,
         calibration_break=calibration_break,
         run_id=supabase_mirror.run_id if supabase_mirror is not None else None,
+        link_checker=LinkChecker() if link_check and not dry_run else None,
     )
     write_digest = digest if digest is not None else _is_scheduled()
 

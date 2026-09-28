@@ -1,0 +1,89 @@
+name: Link Check
+
+# Monthly link-rot monitor (#92). The weekly data run already drops dead
+# URLs from the countries it researches; this checks every URL the
+# published regulation_data.csv cites and keeps one open issue (label
+# "data") listing the dead ones, updated in place each month.
+# A dispatch can also fill Supabase sources.title for untitled rows (#143).
+
+on:
+  schedule:
+    # 05:13 UTC on the 1st of each month (off the hour to dodge queueing).
+    - cron: '13 5 1 * *'
+  workflow_dispatch:
+    inputs:
+      titles:
+        description: 'Also fill Supabase sources.title for rows without one'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: link-check
+  cancel-in-progress: false
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      issues: write  # open or update the link-rot issue
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check cited URLs
+        env:
+          PYTHONPATH: scripts
+        run: python -m regulation_pipeline.links report > dead-links.md
+
+      - name: Summary
+        run: |
+          if [ -s dead-links.md ]; then
+            { echo "## Dead source links"; echo; cat dead-links.md; } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No dead source links." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Open or update the link-rot issue
+        if: ${{ github.ref == 'refs/heads/main' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ ! -s dead-links.md ]; then exit 0; fi
+          {
+            echo "The monthly link check found dead source URLs in \`public/regulation_data.csv\` ([run]($RUN_URL))."
+            echo "The weekly data run drops dead URLs from the countries it re-researches, so most of these clear on their own; a country listed with no working source needs a look."
+            echo
+            cat dead-links.md
+            echo
+            echo "---"
+            echo "_Updated by the Link Check workflow on $(date -u +%Y-%m-%d)._"
+          } > issue-body.md
+          existing=$(gh issue list --state open --label data --search 'in:title "Dead source links"' --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file issue-body.md
+          else
+            gh issue create --title "Dead source links" --label data --body-file issue-body.md
+          fi
+
+      - name: Fill source titles
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.titles }}
+        env:
+          PYTHONPATH: scripts
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python -m regulation_pipeline.links titles

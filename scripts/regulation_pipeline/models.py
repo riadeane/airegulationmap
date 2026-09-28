@@ -281,6 +281,9 @@ class ResearchResult(BaseModel):
     # of ``output_schema()`` and no key in the model's JSON answer can set it.
     # The strategy attaches it with ``with_provenance`` after validation.
     _provenance: ResearchProvenance | None = PrivateAttr(default=None)
+    # Page titles of the cited URLs the link check reached (``links.py``),
+    # for the sources database. Private for the same reason.
+    _source_titles: dict[str, str] = PrivateAttr(default_factory=dict)
 
     regulation_status: RegulationStatus
     policy_lever: PolicyLever
@@ -309,6 +312,16 @@ class ResearchResult(BaseModel):
     def with_provenance(self, provenance: ResearchProvenance | None) -> ResearchResult:
         """Attach ``provenance`` and return this result (for chaining)."""
         self._provenance = provenance
+        return self
+
+    @property
+    def source_titles(self) -> dict[str, str]:
+        """``url -> page title`` for the cited URLs the link check reached."""
+        return dict(self._source_titles)
+
+    def with_source_titles(self, titles: dict[str, str]) -> ResearchResult:
+        """Attach the cited pages' titles and return this result."""
+        self._source_titles = dict(titles)
         return self
 
     def dimensions(self) -> dict[str, Dimension]:

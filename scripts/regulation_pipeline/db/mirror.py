@@ -233,17 +233,27 @@ class SupabaseMirror:
         by_url: dict[str, dict] = {}
         links: list[tuple[str, str]] = []
         for e in self._entries:
+            titles = e.result.source_titles
             for src in classify_sources(e.result.sources):
-                by_url.setdefault(src.url, {
+                row = by_url.setdefault(src.url, {
                     "url": src.url, "domain": src.domain,
                     "source_type": src.source_type, "last_seen": now,
                 })
+                if titles.get(src.url):
+                    row["title"] = titles[src.url]
                 links.append((e.country, src.url))
         if not by_url:
             return
         # first_seen is deliberately not supplied: the DB default applies on
-        # insert, and merge-duplicates only updates supplied columns.
-        self._client.upsert("sources", list(by_url.values()), on_conflict="url")
+        # insert, and merge-duplicates only updates supplied columns. A bulk
+        # request sends one column set for every row, so titled rows (the
+        # link check read the page) go in their own request; an untitled row
+        # never overwrites a stored title with null.
+        titled = [row for row in by_url.values() if "title" in row]
+        untitled = [row for row in by_url.values() if "title" not in row]
+        for rows in (titled, untitled):
+            if rows:
+                self._client.upsert("sources", rows, on_conflict="url")
         source_ids = {
             r["url"]: r["id"]
             for r in self._client.select_all("sources", {"select": "id,url", "order": "id"})

@@ -107,6 +107,19 @@ python scripts/update_data.py --no-gate --break-reason "Model switch to Opus 5"
 # --countries names resolve exactly, through the alias map, or
 # case-insensitively; an unknown name exits 1 before any API call.
 
+# Link check (default on): every cited URL is fetched after research; dead
+# ones (404, 410, a not-found page, the dead oecd.ai country-dashboard
+# pattern) are dropped before writing, and a result left with no source is
+# capped at low confidence. Blocked or unreachable URLs are kept. Live pages'
+# titles go to Supabase sources.title.
+python scripts/update_data.py --no-link-check
+
+# Link-rot report over the published CSV (Markdown; the monthly
+# link-check.yml workflow opens or updates a "Dead source links" issue with
+# it), and a one-off fill of sources.title for untitled rows.
+python -m regulation_pipeline.links report
+python -m regulation_pipeline.links titles
+
 # Weekly changes digest (public/digest/): auto-on for scheduled runs
 # (GITHUB_EVENT_NAME=schedule); force with --digest. One Claude request on
 # the run's model; digest failures never fail a run.
@@ -221,6 +234,7 @@ Python package that calls the Claude API to research regulation status per count
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - evidence and persistence rules for score changes |
 | `digest.py` | Weekly digest: selects a run's gate-applied changes, one structured-output Claude request, writes `public/digest/` (week JSON, index, Atom feed); `python -m regulation_pipeline.digest --run <id>` regenerates from Supabase |
+| `links.py` | Source link check (#92): `LinkChecker` fetches each cited URL once per run and drops dead ones (404/410, a redirect to or a 200 not-found page, known-bad patterns) before gating; 401/403/429/5xx/timeouts stay. Reads live pages' titles for `sources.title` (#143). `python -m regulation_pipeline.links report|titles` |
 | `gold.py` | Gold set and drift check: loads `gold_set.json`, compares a run's raw (ungated) results with it (`compare`, pure), appends `drift.json`, mirrors `gold_checks`, step-summary block; `python -m regulation_pipeline.gold --model <id>` is the model-comparison CLI |
 | `history.py` | History snapshot append/change-detection: a snapshot is a change-point in the scores or the confidence (an unchanged re-research leaves history alone; a same-day re-run supersedes that day's snapshot; a gate-held result with a new confidence appends a snapshot copying the held scores); `calibration_due` for the rubric guard |
 | `names.py` | `CountryNames` - country-name normalization via alias map |
@@ -350,9 +364,12 @@ dual-write mirror on every run (`db/mirror.py`; failures never fail a run).
 The frontend reads Supabase only as progressive enhancement: post-boot
 hydration when the DB is strictly newer, source titles, and the per-country
 Policy Initiatives panel section - all of which degrade to today's behavior
-when unconfigured or unreachable. Source titles are a read path only so far:
-`src/data/sourceMeta.ts` fetches rows with a title, but no code in the
-repository writes `sources.title` yet, so the panel shows hostnames. Schema
+when unconfigured or unreachable. Source titles: the pipeline's link check reads each live cited page's
+title (`og:title`, else `<title>`) and the mirror writes it to
+`sources.title` (an untitled row never overwrites a stored title);
+`python -m regulation_pipeline.links titles` (or the link-check workflow's
+`titles` dispatch) fills rows from before. `src/data/sourceMeta.ts` reads
+them, and the panel shows hostnames for untitled sources. Schema
 migrations live in `supabase/migrations/`; RLS is public-SELECT everywhere, writes via the
 service role only. Researcher-facing docs live at `public/data.html` (static
 overview: downloads, endpoint table, recipe links) and `api-docs.html`
@@ -447,7 +464,7 @@ methodology keeps one history note on the old name.
 
 ### Automated Updates
 
-`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`). If main moved during the run the commit is rebased and retried, and if it still fails every output file is uploaded as a workflow artifact; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer.
+`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`). If main moved during the run the commit is rebased and retried, and if it still fails every output file is uploaded as a workflow artifact; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer. `.github/workflows/link-check.yml` runs monthly (and on dispatch): it checks every URL in `regulation_data.csv` and opens or updates one "Dead source links" issue (label `data`); a dispatch with `titles` also fills Supabase `sources.title`.
 
 ### Deployment
 

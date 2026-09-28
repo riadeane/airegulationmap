@@ -79,6 +79,7 @@ flowchart TD
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
 | `gate.py` | Stability gate - decides whether a result's scores may land |
 | `digest.py` | Weekly digest: change selection, one structured-output request, `public/digest/` writers (week JSON, index, Atom), `--run <id>` regeneration |
+| `links.py` | Source link check: drops dead cited URLs before gating, reads live page titles for `sources.title`; `report` / `titles` CLI |
 | `gold.py` | Gold set and drift check: the gold file's contract, the pure agreement metrics, the `drift.json` record, the step-summary block, `--model <id>` comparison CLI |
 | `names.py` | `CountryNames` - country-name normalization |
 | `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
