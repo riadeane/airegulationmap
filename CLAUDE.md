@@ -487,7 +487,7 @@ methodology keeps one history note on the old name.
 
 ### Deployment
 
-Hosted on Cloudflare Pages. Build command: `npm run build`, output directory: `dist`.
+Hosted on Cloudflare Pages. Build command: `npm run build`, output directory: `dist`. The Pages build reads its Node version from `.nvmrc` (keep it on the major CI's `setup-node` uses): the project's v2 build image otherwise defaults to Node 18, which Vite 8 cannot run on.
 
 ## Design Context
 
