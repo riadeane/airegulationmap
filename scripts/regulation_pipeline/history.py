@@ -29,6 +29,10 @@ def append_snapshot(history: dict, country: str, snapshot: dict) -> bool:
     change to the latest run. (Freshness lives in ``last_updated`` in
     regulation_data.csv.)
 
+    A dimension value may be ``None`` (insufficient evidence, written as
+    ``null``). ``None`` against a number is a change; ``None`` against
+    ``None`` is not.
+
     A second run on the same day supersedes that day's snapshot instead of
     adding another with the same date (``score_history`` allows one per
     country and date): the day's snapshot is dropped, and the new scores are
@@ -50,7 +54,10 @@ def append_snapshot(history: dict, country: str, snapshot: dict) -> bool:
 
 def rubric_of(entry: dict) -> str | None:
     """The rubric generation a calibration break was recorded for: its
-    ``rubric`` field, else the leading ``vN`` of its ``prompt_version``."""
+    ``rubric`` field (e.g. ``"v3.1"``), else the leading ``vN`` of its
+    ``prompt_version``. The fallback serves legacy entries only: prompt and
+    rubric versions diverge after v3 (prompt v3.3 is rubric v3.1), so every
+    break written since records ``rubric`` explicitly."""
     if entry.get("rubric"):
         return str(entry["rubric"])
     match = re.match(r"(v\d+)", str(entry.get("prompt_version") or ""))

@@ -9,6 +9,12 @@ dimension scores, the sub-scores, and the history snapshot.
 :func:`decide` is a pure function so every rule is testable without a
 dataset. The service applies the decision; the repository stores the
 pending candidates in ``public/data/pending.json``.
+
+A dimension score may be ``None`` (insufficient evidence, rubric v3.1). A
+move to or from ``None`` is a score change like any other: it needs new
+evidence or has to repeat on the next run. Its direction is "to insufficient
+evidence" or "from insufficient evidence" rather than up or down, and it
+always goes on the review list, since no size can be measured.
 """
 
 from __future__ import annotations
@@ -18,7 +24,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from urllib.parse import urlparse
 
-from .models import ResearchResult
+from .models import ResearchResult, format_score
 from .sources import classify_sources
 
 # Provenance labels, one per country per run.
@@ -47,9 +53,12 @@ _WHITESPACE_RE = re.compile(r"\s+")
 
 @dataclass(frozen=True)
 class LargeMove:
+    """An applied move worth reviewing: 0.75 or more, or to or from
+    insufficient evidence (``None``)."""
+
     dimension: str
-    old: float
-    new: float
+    old: float | None
+    new: float | None
 
 
 @dataclass(frozen=True)
@@ -97,7 +106,8 @@ def review_lines(tally: GateTally) -> list[str]:
         for move in decision.large_moves:
             sources = ", ".join(decision.new_sources) or "no new source"
             lines.append(
-                f"Review: {country} {move.dimension} {move.old} -> {move.new} ({sources})"
+                f"Review: {country} {move.dimension} {format_score(move.old)} -> "
+                f"{format_score(move.new)} ({sources})"
             )
     return lines
 
@@ -113,7 +123,10 @@ def markdown_summary(tally: GateTally, calibration_break: dict | None = None) ->
         out += ["", f"Calibration break recorded: {calibration_break['reason']}"]
     out += ["", "### Review these", ""]
     if not tally.review:
-        out.append(f"No applied move of {LARGE_MOVE} or more on any dimension.")
+        out.append(
+            f"No applied move of {LARGE_MOVE} or more, or to or from insufficient "
+            "evidence, on any dimension."
+        )
     else:
         out.append("| Country | Dimension | Old | New | New sources |")
         out.append("|---------|-----------|-----|-----|-------------|")
@@ -121,7 +134,8 @@ def markdown_summary(tally: GateTally, calibration_break: dict | None = None) ->
             sources = "<br>".join(decision.new_sources) or "none"
             for move in decision.large_moves:
                 out.append(
-                    f"| {country} | {move.dimension} | {move.old} | {move.new} | {sources} |"
+                    f"| {country} | {move.dimension} | {format_score(move.old)} | "
+                    f"{format_score(move.new)} | {sources} |"
                 )
     return "\n".join(out) + "\n"
 
@@ -172,7 +186,7 @@ def decide(
             )
 
     entry = {"candidate_scores": candidate, "first_seen": today.isoformat()}
-    moved = ", ".join(f"{key} {_arrow(sign)}" for key, sign in sorted(directions.items()))
+    moved = ", ".join(f"{key} {direction}" for key, direction in sorted(directions.items()))
     return Decision(HELD, False, f"no evidence ({moved})", pending=entry)
 
 
@@ -198,7 +212,7 @@ def standing(existing_scores: dict | None, pending: dict | None) -> str:
     stored = pending.get("candidate_scores", {})
     old = _existing_dimension_scores(existing_scores) or {}
     moved = ", ".join(
-        f"{key} {_arrow(sign)}" for key, sign in sorted(_directions(old, stored).items())
+        f"{key} {direction}" for key, direction in sorted(_directions(old, stored).items())
     )
     return f"held since {pending.get('first_seen')} ({moved}): applies if the same move repeats"
 
@@ -256,42 +270,77 @@ def _squash(text: str | None) -> str:
 # -- score helpers ---------------------------------------------------------------
 
 
-def _existing_dimension_scores(row: dict | None) -> dict[str, float] | None:
-    """The five dimension scores from a scores.csv row, or ``None`` when the
-    row is missing or any score is empty or non-numeric."""
+_EMPTY_CELLS = ("", "NA", None)
+
+# Direction labels for a dimension that moved (``_directions``).
+UP = "up"
+DOWN = "down"
+TO_INSUFFICIENT = "to insufficient evidence"
+FROM_INSUFFICIENT = "from insufficient evidence"
+
+
+def _existing_dimension_scores(row: dict | None) -> dict[str, float | None] | None:
+    """The five dimension scores from a scores.csv row. An empty cell is
+    ``None`` (insufficient evidence). Returns ``None`` (no prior scores)
+    when the row is missing, every score is empty, or any score is
+    non-numeric."""
     if not row:
         return None
-    scores: dict[str, float] = {}
+    scores: dict[str, float | None] = {}
     for key, column in SCORE_COLUMNS.items():
+        value = row.get(column, "")
+        if value in _EMPTY_CELLS:
+            scores[key] = None
+            continue
         try:
-            scores[key] = round(float(row.get(column, "")), 2)
+            scores[key] = round(float(value), 2)
         except (TypeError, ValueError):
             return None
+    if all(value is None for value in scores.values()):
+        return None
     return scores
 
 
-def _directions(old: dict[str, float], new: dict) -> dict[str, int]:
-    """Sign of the move per dimension, for dimensions that moved."""
-    out: dict[str, int] = {}
+def _as_score(value) -> float | None:
+    """A candidate score (a number, ``None``, or a pending.json value)."""
+    if value in _EMPTY_CELLS:
+        return None
+    return float(value)
+
+
+def _directions(old: dict[str, float | None], new: dict) -> dict[str, str]:
+    """Direction of the move per dimension, for dimensions that moved:
+    ``up``, ``down``, or to or from insufficient evidence (``None``). A key
+    missing from ``new`` or holding garbage is treated as unmoved."""
+    out: dict[str, str] = {}
     for key, before in old.items():
-        try:
-            after = float(new[key])
-        except (KeyError, TypeError, ValueError):
+        if key not in new:
             continue
-        if after > before:
-            out[key] = 1
+        try:
+            after = _as_score(new[key])
+        except (TypeError, ValueError):
+            continue
+        if before is None and after is None:
+            continue
+        if after is None:
+            out[key] = TO_INSUFFICIENT
+        elif before is None:
+            out[key] = FROM_INSUFFICIENT
+        elif after > before:
+            out[key] = UP
         elif after < before:
-            out[key] = -1
+            out[key] = DOWN
     return out
 
 
-def _large_moves(changes: dict[str, tuple[float, float]]) -> tuple[LargeMove, ...]:
+def _large_moves(
+    changes: dict[str, tuple[float | None, float | None]],
+) -> tuple[LargeMove, ...]:
+    """Moves of :data:`LARGE_MOVE` or more, plus every move to or from
+    insufficient evidence (it has no size, and a score appearing or
+    disappearing is worth a look)."""
     return tuple(
         LargeMove(key, before, after)
         for key, (before, after) in changes.items()
-        if abs(after - before) >= LARGE_MOVE
+        if before is None or after is None or abs(after - before) >= LARGE_MOVE
     )
-
-
-def _arrow(sign: int) -> str:
-    return "up" if sign > 0 else "down"
