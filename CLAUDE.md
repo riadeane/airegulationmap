@@ -120,8 +120,9 @@ python -m regulation_pipeline.digest --run <research_runs.id>
 # the ten gold countries (public/data/gold_set.json) are compared with the
 # gold scores (drafts awaiting the maintainer's hand-check) and one row is
 # appended to public/data/drift.json (mirrored to Supabase gold_checks).
-# Never fails a run; a within-one share below 0.8 prefixes the step summary
-# with "Calibration warning".
+# Never fails a run; a within-one share below 0.8, or a dimension whose mean
+# signed error (run minus gold) is beyond 0.5 either way, prefixes the step
+# summary with "Calibration warning".
 # Model comparison: research only the gold countries, print the metrics,
 # write nothing (sync by default; --batch for the 50% pricing).
 python -m regulation_pipeline.gold --model claude-sonnet-5
@@ -237,7 +238,7 @@ Python package that calls the Claude API to research regulation status per count
 | `public/data/subscores.json` | Per-country sub-indicator audit trail (4 sub-scores per dimension, methodology v2; `{score, rationale}` per sub-indicator since v2.1), plus the `evidence` record of each country's latest research pass (PRD 14; absent = no run record yet) |
 | `public/data/pending.json` | Score candidates the stability gate held for one run (`{country, candidate_scores, first_seen}`) |
 | `public/data/gold_set.json` | Gold sub-indicator scores for ten countries across the maturity range: 20 scores, a justification per dimension, sources, and `status` (`draft` until the maintainer verifies, then `verified` + `verified_on`). All ten are drafts awaiting the maintainer's hand-check (September 2026). Validated by `gold.load_gold_set` |
-| `public/data/drift.json` | One row per run from the gold-set drift check: `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, within_one, max_dev, max_dev_at}`. Mirrored to Supabase `gold_checks` |
+| `public/data/drift.json` | One row per run from the gold-set drift check: `{run_id, date, model, prompt_version, countries_compared, countries_missing, mae_by_dimension, bias_by_dimension, within_one, max_dev, max_dev_at}`; `bias_by_dimension` is the mean signed error (run minus gold), absent on rows from before #163. Mirrored to Supabase `gold_checks` |
 | `public/data/country_iso.json` | ISO 3166 alpha-2/alpha-3/numeric per dataset name (verified against the TopoJSON geometry ids by `tests/pipeline/test_country_iso.py`) |
 | `public/data/countries-110m.json` | Self-hosted world-atlas TopoJSON (Natural Earth 1:110m) the map draws; geometry ids are ISO 3166-1 numeric, and the map joins them to dataset names through `country_iso.json` |
 | `public/openapi.json` | Committed snapshot of PostgREST's OpenAPI output; drives the Swagger UI at `api-docs.html` (Supabase serves the live spec endpoint only to secret keys, so the browser can never fetch it) |

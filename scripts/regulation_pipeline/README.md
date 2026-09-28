@@ -527,19 +527,24 @@ fails loudly.
   in `RunResult.raw_results`, before the stability gate, so the check reads
   what the model returned for a held country too. It costs no extra API
   calls on a scheduled run. `gold.compare` is pure: it returns the mean
-  absolute error per dimension, the share of sub-indicators within one
-  point, and the largest single deviation with where it happened, plus the
-  gold countries the run did not cover.
+  absolute error per dimension, the mean signed error per dimension (run
+  minus gold, so a model that leans high or low shows), the share of
+  sub-indicators within one point, and the largest single deviation with
+  where it happened, plus the gold countries the run did not cover.
+  Sub-indicators the run left without a score (insufficient evidence) are
+  counted as skipped, not compared.
 - **Record.** One row per run is appended to `public/data/drift.json`
   (`{run_id, date, model, prompt_version, countries_compared,
-  countries_missing, mae_by_dimension, within_one, max_dev, max_dev_at}`)
-  and mirrored to the Supabase `gold_checks` table
-  (`supabase/migrations/0007_gold_checks.sql`). The workflow commits the
+  countries_missing, mae_by_dimension, bias_by_dimension, within_one,
+  max_dev, max_dev_at}`) and mirrored to the Supabase `gold_checks` table
+  (`supabase/migrations/0007_gold_checks.sql`, bias column in
+  `0011_gold_checks_bias.sql`). The workflow commits the
   file with the other data files. A run covering none of the gold
   countries records nothing.
 - **Summary.** The metrics go to the run log (`gold:` line) and to the
-  GitHub step summary. When `within_one` is below 0.8 both start with
-  "Calibration warning". The check never changes the exit code: a
+  GitHub step summary. When `within_one` is below 0.8, or any dimension's
+  signed bias is beyond 0.5 either way, both start with "Calibration
+  warning". The check never changes the exit code: a
   malformed gold file or an unwritable drift file is a warning.
 - **Model comparison.** `python -m regulation_pipeline.gold --model <id>`
   researches only the gold countries with that model (synchronous by

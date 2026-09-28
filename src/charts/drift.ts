@@ -29,6 +29,8 @@ import {
   WARN_WITHIN_ONE,
   binDeltas,
   dimensionLabel,
+  formatBias,
+  largestLean,
   percent,
   snakeDimensionLabel,
 } from '../data/drift';
@@ -559,6 +561,11 @@ export function goldTooltip(check: DriftCheck): string {
       : [];
     const at = where.length ? ` (${where.join(', ')})` : '';
     parts.push(`largest deviation: ${check.maxDev}${at}`);
+  }
+  const lean = largestLean(check);
+  if (lean) {
+    parts.push(`largest lean: ${escapeHtml(snakeDimensionLabel(lean.dimension))} ${formatBias(lean.bias)}`
+      + ` (run ${lean.bias >= 0 ? 'higher' : 'lower'} than gold)`);
   }
   parts.push(`${check.countriesCompared} countries compared`);
   return parts.join('<br>');
