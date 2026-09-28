@@ -1,9 +1,10 @@
 # PRD 15: Frontier risk governance dimension
 
-Status: Proposed (September 2026). Owner: unassigned. Depends on: the
-decisions in the tracking issue (US layer, track lists, voluntary regimes,
-value statement); PRD 16 for how the dimension is presented; #106 (a verified
-gold set) before launch.
+Status: Proposed (September 2026, tracking #154, implementation #157).
+Owner: unassigned. Depends on: decisions #158 (US layer), #159 (track lists),
+#160 (voluntary regimes) and #161 (value statement); #162 (the insufficient
+evidence state) and #163 (signed drift bias); PRD 16 for presentation; #106
+(a verified gold set) before launch.
 
 Research behind this PRD:
 [`docs/research/frontier-risk-governance-scoring.md`](../research/frontier-risk-governance-scoring.md).
@@ -142,7 +143,7 @@ evidence" as a 1.
     does not ship on draft gold scores.
 14. **Signed bias.** The drift check reports signed mean error for
     `frontier_risk`, so a systematically optimistic or pessimistic model
-    shows (tracking issue sub-issue).
+    shows (#163).
 15. **Behavioural checks.** A one-off script that re-scores the gold
     countries with shuffled anchor order and paraphrased prompts and reports
     how many scores move.
@@ -183,17 +184,17 @@ evidence" as a 1.
   (Vitest and e2e).
 - Lint, typecheck, Vitest, pytest and e2e pass.
 
-## Open decisions (tracking issue)
+## Open decisions
 
-1. Which US layer counts for `developer_obligations` and
+1. #158: which US layer counts for `developer_obligations` and
    `incident_emergency_preparedness`: federal, or the strongest layer
    covering most domestic frontier developers (California). Moves the US by
    up to two points.
-2. The final H and C track lists.
-3. Whether a voluntary evaluation regime can reach 4 on
+2. #159: the final H and C track lists.
+3. #160: whether a voluntary evaluation regime can reach 4 on
    `evaluation_oversight` (the anchors above say yes; the alternative caps
    voluntary regimes at 3).
-4. The value statement's wording, the dimension's public name, and the
+4. #161: the value statement's wording, the dimension's public name, and the
    funding disclosure.
 
 ## Risks

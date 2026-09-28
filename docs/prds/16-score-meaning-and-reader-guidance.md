@@ -1,7 +1,8 @@
 # PRD 16: Score meaning and reader guidance
 
-Status: Proposed (September 2026). Owner: unassigned. Depends on: none for
-phase 1; PRD 15 for phase 2.
+Status: Proposed (September 2026, tracking #154, implementation #155).
+Owner: unassigned. Depends on: decisions in #156 for phase 1; PRD 15 (#157)
+for phase 2.
 
 ## Problem
 
@@ -237,7 +238,7 @@ explanation reachable in one click from wherever a score appears.
 - Data files, CSV headers and API column names are unchanged.
 - Lint, typecheck, Vitest, pytest (page generator) and e2e pass in both themes.
 
-## Open decisions (tracking issue)
+## Open decisions (#156)
 
 1. Display name for the composite: "Implementation index" (recommended),
    "Regulatory extent index", or keep "Maturity index".
