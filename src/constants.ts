@@ -167,7 +167,7 @@ export const SCORE_OPTIONS: { value: AttributeKey; text: string }[] =
  * What a sub-indicator level means on the implementation dimensions: the
  * v3 anchors in scripts/regulation_pipeline/prompt.py, in plain words.
  * Governance style sub-indicators are descriptive and carry their own
- * anchor phrases instead (SUBSCORE_ANCHORS in data/subscores.ts).
+ * anchor phrases instead (STYLE_ANCHORS in data/subscores.ts).
  */
 export const IMPLEMENTATION_LEVELS: Record<1 | 2 | 3 | 4 | 5, string> = {
   1: 'No observable activity',

@@ -17,7 +17,9 @@ npm run preview  # preview production build
 npm run lint       # ESLint (flat config in eslint.config.js)
 npm run typecheck  # tsc --noEmit (strict; tsconfig.json)
 npm test           # Vitest unit tests (tests/*.test.js)
-npm run test:e2e   # Playwright smoke + axe checks (tests/e2e/) against the built preview; run after build
+npm run test:e2e   # Playwright smoke + axe checks (tests/e2e/) against the built preview; run after a build
+                   # made with CI's dummy VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY (see ci.yml), or the
+                   # Supabase specs fail; CI=1 makes it start its own preview instead of reusing port 4173
 ```
 
 Pipeline tests: `pip install -r requirements-dev.txt && python -m pytest` (configured in `pyproject.toml`, tests in `tests/pipeline/`). CI (`.github/workflows/ci.yml`) runs on every push/PR: lint, typecheck, a `madge --circular` import check, Vitest and the build (frontend job); Playwright e2e against the build (e2e job); pytest and `ruff check scripts tests/pipeline` (pipeline job).
@@ -213,7 +215,7 @@ typed DOM seam) lives in [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md).
 | `src/charts/drift.ts` | The drift dashboard's D3 small multiples (token-driven palette, hover tooltips); `src/drift.ts` is the `drift.html` entry |
 | `src/styles/` | CSS partials imported via Vite (`_tokens`, `_header`, `_map`, `_panel`, etc.) |
 
-**State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()` and write via `setState(patch)`. The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
+**State management:** All mutable state lives in `src/state/store.ts` as a single object. Modules read state via `getState()`; only `src/state/` calls `setState(patch)`, and every other module writes through an intent in `src/state/interactions.ts` (data loaders through `receiveData`; `tests/singleWriter.test.js` enforces it, #150). The store emits events per changed key, allowing modules to subscribe with `on(key, handler)`.
 
 **Data flow:**
 1. `main.ts` loads `scores.csv` and `regulation_data.csv` in parallel via `Promise.all`

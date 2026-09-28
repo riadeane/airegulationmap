@@ -27,6 +27,8 @@ flowchart TD
     dataLayer["data/*<br/>loaders, search index, blocs"]
   end
 
+  hydrateLayer["data/hydrate.ts, data/sourceMeta.ts<br/>post-boot fetches, written through receiveData"]
+
   subgraph Derive["Derived + orchestration"]
     selectors["state/selectors.ts<br/>memoized reads (visibility…)"]
     interactions["state/interactions.ts<br/>the single WRITER - intents + invariants"]
@@ -51,8 +53,16 @@ flowchart TD
   Features --> store
   Features --> dom
   Features --> dataLayer
+  hydrateLayer --> interactions
+  hydrateLayer --> store
+  hydrateLayer --> dataLayer
   root --> Features
+  root --> hydrateLayer
 ```
+
+Two modules under `data/` are not leaves: `hydrate.ts` and `sourceMeta.ts`
+fetch after boot and write what they load through the `receiveData` intent,
+so they sit beside the features, not in the leaf layer.
 
 ## The patterns
 
