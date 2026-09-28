@@ -610,8 +610,9 @@ ruff check scripts tests/pipeline   # lint; rules in pyproject.toml ([tool.ruff]
 pip install -e .                    # installs the package + update-regulation-data console script
 ```
 
-Ruff is configured in `pyproject.toml` but is not in `requirements-dev.txt`;
-install it separately to run it locally. CI (`.github/workflows/ci.yml`) runs
+Ruff is configured in `pyproject.toml` and pinned in `requirements-dev.txt`.
+`requirements.txt` is a pip-compile lock built from `requirements.in`, so the
+weekly run installs the versions CI tested. CI (`.github/workflows/ci.yml`) runs
 `python -m pytest` and `ruff check scripts tests/pipeline` on every push and
 pull request.
 

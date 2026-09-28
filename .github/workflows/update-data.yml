@@ -163,11 +163,39 @@ jobs:
           if [ -d public/digest ]; then git add public/digest; fi
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
+      # Data commits are pushed with GITHUB_TOKEN, which never triggers CI,
+      # so check here that the site still builds and its unit tests pass on
+      # the new data before anything is pushed (#98). A failure keeps the
+      # data as a workflow artifact instead. The dummy Supabase values put
+      # the progressive-enhancement code in the bundle, as in CI's e2e job;
+      # nothing is deployed from this build.
+      - name: Set up Node
+        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify the site builds with the new data
+        id: verify
+        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
+        env:
+          VITE_SUPABASE_URL: https://test-project.supabase.co
+          VITE_SUPABASE_ANON_KEY: test-anon-key
+        run: |
+          npm ci
+          npm run build
+          npm test
+          # The build regenerates the committed slug index; a new or renamed
+          # country changes it, and it must travel with the data (an
+          # unstaged change would also stop the push's rebase retry).
+          git add public/data/country_slugs.json
+
       - name: Commit and push updated data
         id: commit
         # Only ever push from the default branch - a manual dispatch on some
         # other ref must not write data commits there.
-        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' }}
+        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' && steps.verify.outcome == 'success' && github.ref == 'refs/heads/main' }}
         run: |
           git config user.name "AI Regulation Bot"
           git config user.email "bot@github-actions"
@@ -189,9 +217,10 @@ jobs:
           exit 1
 
       # Last resort so a paid run is never lost with the runner: if the
-      # commit or push failed, keep every file the pipeline writes.
+      # build check, the commit or the push failed, keep every file the
+      # pipeline writes.
       - name: Upload data files if the commit failed
-        if: ${{ !cancelled() && steps.commit.outcome == 'failure' }}
+        if: ${{ !cancelled() && (steps.commit.outcome == 'failure' || steps.verify.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: data-update-${{ github.run_id }}
@@ -205,3 +234,16 @@ jobs:
             public/digest/
             run.log
           retention-days: 30
+
+      # The pushed data never runs CI, so run the Playwright smoke and
+      # accessibility suite on it here. The data is already on main; a
+      # failure turns this run red so the maintainer hears about it the day
+      # it lands (a data change once broke tests/e2e/docs.spec.ts unseen).
+      - name: Install Playwright browser
+        id: e2e_setup
+        if: ${{ !cancelled() && steps.commit.outcome == 'success' }}
+        run: npx playwright install --with-deps chromium
+
+      - name: Check the published data end to end
+        if: ${{ !cancelled() && steps.e2e_setup.outcome == 'success' }}
+        run: npm run test:e2e

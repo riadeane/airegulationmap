@@ -155,6 +155,12 @@ Requires `ANTHROPIC_API_KEY` in environment. Install Python dependencies:
 pip install -r requirements.txt
 ```
 
+`requirements.txt` is a pip-compile lock (every package pinned) compiled from
+`requirements.in` (the direct dependencies as ranges), so the weekly run
+installs exactly what CI tested (#98). Edit `requirements.in`, then
+recompile on Python 3.12: `pip-compile --output-file=requirements.txt
+--strip-extras requirements.in`. Dependabot's pip updates recompile it.
+
 ## Architecture
 
 ### Frontend (`src/`)
@@ -465,7 +471,7 @@ methodology keeps one history note on the old name.
 
 ### Automated Updates
 
-`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`). If main moved during the run the commit is rebased and retried, and if it still fails every output file is uploaded as a workflow artifact; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer. `.github/workflows/link-check.yml` runs monthly (and on dispatch): it checks every URL in `regulation_data.csv` and opens or updates one "Dead source links" issue (label `data`); a dispatch with `titles` also fills Supabase `sources.title`.
+`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`). If main moved during the run the commit is rebased and retried, and if it still fails every output file is uploaded as a workflow artifact; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Before committing, it builds the site and runs the unit tests on the new data (data commits pushed with `GITHUB_TOKEN` never trigger CI); a failure keeps the data as an artifact instead of pushing it. After a push it runs the Playwright suite, so a data change that breaks e2e turns that run red the same day. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer. `.github/workflows/link-check.yml` runs monthly (and on dispatch): it checks every URL in `regulation_data.csv` and opens or updates one "Dead source links" issue (label `data`); a dispatch with `titles` also fills Supabase `sources.title`.
 
 ### Deployment
 
