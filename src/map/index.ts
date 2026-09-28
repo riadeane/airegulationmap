@@ -1,10 +1,12 @@
 import { on, getState } from '../state/store';
 import { generateMap, updateMap, markComparisonCountries, displayedEntry, isHatched } from './renderer';
 import { updateLegendLabels, updateLegendUncertainty } from './legend';
-import { ATTRIBUTE_LABELS, LEGEND_ENDPOINTS } from '../constants';
+import { ATTRIBUTE_LABELS } from '../constants';
+import { modeAnnouncement } from '../data/meaning';
 
 export { updateMap, highlightCountry, clearHighlight, updateSearchHighlight, markComparisonCountries } from './renderer';
 export { generateMap };
+export { initCountryTable } from './countryTable';
 
 // Speak the current map mode to assistive tech when it changes. The
 // region is polite - it waits for a lull in the user's focus rather
@@ -13,16 +15,13 @@ export { generateMap };
 function announceMode() {
   const region = document.getElementById('map-live-region');
   if (!region) return;
-  const { currentAttribute } = getState();
-  const label = ATTRIBUTE_LABELS[currentAttribute] || currentAttribute;
-  const [low, high] = LEGEND_ENDPOINTS[currentAttribute] || ['low', 'high'];
-  region.textContent = `Map now showing ${label}. Legend ranges from ${low} to ${high}.`;
+  region.textContent = modeAnnouncement(getState().currentAttribute);
 }
 
-// Speak the selected country and its current-mode score. Country paths
-// aren't individually focusable, so search and arrow-stepping are the
-// keyboard paths into the map - without this, those users get no
-// feedback on what they landed on.
+// Speak the selected country and its current-mode score. Keyboard and
+// screen-reader users reach countries through search, arrow-stepping and
+// the country table under the map (countryTable.ts); without this, they
+// get no feedback on what they landed on.
 function announceCountry(name: string | null) {
   const region = document.getElementById('map-live-region');
   if (!region) return;
