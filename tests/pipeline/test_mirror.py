@@ -15,9 +15,10 @@ from datetime import date
 from pathlib import Path
 
 import httpx
+import pytest
 from conftest import full_result
 from regulation_pipeline.config import Settings
-from regulation_pipeline.db.client import SupabaseClient
+from regulation_pipeline.db.client import SupabaseClient, SupabaseError
 from regulation_pipeline.db.mirror import RunMeta, SupabaseMirror, evidence_columns
 from regulation_pipeline.errors import FatalAPIError
 from regulation_pipeline.models import ResearchProvenance, ResearchResult
@@ -41,6 +42,9 @@ class FakePostgrest:
 
     def __init__(self):
         self.requests: list[tuple[str, str, dict | list | None]] = []
+        self.params: list[tuple[str, str, dict]] = []
+        # (method, table) pairs that answer 500, to simulate a failed write.
+        self.fail: set[tuple[str, str]] = set()
         self.select_rows: dict[str, list[dict]] = {
             "countries": [{"id": "c-1", "name": "A"}],
             "sources": [
@@ -54,6 +58,9 @@ class FakePostgrest:
             table = request.url.path.rsplit("/", 1)[-1]
             body = json.loads(request.content) if request.content else None
             self.requests.append((request.method, table, body))
+            self.params.append((request.method, table, dict(request.url.params)))
+            if (request.method, table) in self.fail:
+                return httpx.Response(500, json={"message": "boom"})
             if request.method == "GET":
                 return httpx.Response(200, json=self.select_rows.get(table, []))
             # Keep the fake self-consistent: an upserted country becomes
@@ -71,6 +78,9 @@ class FakePostgrest:
 
     def of(self, method: str, table: str) -> list:
         return [b for m, t, b in self.requests if m == method and t == table]
+
+    def params_of(self, method: str, table: str) -> list[dict]:
+        return [p for m, t, p in self.params if m == method and t == table]
 
 
 def make_mirror(fake: FakePostgrest, usage=None) -> SupabaseMirror:
@@ -126,11 +136,13 @@ class TestSupabaseMirror:
         summary_row = fake.of("POST", "country_summaries")[0][0]
         assert summary_row["specific_laws"] == "AI Act (2024)"
 
-        # History replaced: DELETE then INSERT with the file's snapshots.
-        assert fake.of("DELETE", "score_history") == [None]
+        # History synced: the file's snapshots upserted on (country, date);
+        # nothing to prune for a country with no rows yet.
         hist_rows = fake.of("POST", "score_history")[0]
         assert [r["snapshot_date"] for r in hist_rows] == ["2026-01-01", "2026-06-11"]
         assert "date" not in hist_rows[0]["scores"]
+        assert fake.params_of("POST", "score_history")[0]["on_conflict"] == "country_id,snapshot_date"
+        assert fake.of("DELETE", "score_history") == []
 
         # Sources upserted (no first_seen - DB default must survive) + links.
         source_rows = fake.of("POST", "sources")[0]
@@ -224,22 +236,79 @@ class TestSupabaseMirror:
         score_row = fake.of("POST", "country_scores")[0][0]
         assert score_row["country_id"] == "c-gen-0"
 
-    def test_history_replace_keeps_run_id_of_existing_snapshots(self):
-        # score_history.run_id means "the run that introduced this change
-        # point": an existing snapshot keeps its id even though its date may
-        # have advanced; only the new snapshot gets this run's id.
-        fake = FakePostgrest()
-        fake.select_rows["score_history"] = [
-            {"scores": {"regulationStatus": 3, "averageScore": 3}, "run_id": "run-old"},
-        ]
+    def _sync(self, fake, history):
         mirror = make_mirror(fake)
         mirror.begin(attempted=1)
-        mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=HISTORY)
+        mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=history)
         mirror.finish(updated=1, failed=0, fatal=False)
+        return mirror
+
+    def test_history_sync_keeps_run_id_of_existing_snapshots(self):
+        # score_history.run_id means "the run that introduced this change
+        # point": an existing snapshot keeps its id; only the new snapshot
+        # gets this run's id.
+        fake = FakePostgrest()
+        fake.select_rows["score_history"] = [
+            {"snapshot_date": "2026-01-01", "scores": {"regulationStatus": 3, "averageScore": 3},
+             "run_id": "run-old"},
+        ]
+        mirror = self._sync(fake, HISTORY)
 
         hist_rows = fake.of("POST", "score_history")[0]
         assert [r["run_id"] for r in hist_rows] == ["run-old", mirror.run_id]
         assert mirror.run_id == fake.of("POST", "research_runs")[0][0]["id"]
+        assert fake.of("DELETE", "score_history") == []
+
+    def test_history_sync_matches_a_legacy_row_whose_date_moved(self):
+        # Before September 2026 an unchanged snapshot's date advanced on
+        # every re-research, so the database row can carry a date the file
+        # no longer has. It still keeps its run id, and the stale date goes.
+        fake = FakePostgrest()
+        fake.select_rows["score_history"] = [
+            {"snapshot_date": "2026-03-01", "scores": {"regulationStatus": 3, "averageScore": 3},
+             "run_id": "run-old"},
+        ]
+        mirror = self._sync(fake, HISTORY)
+
+        hist_rows = fake.of("POST", "score_history")[0]
+        assert [r["run_id"] for r in hist_rows] == ["run-old", mirror.run_id]
+        assert fake.params_of("DELETE", "score_history") == [
+            {"country_id": "eq.c-1", "snapshot_date": "in.(2026-03-01)"},
+        ]
+
+    def test_a_reverted_score_is_a_new_change_point(self):
+        # A -> B -> A: the third snapshot equals the first, but it is a new
+        # change point, so it carries this run's id (#89).
+        a = {"regulationStatus": 3, "averageScore": 3}
+        b = {"regulationStatus": 4, "averageScore": 3.67}
+        fake = FakePostgrest()
+        fake.select_rows["score_history"] = [
+            {"snapshot_date": "2026-01-01", "scores": a, "run_id": "run-a"},
+            {"snapshot_date": "2026-03-01", "scores": b, "run_id": "run-b"},
+        ]
+        history = [
+            {"date": "2026-01-01", **a}, {"date": "2026-03-01", **b}, {"date": "2026-06-11", **a},
+        ]
+        mirror = self._sync(fake, history)
+
+        hist_rows = fake.of("POST", "score_history")[0]
+        assert [r["run_id"] for r in hist_rows] == ["run-a", "run-b", mirror.run_id]
+
+    def test_a_failed_history_write_deletes_nothing(self):
+        # The upsert runs before any delete, so a failure leaves the
+        # country's existing rows in place (#89). The error still surfaces;
+        # the service downgrades it to a warning.
+        fake = FakePostgrest()
+        fake.select_rows["score_history"] = [
+            {"snapshot_date": "2025-12-01", "scores": {"regulationStatus": 2}, "run_id": "run-old"},
+        ]
+        fake.fail.add(("POST", "score_history"))
+        mirror = make_mirror(fake)
+        mirror.begin(attempted=1)
+        mirror.record("A", model(), TODAY, scores_row=SCORES_ROW, subscores=SUBSCORES, history=HISTORY)
+        with pytest.raises(SupabaseError):
+            mirror.finish(updated=1, failed=0, fatal=False)
+        assert fake.of("DELETE", "score_history") == []
 
     def test_finish_without_records_only_updates_run(self):
         fake = FakePostgrest()

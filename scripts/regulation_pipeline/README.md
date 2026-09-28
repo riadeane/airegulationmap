@@ -464,9 +464,14 @@ provenance.
   (including the fatal-error partial-save path) - every call wrapped so a
   mirror failure downgrades to a warning and can never change a run's
   outcome or exit code. The flush upserts `country_scores` /
-  `country_summaries`, REPLACES `score_history` per recorded country
-  (a same-day re-run supersedes that day's snapshot in `history.py`, so
-  append-only would drift), and feeds every cited URL into `sources` /
+  `country_summaries`, SYNCS `score_history` per recorded country to the
+  file's snapshots (a same-day re-run supersedes that day's snapshot in
+  `history.py`, so append-only would drift): it upserts on
+  `(country_id, snapshot_date)` first and then deletes only the dates the
+  file no longer has, so a failed write never loses rows. A snapshot keeps
+  the run id of the existing row with the same date and scores (a row whose
+  date moved before September 2026 matches by scores alone), so a score
+  that reverts is a new change point. It also feeds every cited URL into `sources` /
   `country_sources` with the run id. `research_runs` records trigger,
   model, strategy, prompt version, grounded flag, git SHA, counts, and
   cumulative token usage.
@@ -536,7 +541,7 @@ Claude for the prose once, and writes `public/digest/`.
   files are already saved and the exit code is unchanged.
 - **Regeneration.** `python -m regulation_pipeline.digest --run <id>` rebuilds a
   run's changes from Supabase. `score_history.run_id` marks the snapshots a run
-  introduced (the mirror keeps earlier snapshots' ids when it replaces a
+  introduced (the mirror keeps earlier snapshots' ids when it syncs a
   country's history), so score change points are exact. The regulation text has
   no history in the database, so regenerated digests cover score changes only.
 

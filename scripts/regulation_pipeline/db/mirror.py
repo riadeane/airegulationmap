@@ -9,13 +9,16 @@ Design constraints (see the service for the call sites):
   a run. The static files stay authoritative for the frontend's boot path.
 * ``record`` buffers; ``finish`` flushes in one burst - the network cost is
   paid once, after ``dataset.save()`` has already secured the files.
-* ``score_history`` is replaced per recorded country rather than appended:
-  ``history.py`` advances the last snapshot's date in place when scores are
-  unchanged, so an append-only mirror would drift from the file. A snapshot
-  that already existed keeps its original ``run_id``; only snapshots with
-  new scores get this run's id. ``run_id`` therefore means "the run that
-  introduced this change point", which is what the weekly digest's
-  ``--run <id>`` regeneration relies on.
+* ``score_history`` is synced per recorded country to the file's snapshots
+  rather than appended: a same-day re-run supersedes that day's snapshot
+  (``history.py``), so an append-only mirror would drift from the file. The
+  sync upserts every snapshot on ``(country_id, snapshot_date)`` first and
+  only then deletes the rows whose dates the file no longer has, so a
+  failed write never leaves a country with less history than before. A
+  snapshot that already existed keeps its original ``run_id`` (matched by
+  date and scores); only new snapshots get this run's id. ``run_id``
+  therefore means "the run that introduced this change point", which is
+  what the weekly digest's ``--run <id>`` regeneration relies on.
 * The evidence columns of ``country_scores`` (``grounded``,
   ``initiatives_used``, ``web_search``) come from the ``evidence`` block of
   the subscores entry the service hands over, so the database says exactly
@@ -166,40 +169,34 @@ class SupabaseMirror:
         self._client.upsert("country_scores", scores_rows, on_conflict="country_id")
         self._client.upsert("country_summaries", summary_rows, on_conflict="country_id")
 
-        # History: replace-per-country (delete + insert the file's snapshots),
-        # keeping the run id of every snapshot that already existed.
+        # History: sync each country to the file's snapshots, keeping the run
+        # id of every snapshot that already existed. Upsert first, prune
+        # after: a failure part-way leaves the old rows in place (#89).
         for e in self._entries:
             cid = country_ids[e.country]
-            prior_run_ids = self._prior_run_ids(cid)
-            self._client.delete("score_history", {"country_id": f"eq.{cid}"})
-            rows = []
-            for snap in e.history:
-                scores = {k: v for k, v in snap.items() if k != "date"}
-                rows.append({
-                    "country_id": cid,
-                    "snapshot_date": snap["date"],
-                    "scores": scores,
-                    "run_id": prior_run_ids.get(_scores_key(scores), self._run_id),
+            prior = self._prior_history(cid)
+            rows = _history_rows(cid, e.history, prior, self._run_id)
+            if not rows:
+                continue  # never wipe a country's database history
+            self._client.upsert("score_history", rows, on_conflict="country_id,snapshot_date")
+            kept = {r["snapshot_date"] for r in rows}
+            stale = sorted({r["snapshot_date"] for r in prior} - kept)
+            if stale:
+                self._client.delete("score_history", {
+                    "country_id": f"eq.{cid}",
+                    "snapshot_date": "in.(" + ",".join(stale) + ")",
                 })
-            self._client.insert("score_history", rows)
 
         self._sync_sources(country_ids)
 
-    def _prior_run_ids(self, country_id: str) -> dict[str, str]:
-        """Map ``scores json -> run_id`` for the country's existing snapshot
-        rows. Keyed by scores, not date: before September 2026 an unchanged
-        snapshot's date advanced on every re-research, so rows written then
-        can carry a different date from the file's."""
-        rows = self._client.select_all("score_history", {
-            "select": "scores,run_id",
-            "order": "id",
+    def _prior_history(self, country_id: str) -> list[dict]:
+        """The country's existing ``score_history`` rows
+        (``snapshot_date``, ``scores``, ``run_id``), oldest first."""
+        return self._client.select_all("score_history", {
+            "select": "snapshot_date,scores,run_id",
+            "order": "snapshot_date",
             "country_id": f"eq.{country_id}",
         })
-        return {
-            _scores_key(r["scores"]): r["run_id"]
-            for r in rows
-            if r.get("run_id") and isinstance(r.get("scores"), dict)
-        }
 
     def _resolve_country_ids(self, names: list[str]) -> dict[str, str]:
         rows = self._client.select_all("countries", {"select": "id,name", "order": "id"})
@@ -356,8 +353,50 @@ def _gold_check_row(row: dict) -> dict:
     }
 
 
+def _history_rows(
+    country_id: str, snapshots: list[dict], prior: list[dict], run_id: str,
+) -> list[dict]:
+    """``score_history`` rows for a country's file snapshots, each carrying
+    the run that introduced it.
+
+    A snapshot keeps the ``run_id`` of the existing row with the same date
+    and scores. Rows written before September 2026 can carry a date the file
+    no longer has (an unchanged snapshot's date used to advance on every
+    re-research), so a snapshot with no exact match takes the run id of an
+    existing row with equal scores whose date the file does not have, each
+    such row at most once and oldest first. Rows whose date the file still
+    has never match loosely, so a score that reverts (A, B, then A again)
+    is a new change point with this run's id, not the first A's."""
+    file_dates = {s["date"] for s in snapshots}
+    exact: dict[tuple[str, str], str] = {}
+    loose: dict[str, list[str]] = {}
+    for row in prior:
+        if not row.get("run_id") or not isinstance(row.get("scores"), dict):
+            continue
+        key = _scores_key(row["scores"])
+        day = str(row.get("snapshot_date"))
+        exact[(day, key)] = row["run_id"]
+        if day not in file_dates:
+            loose.setdefault(key, []).append(row["run_id"])
+
+    rows = []
+    for snap in sorted(snapshots, key=lambda s: s["date"]):
+        scores = {k: v for k, v in snap.items() if k != "date"}
+        key = _scores_key(scores)
+        introduced = exact.get((snap["date"], key))
+        if introduced is None and loose.get(key):
+            introduced = loose[key].pop(0)
+        rows.append({
+            "country_id": country_id,
+            "snapshot_date": snap["date"],
+            "scores": scores,
+            "run_id": introduced or run_id,
+        })
+    return rows
+
+
 def _scores_key(scores: dict) -> str:
-    """A stable identity for a snapshot's score set (see ``_prior_run_ids``)."""
+    """A stable identity for a snapshot's score set (see ``_history_rows``)."""
     return json.dumps(scores, sort_keys=True, separators=(",", ":"))
 
 
