@@ -412,7 +412,12 @@ flowchart TD
 it **cancels and salvages** the requests that already succeeded (and were already
 billed) instead of discarding the run. Submit, poll, cancel and results calls go
 through the retry policy below, and one wait budget (`max_wait`, 4 hours) covers
-every batch of a run.
+every batch of a run. The budget is wall-clock time since the run's first submit
+(`time.monotonic`, injectable), so retry backoff and slow requests count, not
+only poll intervals. The SDK sends no idempotency key, so a submit whose
+response was lost is retried as a second batch: after any submit that needed
+retries, the runner lists recent batches and cancels an in-progress one with
+the same request count created within two minutes of the first attempt (#153).
 
 ```mermaid
 stateDiagram-v2

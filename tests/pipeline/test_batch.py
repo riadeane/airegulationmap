@@ -91,6 +91,11 @@ class FakeBatches:
     def results(self, id):
         return iter(self._results)
 
+    def list(self, limit=20):
+        # Batches the server holds besides the ones create() returned: a
+        # test adds a lost-response orphan here.
+        return type("Page", (), {"data": list(getattr(self, "server_side", []))})()
+
 
 class FakeClient:
     def __init__(self, batches):
@@ -239,6 +244,68 @@ def test_a_transient_error_on_any_batch_call_is_retried(method, anthropic_errors
     messages, failed = _runner(FakeClient(batches)).research(params)
     assert messages == {"A": msg}
     assert failed == []
+
+
+class _Listed:
+    def __init__(self, id, status, total, created_at):
+        self.id, self.processing_status, self.created_at = id, status, created_at
+        self.request_counts = _Counts(processing=total)
+
+
+def test_a_retried_submit_cancels_the_orphaned_batch(anthropic_errors):
+    # #153: the first create reached the server but its response was lost;
+    # the retry starts a second batch. The first must not run unread.
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime(2026, 9, 28, 6, 0, tzinfo=UTC)
+    params = {"A": {}, "B": {}}
+    msg = object()
+    batches = FlakyBatches(
+        [{"statuses": ["ended"], "results": _items(params, {"A": ("succeeded", msg), "B": ("succeeded", msg)})}],
+        method="create", fail=1, error=anthropic_errors["connection"](),
+    )
+    batches.server_side = [
+        _Listed("batch_lost", "in_progress", 2, now + timedelta(seconds=5)),   # the orphan
+        _Listed("batch_old", "in_progress", 2, now - timedelta(hours=3)),     # too old
+        _Listed("batch_other", "in_progress", 10, now + timedelta(seconds=9)),  # other size
+        _Listed("batch_done", "ended", 2, now + timedelta(seconds=7)),         # already ended
+        _Listed("batch_0", "in_progress", 2, now + timedelta(seconds=30)),     # the kept one
+    ]
+    messages, failed = BatchRunner(FakeClient(batches), sleep=lambda s: None, now=lambda: now).research(params)
+    assert set(messages) == {"A", "B"} and failed == []
+    assert batches.canceled == ["batch_lost"]
+
+
+def test_a_first_time_submit_lists_nothing(anthropic_errors):
+    params = {"A": {}}
+    batches = FakeBatches([{"statuses": ["ended"], "results": _items(params, {"A": ("succeeded", object())})}])
+    batches.server_side = [_Listed("batch_x", "in_progress", 1, None)]
+    _runner(FakeClient(batches)).research(params)
+    assert batches.canceled == []
+
+
+def test_the_wait_budget_counts_retry_backoff_not_only_polls(anthropic_errors):
+    # #153: the budget is wall-clock time since the first submit. With 1 s
+    # polls and a 5 s budget, the first poll's two retries back off about
+    # 6 to 8 s, which spends the budget: the batch is canceled after one
+    # poll. Counting poll intervals alone, it would have polled five times.
+    params = {"A": {}}
+    batches = FlakyBatches(
+        [{"statuses": ["in_progress"] * 50, "results": _items(params, {"A": ("canceled", None)})}],
+        method="retrieve", fail=2, error=anthropic_errors["connection"](),
+    )
+    clock = {"t": 0.0}
+
+    def sleep(seconds):
+        clock["t"] += seconds
+
+    runner = BatchRunner(
+        FakeClient(batches), sleep=sleep, clock=lambda: clock["t"], max_wait=5, poll_interval=1,
+        cancel_grace_seconds=0,
+    )
+    runner._run_once(params)
+    assert batches.canceled == ["batch_0"]
+    assert len(batches._statuses) == 49  # one successful poll
 
 
 def test_unreadable_results_fail_the_countries_without_raising(anthropic_errors):
