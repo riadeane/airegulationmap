@@ -365,22 +365,26 @@ class ResearchResult(BaseModel):
         or "-" counts as empty. Placeholder segments ("-", "N/A") are dropped
         from the field. A dimension without a score (insufficient evidence)
         caps confidence at "low" too: the entry is incomplete, and a low
-        rating makes staleness re-research it. (``object.__setattr__`` avoids
+        rating makes staleness re-research it. "High" without an official
+        source is capped at "medium". (``object.__setattr__`` avoids
         re-triggering validation.)"""
         object.__setattr__(self, "sources", _drop_placeholder_sources(self.sources))
-        if self.confidence != "low" and (
-            not _has_citable_url(self.sources) or self.has_unscored_dimension()
-        ):
-            object.__setattr__(self, "confidence", "low")
+        object.__setattr__(self, "confidence", self.effective_confidence())
         return self
 
     def effective_confidence(self) -> Confidence:
         """Unsourced claims are not citable, and an unscored dimension leaves
         the entry incomplete - cap confidence at "low" in both cases so the UI
-        flags them and staleness re-researches them. The model validator above
-        already applies this, so this is now a stable, idempotent accessor."""
+        flags them and staleness re-researches them. "High" means backed by
+        primary sources (the methodology's definition), so without at least
+        one official source (a government, legislature, regulator or EU
+        institution URL, ``sources.classify_source``) it is capped at
+        "medium" (#93). The model validator above already applies this, so
+        this is a stable, idempotent accessor."""
         if not _has_citable_url(self.sources) or self.has_unscored_dimension():
             return "low"
+        if self.confidence == "high" and not _has_official_source(self.sources):
+            return "medium"
         return self.confidence
 
     @classmethod
@@ -415,6 +419,12 @@ def _drop_placeholder_sources(sources: str) -> str:
 
     segments = [segment.strip() for segment in sources.split("|")]
     return " | ".join(segment for segment in segments if not is_placeholder(segment))
+
+
+def _has_official_source(sources: str) -> bool:
+    from .sources import classify_sources
+
+    return any(source.kind == "official" for source in classify_sources(sources))
 
 
 def _has_citable_url(sources: str) -> bool:

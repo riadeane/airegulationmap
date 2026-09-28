@@ -142,6 +142,25 @@ class TestConfidence:
     def test_keeps_confidence_when_sourced(self):
         assert ResearchResult.model_validate(full_result()).effective_confidence() == "high"
 
+    def test_high_without_an_official_source_is_medium(self):
+        # #93: "high" means primary sources; law firms and trackers alone
+        # support "medium" at most.
+        secondary = "https://cms.law/ai|https://www.twobirds.com/insights/ai"
+        model = ResearchResult.model_validate(full_result(sources=secondary, confidence="high"))
+        assert model.confidence == "medium"
+        assert model.effective_confidence() == "medium"
+
+    def test_one_official_source_keeps_high(self):
+        mixed = "https://cms.law/ai|https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+        model = ResearchResult.model_validate(full_result(sources=mixed, confidence="high"))
+        assert model.effective_confidence() == "high"
+
+    def test_medium_and_low_are_untouched_by_the_official_rule(self):
+        secondary = "https://cms.law/ai"
+        for level in ("medium", "low"):
+            model = ResearchResult.model_validate(full_result(sources=secondary, confidence=level))
+            assert model.effective_confidence() == level
+
     def test_downgrades_to_low_without_sources(self):
         for empty in ("", "   "):
             model = ResearchResult.model_validate(full_result(sources=empty, confidence="high"))
