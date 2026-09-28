@@ -549,7 +549,11 @@ Claude for the prose once, and writes `public/digest/`.
   per week). An empty run writes a one-line "no changes" week without a request.
 - **When it runs.** `--digest/--no-digest`; the default is on for scheduled
   runs (`GITHUB_EVENT_NAME=schedule`). A digest failure is a warning: the data
-  files are already saved and the exit code is unchanged.
+  files are already saved and the exit code is unchanged. Only a scheduled
+  run replaces the week's file; a manual `--digest` run writes one only for a
+  week with no digest or a "no changes" one, and makes no request otherwise
+  (#101). A later run with nothing to report never replaces a week that has
+  items, changes or a calibration break.
 - **Regeneration.** `python -m regulation_pipeline.digest --run <id>` rebuilds a
   run's changes from Supabase. `score_history.run_id` marks the snapshots a run
   introduced (the mirror keeps earlier snapshots' ids when it syncs a

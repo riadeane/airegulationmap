@@ -277,9 +277,13 @@ def _write_digest(
 ) -> None:
     """Post-run digest. Downgraded to a warning on any failure: the data
     files are already saved, and a missing digest must not change the exit
-    code that drives the workflow's commit step."""
+    code that drives the workflow's commit step. Only a scheduled run may
+    replace the week's digest; a manual run fills a week without one (#101)."""
     try:
-        write_run_digest(result, client=client, settings=settings, model=model, run_date=today)
+        write_run_digest(
+            result, client=client, settings=settings, model=model, run_date=today,
+            replace=_is_scheduled(),
+        )
     except Exception:
         logger.warning("digest: failed - continuing", exc_info=True)
 

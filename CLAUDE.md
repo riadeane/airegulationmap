@@ -122,7 +122,10 @@ python -m regulation_pipeline.links titles
 
 # Weekly changes digest (public/digest/): auto-on for scheduled runs
 # (GITHUB_EVENT_NAME=schedule); force with --digest. One Claude request on
-# the run's model; digest failures never fail a run.
+# the run's model; digest failures never fail a run. Files are named by ISO
+# week: only a scheduled run replaces the week's digest; a manual --digest
+# run fills a week that has none (or only "no changes") and otherwise keeps
+# it without a request (#101).
 python scripts/update_data.py --batch --digest
 
 # Regenerate the digest for a past run from Supabase score_history

@@ -441,11 +441,25 @@ def write_run_digest(
     run_date: date,
     now: datetime | None = None,
     regenerated: bool = False,
+    replace: bool = True,
 ) -> Path:
     """Select the run's changes, generate the prose (one request, skipped
     when nothing changed), and write the week file, index and feed.
-    ``regenerated`` marks a digest rebuilt from Supabase after the run."""
+    ``regenerated`` marks a digest rebuilt from Supabase after the run.
+
+    A digest is named by ISO week, so a second run in the week would
+    replace the first one's. With ``replace`` off (a manual dispatch) a
+    week that already has a digest with content is kept and no request is
+    made; the dispatch can still fill a week that has no digest or only a
+    "no changes" one (#101). A run with nothing to report never replaces a
+    week's digest that has content."""
     generated_at = now or datetime.now(UTC)
+    existing = settings.digest_dir / f"{week_of(run_date)}.json"
+    if not replace and _has_content(existing):
+        logger.info(
+            "digest: kept %s; a manual run does not replace the week's digest", existing.name,
+        )
+        return existing
     calibration_break = result.calibration_break
     changes = select_changes(result.changes, calibration_break=calibration_break)
     if not changes:
@@ -453,8 +467,7 @@ def write_run_digest(
             run_id=result.run_id, model=model, run_date=run_date, generated_at=generated_at,
             calibration_break=calibration_break, regenerated=regenerated,
         )
-        existing = settings.digest_dir / f"{digest['week']}.json"
-        if existing.exists() and json.loads(existing.read_text(encoding="utf-8")).get("items"):
+        if calibration_break is None and _has_content(existing):
             # A later run in the same week with nothing to report must not
             # replace that week's digest with "no changes".
             logger.info("digest: kept %s; this run changed nothing", existing.name)
@@ -469,6 +482,15 @@ def write_run_digest(
             calibration_break=calibration_break, regenerated=regenerated,
         )
     return write_digest(settings, digest)
+
+
+def _has_content(path: Path) -> bool:
+    """True for a week file that reports something: items, changes, or a
+    calibration break."""
+    if not path.exists():
+        return False
+    document = json.loads(path.read_text(encoding="utf-8"))
+    return bool(document.get("items") or document.get("changes") or document.get("calibration_break"))
 
 
 def write_digest(settings: Settings, digest: dict) -> Path:

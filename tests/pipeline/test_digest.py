@@ -379,6 +379,49 @@ class TestWrite:
         assert again == first
         assert first.read_text() == before
 
+    def test_a_manual_run_never_replaces_the_weeks_digest(self, tmp_path):
+        # #101: files are named by ISO week, so a dispatch with changes
+        # would replace the scheduled run's digest and its feed entry.
+        settings = Settings(root=tmp_path)
+        items = [{"country": "Germany", "headline": "H", "summary": "S",
+                  "sources": ["https://example.gov/new"]}]
+        first = write_run_digest(
+            two_country_run(), client=FakeClient(payload(items)), settings=settings,
+            model="m", run_date=TODAY, now=NOW,
+        )
+        before = first.read_text()
+        client = FakeClient(payload(items))
+        again = write_run_digest(
+            two_country_run(), client=client, settings=settings, model="m", run_date=TODAY,
+            now=NOW, replace=False,
+        )
+        assert again == first and first.read_text() == before
+        assert client.messages.calls == []  # no request for a digest it will not write
+
+    def test_a_manual_run_fills_a_week_without_a_digest(self, tmp_path):
+        settings = Settings(root=tmp_path)
+        empty = RunResult(updated=1, failed=[], run_id="run-0", changes=(unchanged("France"),))
+        write_run_digest(empty, client=None, settings=settings, model="m", run_date=TODAY, now=NOW)
+        items = [{"country": "Germany", "headline": "H", "summary": "S",
+                  "sources": ["https://example.gov/new"]}]
+        path = write_run_digest(
+            two_country_run(), client=FakeClient(payload(items)), settings=settings,
+            model="m", run_date=TODAY, now=NOW, replace=False,
+        )
+        assert [i["country"] for i in json.loads(path.read_text())["items"]] == ["Germany"]
+
+    def test_a_later_empty_run_keeps_a_calibration_digest(self, tmp_path):
+        settings = Settings(root=tmp_path)
+        brk = {"date": "2026-09-07", "model": "m", "prompt_version": "v", "reason": "Model switch"}
+        calibration = RunResult(updated=1, failed=[], run_id="run-1", calibration_break=brk,
+                                changes=(unchanged("France"),))
+        first = write_run_digest(calibration, client=None, settings=settings, model="m",
+                                 run_date=TODAY, now=NOW)
+        before = first.read_text()
+        write_run_digest(RunResult(updated=1, failed=[], run_id="run-2", changes=(unchanged("France"),)),
+                         client=None, settings=settings, model="m", run_date=TODAY, now=NOW)
+        assert first.read_text() == before
+
     def test_feed_escapes_markup_in_prose(self):
         digest = {
             "week": "2026-W37", "date": "2026-09-07", "generated_at": NOW.isoformat(),
