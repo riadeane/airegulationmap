@@ -2114,35 +2114,102 @@
     },
     "Germany": {
       "actor_involvement": {
-        "academia": 4,
-        "civil_society": 3,
-        "industry": 4,
-        "international": 5
+        "academia": {
+          "rationale": "DFKI and Fraunhofer sit in Hightech Agenda roadmap processes and academic experts are standing invitees at Bundestag hearings on AI implementation.",
+          "score": 4
+        },
+        "civil_society": {
+          "rationale": "AlgorithmWatch and vzbv filed statements on the KI-MIG draft and at the Bundestag hearing of 23 March 2026, but vzbv noted the absence of institutional anchoring for civil society in the governance…",
+          "score": 3
+        },
+        "industry": {
+          "rationale": "Bitkom and the KI-Bundesverband participated in the KI-MIG Verbändebeteiligung and Bundestag hearings, and industry is a named partner in the Hightech Agenda roadmaps launched 20 May 2026.",
+          "score": 4
+        },
+        "international": {
+          "rationale": "Germany negotiates and implements the EU AI Act, participates in OECD.AI, GPAI and the G7 Hiroshima process, and contributes through DIN/DKE to European AI standardisation.",
+          "score": 5
+        }
       },
-      "date": "2026-06-13",
+      "date": "2026-09-28",
       "enforcement_level": {
-        "actions_taken": 1,
-        "dedicated_authority": 3,
-        "monitoring_practice": 2,
-        "sanctions_framework": 3
+        "actions_taken": {
+          "rationale": "No AI Act enforcement decision has been published in Germany since BNetzA supervision began on 2 August 2026.",
+          "score": 2
+        },
+        "dedicated_authority": {
+          "rationale": "BNetzA holds an explicit statutory AI remit with a dedicated market surveillance chamber, KoKIVO and complaints portal, established only on 29 July 2026 with contested resourcing.",
+          "score": 4
+        },
+        "monitoring_practice": {
+          "rationale": "A citizen complaints portal is live and KI-MIG requires an annual activity report to the Bundestag, the first covering 2026 and due 31 March 2027; no audits published yet.",
+          "score": 3
+        },
+        "sanctions_framework": {
+          "rationale": "KI-MIG sets the national fine regime under Art. 99 AI Act, up to EUR 35m or 7% of global turnover for prohibited practices and graduated lower tiers.",
+          "score": 5
+        }
+      },
+      "evidence": {
+        "grounded": false,
+        "initiatives_used": null,
+        "model": "claude-opus-5",
+        "run_id": "4a26e15b-381a-471a-93e9-ea7863c6674d",
+        "search": true
       },
       "governance_type": {
-        "formal_coordination": 3,
-        "nongovernmental_checks": 3,
-        "regulator_plurality": 4,
-        "subnational_role": 3
+        "formal_coordination": {
+          "rationale": "KI-MIG § 5 establishes the statutory Koordinierungs- und Kompetenzzentrum (KoKIVO) at BNetzA to align all competent authorities, operating only since July 2026.",
+          "score": 4
+        },
+        "nongovernmental_checks": {
+          "rationale": "LG München I rulings (GEMA v OpenAI, 11 Nov 2025; GEMA v Suno, July 2026) and the BVerfG's 2023 automated-data-analysis judgment shape AI law, with appeals pending at OLG München.",
+          "score": 4
+        },
+        "regulator_plurality": {
+          "rationale": "KI-MIG names BNetzA as central market surveillance authority while BaFin, BSI, BfArM, BfDI, Landesmedienanstalten and Länder DPAs retain their own AI remits.",
+          "score": 4
+        },
+        "subnational_role": {
+          "rationale": "Länder data protection authorities and Landesmedienanstalten implement AI rules within federal/EU frameworks; Länder enact AI strategies but no binding AI regulation of their own.",
+          "score": 3
+        }
       },
       "policy_lever": {
-        "binding_instruments": 3,
-        "economic_tools": 3,
-        "institutional_capacity": 3,
-        "soft_law": 3
+        "binding_instruments": {
+          "rationale": "AI Act (EU) 2024/1689, KI-MIG (2026), BDSG/GDPR, MDR and sector rules enforced by BaFin, BSI and BfArM operate together.",
+          "score": 5
+        },
+        "economic_tools": {
+          "rationale": "KI-MIG mandates at least one national AI regulatory sandbox at BNetzA, alongside Hightech Agenda Deutschland KI roadmap funding, KI-Robotikbooster and AI gigafactory investment.",
+          "score": 5
+        },
+        "institutional_capacity": {
+          "rationale": "BNetzA hosts the KoKIVO coordination centre, an instruction-free AI market surveillance chamber and the KI-Service Desk, all operational only since 29 July 2026 with criticised lead time.",
+          "score": 4
+        },
+        "soft_law": {
+          "rationale": "DIN/DKE Normungsroadmap KI, BSI AI security guidance, DSK data-protection guidance and March 2025 federal guidelines for AI in public administration are published, while harmonised AI Act standards…",
+          "score": 4
+        }
       },
       "regulation_status": {
-        "ai_specificity": 4,
-        "binding_force": 3,
-        "implementation": 3,
-        "scope": 4
+        "ai_specificity": {
+          "rationale": "KI-MIG is a dedicated AI implementation statute executing Regulation (EU) 2024/1689, not adapted general law.",
+          "score": 5
+        },
+        "binding_force": {
+          "rationale": "KI-MIG (Act of 22 July 2026, BGBl. I Nr. 223) in force since 29 July 2026 alongside directly applicable AI Act (EU) 2024/1689.",
+          "score": 5
+        },
+        "implementation": {
+          "rationale": "Prohibitions, GPAI and Art. 50 transparency duties apply and BNetzA supervises since 2 Aug 2026, but Annex III high-risk duties were deferred to 2 Dec 2027 by Regulation (EU) 2026/1744.",
+          "score": 4
+        },
+        "scope": {
+          "rationale": "AI Act plus KI-MIG cover AI horizontally across all sectors, with sectoral supervision allocated to BaFin, BSI, BfArM and Landesmedienanstalten.",
+          "score": 5
+        }
       }
     },
     "Ghana": {
@@ -6469,5 +6536,6 @@
       }
     }
   },
+  "methodology": "v2.1",
   "schema_version": 1
 }

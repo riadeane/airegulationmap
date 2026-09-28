@@ -1452,6 +1452,15 @@
         "actorInvolvement": 4.0,
         "enforcementLevel": 2.25,
         "averageScore": 2.92
+      },
+      {
+        "date": "2026-09-28",
+        "regulationStatus": 4.75,
+        "policyLever": 4.5,
+        "governanceType": 3.75,
+        "actorInvolvement": 4.0,
+        "enforcementLevel": 3.5,
+        "averageScore": 4.25
       }
     ],
     "Ghana": [
