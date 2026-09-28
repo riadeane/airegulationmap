@@ -128,7 +128,7 @@ function createChart(): void {
     const ro = new ResizeObserver(() => {
       if (getState().mainView === 'scatter') { layout(); updateChart(); }
     });
-    ro.observe(document.getElementById('scatter-chart')!);
+    ro.observe(el('scatter-chart'));
   }
 }
 
@@ -289,8 +289,8 @@ function onDotClick(name: string): void {
 }
 
 function setVisible(open: boolean): void {
-  const container = document.getElementById('scatter-container')!;
-  const btn = document.getElementById('scatter-btn')!;
+  const container = el('scatter-container');
+  const btn = el('scatter-btn');
   container.hidden = !open;
   // The explorer takes over the map's slot; the map layer (svg, zoom,
   // bloc card, timeline) hides via this class but keeps its DOM and

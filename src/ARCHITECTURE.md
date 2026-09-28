@@ -131,8 +131,10 @@ barrel, not into private files.
 
 ### Typed DOM seam - `dom.ts`
 `el<T>(id)` (required; throws with the id if missing) and `maybeEl<T>(id)`
-(optional) replace unchecked `getElementById(x) as HTMLInputElement` casts. One
-place to reason about the element contract.
+(optional) replace unchecked `getElementById(x) as HTMLInputElement` casts and
+non-null `getElementById(x)!` lookups. One place to reason about the element
+contract; a bare `getElementById` is left only where the element is optional
+and the call site checks for null.
 
 ### Serialization seam - `controls/url.ts`
 State ⇄ URL query string, so any view is a shareable link. `buildPermalink`
@@ -231,9 +233,6 @@ sequenceDiagram
 
 ## Known incremental migrations
 
-- `dom.ts` is adopted for the unchecked casts; the remaining
-  `getElementById(...)!` sites (correct type, just non-null) can move to `el()`
-  opportunistically.
 - Rendering is deliberately imperative. If the panel/comparison DOM churn ever
   justifies it, a ~30-line tagged-template helper - not a framework - is the
   intended next step; the map stays hand-written D3.

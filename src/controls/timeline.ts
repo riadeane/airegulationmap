@@ -54,14 +54,14 @@ export function initTimeline(history: HistoryData | null): void {
   historyRef = history;
   sortedDatesRef = sortedDates;
 
-  const container = document.getElementById('timeline-strip')!;
+  const container = el('timeline-strip');
   container.style.display = 'block';
 
   const slider = el<HTMLInputElement>('timeline-slider');
   slider.max = String(sortedDates.length - 1);
   renderBreakMarkers(historyBreaks(history), sortedDates);
 
-  const dateLabel = document.getElementById('timeline-date-label')!;
+  const dateLabel = el('timeline-date-label');
   const lastIdx = sortedDates.length - 1;
 
   // The visible label and the slider's spoken value: without
@@ -102,7 +102,7 @@ export function initTimeline(history: HistoryData | null): void {
     setState({ timelineDate: isLatest ? null : sortedDates[idx] });
   });
 
-  document.getElementById('timeline-reset')!.addEventListener('click', () => {
+  el('timeline-reset').addEventListener('click', () => {
     slider.value = String(lastIdx);
     labelFor(lastIdx);
     setState({ timelineDate: null });

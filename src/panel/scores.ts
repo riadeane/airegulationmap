@@ -1,6 +1,7 @@
 import type { ScoreEntry } from '../data/loader';
 import { INSUFFICIENT_EVIDENCE_LABEL, isInsufficient } from '../constants';
 import { makeColorScale } from '../map/ramp';
+import { el } from '../dom';
 import { NO_ACTIVITY_TEXT, noGovernanceActivity } from '../data/meaning';
 
 // The five dimension values the dots render. Live rows (ScoreEntry) and
@@ -76,10 +77,10 @@ function renderNoActivity(elId: string): void {
 /** `avg` is the composite: a number, `null` for "insufficient evidence"
  * (fewer than two normative dimensions scored), `undefined` for no row. */
 export function renderScoreBar(avg: number | null | undefined): void {
-  document.getElementById('average-score')!.textContent = avg != null
+  el('average-score').textContent = avg != null
     ? `${avg} / 5`
     : isInsufficient(avg) ? INSUFFICIENT_EVIDENCE_LABEL : 'N/A';
-  const fill = document.getElementById('overall-bar-fill')!;
+  const fill = el('overall-bar-fill');
   fill.style.width = avg != null ? `${((avg - 1) / 4) * 100}%` : '0%';
   // Colour the fill by where the score lands on the implementation ramp,
   // so it reads the same as the country on the map.

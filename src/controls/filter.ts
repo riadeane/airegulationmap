@@ -21,12 +21,12 @@ const EVIDENCE_EMPTY_TITLE: Record<Exclude<EvidenceFilter, 'any'>, string> = {
 };
 
 export function initFilter(): void {
-  const btn = document.getElementById('filter-btn')!;
-  const popover = document.getElementById('filter-popover')!;
+  const btn = el('filter-btn');
+  const popover = el('filter-popover');
   const minSlider = el<HTMLInputElement>('filter-min');
   const maxSlider = el<HTMLInputElement>('filter-max');
-  const minLabel = document.getElementById('filter-min-label')!;
-  const maxLabel = document.getElementById('filter-max-label')!;
+  const minLabel = el('filter-min-label');
+  const maxLabel = el('filter-max-label');
   const confBoxes = Array.from(
     document.querySelectorAll<HTMLInputElement>('#filter-confidence input[type="checkbox"]')
   );
@@ -40,9 +40,9 @@ export function initFilter(): void {
     const isOpen = popover.classList.toggle('open');
     btn.classList.toggle('active', isOpen);
     btn.setAttribute('aria-expanded', String(isOpen));
-    document.getElementById('score-dropdown')!.classList.remove('open');
-    document.getElementById('score-btn')!.classList.remove('active');
-    document.getElementById('score-btn')!.setAttribute('aria-expanded', 'false');
+    el('score-dropdown').classList.remove('open');
+    el('score-btn').classList.remove('active');
+    el('score-btn').setAttribute('aria-expanded', 'false');
   });
 
   function applyFilter() {

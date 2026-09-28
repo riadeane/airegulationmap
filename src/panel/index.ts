@@ -1,5 +1,5 @@
 import { getState, setState, on } from '../state/store';
-import { maybeEl } from '../dom';
+import { el, maybeEl } from '../dom';
 import { renderScoreBar, renderAllDots } from './scores';
 import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
@@ -209,7 +209,7 @@ function renderScores(countryName: string): void {
 function revealEntry(): void {
   const fallback = document.getElementById('no-selection-message');
   if (fallback) fallback.hidden = true;
-  document.getElementById('panel-content')!.style.display = '';
+  el('panel-content').style.display = '';
 }
 
 // Slide the mobile bottom sheet up (the class is inert on desktop) and,
@@ -236,10 +236,10 @@ function renderPanel(countryName: string, { refresh = false }: { refresh?: boole
   // (view closed), the panel stays usable so the user keeps browsing.
   if (!comparisonOpen) revealEntry();
 
-  document.getElementById('country-name')!.textContent = countryName;
+  el('country-name').textContent = countryName;
   renderIsoCodes(countryName);
 
-  const badge = document.getElementById('confidence-badge')!;
+  const badge = el('confidence-badge');
   const level = normalizeConfidence(reg && reg.confidence);
   if (level) {
     badge.textContent = CONFIDENCE_LABELS[level];
@@ -263,7 +263,7 @@ function renderPanel(countryName: string, { refresh = false }: { refresh?: boole
     ? `${sources.length} source${sources.length === 1 ? '' : 's'}`
       + (officialCount > 0 ? ` · ${officialCount} official` : '')
     : 'no primary sources';
-  document.getElementById('last-updated')!.textContent = dateStr
+  el('last-updated').textContent = dateStr
     ? `Data as of ${dateStr} · ${countText}`
     : countText;
   renderEvidence();
@@ -300,7 +300,7 @@ function clearPanel(): void {
   // as a contradictory double empty-state - which a bare Esc (deselect
   // with nothing selected) would otherwise trigger.
   if (fallback) fallback.hidden = document.getElementById('panel-intro') !== null;
-  document.getElementById('panel-content')!.style.display = 'none';
+  el('panel-content').style.display = 'none';
   // Slide the mobile bottom sheet back down (inert on desktop).
   document.body.classList.remove('sheet-open');
   closeSheetDialog();

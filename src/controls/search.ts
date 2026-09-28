@@ -49,7 +49,7 @@ function sectionLabel(text: string): HTMLLIElement {
 
 export function initSearch(): void {
   const searchInput = el<HTMLInputElement>('country-search');
-  const suggestions = document.getElementById('search-suggestions')!;
+  const suggestions = el('search-suggestions');
   // The options list is role="listbox" with presentational section
   // labels, so screen readers don't announce result changes on their
   // own - and a no-results message inside it is invisible to AT. This
@@ -264,7 +264,7 @@ export function initKeyboardNav(): void {
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
       if (e.key === 'Escape') {
         target.blur();
-        document.getElementById('search-suggestions')!.replaceChildren();
+        el('search-suggestions').replaceChildren();
         releaseTypingHighlight();
       }
       return;
@@ -279,7 +279,7 @@ export function initKeyboardNav(): void {
 
     if (e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) {
       e.preventDefault();
-      document.getElementById('country-search')!.focus();
+      el('country-search').focus();
       return;
     }
 

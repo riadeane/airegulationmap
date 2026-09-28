@@ -2,6 +2,7 @@ import './styles/main.css';
 
 import { getState, on, setState } from './state/store';
 import { restoreComparison, selectCountry, openScatter, commitSearch } from './state/interactions';
+import { el } from './dom';
 import { loadScores, loadRegulation } from './data/loader';
 import { loadHistory } from './data/history';
 import { loadBlocs } from './data/blocs';
@@ -66,8 +67,8 @@ function closeAllDropdowns(e: MouseEvent): void {
     ['export-popover', 'export-btn'],
     ['share-popover', 'share-btn'],
   ]) {
-    document.getElementById(popoverId)!.classList.remove('open');
-    const btn = document.getElementById(btnId)!;
+    el(popoverId).classList.remove('open');
+    const btn = el(btnId);
     btn.classList.remove('active');
     btn.setAttribute('aria-expanded', 'false');
   }
