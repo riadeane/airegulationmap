@@ -35,4 +35,7 @@ line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint]
-extend-select = ["I", "UP", "B"]
+# Ruff 0.16 grew its default rule set from 59 rules to 413. Pin the pre-0.16
+# defaults (E4, E7, E9, F) plus our extras so a ruff bump never widens the lint
+# set by itself; adopting more rules is its own change (#171).
+select = ["E4", "E7", "E9", "F", "I", "UP", "B"]
