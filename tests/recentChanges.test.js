@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeRecentChanges, formatSignedDelta } from '../src/data/changelog';
+import { computeRecentChanges, formatRecentMove, formatSignedDelta } from '../src/data/changelog';
 
 const TODAY = '2026-09-23';
 
@@ -137,14 +137,46 @@ describe('computeRecentChanges', () => {
     expect(computeRecentChanges(h, TODAY)).toEqual([]);
   });
 
-  it('ignores a dimension with no previous value (no delta to show)', () => {
+  it('lists a move from insufficient evidence with no size or direction', () => {
     const h = history({
       Sparse: [
         snap('2026-06-13', { policyLever: null }),
         snap('2026-09-21', { policyLever: 3 }),
       ],
     });
-    expect(computeRecentChanges(h, TODAY)).toEqual([]);
+    const [change] = computeRecentChanges(h, TODAY);
+    expect(change).toMatchObject({ country: 'Sparse', dimension: 'policyLever', delta: null, from: null, to: 3 });
+    expect(formatRecentMove(change)).toBe('insufficient evidence → 3');
+  });
+
+  it('lists a move to insufficient evidence after every sized move', () => {
+    const h = history({
+      Gone: [snap('2026-06-13'), snap('2026-09-21', { enforcementLevel: null })],
+      Moved: [snap('2026-06-13'), snap('2026-09-21', { policyLever: 2.25 })],
+    });
+    const changes = computeRecentChanges(h, TODAY);
+    expect(changes.map(c => c.country)).toEqual(['Moved', 'Gone']);
+    expect(changes[1]).toMatchObject({ dimension: 'enforcementLevel', delta: null, to: null });
+    expect(formatRecentMove(changes[1])).toBe('insufficient evidence');
+    expect(formatRecentMove(changes[0])).toBe('+0.25');
+  });
+
+  it('prefers a sized move over a null move for the same country', () => {
+    const h = history({
+      Both: [snap('2026-06-13'), snap('2026-09-21', { enforcementLevel: null, policyLever: 3 })],
+    });
+    expect(computeRecentChanges(h, TODAY)[0]).toMatchObject({ dimension: 'policyLever', delta: 1 });
+  });
+
+  it('nets across a null in the middle of the window', () => {
+    const h = history({
+      Back: [
+        snap('2026-06-13'),
+        snap('2026-09-17', { policyLever: null }),
+        snap('2026-09-21', { policyLever: 2.5 }),
+      ],
+    });
+    expect(computeRecentChanges(h, TODAY)[0]).toMatchObject({ dimension: 'policyLever', delta: 0.5 });
   });
 
   it('excludes changes dated on a calibration break', () => {

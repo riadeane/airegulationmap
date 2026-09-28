@@ -25,7 +25,7 @@
 import { getState } from '../state/store';
 import { scoresAtDate } from '../state/selectors';
 import { maybeEl } from '../dom';
-import { ATTRIBUTE_LABELS, SCORE_OPTIONS } from '../constants';
+import { ATTRIBUTE_LABELS, INSUFFICIENT_EVIDENCE_LABEL, SCORE_OPTIONS, isInsufficient } from '../constants';
 import type { DimensionKey } from '../constants';
 import { citationsFor } from './citation';
 import { buildPermalink } from './url';
@@ -78,7 +78,9 @@ export function reportTitle(country: string): string {
 }
 
 // The panel's number format: integers bare, quarter points to two places.
+// A null value is "insufficient evidence"; no row at all (undefined) is N/A.
 function formatScore(value: number | null | undefined): string {
+  if (isInsufficient(value)) return INSUFFICIENT_EVIDENCE_LABEL;
   if (value == null) return 'N/A';
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
@@ -158,7 +160,7 @@ function sourcesBlock(urls: string[], listed: number): string[] {
 interface SubRow {
   dimension: string;
   label: string;
-  score: number;
+  score: number | null;
   rationale: string | null;
 }
 

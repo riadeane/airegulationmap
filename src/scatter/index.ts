@@ -177,10 +177,12 @@ function updateChart(): void {
       avg: scores.averageScore,
       visible: visibleSet.has(name),
     }))
+    // Insufficient evidence (null) on either axis has no position: left out.
     .filter((d): d is PlottedDot => d.x != null && d.y != null);
 
   const colorScale = makeColorScale();
-  const noData = cssVar('--no-data');
+  // Every dot has a score row, so a null composite is insufficient evidence.
+  const insufficient = cssVar('--score-insufficient');
   const strokeColor = cssVar('--surface');
   const coarse = isCoarse();
   const baseR = coarse ? 6 : 4.5;      // easier to hit on touch
@@ -204,7 +206,7 @@ function updateChart(): void {
     .attr('cx', d => xScale(d.x + jitterFor(d.name).dx))
     .attr('cy', d => yScale(d.y + jitterFor(d.name).dy))
     .attr('r', d => isMarked(d.name) ? bigR : baseR)
-    .attr('fill', d => d.avg != null ? colorScale(d.avg) : noData)
+    .attr('fill', d => d.avg != null ? colorScale(d.avg) : insufficient)
     .attr('stroke', strokeColor)
     .attr('stroke-width', d => isMarked(d.name) ? 2 : 0.6)
     .style('opacity', d => d.visible ? 0.85 : 0.15);

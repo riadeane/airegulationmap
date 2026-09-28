@@ -21,6 +21,7 @@ import { classifySources } from '../data/sources';
 import { localIsoDate } from '../data/localDate';
 import { computeRecentChanges } from '../data/changelog';
 import type { RecentChange } from '../data/changelog';
+import { isInsufficient } from '../constants';
 import type { AttributeKey } from '../constants';
 
 export interface RankResult {
@@ -168,6 +169,16 @@ export function passesCountryFilters(country: string): boolean {
   return true;
 }
 
+/**
+ * True when the score range filter spans the whole 1-5 scale, i.e. it
+ * filters nothing. Only then does a country with insufficient evidence on
+ * the current attribute stay visible: with a narrowed range there is no
+ * value to test, so it is left out.
+ */
+export function scoreRangeIsFull(min: number, max: number): boolean {
+  return min <= 1 && max >= 5;
+}
+
 let visibleCache: {
   scoreData: ScoreData;
   regulationData: RegulationData;
@@ -187,7 +198,8 @@ let visibleCache: {
 /**
  * Countries visible under ALL active filters, evaluated on the LATEST data:
  * a score for the current attribute exists and is inside [filterMin,
- * filterMax], and every country-level filter passes. This is the export and
+ * filterMax] (or it is "insufficient evidence" and the range is the full
+ * scale, see scoreRangeIsFull), and every country-level filter passes. This is the export and
  * scatter scope; the map composes passesCountryFilters() with its own
  * per-datum range check instead (see above).
  */
@@ -216,7 +228,9 @@ export function visibleCountrySet(): ReadonlySet<string> {
   const set = new Set<string>();
   for (const [name, entry] of Object.entries(scoreData)) {
     const score = entry[currentAttribute];
-    if (score == null || score < filterMin || score > filterMax) continue;
+    if (isInsufficient(score)) {
+      if (!scoreRangeIsFull(filterMin, filterMax)) continue;
+    } else if (score == null || score < filterMin || score > filterMax) continue;
     if (!passesCountryFilters(name)) continue;
     set.add(name);
   }

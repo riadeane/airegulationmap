@@ -59,9 +59,16 @@ describe('visibleCountrySet selector', () => {
     subscores: null,
   });
 
-  it('includes every scored country when no filter is active', () => {
+  it('includes every country with a row when no filter is active', () => {
+    // NoScore has a row with a null value: insufficient evidence (rubric
+    // v3.1). With the range at the full scale nothing is filtered out.
     setState(base());
-    expect([...visibleCountrySet()].sort()).toEqual(['A', 'B', 'C']);
+    expect([...visibleCountrySet()].sort()).toEqual(['A', 'B', 'C', 'NoScore']);
+  });
+
+  it('leaves insufficient evidence out once the score range is narrowed', () => {
+    setState({ ...base(), filterMin: 1, filterMax: 4.5 });
+    expect([...visibleCountrySet()].sort()).toEqual(['B', 'C']);
   });
 
   it('applies the score range on the current attribute', () => {

@@ -112,8 +112,12 @@ describe('formatting helpers', () => {
     expect(dimensionLabel('actor_involvement')).toBe('Actor Involvement');
     expect(dimensionLabel('unknown_thing')).toBe('unknown_thing');
     expect(formatDelta({ old: 3, new: 3.75 })).toBe('3 → 3.75');
-    expect(formatDelta({ old: null, new: 2.5 })).toBe('new at 2.5');
-    expect(formatDelta({ old: 2, new: null })).toBe('removed');
+    expect(formatDelta({ old: null, new: 2.5 }, true)).toBe('new at 2.5');
+    // Rubric v3.1: a null on a country that already had scores is
+    // insufficient evidence, with no direction implied.
+    expect(formatDelta({ old: 2.5, new: null })).toBe('2.5 → insufficient evidence');
+    expect(formatDelta({ old: null, new: 3 })).toBe('insufficient evidence → 3');
+    expect(formatDelta({ old: null, new: null }, true)).toBe('insufficient evidence');
   });
 
   it('builds country links and source hosts', () => {
@@ -135,6 +139,7 @@ describe('uncoveredFacts', () => {
   const change = (overrides) => ({
     country: 'Germany',
     scores: {},
+    firstScored: false,
     laws: null,
     confidence: { old: 'medium', new: 'medium' },
     sources: [],
@@ -160,8 +165,21 @@ describe('uncoveredFacts', () => {
   it('says "first scored" for a country new to the tracker', () => {
     expect(uncoveredFacts(change({
       scores: { regulation_status: { old: null, new: 2 } },
+      firstScored: true,
       confidence: { old: null, new: 'low' },
     }))).toEqual(['first scored in this run']);
+  });
+
+  it('lists a move to or from insufficient evidence on a scored country', () => {
+    expect(uncoveredFacts(change({
+      scores: {
+        enforcement_level: { old: 2.5, new: null },
+        policy_lever: { old: null, new: 3 },
+      },
+    }))).toEqual([
+      'Enforcement Level 2.5 → insufficient evidence',
+      'Policy Lever insufficient evidence → 3',
+    ]);
   });
 
   it('adds nothing for an unchanged confidence', () => {

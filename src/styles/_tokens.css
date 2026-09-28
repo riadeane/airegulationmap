@@ -50,6 +50,10 @@
 
   --ocean:           oklch(16% 0.015 240);
   --no-data:         oklch(26% 0.007 var(--brand-hue));
+  /* Insufficient evidence (rubric v3.1): a scored country whose value the
+     research could not verify either way. A neutral well apart from both
+     --no-data and the ramp's grey-ish midpoint, and never the colour for 1. */
+  --score-insufficient: oklch(40% 0.008 var(--brand-hue));
 
   /* Choropleth ramp endpoints (interpolated in Lab space by d3).
      Red → blue divergent: low scores read "warning / less coverage"
@@ -106,6 +110,7 @@
 
     --ocean:           oklch(95% 0.011 235);
     --no-data:         oklch(93% 0.004 80);
+    --score-insufficient: oklch(79% 0.006 80);
 
     --score-low:       oklch(52% 0.18 28);
     --score-high:      oklch(45% 0.15 245);
@@ -140,6 +145,7 @@
 
   --ocean:           oklch(95% 0.011 235);
   --no-data:         oklch(93% 0.004 80);
+  --score-insufficient: oklch(79% 0.006 80);
 
   --score-low:       oklch(52% 0.18 28);
   --score-high:      oklch(45% 0.15 245);

@@ -1,6 +1,6 @@
 import { getState } from '../state/store';
 import { el } from '../dom';
-import { ATTRIBUTE_LABELS } from '../constants';
+import { ATTRIBUTE_LABELS, INSUFFICIENT_EVIDENCE_LABEL, isInsufficient } from '../constants';
 import type { DimensionKey } from '../constants';
 import { matchCountryNames } from '../data/countryMatch';
 import { cleanRegulationText } from '../panel/normalize';
@@ -235,7 +235,8 @@ function renderComparisonTable(names: readonly string[]): void {
   const tbody = document.createElement('tbody');
 
   const fmtScore = (v: number | null | undefined) =>
-    v == null ? '–' : (Number.isInteger(v) ? String(v) : v.toFixed(2));
+    isInsufficient(v) ? INSUFFICIENT_EVIDENCE_LABEL
+      : v == null ? '–' : (Number.isInteger(v) ? String(v) : v.toFixed(2));
 
   // Maturity index - score only (it is derived; no description).
   const avgRow = document.createElement('tr');

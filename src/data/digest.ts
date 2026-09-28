@@ -2,7 +2,7 @@
 // digest.py writes, parsed defensively, plus the small pure helpers the
 // changes page renders with. No DOM here so it is unit-testable.
 
-import { ATTRIBUTE_LABELS } from '../constants';
+import { ATTRIBUTE_LABELS, INSUFFICIENT_EVIDENCE_LABEL } from '../constants';
 
 export interface DigestItem {
   country: string;
@@ -11,6 +11,8 @@ export interface DigestItem {
   sources: string[];
 }
 
+/** A dimension's move. A null is "insufficient evidence" (rubric v3.1),
+ * except `old` on a first-scored country, which had no row at all. */
 export interface ScoreDelta {
   old: number | null;
   new: number | null;
@@ -20,6 +22,9 @@ export interface DigestChange {
   country: string;
   /** Only the dimensions that moved, keyed by snake_case dimension key. */
   scores: Record<string, ScoreDelta>;
+  /** The country had no scores before this run, so a null `old` means
+   * "not scored yet" rather than insufficient evidence. */
+  firstScored: boolean;
   laws: { old: string | null; new: string } | null;
   confidence: { old: string | null; new: string };
   sources: string[];
@@ -104,9 +109,17 @@ function parseChange(raw: unknown): DigestChange | null {
     ? { old: str(raw.confidence.old), new: str(raw.confidence.new) ?? '' }
     : { old: null, new: '' };
 
+  // Week files written before rubric v3.1 carry no flag; in them a null
+  // `old` on every moved dimension meant a first-scored country.
+  const deltas = Object.values(scores);
+  const firstScored = typeof raw.first_scored === 'boolean'
+    ? raw.first_scored
+    : deltas.length > 0 && deltas.every(d => d.old === null);
+
   return {
     country,
     scores,
+    firstScored,
     laws,
     confidence,
     sources: strings(raw.sources),
@@ -198,11 +211,15 @@ export function dimensionLabel(key: string): string {
   return label ?? key;
 }
 
-/** Score movement for display: 'new at 3.75', '3 → 3.75', or 'removed'. */
-export function formatDelta(delta: ScoreDelta): string {
-  if (delta.new === null) return 'removed';
-  if (delta.old === null) return `new at ${delta.new}`;
-  return `${delta.old} → ${delta.new}`;
+/**
+ * Score movement for display: '3 → 3.75', 'new at 3.75' on a first-scored
+ * country, or with "insufficient evidence" standing in for a null
+ * ('2.5 → insufficient evidence').
+ */
+export function formatDelta(delta: ScoreDelta, firstScored = false): string {
+  const insufficient = INSUFFICIENT_EVIDENCE_LABEL.toLowerCase();
+  if (delta.old === null && firstScored) return delta.new === null ? insufficient : `new at ${delta.new}`;
+  return `${delta.old ?? insufficient} → ${delta.new ?? insufficient}`;
 }
 
 /** The run moved the country's confidence level. */
@@ -222,10 +239,10 @@ export function formatConfidenceChange(confidence: DigestChange['confidence']): 
  * used to list the country with nothing after the colon.
  */
 export function uncoveredFacts(change: DigestChange): string[] {
-  const deltas = Object.values(change.scores);
-  const firstScored = deltas.length > 0 && deltas.every((d) => d.old === null);
-  if (firstScored) return ['first scored in this run'];
-  const facts = Object.entries(change.scores).map(([key, delta]) => `${dimensionLabel(key)} ${formatDelta(delta)}`);
+  if (change.firstScored && Object.keys(change.scores).length > 0) return ['first scored in this run'];
+  const facts = Object.entries(change.scores).map(
+    ([key, delta]) => `${dimensionLabel(key)} ${formatDelta(delta, change.firstScored)}`
+  );
   if (change.laws) facts.push('specific laws updated');
   if (confidenceChanged(change)) facts.push(`confidence ${formatConfidenceChange(change.confidence)}`);
   return facts;
