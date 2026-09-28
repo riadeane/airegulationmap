@@ -24,6 +24,9 @@ from . import history as history_mod
 from .api import ResearchClient
 from .batch import BatchRunner
 from .config import DEFAULT_MODEL, Settings, estimate_cost_usd
+from .consistency import eu_members, eu_outliers
+from .consistency import log_lines as eu_log_lines
+from .consistency import markdown_summary as eu_markdown_summary
 from .digest import write_run_digest
 from .gold import check_run, markdown_summary
 from .links import LinkChecker
@@ -247,6 +250,7 @@ def _run(
         logger.warning(line)
     _write_step_summary(gate.markdown_summary(result.gate, result.calibration_break))
     _gold_check(result, settings, model, prompt_version, today, supabase_mirror)
+    _eu_check(settings)
     if write_digest and result.fatal:
         # An aborted run's changes are partial; a digest would publish them
         # (or "no changes") as the week's story.
@@ -297,6 +301,21 @@ def _gold_check(
         return
     if check is not None:
         _write_step_summary(markdown_summary(check.metrics, check.gold))
+
+
+def _eu_check(settings: Settings) -> None:
+    """Post-run EU consistency check (consistency.py): list the members whose
+    AI Act sub-indicators differ from the EU's most common score, in the log
+    and the step summary. Never changes a score or the exit code."""
+    try:
+        subscores = json.loads(settings.subscores_json.read_text(encoding="utf-8"))
+        outliers = eu_outliers(subscores, eu_members(settings.blocs_json))
+    except Exception:
+        logger.warning("eu: consistency check failed - continuing", exc_info=True)
+        return
+    for line in eu_log_lines(outliers):
+        logger.info(line)
+    _write_step_summary(eu_markdown_summary(outliers))
 
 
 def _write_step_summary(markdown: str) -> None:
