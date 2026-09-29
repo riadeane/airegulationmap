@@ -1,6 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { mapExportRow, isStrictlyNewer } from '../src/data/hydrate';
-import { restGet, isConfigured } from '../src/data/supabase';
 
 // The hydration path must produce EXACTLY the shapes the CSV loader
 // produces, through the same score-validation boundary.
@@ -81,8 +80,23 @@ describe('isStrictlyNewer', () => {
 });
 
 describe('restGet (unconfigured)', () => {
+  // supabase.ts reads the env once at import, so the test clears it and
+  // re-imports: a .env file or the data workflow's dummy build values must
+  // not decide the outcome.
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
   it('is a null no-op without env vars - no fetch attempted', async () => {
+    vi.stubEnv('VITE_SUPABASE_URL', '');
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', '');
+    vi.resetModules();
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const { restGet, isConfigured } = await import('../src/data/supabase');
     expect(isConfigured()).toBe(false);
     expect(await restGet('public_export?select=country')).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
   });
 });
