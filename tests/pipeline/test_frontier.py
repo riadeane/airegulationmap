@@ -781,3 +781,9 @@ class TestSharedNewSource:
         result, ds = _run(tmp_path, [("Freedonia", ResearchResult.parse(moved))], context(), NEXT_WEEK)
         assert result.gate.counts[gate.APPLIED_EVIDENCE] == 1
         assert result.frontier_gate.counts[gate.APPLIED_EVIDENCE] == 1
+
+
+def test_a_binding_cap_is_written_as_a_float():
+    # 5, 5, 5, 2 caps at 3: the files must read "3.0", like every score.
+    score = frontier_score({"a": 5, "b": 5, "c": 5, "d": 2})
+    assert isinstance(score, float) and str(score) == "3.0"

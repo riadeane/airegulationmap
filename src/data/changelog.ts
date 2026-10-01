@@ -16,10 +16,27 @@ const DIMENSION_KEYS: DimensionKey[] = [
   'enforcementLevel',
 ];
 
+/** A score whose moves the changelog lists: a dimension, or the frontier
+ *  lens (PRD 15), labelled from the vocabulary like the others. */
+export type ChangeKey = DimensionKey | 'frontierRisk';
+
+const CHANGE_KEYS: ChangeKey[] = [...DIMENSION_KEYS, 'frontierRisk'];
+
+/** True for a move on one of the five dimensions (not the frontier lens). */
+export function isDimensionChange(change: { dimension: ChangeKey }): change is { dimension: DimensionKey } & ChangelogChange {
+  return change.dimension !== 'frontierRisk';
+}
+
+// A snapshot carries the frontier keys only once the country has been
+// scored on the lens.
+function hasFrontier(snapshot: HistorySnapshot): boolean {
+  return snapshot.frontierTrack != null || 'frontierRisk' in snapshot;
+}
+
 /** One dimension's move. A null `from` or `to` is "insufficient evidence"
  * (rubric v3.1): such a move has no size and no direction. */
 export interface ChangelogChange {
-  dimension: DimensionKey;
+  dimension: ChangeKey;
   label: string;
   from: number | null;
   to: number | null;
@@ -83,7 +100,11 @@ export function computeChangelog(
     const curr = sorted[i];
     const changes: ChangelogChange[] = [];
 
-    for (const key of DIMENSION_KEYS) {
+    for (const key of CHANGE_KEYS) {
+      // The frontier lens's first score is an assessment, not a move: it
+      // has no earlier value to differ from (PRD 15). Only a change between
+      // two frontier snapshots is listed.
+      if (key === 'frontierRisk' && !(hasFrontier(prev) && hasFrontier(curr))) continue;
       // `?? null`: a key absent from an old snapshot reads like a null
       // value, so null against missing is no change.
       const from = prev[key] ?? null;
@@ -119,8 +140,8 @@ export function isPolicyChange(entry: ChangelogEntry): boolean {
 
 export interface RecentChange {
   country: string;
-  /** The dimension with the largest net move inside the window. */
-  dimension: DimensionKey;
+  /** The dimension (or the frontier lens) with the largest net move inside the window. */
+  dimension: ChangeKey;
   label: string;
   /** Signed net move on that dimension, rounded to two decimals; null for
    * a move to or from insufficient evidence (no size, no direction). */
@@ -178,7 +199,7 @@ export function computeRecentChanges(
     // Per dimension: the value before the window (the oldest change's
     // `from`) and after it (the newest change's `to`). computeChangelog
     // returns entries newest-first.
-    const span: Partial<Record<DimensionKey, { from: number | null; to: number | null }>> = {};
+    const span: Partial<Record<ChangeKey, { from: number | null; to: number | null }>> = {};
     for (const entry of [...entries].reverse()) {
       for (const c of entry.changes) {
         const known = span[c.dimension];
@@ -186,9 +207,9 @@ export function computeRecentChanges(
       }
     }
 
-    let best: { dimension: DimensionKey; delta: number } | null = null;
-    let unsized: { dimension: DimensionKey; from: number | null; to: number | null } | null = null;
-    for (const key of DIMENSION_KEYS) {
+    let best: { dimension: ChangeKey; delta: number } | null = null;
+    let unsized: { dimension: ChangeKey; from: number | null; to: number | null } | null = null;
+    for (const key of CHANGE_KEYS) {
       const move = span[key];
       if (!move || move.from === move.to) continue;
       if (move.from == null || move.to == null) {

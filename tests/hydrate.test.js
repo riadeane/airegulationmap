@@ -50,7 +50,28 @@ describe('mapExportRow', () => {
       sources: 'https://a.gov/x | https://b.com/y',
       lastUpdated: '2026-06-13',
       confidence: 'high',
+      frontierRisk: null,
+      frontierSources: null,
     });
+    // No frontier columns (migration 0014 not applied): no frontier data,
+    // so the keys stay absent rather than null.
+    expect('frontierRisk' in score).toBe(false);
+    expect('frontierTrack' in score).toBe(false);
+  });
+
+  it('maps the frontier columns (migration 0014) like the CSV loader', () => {
+    const { score, reg } = mapExportRow({
+      ...ROW,
+      frontier_risk: '2.50', frontier_track: 'H',
+      frontier_risk_text: 'A frontier text.', frontier_sources_raw: 'https://a.gov/f',
+    });
+    expect(score.frontierRisk).toBe(2.5);
+    expect(score.frontierTrack).toBe('H');
+    expect(reg.frontierRisk).toBe('A frontier text.');
+    expect(reg.frontierSources).toBe('https://a.gov/f');
+    // A track with no score is insufficient evidence; no track is no data.
+    expect(mapExportRow({ ...ROW, frontier_risk: null, frontier_track: 'G' }).score.frontierRisk).toBeNull();
+    expect(mapExportRow({ ...ROW, frontier_risk: 3, frontier_track: null }).score.frontierRisk).toBeUndefined();
   });
 
   it('nulls out-of-range scores through the shared boundary', () => {

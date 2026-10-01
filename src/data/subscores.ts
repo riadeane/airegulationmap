@@ -9,8 +9,15 @@
 // the rest of the app sees a single shape. Since rubric v3.1 a v2.1
 // `score` may be `null`: insufficient evidence, with the rationale saying
 // what was searched (see isInsufficient in constants.ts).
+//
+// An entry may also carry a `frontier` block (Frontier Risk Governance,
+// PRD 15) beside the five dimension blocks: the track, the rubric
+// generation, and four sub-indicators whose score may also be "na" (does
+// not apply on the track). It is normalized on its own; the walk over the
+// dimension blocks never reads it, as it never reads `evidence`.
 
-import type { DimensionKey } from '../constants';
+import { FRONTIER_SUBINDICATOR_KEYS, parseFrontierTrack } from '../constants';
+import type { DimensionKey, FrontierSubindicator, FrontierTrack, NotApplicable } from '../constants';
 import { normalizeEvidence } from './evidence';
 import type { EvidenceRecord } from './evidence';
 
@@ -30,6 +37,30 @@ export interface SubscoreCell {
 
 export type SubscoreBlock = Record<string, SubscoreCell | null>;
 
+/**
+ * One frontier sub-indicator. `score` is an integer 1-5, null (insufficient
+ * evidence) or "na" (does not apply on the country's track). `eu_level`
+ * marks developer_obligations resting on the EU AI Act; `computed` marks
+ * international_coordination, which is computed from public lists. Field
+ * names follow subscores.json, so the JSON export writes the block back as
+ * the file has it.
+ */
+export interface FrontierCell {
+  score: number | null | NotApplicable;
+  rationale: string | null;
+  eu_level?: true;
+  computed?: true;
+}
+
+/** The subscores.json `frontier` block (PRD 15), normalized. */
+export type FrontierBlock = {
+  /** The run that produced these frontier scores. */
+  date: string;
+  track: FrontierTrack | null;
+  /** The frontier rubric generation ("f1"). */
+  rubric: string | null;
+} & Partial<Record<FrontierSubindicator, FrontierCell>>;
+
 export interface SubscoreEntry {
   date: string;
   regulation_status?: SubscoreBlock;
@@ -40,6 +71,9 @@ export interface SubscoreEntry {
   /** How the latest research pass was grounded (PRD 14). Absent when the
    *  country has no run record yet. */
   evidence?: EvidenceRecord;
+  /** Frontier Risk Governance sub-indicators (PRD 15). Absent when the
+   *  country has never been scored on the lens. */
+  frontier?: FrontierBlock;
 }
 
 export interface SubscoresData {
@@ -57,10 +91,14 @@ interface RawEntry {
   [dimension: string]: unknown;
 }
 
+function cleanRationale(raw: unknown): string | null {
+  return typeof raw === 'string' && raw.trim() ? raw.trim() : null;
+}
+
 function normalizeCell(raw: RawCell): SubscoreCell | null {
   if (typeof raw === 'number') return Number.isFinite(raw) ? { score: raw, rationale: null } : null;
   if (!raw || typeof raw !== 'object') return null;
-  const rationale = typeof raw.rationale === 'string' && raw.rationale.trim() ? raw.rationale.trim() : null;
+  const rationale = cleanRationale(raw.rationale);
   // An explicit null is insufficient evidence; a missing or garbled score
   // is a malformed cell and is skipped.
   if (raw.score === null) return { score: null, rationale };
@@ -69,8 +107,50 @@ function normalizeCell(raw: RawCell): SubscoreCell | null {
   return { score, rationale };
 }
 
+/** One frontier cell, or undefined for a malformed one (skipped). */
+function normalizeFrontierCell(raw: unknown): FrontierCell | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const cell = raw as { score?: unknown; rationale?: unknown; eu_level?: unknown; computed?: unknown };
+  let score: FrontierCell['score'];
+  if (cell.score === null) score = null;
+  else if (typeof cell.score === 'string' && cell.score.trim().toLowerCase() === 'na') score = 'na';
+  else if (typeof cell.score === 'number' && Number.isFinite(cell.score) && cell.score >= 1 && cell.score <= 5) {
+    score = cell.score;
+  } else return undefined;
+  return {
+    score,
+    rationale: cleanRationale(cell.rationale),
+    ...(cell.eu_level === true ? { eu_level: true as const } : {}),
+    ...(cell.computed === true ? { computed: true as const } : {}),
+  };
+}
+
+/**
+ * Coerce a subscores.json `frontier` block. Null when it is not an object
+ * or holds no usable sub-indicator; a malformed cell is left out.
+ */
+export function normalizeFrontierBlock(raw: unknown): FrontierBlock | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const file = raw as Record<string, unknown>;
+  const block: FrontierBlock = {
+    date: typeof file.date === 'string' ? file.date : '',
+    track: parseFrontierTrack(file.track),
+    rubric: typeof file.rubric === 'string' && file.rubric.trim() ? file.rubric.trim() : null,
+  };
+  let cells = 0;
+  for (const key of FRONTIER_SUBINDICATOR_KEYS) {
+    const cell = normalizeFrontierCell(file[key]);
+    if (!cell) continue;
+    block[key] = cell;
+    cells++;
+  }
+  return cells > 0 ? block : null;
+}
+
 function normalizeEntry(raw: RawEntry): SubscoreEntry {
   const entry: SubscoreEntry = { date: typeof raw.date === 'string' ? raw.date : '' };
+  // The five dimension blocks only: `evidence` and `frontier` are read
+  // below, each by its own rules.
   for (const snake of Object.values(DIMENSION_TO_SNAKE)) {
     const block = raw[snake];
     if (!block || typeof block !== 'object') continue;
@@ -82,6 +162,8 @@ function normalizeEntry(raw: RawEntry): SubscoreEntry {
   }
   const evidence = normalizeEvidence(raw.evidence);
   if (evidence) entry.evidence = evidence;
+  const frontier = normalizeFrontierBlock(raw.frontier);
+  if (frontier) entry.frontier = frontier;
   return entry;
 }
 

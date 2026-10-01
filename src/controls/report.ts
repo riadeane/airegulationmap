@@ -4,7 +4,8 @@
 // cheapest data-quality signal the project has, so this removes every
 // step between "that score is wrong" and a filed issue. One click opens
 // the data-error issue form on GitHub with the entry as the panel shows
-// it already filled in: the six scores, confidence, the evidence coverage
+// it already filled in: the scores (the frontier risk governance score
+// and its track once the country has one), confidence, the evidence coverage
 // sentence (once the country has a run record), last updated, data
 // version, the citation string a reader would quote, the app URL, the
 // source list and, once the audit trail carries rationales (methodology
@@ -25,8 +26,12 @@
 import { getState } from '../state/store';
 import { scoresAtDate } from '../state/selectors';
 import { maybeEl } from '../dom';
-import { ATTRIBUTE_LABELS, INSUFFICIENT_EVIDENCE_LABEL, SCORE_OPTIONS, isInsufficient } from '../constants';
-import type { DimensionKey } from '../constants';
+import {
+  ATTRIBUTE_LABELS, EU_LEVEL_LABEL, FRONTIER_SUBINDICATORS, FRONTIER_SUBINDICATOR_KEYS, INSUFFICIENT_EVIDENCE_LABEL,
+  NOT_APPLICABLE_LABEL, SCORE_OPTIONS, isInsufficient, isNotApplicable,
+} from '../constants';
+import type { DimensionKey, NotApplicable } from '../constants';
+import { frontierTrackLine } from '../data/meaning';
 import { citationsFor } from './citation';
 import { buildPermalink } from './url';
 import { classifySources } from '../data/sources';
@@ -78,8 +83,10 @@ export function reportTitle(country: string): string {
 }
 
 // The panel's number format: integers bare, quarter points to two places.
-// A null value is "insufficient evidence"; no row at all (undefined) is N/A.
-function formatScore(value: number | null | undefined): string {
+// A null value is "insufficient evidence"; no row at all (undefined) is N/A;
+// a frontier sub-indicator off the country's track is "Not applicable".
+function formatScore(value: number | null | undefined | NotApplicable): string {
+  if (isNotApplicable(value)) return NOT_APPLICABLE_LABEL;
   if (isInsufficient(value)) return INSUFFICIENT_EVIDENCE_LABEL;
   if (value == null) return 'N/A';
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
@@ -141,6 +148,12 @@ function headerBlock(entry: ReportEntry): string[] {
   ];
   const shown = vintage ? vintage.scores : score;
   for (const { value, text } of SCORE_OPTIONS) {
+    if (value === 'frontierRisk') {
+      // Only once the country has been scored on the lens, with its track.
+      const track = frontierTrackLine(shown?.frontierTrack, euLevel(entry.subscores) && !vintage);
+      if (track) lines.push(`| ${text} | ${formatScore(shown?.frontierRisk)} (${track}) |`);
+      continue;
+    }
     lines.push(`| ${text} | ${formatScore(shown?.[value])} |`);
   }
   return lines;
@@ -160,8 +173,12 @@ function sourcesBlock(urls: string[], listed: number): string[] {
 interface SubRow {
   dimension: string;
   label: string;
-  score: number | null;
+  score: number | null | NotApplicable;
   rationale: string | null;
+}
+
+function euLevel(entry: SubscoreEntry | null): boolean {
+  return entry?.frontier?.developer_obligations?.eu_level === true;
 }
 
 function subIndicatorRows(entry: SubscoreEntry | null): SubRow[] {
@@ -176,6 +193,14 @@ function subIndicatorRows(entry: SubscoreEntry | null): SubRow[] {
       if (cell == null) continue;
       rows.push({ dimension: ATTRIBUTE_LABELS[dimension], label, score: cell.score, rationale: cell.rationale });
     }
+  }
+  // The frontier sub-indicators (PRD 15), "Not applicable" off the track.
+  const frontier = entry.frontier;
+  for (const key of FRONTIER_SUBINDICATOR_KEYS) {
+    const cell = frontier?.[key];
+    if (!cell) continue;
+    const label = FRONTIER_SUBINDICATORS[key].label + (cell.eu_level ? ` (${EU_LEVEL_LABEL})` : '');
+    rows.push({ dimension: ATTRIBUTE_LABELS.frontierRisk, label, score: cell.score, rationale: cell.rationale });
   }
   return rows;
 }

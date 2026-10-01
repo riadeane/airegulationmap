@@ -5,6 +5,7 @@ import { renderTextSections } from './sections';
 import { renderChangelog } from './changelog';
 import { renderPeerRow } from './peers';
 import { renderEvidence } from './evidence';
+import { renderFrontier } from './frontier';
 import { highlightCountry, clearHighlight } from '../map/index';
 import { onThemeChange } from '../map/cssColors';
 import { selectCountry, toggleComparison } from '../state/interactions';
@@ -191,6 +192,8 @@ function renderScores(countryName: string): void {
 
   renderScoreBar(entry?.averageScore);
   renderAllDots(entry);
+  // The frontier block follows the same vintage (PRD 15).
+  renderFrontier(countryName);
 
   // Peer sets are a latest-data derivation; they hide while a historical
   // vintage is showing.
@@ -433,17 +436,22 @@ export function initPanel(): void {
     if (selectedCountry) renderScores(selectedCountry);
   });
 
-  // subscores.json arrives async and carries the evidence records - fill
-  // in the open entry's evidence line once it lands.
+  // subscores.json arrives async and carries the evidence records and the
+  // frontier sub-indicators - fill in the open entry once it lands.
   on('subscores', () => {
-    if (getState().selectedCountry) renderEvidence();
+    const { selectedCountry } = getState();
+    if (!selectedCountry) return;
+    renderEvidence();
+    renderFrontier(selectedCountry);
   });
 
   // Source metadata (titles) arrives async from the sources database -
-  // upgrade the open country's source list from hostnames to titles.
+  // upgrade the open country's source lists from hostnames to titles.
   on('sourceMeta', (meta) => {
     const { selectedCountry, regulationData } = getState();
-    if (selectedCountry) renderTextSections(regulationData[selectedCountry], meta);
+    if (!selectedCountry) return;
+    renderTextSections(regulationData[selectedCountry], meta);
+    renderFrontier(selectedCountry);
   });
 
   // A dataset replacement (Supabase hydration) re-renders the open entry

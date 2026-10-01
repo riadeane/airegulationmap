@@ -90,7 +90,10 @@ yet, so a rule added later has one home and no control can skip it
 - the view FSM - `setMainView` (the single writer of `mainView`) /
   `showMap` / `openScatter` / `toggleScatter` / `openComparison` /
   `escapeMainView`
-- the map's lens and date - `selectAttribute` / `setTimelineDate`
+- the map's lens and date - `selectAttribute` / `setTimelineDate` (the
+  frontier lens, PRD 15, is accepted only once some country has a frontier
+  track; `receiveData` returns the lens and the scatter axes to their
+  defaults when replacement data has none)
 - filters - `selectBloc` (known blocs only) / `setScoreRange` /
   `setConfidenceFilter` / `setOfficialOnly` / `setEvidenceFilter` /
   `resetFilters` (one write; leaves the uncertainty hatch alone) /
@@ -224,11 +227,11 @@ sequenceDiagram
 | `dom.ts` | typed element access | seam |
 | `data/*` | CSV/JSON → typed domain | Mapper / repository |
 | `data/countryIso.ts` | `country_iso.json`: ISO codes for the panel, ISO numeric → dataset name for the map join | Mapper |
-| `map/*` | choropleth render, zoom, tooltip, the HTML legend, the two ramps (`ramp.ts`) | imperative D3 |
+| `map/*` | choropleth render, zoom, tooltip, the HTML legend, the three ramps (`ramp.ts`) | imperative D3 |
 | `map/countryTable.ts` | the map as a keyboard and screen-reader table (#139) | subscriber view |
 | `map/geometryNames.ts` | gives world-atlas geometries the dataset's country names via their ISO numeric ids | Mapper |
 | `map/smallStates.ts` | small states the 1:110m atlas has no shape for (`public/data/small_states.json`) as Point features the renderer draws as constant-size `.country` markers (#104) | Mapper |
-| `panel/*` | country detail | subscriber view |
+| `panel/*` | country detail (the frontier risk governance block in `panel/frontier.ts`) | subscriber view |
 | `comparison/*` | staging strip + full comparison | subscriber view (+ `colorSlots` leaf) |
 | `scatter/*` | dimension explorer | subscriber view |
 | `controls/*` | search, filter, blocs, export, timeline, url, theme, menu, help ("How to read this map"), cite, share, print brief, issue report, this-week strip | subscriber views |

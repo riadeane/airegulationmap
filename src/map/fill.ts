@@ -4,6 +4,12 @@
 // country with no row gets the "no data" fill. The colour scale clamps
 // its domain, so a null fed to it would paint as the colour for 1; this is
 // the one guard that keeps that from happening.
+//
+// The frontier lens (PRD 15) has the same three states: a row with no
+// frontier track leaves `frontierRisk` absent (no data), a track with an
+// empty score is null (insufficient evidence). "Not applicable" exists only
+// for a frontier sub-indicator, never for a country, so it never reaches
+// the map.
 
 import { isInsufficient } from '../constants';
 import type { AttributeKey } from '../constants';

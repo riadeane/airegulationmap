@@ -515,7 +515,9 @@ def frontier_score(subscores: dict[str, int | str | None]) -> float | None:
         return None
     numbers = [int(value) for value in values]  # type: ignore[arg-type]
     mean = sum(numbers) / len(numbers)
-    return round(min(mean, min(numbers) + 1), 2)
+    # float(): a binding cap is an int, and the files write every score as
+    # a float ("3.0"), as the five dimensions do.
+    return round(float(min(mean, min(numbers) + 1)), 2)
 
 
 class FrontierAnswer(BaseModel):

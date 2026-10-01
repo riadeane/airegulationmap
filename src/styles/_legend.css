@@ -116,6 +116,11 @@ body.view-scatter .map-legend {
   color: var(--text-primary);
 }
 
+/* Frontier lens only: how the score is built, after what it does not claim. */
+.legend-frontier-note[hidden] {
+  display: none;
+}
+
 .legend-explain {
   appearance: none;
   margin-top: 3px;

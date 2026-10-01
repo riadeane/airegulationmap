@@ -6,15 +6,19 @@ import { ATTRIBUTES } from '../constants';
 import type { AttributeGroup, AttributeKey } from '../constants';
 import { cssVar } from './cssColors';
 
-// The two choropleth ramps (PRD 16), resolved from the theme tokens in
-// _tokens.css: implementation (single blue hue, light = less in force)
-// and governance style (neutral stone). Neither signals good or bad.
+// The three choropleth ramps (PRD 16), resolved from the theme tokens in
+// _tokens.css: implementation (single blue hue, light = less in force),
+// governance style (neutral stone) and frontier risk governance (plum,
+// light = nothing observable, dark = meets the stated standard). None uses
+// red, and none is ever applied to "no data" or "insufficient evidence"
+// (fill.ts).
 
 export type ColorScale = ScaleLinear<string, string>;
 
 const RAMP_TOKENS: Record<AttributeGroup, [string, string]> = {
   implementation: ['--ramp-impl-low', '--ramp-impl-high'],
   style: ['--ramp-style-low', '--ramp-style-high'],
+  frontier: ['--ramp-frontier-low', '--ramp-frontier-high'],
 };
 
 /** The 1-5 colour scale for a lens. Read again after a theme change. */

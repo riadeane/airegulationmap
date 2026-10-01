@@ -11,16 +11,25 @@
 // evidence record: a file labelled "as of" a date never pairs its scores
 // with text researched after it. The CSV columns keep their names and
 // order either way.
+//
+// Frontier Risk Governance (PRD 15) adds two columns at the end, "Frontier
+// Risk" and "Frontier Track", named as in scores.csv: both empty for a
+// country never scored on the lens, a track with an empty score for
+// insufficient evidence. The JSON export adds a "Frontier" block per
+// country (the subscores.json block, "na" kept, with the frontier text and
+// sources) at Latest.
 
 import { csvFormat } from 'd3-dsv';
 import { getState, on } from '../state/store';
 import { scoresAtDate, visibleCountriesIn, visibleCountrySet } from '../state/selectors';
 import type { ScoreEntry, RegulationEntry, ScoreData, RegulationData } from '../data/loader';
 import type { HistorySnapshot } from '../data/history';
-import type { SubscoreEntry } from '../data/subscores';
+import type { FrontierBlock, SubscoreEntry } from '../data/subscores';
 import { localIsoDate } from '../data/localDate';
-import { ATTRIBUTES, GROUPS } from '../constants';
-import type { AttributeKey } from '../constants';
+import {
+  ATTRIBUTES, FRONTIER_CAP_SENTENCE, FRONTIER_METHODOLOGY_PATH, FRONTIER_TRACKS, GROUPS, parseFrontierTrack,
+} from '../constants';
+import type { AttributeKey, FrontierTrack } from '../constants';
 
 // Score columns in the export rows, by attribute. The column names are a
 // data contract and never change (the composite stays "Average Score");
@@ -32,7 +41,10 @@ const SCORE_COLUMNS: Record<AttributeKey, string> = {
   enforcementLevel: 'Enforcement Level (Score)',
   governanceType: 'Governance Type (Score)',
   actorInvolvement: 'Actor Involvement (Score)',
+  frontierRisk: 'Frontier Risk',
 };
+
+const SITE = 'https://airegulationmap.org';
 
 export interface ExportFieldMeta {
   label: string;
@@ -48,7 +60,7 @@ export interface ExportFieldMeta {
 const AS_OF_COLUMNS = [
   'Average Score', 'Regulation Status (Score)', 'Policy Lever (Score)',
   'Governance Type (Score)', 'Actor Involvement (Score)', 'Enforcement Level (Score)',
-  'Confidence', 'Last Updated',
+  'Confidence', 'Last Updated', 'Frontier Risk', 'Frontier Track',
 ];
 const CURRENT_ONLY_COLUMNS = [
   'Regulation Status', 'Policy Lever', 'Governance Type', 'Actor Involvement',
@@ -62,6 +74,16 @@ export interface ExportVintageMeta {
   note: string;
 }
 
+/** What the frontier columns and the JSON "Frontier" block hold (PRD 15). */
+export interface ExportFrontierMeta {
+  scoreColumn: string;
+  trackColumn: string;
+  tracks: Record<FrontierTrack, { label: string; description: string }>;
+  aggregation: string;
+  values: string;
+  methodology: string;
+}
+
 export interface ExportMeta {
   title: string;
   exported: string;
@@ -71,6 +93,24 @@ export interface ExportMeta {
   vintage?: ExportVintageMeta;
   explainer: string;
   fields: Record<string, ExportFieldMeta>;
+  frontier: ExportFrontierMeta;
+}
+
+function frontierMeta(): ExportFrontierMeta {
+  return {
+    scoreColumn: SCORE_COLUMNS.frontierRisk,
+    trackColumn: 'Frontier Track',
+    tracks: {
+      H: { ...FRONTIER_TRACKS.H },
+      C: { ...FRONTIER_TRACKS.C },
+      G: { ...FRONTIER_TRACKS.G },
+    },
+    aggregation: FRONTIER_CAP_SENTENCE,
+    values: 'Both frontier columns are empty for a country not yet scored on the lens. A track with an '
+      + 'empty "Frontier Risk" is insufficient evidence on that track. In the JSON "Frontier" block a '
+      + 'sub-indicator score of "na" means it does not apply on the track; it is never a 1.',
+    methodology: SITE + FRONTIER_METHODOLOGY_PATH,
+  };
 }
 
 /**
@@ -95,9 +135,12 @@ export function buildExportMeta(date: string = localIsoDate(), asOf: string | nu
   const title = 'AI Regulation Map';
   const note = 'Implementation scores measure how much AI governance is in force, not whether it is good. '
     + 'Governance style scores describe how a country governs; neither end is better. '
-    + '"Average Score" is the implementation index.';
-  const explainer = 'https://airegulationmap.org/methodology.html';
-  if (!asOf) return { title, exported: date, note, explainer, fields };
+    + '"Average Score" is the implementation index. '
+    + '"Frontier Risk" rates governance of catastrophic frontier-AI risk against a stated standard, by '
+    + 'track; it is not a measure of how safe a country is and is not part of the implementation index.';
+  const explainer = `${SITE}/methodology.html`;
+  const frontier = frontierMeta();
+  if (!asOf) return { title, exported: date, note, explainer, fields, frontier };
   return {
     title,
     exported: date,
@@ -116,6 +159,7 @@ export function buildExportMeta(date: string = localIsoDate(), asOf: string | nu
     },
     explainer,
     fields,
+    frontier,
   };
 }
 
@@ -167,6 +211,10 @@ export function buildExportRows(
       'Sources': text(reg.sources),
       'Confidence': snapshot ? snapshot.confidence || '' : reg.confidence || '',
       'Last Updated': snapshot ? snapshot.date : latest.lastUpdated || reg.lastUpdated || '',
+      // Appended, so no existing column moves. Absent (an empty CSV cell, no
+      // JSON key) when the country has no frontier score at this vintage.
+      'Frontier Risk': scores.frontierRisk,
+      'Frontier Track': parseFrontierTrack(snapshot ? snapshot.frontierTrack : latest.frontierTrack) ?? '',
     };
   });
 }
@@ -186,31 +234,55 @@ export interface EvidenceExport {
   run_id: string | null;
 }
 
-type SubindicatorAudit = Omit<SubscoreEntry, 'evidence'>;
+type SubindicatorAudit = Omit<SubscoreEntry, 'evidence' | 'frontier'>;
+
+/** The JSON export's "Frontier" block: the subscores.json `frontier`
+ *  block as the file has it ("na" kept), with the frontier text and its
+ *  sources from regulation_data.csv. */
+export type FrontierExport = Partial<FrontierBlock> & {
+  text: string | null;
+  sources: string | null;
+};
+
+type JsonRow = ExportRow & {
+  'Sub-indicators'?: SubindicatorAudit;
+  'Evidence'?: EvidenceExport;
+  'Frontier'?: FrontierExport;
+};
 
 // The evidence record rides in the subscores.json entry but is research
 // metadata, not a sub-indicator, so the export gives it its own key and
-// the file's field names.
+// the file's field names. The frontier block is its own lens and gets its
+// own key too, joined by its text and sources when `regulation` is given.
 export function withSubindicators(
   rows: ExportRow[],
-  subscores: Record<string, SubscoreEntry> | undefined
-): (ExportRow & { 'Sub-indicators'?: SubindicatorAudit; 'Evidence'?: EvidenceExport })[] {
+  subscores: Record<string, SubscoreEntry> | undefined,
+  regulation?: RegulationData
+): JsonRow[] {
   return rows.map(row => {
     const entry = subscores?.[row.Country];
-    if (!entry) return row;
-    const { evidence, ...audit } = entry;
-    if (!evidence) return { ...row, 'Sub-indicators': audit };
-    return {
-      ...row,
-      'Sub-indicators': audit,
-      'Evidence': {
-        grounded: evidence.grounded,
-        initiatives_used: evidence.initiativesUsed,
-        search: evidence.search,
-        model: evidence.model,
-        run_id: evidence.runId,
-      },
-    };
+    const reg = regulation?.[row.Country];
+    const out: JsonRow = { ...row };
+    if (entry) {
+      const { evidence, ...rest } = entry;
+      const audit: SubindicatorAudit & { frontier?: FrontierBlock } = rest;
+      delete audit.frontier;
+      out['Sub-indicators'] = audit;
+      if (evidence) {
+        out['Evidence'] = {
+          grounded: evidence.grounded,
+          initiatives_used: evidence.initiativesUsed,
+          search: evidence.search,
+          model: evidence.model,
+          run_id: evidence.runId,
+        };
+      }
+    }
+    const block = entry?.frontier;
+    const text = reg?.frontierRisk ?? null;
+    const sources = reg?.frontierSources ?? null;
+    if (block || text || sources) out['Frontier'] = { ...(block ?? {}), text, sources };
+    return out;
   });
 }
 
@@ -311,7 +383,7 @@ export function exportCountries(
   } else {
     // Sub-indicators and the evidence record describe the latest research
     // pass only, so an export at a past date leaves them out.
-    const withAudit = vintage ? rows : withSubindicators(rows, subscores?.countries);
+    const withAudit = vintage ? rows : withSubindicators(rows, subscores?.countries, regulationData);
     const payload = { meta: buildExportMeta(date, asOf), countries: withAudit };
     downloadFile(JSON.stringify(payload, null, 2), filename, 'application/json');
   }

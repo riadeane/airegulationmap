@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { csvParse } from 'd3-dsv';
+import { csvFormat, csvParse } from 'd3-dsv';
 import { getState, setState } from '../src/state/store';
 import { openScatter, toggleScatter, setMainView, showMap } from '../src/state/interactions';
 import {
@@ -72,6 +72,8 @@ const CSV_COLUMNS = [
   'Governance Type (Score)', 'Actor Involvement (Score)', 'Enforcement Level (Score)',
   'Regulation Status', 'Policy Lever', 'Governance Type', 'Actor Involvement',
   'Enforcement Level', 'Specific Laws', 'Sources', 'Confidence', 'Last Updated',
+  // PRD 15: appended, so no earlier column moves or is renamed.
+  'Frontier Risk', 'Frontier Track',
 ];
 
 describe('buildExportRows', () => {
@@ -119,6 +121,52 @@ describe('buildExportRows', () => {
     const latest = buildExportRows(['Aland', 'Newland'], SCORE_DATA, REG_DATA);
     const past = buildExportRows(['Aland', 'Newland'], SCORE_DATA, REG_DATA, VINTAGE);
     expect(past.map(r => Object.keys(r))).toEqual(latest.map(r => Object.keys(r)));
+  });
+});
+
+describe('frontier columns (PRD 15)', () => {
+  const FRONTIER_SCORES = {
+    Hostland: { ...score('Hostland', 3), frontierRisk: 2.5, frontierTrack: 'H' },
+    Thinland: { ...score('Thinland', 2), frontierRisk: null, frontierTrack: 'G' },
+    Aland: score('Aland', 4),
+  };
+
+  it('writes the score and the track, empty for a country never scored on the lens', () => {
+    const rows = buildExportRows(['Hostland', 'Thinland', 'Aland'], FRONTIER_SCORES, REG_DATA);
+    expect(rows.map(r => Object.keys(r).slice(-2))).toEqual(Array(3).fill(['Frontier Risk', 'Frontier Track']));
+    expect(rows[0]['Frontier Risk']).toBe(2.5);
+    expect(rows[0]['Frontier Track']).toBe('H');
+    // Insufficient evidence: a track with a null score (an empty CSV cell).
+    expect(rows[1]['Frontier Risk']).toBeNull();
+    expect(rows[1]['Frontier Track']).toBe('G');
+    // No data: no score and no track.
+    expect(rows[2]['Frontier Risk']).toBeUndefined();
+    expect(rows[2]['Frontier Track']).toBe('');
+    const csv = csvParse(csvFormat(rows));
+    expect(csv.map(r => [r['Frontier Risk'], r['Frontier Track']])).toEqual([['2.5', 'H'], ['', 'G'], ['', '']]);
+  });
+
+  it('follows the timeline: no frontier data before the snapshot that first carries it', () => {
+    const vintage = {
+      date: '2026-06-13',
+      snapshots: { Hostland: snap('2026-06-01', 3), Thinland: snap('2026-06-01', 2, { frontierRisk: 1.5, frontierTrack: 'G' }) },
+    };
+    const [host, thin] = buildExportRows(['Hostland', 'Thinland'], FRONTIER_SCORES, REG_DATA, vintage);
+    expect(host['Frontier Risk']).toBeUndefined();
+    expect(host['Frontier Track']).toBe('');
+    expect(thin['Frontier Risk']).toBe(1.5);
+    expect(thin['Frontier Track']).toBe('G');
+  });
+
+  it('describes the frontier columns and the tracks in the meta block', () => {
+    const meta = buildExportMeta('2026-10-05');
+    expect(meta.fields['Frontier Risk'].label).toBe('Frontier Risk Governance');
+    expect(meta.fields['Frontier Risk'].group).toBe('Frontier risk governance');
+    expect(meta.frontier.trackColumn).toBe('Frontier Track');
+    expect(Object.keys(meta.frontier.tracks)).toEqual(['H', 'C', 'G']);
+    expect(meta.frontier.tracks.C.label).toBe('Compute or chokepoint');
+    expect(meta.frontier.methodology).toBe('https://airegulationmap.org/methodology.html#frontier-risk-governance');
+    expect(meta.note).toContain('not part of the implementation index');
   });
 });
 

@@ -15,8 +15,8 @@
 
 import { getState, setState } from './store';
 import type { AppState } from './store';
-import { MAX_COMPARISON } from '../constants';
-import type { MainView } from '../constants';
+import { MAX_COMPARISON, hasFrontierTrack } from '../constants';
+import type { AttributeKey, MainView } from '../constants';
 import { syncColorSlots } from '../comparison/colorSlots';
 
 // -- selection ---------------------------------------------------------------
@@ -77,16 +77,39 @@ export type DataPatch = Partial<Pick<AppState,
 /**
  * The loaders' one write path: the boot files, the async ones as they land,
  * and Supabase hydration. A patch commits atomically, so hydrated scores,
- * text and names reach subscribers together.
+ * text and names reach subscribers together. Score data with no frontier
+ * track withdraws the frontier lens (see frontierOffered), so a map or
+ * scatter axis showing it returns to the defaults in the same write.
  */
 export function receiveData(patch: DataPatch): void {
-  setState(patch);
+  if (!patch.scoreData || hasFrontierTrack(patch.scoreData)) {
+    setState(patch);
+    return;
+  }
+  const { currentAttribute, scatterX, scatterY } = getState();
+  setState({
+    ...patch,
+    ...(currentAttribute === 'frontierRisk' ? { currentAttribute: 'averageScore' as const } : {}),
+    ...(scatterX === 'frontierRisk' || scatterY === 'frontierRisk'
+      ? { scatterX: 'enforcementLevel' as const, scatterY: 'regulationStatus' as const }
+      : {}),
+  });
+}
+
+/**
+ * The frontier lens (PRD 15) is offered only once some country has been
+ * scored on it: before the first run on the lens every country would be
+ * "no data". Intents that would show it without data are ignored.
+ */
+function frontierOffered(attr: AttributeKey): boolean {
+  return attr !== 'frontierRisk' || hasFrontierTrack(getState().scoreData);
 }
 
 // -- score dimension and timeline -------------------------------------------------
 
 /** The attribute the map, legend and panel read (the score selector, a dimension row, a URL). */
 export function selectAttribute(attr: AppState['currentAttribute']): void {
+  if (!frontierOffered(attr)) return;
   setState({ currentAttribute: attr });
 }
 
@@ -141,6 +164,7 @@ export function setShowUncertainty(show: boolean): void {
 
 /** The explorer's axes; they persist across open and close. */
 export function setScatterAxes(x: AppState['scatterX'], y: AppState['scatterY']): void {
+  if (!frontierOffered(x) || !frontierOffered(y)) return;
   setState({ scatterX: x, scatterY: y });
 }
 

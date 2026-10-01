@@ -2,6 +2,7 @@ import { getState } from '../state/store';
 import { el } from '../dom';
 import { ATTRIBUTE_LABELS, GROUPS, INSUFFICIENT_EVIDENCE_LABEL, attributesIn, isInsufficient } from '../constants';
 import type { AttributeGroup, DimensionKey } from '../constants';
+import { frontierTrackLine } from '../data/meaning';
 import { matchCountryNames } from '../data/countryMatch';
 import { cleanRegulationText } from '../panel/normalize';
 import { renderRadar } from './radar';
@@ -290,7 +291,7 @@ function renderComparisonTable(names: readonly string[]): void {
   for (const group of ['implementation', 'style'] as AttributeGroup[]) {
     groupRow(GROUPS[group].label, GROUPS[group].caption, group);
     for (const key of attributesIn(group)) {
-      if (key !== 'averageScore') {
+      if (key !== 'averageScore' && key !== 'frontierRisk') {
         dimensionRow(key);
         continue;
       }
@@ -312,6 +313,47 @@ function renderComparisonTable(names: readonly string[]): void {
       });
       tbody.appendChild(avgRow);
     }
+  }
+
+  // Frontier risk governance (PRD 15), when any compared country has been
+  // scored on the lens: the score, the track in words, then the text. The
+  // radar stays implementation-only.
+  if (names.some(name => scoreData[name]?.frontierTrack != null || regulationData[name]?.frontierRisk)) {
+    groupRow(GROUPS.frontier.label, GROUPS.frontier.caption, 'frontier');
+    const row = document.createElement('tr');
+    row.className = 'ct-row';
+    const label = document.createElement('th');
+    label.scope = 'row';
+    label.className = 'ct-label';
+    label.textContent = ATTRIBUTE_LABELS.frontierRisk;
+    row.appendChild(label);
+    names.forEach(name => {
+      const td = document.createElement('td');
+      const entry = scoreData[name];
+      const score = document.createElement('span');
+      score.className = 'ct-score';
+      score.textContent = fmtScore(entry?.frontierRisk);
+      td.appendChild(score);
+      const track = frontierTrackLine(entry?.frontierTrack);
+      if (track) {
+        const t = document.createElement('p');
+        t.className = 'ct-track';
+        t.textContent = track;
+        td.appendChild(t);
+      }
+      const text = cleanRegulationText(regulationData[name]?.frontierRisk);
+      const p = document.createElement('p');
+      p.className = 'ct-text';
+      if (text) {
+        p.textContent = text;
+      } else {
+        p.textContent = 'No data';
+        p.classList.add('empty');
+      }
+      td.appendChild(p);
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
   }
 
   groupRow('Legislation', null, 'laws');

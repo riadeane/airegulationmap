@@ -488,11 +488,13 @@
      core "citeable by default" interaction - a fat-finger minefield at
      the default ~19px, and opening the wrong source mid-research is
      exactly the friction the product promises to remove. */
-  #sources-list {
+  #sources-list,
+  #frontier-sources-list {
     gap: 8px;
   }
 
-  #sources-list li a {
+  #sources-list li a,
+  #frontier-sources-list li a {
     min-height: 44px;
     display: inline-flex;
     align-items: center;

@@ -546,6 +546,13 @@ body.view-compare .radar-chart svg {
   font-style: italic;
 }
 
+/* Frontier risk governance: the track the score was made on, under it. */
+.ct-track {
+  margin: 0 0 5px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
 /* Compare button in single-country panel */
 .compare-btn {
   margin-top: 12px;

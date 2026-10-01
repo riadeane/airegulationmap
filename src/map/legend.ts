@@ -1,6 +1,6 @@
 import { range } from 'd3-array';
 
-import { ATTRIBUTES, INSUFFICIENT_EVIDENCE_LABEL } from '../constants';
+import { ATTRIBUTES, FRONTIER_AGGREGATION_NOTE, INSUFFICIENT_EVIDENCE_LABEL } from '../constants';
 import { getState } from '../state/store';
 import { confidenceFallsBackAtDate } from '../state/selectors';
 import { legendCaption } from '../data/meaning';
@@ -13,7 +13,8 @@ import { makeColorScale } from './ramp';
 // two endpoints in words, the lens's question and what it does not claim,
 // the "No data" key, the "Insufficient evidence" key (rubric v3.1, shown
 // only while a country on the map is in that state) and the low-confidence
-// hatch key.
+// hatch key. On the frontier lens (PRD 15) the caption adds how the lens
+// aggregates: scored by track, capped at the weakest element.
 
 export { makeColorScale } from './ramp';
 export type { ColorScale } from './ramp';
@@ -83,7 +84,9 @@ export function addLegend(): void {
 
   const caption = document.createElement('p');
   caption.className = 'legend-caption';
-  caption.append(span('legend-question'), ' ', span('legend-notclaim'));
+  const frontierNote = span('legend-frontier-note', FRONTIER_AGGREGATION_NOTE);
+  frontierNote.hidden = true;
+  caption.append(span('legend-question'), ' ', span('legend-notclaim'), ' ', frontierNote);
 
   const explain = document.createElement('button');
   explain.type = 'button';
@@ -140,6 +143,8 @@ export function updateLegend(): void {
   const { question, notClaim } = legendCaption(currentAttribute);
   legend.querySelector('.legend-question')!.textContent = question;
   legend.querySelector('.legend-notclaim')!.textContent = notClaim;
+  const frontierNote = legend.querySelector<HTMLElement>('.legend-frontier-note');
+  if (frontierNote) frontierNote.hidden = meaning.group !== 'frontier';
   updateLegendUncertainty();
 }
 
