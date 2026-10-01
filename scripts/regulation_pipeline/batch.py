@@ -12,6 +12,7 @@ import importlib
 import logging
 import time
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
 import anthropic
@@ -28,6 +29,11 @@ POLL_INTERVAL_SECONDS = 30
 # first one, the transient-failure retry, and pause_turn continuations) and
 # leaves time to apply, mirror, write the digest and commit.
 MAX_WAIT_SECONDS = 4 * 60 * 60
+# How long a collect run waits for a batch handed over by an earlier run
+# before handing it on again (#194). Short: the collect schedule comes back
+# every two hours, and a runner idling for hours on a batch that may need a
+# day helps nobody.
+COLLECT_WAIT_SECONDS = 10 * 60
 # After canceling a timed-out batch, how long to wait for it to reach a terminal
 # state so we can still collect the requests that already succeeded.
 CANCEL_GRACE_SECONDS = 10 * 60
@@ -61,6 +67,29 @@ _TRANSPORT_ERRORS = _transport_errors()
 MAX_CONTINUATION_ROUNDS = 3
 
 
+@dataclass(frozen=True)
+class OpenBatch:
+    """A submitted batch whose results a later run collects (#194): its id,
+    the ``custom_id`` -> country map its requests were built with, and when
+    it was submitted (results stay readable for 29 days after that)."""
+
+    batch_id: str
+    id_map: dict[str, str] = field(default_factory=dict)
+    submitted_at: datetime | None = None
+
+
+class BatchPending(Exception):
+    """The run's main batch was still processing when the wait budget ran
+    out. It is left running, not canceled: canceling kept only the requests
+    that had finished, and on 2026-09-28 that threw away 129 of 196
+    countries (#194). The caller records :attr:`batch` so a later run
+    collects the results; nothing was applied."""
+
+    def __init__(self, batch: OpenBatch):
+        super().__init__(f"batch {batch.batch_id} still processing")
+        self.batch = batch
+
+
 def build_batch_requests(params_by_country: dict[str, dict]):
     """Map countries to batch requests with safe ``custom_id``s.
 
@@ -89,6 +118,8 @@ class BatchRunner:
         poll_interval: int = POLL_INTERVAL_SECONDS,
         max_wait: int = MAX_WAIT_SECONDS,
         cancel_grace_seconds: int = CANCEL_GRACE_SECONDS,
+        collect_wait: int = COLLECT_WAIT_SECONDS,
+        handoff: bool = False,
         sleep: Callable[[float], None] = time.sleep,
         clock: Callable[[], float] | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
@@ -97,6 +128,12 @@ class BatchRunner:
         self._poll_interval = poll_interval
         self._max_wait = max_wait
         self._cancel_grace_seconds = cancel_grace_seconds
+        self._collect_wait = collect_wait
+        # With handoff on, a main batch still processing at the end of the
+        # wait budget raises BatchPending instead of being canceled (#194).
+        # Off by default: an interactive caller (the gold CLI) has no later
+        # run to hand the batch to.
+        self._handoff = handoff
         self._raw_sleep = sleep
         self._now = now
         # The wait budget is wall-clock time since the run's first submit,
@@ -123,15 +160,24 @@ class BatchRunner:
         """Seconds since the run's first batch submit (0 before it)."""
         return 0.0 if self._started is None else self._clock() - self._started
 
-    def research(self, params_by_country: dict[str, dict]) -> tuple[dict, list[str]]:
+    def research(
+        self, params_by_country: dict[str, dict], *, resume: OpenBatch | None = None,
+    ) -> tuple[dict, list[str]]:
         """Run the batch, then follow-up rounds in smaller batches: transient
         failures are resubmitted once, and a result the server paused mid-search
         (``stop_reason == "pause_turn"``) is continued by sending the paused turn
         back, up to :data:`MAX_CONTINUATION_ROUNDS` times. Returns ``(messages,
         failed_countries)`` where messages maps country -> Message for succeeded
         requests (a result still paused after the last round stays in, and the
-        parser rejects it)."""
-        messages, errors = self._run_once(params_by_country)
+        parser rejects it).
+
+        ``resume`` collects a batch an earlier run submitted instead of
+        submitting one; ``params_by_country`` must then hold the same countries
+        (follow-up rounds rebuild their requests from it). With handoff on, a
+        main batch still processing when its wait ends raises
+        :class:`BatchPending`; follow-up batches are small and keep the
+        cancel-and-collect behaviour."""
+        messages, errors = self._run_once(params_by_country, main=True, resume=resume)
         retry = {c for c, kind in errors.items() if kind == "retryable"}
         conversations: dict[str, list] = {}
         # The paused Message last appended per country: a continuation that
@@ -173,13 +219,19 @@ class BatchRunner:
 
         return messages, sorted(errors)
 
-    def _run_once(self, params_by_country: dict[str, dict]) -> tuple[dict, dict]:
-        """Submit one batch and wait for it to end. Returns ``(messages,
-        errors)`` where ``errors`` maps country -> "retryable" | "fatal".
+    def _run_once(
+        self, params_by_country: dict[str, dict], *, main: bool = False,
+        resume: OpenBatch | None = None,
+    ) -> tuple[dict, dict]:
+        """Submit one batch (or pick up ``resume``) and wait for it to end.
+        Returns ``(messages, errors)`` where ``errors`` maps country ->
+        "retryable" | "fatal".
 
         Every API call goes through the transient-error retry policy: one
         connection blip on a poll must never cost a run whose results are
         already paid for."""
+        if resume is not None:
+            return self._resume(resume)
         requests, id_map = build_batch_requests(params_by_country)
         if self._started is None:
             self._started = self._clock()
@@ -202,16 +254,51 @@ class BatchRunner:
         logger.info("Batch %s submitted (%d requests, 50%% token pricing)", batch.id, len(requests))
         if attempts > 1:
             self._cancel_orphans(batch.id, len(requests), submitted_at)
+        handoff = OpenBatch(batch.id, id_map, submitted_at) if main and self._handoff else None
+        return self._wait_and_collect(batch, id_map, self._max_wait, handoff)
 
+    def _resume(self, open_batch: OpenBatch) -> tuple[dict, dict]:
+        """Collect a batch an earlier run handed over. Waits at most the
+        collect budget; a batch still processing then is handed on again
+        (:class:`BatchPending`) with the same id. The run's wait budget for
+        follow-up rounds starts now."""
+        self._started = self._clock()
+        logger.info(
+            "Collecting batch %s (%d requests, submitted %s)",
+            open_batch.batch_id, len(open_batch.id_map),
+            open_batch.submitted_at.isoformat() if open_batch.submitted_at else "at an unknown time",
+        )
+        batch = self._call(
+            lambda b=open_batch.batch_id: self._client.messages.batches.retrieve(b),
+            f"batch poll {open_batch.batch_id}",
+        )
+        if batch is None:
+            logger.warning("Could not read batch %s - leaving it for a later run", open_batch.batch_id)
+            raise BatchPending(open_batch)
+        return self._wait_and_collect(batch, dict(open_batch.id_map), self._collect_wait, open_batch)
+
+    def _wait_and_collect(
+        self, batch, id_map: dict[str, str], budget: float, handoff: OpenBatch | None,
+    ) -> tuple[dict, dict]:
+        """Poll ``batch`` until it ends, then read its results. At the end of
+        ``budget`` a batch with a ``handoff`` record is left running for a
+        later run (:class:`BatchPending`); any other is canceled and its
+        finished requests are collected."""
         while batch.processing_status != "ended":
-            if self._elapsed() >= self._max_wait:
+            if self._elapsed() >= budget and handoff is not None:
+                logger.warning(
+                    "Batch %s still processing after %ds - leaving it running; a later run "
+                    "collects its results", batch.id, int(self._elapsed()),
+                )
+                raise BatchPending(handoff)
+            if self._elapsed() >= budget:
                 # Don't discard already-succeeded (already-billed) work: cancel
                 # the batch, let it reach a terminal state, then collect whatever
                 # completed. Requests still in flight come back as "canceled" and
                 # are retried/reported by the caller.
                 logger.warning(
                     "Batch %s still processing after the %ds wait budget - canceling and "
-                    "collecting partial results", batch.id, self._max_wait,
+                    "collecting partial results", batch.id, int(budget),
                 )
                 self._call(lambda b=batch.id: self._client.messages.batches.cancel(b), "batch cancel")
                 batch = self._drain_after_cancel(batch)

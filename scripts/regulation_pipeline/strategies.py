@@ -24,7 +24,7 @@ from collections.abc import Callable, Iterator
 from pydantic import ValidationError
 
 from .api import ResearchClient, parse_message
-from .batch import BatchRunner
+from .batch import BatchRunner, OpenBatch
 from .errors import FatalAPIError
 from .models import ResearchProvenance, ResearchResult
 
@@ -111,17 +111,26 @@ class BatchStrategy(ResearchStrategy):
     then yield the validated answer for each. The Batches API returns per-request
     results, so there is no consecutive-failure abort - a bad request costs one
     country, not the run. Requests are built once, before submission; each
-    answer gets the provenance of its own request."""
+    answer gets the provenance of its own request.
+
+    With ``resume``, the strategy collects a batch an earlier run submitted
+    (#194) instead of submitting one. Its requests are rebuilt the same way,
+    for the provenance of each answer and for any follow-up round; the
+    runner may raise :class:`~regulation_pipeline.batch.BatchPending` before
+    the first answer."""
 
     def __init__(
         self,
         client: ResearchClient,
         runner: BatchRunner,
         use_search_for: SearchDecider,
+        *,
+        resume: OpenBatch | None = None,
     ):
         self._client = client
         self._runner = runner
         self._use_search_for = use_search_for
+        self._resume = resume
 
     def research(self, countries: list[str], reg_rows: dict[str, dict]) -> Iterator[Answer]:
         requests = {
@@ -130,9 +139,11 @@ class BatchStrategy(ResearchStrategy):
             )
             for country in countries
         }
-        logger.info("Submitting batch of %d requests...", len(requests))
+        if self._resume is None:
+            logger.info("Submitting batch of %d requests...", len(requests))
         messages, _failed = self._runner.research(
-            {country: request.params for country, request in requests.items()}
+            {country: request.params for country, request in requests.items()},
+            resume=self._resume,
         )
 
         for country in countries:

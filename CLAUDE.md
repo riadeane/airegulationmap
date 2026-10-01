@@ -55,7 +55,7 @@ before anyone filed them.
 ## Data Update Script
 
 The defaults are the weekly run: every country, web search on, Message
-Batches API (50% token pricing, results within ~1h), Opus 5. A full
+Batches API (50% token pricing; results within 24h, and a full run took more than 4h in September 2026, see #194), Opus 5. A full
 196-country run costs ~$100 on Opus 5 or ~$50 on Sonnet 5; web search
 results re-sent across search iterations dominate input tokens (measured
 September 2026: ~140k input tokens and 11 searches per country on Opus 5).
@@ -79,6 +79,11 @@ python scripts/update_data.py --model claude-sonnet-5
 
 # Synchronous requests instead of the Batches API
 python scripts/update_data.py --no-batch
+
+# Collect a batch an earlier run left running (state/open_batch.json, #194);
+# exits 0 at once when none is recorded. Any run collects a recorded batch
+# first, with the options it was submitted with, and submits nothing new.
+python scripts/update_data.py --collect-only
 
 # Research without web search (training data only)
 python scripts/update_data.py --no-search
@@ -241,7 +246,8 @@ Python package that calls the Claude API to research regulation status per count
 | `repository.py` | `Dataset` repository - load/apply/validate/atomic-save the five stores |
 | `strategies.py` | `ResearchStrategy` ABC + `SyncStrategy` / `BatchStrategy` |
 | `api.py` | `ResearchClient` - request params + response parsing (Claude transport); resumes `pause_turn` responses (web search's server-side loop limit) up to 3 times, and rejects `max_tokens`/`refusal` answers with the stop reason logged |
-| `batch.py` | `BatchRunner` - Message Batches submit/poll/classify (50% token pricing). Every call goes through the retry policy; one 4h wall-clock wait budget, counted from the first submit, covers all batches of a run (the job has 355 min); a submit that needed retries cancels the orphaned batch a lost response left running; follow-up batches resubmit transient failures once and continue `pause_turn` results (up to 3 rounds); already-billed results are never resubmitted |
+| `batch.py` | `BatchRunner` - Message Batches submit/poll/classify (50% token pricing). Every call goes through the retry policy; one 4h wall-clock wait budget, counted from the first submit, covers all batches of a run (the job has 355 min); a run's main batch still processing at the end of it is left running and raised as `BatchPending` (the CLI records it for a later run, #194), while a follow-up batch is canceled and its finished requests salvaged; a submit that needed retries cancels the orphaned batch a lost response left running; follow-up batches resubmit transient failures once and continue `pause_turn` results (up to 3 rounds); already-billed results are never resubmitted |
+| `handoff.py` | The open-batch record `state/open_batch.json` (#194): a batch a run left running, with the options it was submitted with (model, search, gate and calibration break, full run, digest). Any run collects a recorded batch before submitting anything (`--collect-only` exits at once when there is none), applies it with those options and deletes the record; a batch still running is handed on; a record older than the API's 29-day retention is removed and the run fails |
 | `retry.py` | Reusable transient-error retry policy (backoff, Retry-After capped at 120s; 400/413/422 fail the one request, other 4xx are fatal) |
 | `prompt.py` | Research prompt template + rendering |
 | `config.py` | `Settings` (repo-root paths) + constants (CSV fields, staleness threshold, site URL, default model) |
@@ -485,7 +491,7 @@ methodology keeps one history note on the old name.
 
 ### Automated Updates
 
-`.github/workflows/update-data.yml` runs `update_data.py` every Monday (6am UTC) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`). If main moved during the run the commit is rebased and retried, and if it still fails every output file is uploaded as a workflow artifact; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Before committing, it builds the site and runs the unit tests on the new data (data commits pushed with `GITHUB_TOKEN` never trigger CI); a failure keeps the data as an artifact instead of pushing it. After a push it runs the Playwright suite, so a data change that breaks e2e turns that run red the same day. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer. `.github/workflows/link-check.yml` runs monthly (and on dispatch): it checks every URL in `regulation_data.csv` and opens or updates one "Dead source links" issue (label `data`); a dispatch with `titles` also fills Supabase `sources.title`.
+`.github/workflows/update-data.yml` runs `update_data.py` every Monday (06:17 UTC, off the top of the hour, #189) with the pipeline defaults, so every country is re-researched with web search each week (~$100 per run on Opus 5), and auto-commits any changed CSV/JSON files in `public/` (including the gold-set drift row in `public/data/drift.json`). If main moved during the run the commit is rebased and retried, and if it still fails every output file is uploaded as a workflow artifact; with `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` secrets set it also dual-writes to Supabase, and with the repo variable `EVIDENCE_SYNC_ENABLED=true` it refreshes OECD evidence first and researches `--grounded`. It can also be dispatched manually with eight inputs: `countries`, `model` and `break_reason` (text), `force_update`, `search`, `batch` and `gate` (on by default; off passes the matching `--no-*` flag), and `digest` (off by default; on passes `--digest`). Before committing, it builds the site and runs the unit tests on the new data (data commits pushed with `GITHUB_TOKEN` never trigger CI); a failure keeps the data as an artifact instead of pushing it. After a push it runs the Playwright suite, so a data change that breaks e2e turns that run red the same day. A batch still processing after the run's 4-hour wait is left running and recorded in `state/open_batch.json` (committed as "chore: record the open research batch"); a second schedule (`47 */2 * * 1,2`, every two hours on Mondays and Tuesdays) runs with `--collect-only` and applies it once it has ended (#194), and any dispatch collects it first too. Requires `ANTHROPIC_API_KEY` set as a GitHub Actions secret. `.github/workflows/evidence-sync.yml` offers manual probe / sync-delta / sync-full dispatches for the evidence layer. `.github/workflows/link-check.yml` runs monthly (and on dispatch): it checks every URL in `regulation_data.csv` and opens or updates one "Dead source links" issue (label `data`); a dispatch with `titles` also fills Supabase `sources.title`.
 
 ### Deployment
 

@@ -41,8 +41,9 @@ class StubRunner:
         self._failed = failed
         self.params = None
 
-    def research(self, params):
+    def research(self, params, *, resume=None):
         self.params = params
+        self.resume = resume
         return self._messages, self._failed
 
 

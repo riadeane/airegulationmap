@@ -75,6 +75,7 @@ class Mirror(Protocol):
     def finish(
         self, updated: int, failed: int, fatal: bool, *,
         gate_counts: dict[str, int] | None = None, calibration_break: dict | None = None,
+        note: str | None = None,
     ) -> None: ...
 
 
@@ -173,6 +174,7 @@ class SupabaseMirror:
     def finish(
         self, updated: int, failed: int, fatal: bool, *,
         gate_counts: dict[str, int] | None = None, calibration_break: dict | None = None,
+        note: str | None = None,
     ) -> None:
         if self._disabled:
             return
@@ -185,7 +187,7 @@ class SupabaseMirror:
             "input_tokens": usage.get("input"),
             "output_tokens": usage.get("output"),
             "est_cost_usd": usage.get("est_cost_usd"),
-            "notes": _notes(fatal, gate_counts, usage.get("searches")),
+            "notes": _notes(fatal, gate_counts, usage.get("searches"), note),
         }, {"id": f"eq.{self._run_id}"})
         if calibration_break is not None:
             self._record_break(calibration_break)
@@ -343,8 +345,9 @@ class SupabaseMirror:
 
 def _notes(
     fatal: bool, gate_counts: dict[str, int] | None, searches: int | None = None,
+    note: str | None = None,
 ) -> str | None:
-    parts = []
+    parts = [note] if note else []
     if fatal:
         parts.append("aborted on fatal API error; partial results mirrored")
     if gate_counts:

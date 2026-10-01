@@ -2,9 +2,16 @@ name: Update AI Regulation Data
 
 on:
   schedule:
-    # Run at 6am UTC every Monday. The pipeline defaults research every
-    # country with web search through the Batches API.
-    - cron: '0 6 * * 1'
+    # The weekly run, Monday 06:17 UTC: the pipeline defaults research every
+    # country with web search through the Batches API. Off the top of the
+    # hour, when GitHub delays and drops the most scheduled runs (#189).
+    - cron: '17 6 * * 1'
+    # Collect runs (#194): a weekly batch still processing when its run's
+    # wait ends is left running and recorded in state/open_batch.json; these
+    # pick it up (--collect-only exits at once when nothing is recorded).
+    # Batches end within 24h, so Monday and Tuesday cover it. Keep the
+    # string in sync with INPUT_COLLECT below.
+    - cron: '47 */2 * * 1,2'
   workflow_dispatch:
     inputs:
       countries:
@@ -26,7 +33,7 @@ on:
         default: true
         type: boolean
       batch:
-        description: 'Use the Message Batches API (50% token pricing, results within ~1h)'
+        description: 'Use the Message Batches API (50% token pricing, results within 24h; a batch still running after 4h is collected by a later run)'
         required: false
         default: true
         type: boolean
@@ -68,6 +75,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The branch tip when the job starts, not the commit that triggered
+          # it: a run queued behind another (the concurrency group above)
+          # must see the open-batch record that run committed, or it would
+          # submit a second batch and pay twice (#194).
+          ref: ${{ github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -114,6 +127,8 @@ jobs:
           # Scheduled runs write the digest by default (the CLI reads
           # GITHUB_EVENT_NAME); a dispatch opts in with the input.
           INPUT_DIGEST: ${{ (github.event.inputs.digest == 'true') && '--digest' || '' }}
+          # The collect schedule only collects an open batch (#194).
+          INPUT_COLLECT: ${{ (github.event.schedule == '47 */2 * * 1,2') && '--collect-only' || '' }}
         run: |
           # pipefail: tee must not mask the script's exit code - the
           # partial-failure contract (exit 1) drives the step status.
@@ -132,6 +147,7 @@ jobs:
             $INPUT_GROUNDED \
             $INPUT_GATE \
             $INPUT_DIGEST \
+            $INPUT_COLLECT \
             "${extra[@]}" 2>&1 | tee run.log
 
       - name: Run summary
@@ -140,7 +156,7 @@ jobs:
           {
             echo "## Data update"
             echo '```'
-            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:|digest:|gold:|usage:|rubric|links: [0-9]|eu: |Batch .* submitted|Follow-up batch|FATAL" run.log | tail -30 || true
+            grep -E "Countries to update|Done\.|Failed countries|mirror:|evidence|Gate:|digest:|gold:|usage:|rubric|links: [0-9]|eu: |Batch .* submitted|Follow-up batch|still processing|Collecting batch|Open batch|open batch|FATAL" run.log | tail -30 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -161,6 +177,11 @@ jobs:
           if [ -f public/data/drift.json ]; then git add public/data/drift.json; fi
           # Weekly digest (week file, index, Atom feed) travels with the data.
           if [ -d public/digest ]; then git add public/digest; fi
+          # The open-batch record (#194): written when a batch is handed
+          # over, deleted once it is collected. -A stages the deletion.
+          if [ -d state ] || git ls-files --error-unmatch state/open_batch.json >/dev/null 2>&1; then
+            git add -A state
+          fi
           git diff --cached --quiet || echo "changed=true" >> $GITHUB_OUTPUT
 
       # Data commits are pushed with GITHUB_TOKEN, which never triggers CI,
@@ -199,7 +220,11 @@ jobs:
         run: |
           git config user.name "AI Regulation Bot"
           git config user.email "bot@github-actions"
-          git commit -m "chore: automated data update $(date -u +%Y-%m-%d)"
+          if git diff --cached --name-only | grep -qv '^state/'; then
+            git commit -m "chore: automated data update $(date -u +%Y-%m-%d)"
+          else
+            git commit -m "chore: record the open research batch $(date -u +%Y-%m-%d)"
+          fi
           # A merge to main during the (hours-long) run makes a plain push
           # non-fast-forward, and the week's data would be lost with the
           # runner. Rebase the data commit onto main and retry.
@@ -232,6 +257,7 @@ jobs:
             public/data/pending.json
             public/data/drift.json
             public/digest/
+            state/
             run.log
           retention-days: 30
 
