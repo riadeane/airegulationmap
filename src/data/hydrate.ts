@@ -9,7 +9,7 @@
 
 import { getState } from '../state/store';
 import { receiveData } from '../state/interactions';
-import { parseScore } from './loader';
+import { parseFrontier, parseScore } from './loader';
 import type { ScoreData, RegulationData, ScoreEntry, RegulationEntry } from './loader';
 import { normalizeEvidence } from './evidence';
 import type { EvidenceRecord } from './evidence';
@@ -25,6 +25,13 @@ export const EXPORT_COLUMNS =
   + 'regulation_status_text,policy_lever_text,governance_type_text,'
   + 'actor_involvement_text,enforcement_level_text,specific_laws,sources_raw,summarized_at,'
   + 'grounded,initiatives_used,web_search';
+
+/** The Frontier Risk Governance columns (migration 0014, PRD 15), asked
+ * for beside EXPORT_COLUMNS. PostgREST rejects a select naming a column
+ * the view does not have, so until the migration is applied the first
+ * request fails and hydration retries without them. The frontier
+ * sub-indicators (frontier_subscores) stay with the static file. */
+export const FRONTIER_EXPORT_COLUMNS = 'frontier_risk,frontier_track,frontier_risk_text,frontier_sources_raw';
 
 interface ExportRow {
   country: string;
@@ -49,6 +56,11 @@ interface ExportRow {
   grounded?: boolean | null;
   initiatives_used?: number | null;
   web_search?: boolean | null;
+  // Frontier Risk Governance (migration 0014); absent before it lands.
+  frontier_risk?: number | string | null;
+  frontier_track?: string | null;
+  frontier_risk_text?: string | null;
+  frontier_sources_raw?: string | null;
 }
 
 /** The evidence record a public_export row carries, in the shape
@@ -79,6 +91,8 @@ export function mapExportRow(row: ExportRow): { score: ScoreEntry; reg: Regulati
     enforcementLevel: parseScore(row.enforcement_level),
     lastUpdated: row.scored_at || null,
     dataVersion: row.data_version != null && row.data_version >= 1 ? row.data_version : 1,
+    // No track (or no column yet) leaves both keys absent: no frontier data.
+    ...parseFrontier(row.frontier_risk, row.frontier_track),
   };
   const reg: RegulationEntry = {
     country: row.country,
@@ -91,6 +105,8 @@ export function mapExportRow(row: ExportRow): { score: ScoreEntry; reg: Regulati
     sources: row.sources_raw || null,
     lastUpdated: row.summarized_at || null,
     confidence: row.confidence || null,
+    frontierRisk: row.frontier_risk_text || null,
+    frontierSources: row.frontier_sources_raw || null,
   };
   return { score, reg };
 }
@@ -125,6 +141,12 @@ export function resetHydratedEvidence(): void {
   hydratedEvidence = null;
 }
 
+/** The frontier keys of a loaded row, only when it has them. */
+function pickFrontier(entry: ScoreEntry | undefined): Pick<ScoreEntry, 'frontierRisk' | 'frontierTrack'> {
+  if (!entry || entry.frontierTrack == null) return {};
+  return { frontierRisk: entry.frontierRisk ?? null, frontierTrack: entry.frontierTrack };
+}
+
 function maxLastUpdated(scoreData: ScoreData): string {
   let max = '';
   for (const entry of Object.values(scoreData)) {
@@ -157,10 +179,15 @@ export async function hydrateFromSupabase(): Promise<boolean> {
   const staticLatest = maxLastUpdated(getState().scoreData);
   if (!dbLatest || dbLatest <= staticLatest) return false;
 
-  const rows = await restGet(`public_export?select=${EXPORT_COLUMNS}&limit=1000`);
+  let rows = await restGet(`public_export?select=${EXPORT_COLUMNS},${FRONTIER_EXPORT_COLUMNS}&limit=1000`);
+  // Before migration 0014 the view has no frontier columns: ask again
+  // without them, and keep the static frontier fields (below).
+  const frontierColumns = rows !== null;
+  if (!frontierColumns) rows = await restGet(`public_export?select=${EXPORT_COLUMNS}&limit=1000`);
   if (!Array.isArray(rows) || rows.length === 0) return false;
 
   const current = getState().scoreData;
+  const currentReg = getState().regulationData;
   const scoreData: ScoreData = {};
   const regulationData: RegulationData = {};
   const evidence = new Map<string, EvidenceRecord | null>();
@@ -168,6 +195,11 @@ export async function hydrateFromSupabase(): Promise<boolean> {
     const mapped = mapExportRow(raw);
     if (!mapped) continue;
     const name = mapped.score.country;
+    if (!frontierColumns) {
+      mapped.score = { ...mapped.score, ...pickFrontier(current[name]) };
+      mapped.reg.frontierRisk = currentReg[name]?.frontierRisk ?? null;
+      mapped.reg.frontierSources = currentReg[name]?.frontierSources ?? null;
+    }
     scoreData[name] = mapped.score;
     regulationData[name] = mapped.reg;
     // Same research date as the static entry = the same pass, whose record

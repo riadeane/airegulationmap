@@ -1,4 +1,4 @@
-import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../constants';
+import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn, hasFrontierTrack } from '../constants';
 import type { AttributeGroup } from '../constants';
 import type { AttributeKey } from '../constants';
 import { getState, on } from '../state/store';
@@ -11,11 +11,13 @@ import { el } from '../dom';
 // picks one, and Esc or Tab closes the list. Focus returns to the button
 // when the list closes by keyboard.
 //
-// Options sit in two labelled groups (role="group"), "Implementation" and
+// Options sit in labelled groups (role="group"), "Implementation" and
 // "Governance style" (PRD 16), and each carries the one-line question its
 // score answers, so the reader knows what a colour means before choosing
-// it. The groups are presentational for the keyboard: the arrows rove
-// across all six options in display order.
+// it. A third group, "Frontier risk governance" (PRD 15), joins once some
+// country has a frontier track: before the first run on the lens it would
+// paint every country "no data". The groups are presentational for the
+// keyboard: the arrows rove across every option in display order.
 
 // Label and aria-selected follow the state, whoever wrote it (a dimension
 // row, a URL, popstate).
@@ -28,13 +30,28 @@ function syncSelected(attr: AttributeKey): void {
   });
 }
 
+/**
+ * The lenses the selector offers for this data: implementation and
+ * governance style always, frontier risk governance once at least one
+ * country has a frontier track.
+ */
+export function selectorGroups(
+  scoreData: Parameters<typeof hasFrontierTrack>[0]
+): AttributeGroup[] {
+  return hasFrontierTrack(scoreData) ? ['implementation', 'style', 'frontier'] : ['implementation', 'style'];
+}
+
 export function buildScoreSelector(): void {
   const btn = el('score-btn');
   const dropdown = el('score-dropdown');
   btn.setAttribute('aria-controls', 'score-dropdown');
 
-  const options: HTMLLIElement[] = [];
-  for (const group of ['implementation', 'style'] as AttributeGroup[]) {
+  // Read from the DOM, so the frontier group's options join and leave the
+  // keyboard order with the group.
+  const allOptions = (): HTMLLIElement[] =>
+    Array.from(dropdown.querySelectorAll<HTMLLIElement>('[role="option"]'));
+
+  const buildGroup = (group: AttributeGroup): HTMLLIElement => {
     const wrap = document.createElement('li');
     wrap.setAttribute('role', 'presentation');
     wrap.className = 'score-group';
@@ -64,11 +81,28 @@ export function buildScoreSelector(): void {
       li.setAttribute('aria-describedby', question.id);
       li.addEventListener('click', () => pick(value));
       list.appendChild(li);
-      options.push(li);
     }
     wrap.append(head, list);
-    dropdown.appendChild(wrap);
-  }
+    return wrap;
+  };
+
+  for (const group of ['implementation', 'style'] as AttributeGroup[]) dropdown.appendChild(buildGroup(group));
+
+  // The frontier group is in the list only while the data has a track.
+  let frontierGroup: HTMLLIElement | null = null;
+  const syncFrontierGroup = (): void => {
+    const offered = selectorGroups(getState().scoreData).includes('frontier');
+    if (offered && !frontierGroup) {
+      frontierGroup = buildGroup('frontier');
+      dropdown.appendChild(frontierGroup);
+      syncSelected(getState().currentAttribute);
+    } else if (!offered && frontierGroup) {
+      frontierGroup.remove();
+      frontierGroup = null;
+    }
+  };
+  syncFrontierGroup();
+  on('scoreData', syncFrontierGroup);
 
   // Set the initial label from state so a URL-provided `?mode=` shows up
   // correctly without a click.
@@ -77,7 +111,7 @@ export function buildScoreSelector(): void {
 
   const isOpen = (): boolean => dropdown.classList.contains('open');
   const selectedIndex = (): number =>
-    Math.max(0, options.findIndex(li => li.dataset.value === getState().currentAttribute));
+    Math.max(0, allOptions().findIndex(li => li.dataset.value === getState().currentAttribute));
 
   function setOpen(open: boolean): void {
     dropdown.classList.toggle('open', open);
@@ -90,7 +124,7 @@ export function buildScoreSelector(): void {
     el('filter-popover').classList.remove('open');
     el('filter-btn').classList.remove('active');
     el('filter-btn').setAttribute('aria-expanded', 'false');
-    options[focusIndex].focus();
+    allOptions()[focusIndex]?.focus();
   }
 
   function close(returnFocus: boolean): void {
@@ -114,10 +148,11 @@ export function buildScoreSelector(): void {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     e.preventDefault();
     e.stopPropagation();
-    open(e.key === 'ArrowUp' ? options.length - 1 : selectedIndex());
+    open(e.key === 'ArrowUp' ? allOptions().length - 1 : selectedIndex());
   });
 
   dropdown.addEventListener('keydown', e => {
+    const options = allOptions();
     const i = options.indexOf(document.activeElement as HTMLLIElement);
     const last = options.length - 1;
     switch (e.key) {

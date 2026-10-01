@@ -15,7 +15,7 @@
 import { getState, on } from '../state/store';
 import { selectCountry } from '../state/interactions';
 import { visibleCountrySet, confidenceAtDate } from '../state/selectors';
-import { ATTRIBUTES } from '../constants';
+import { ATTRIBUTES, INSUFFICIENT_EVIDENCE_LABEL, isInsufficient } from '../constants';
 import { displayedEntry } from './renderer';
 
 type SortKey = 'name' | 'score';
@@ -32,7 +32,7 @@ function formatScore(v: number): string {
   return Number.isInteger(v) ? String(v) : v.toFixed(2);
 }
 
-function rows(): { name: string; score: number | null; confidence: string | null }[] {
+function rows(): { name: string; score: number | null; insufficient: boolean; confidence: string | null }[] {
   const { currentAttribute } = getState();
   const list = [...visibleCountrySet()].map(name => {
     const { entry } = displayedEntry(name);
@@ -40,6 +40,7 @@ function rows(): { name: string; score: number | null; confidence: string | null
     return {
       name,
       score: value != null && Number.isFinite(value) ? value : null,
+      insufficient: isInsufficient(value),
       confidence: confidenceAtDate(name),
     };
   });
@@ -129,7 +130,10 @@ function render(): void {
     th.appendChild(pick);
     const score = document.createElement('td');
     score.className = 'num';
-    score.textContent = row.score != null ? formatScore(row.score) : 'No data';
+    // A null value is insufficient evidence, not "no data".
+    score.textContent = row.score != null
+      ? formatScore(row.score)
+      : row.insufficient ? INSUFFICIENT_EVIDENCE_LABEL : 'No data';
     const confidence = document.createElement('td');
     confidence.textContent = row.confidence
       ? row.confidence[0].toUpperCase() + row.confidence.slice(1)

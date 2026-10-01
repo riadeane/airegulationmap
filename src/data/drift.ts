@@ -9,7 +9,7 @@
 import { ATTRIBUTE_LABELS } from '../constants';
 import type { DimensionKey } from '../constants';
 import type { BlocsData } from './blocs';
-import { computeChangelog } from './changelog';
+import { computeChangelog, isDimensionChange } from './changelog';
 import type { ChangelogDiffEntry } from './changelog';
 import { historyBreaks } from './history';
 import type { HistoryData } from './history';
@@ -72,14 +72,15 @@ function round2(value: number): number {
  * else moved.
  */
 export function dominantDimension(entry: ChangelogDiffEntry): DimensionKey {
+  const changes = entry.changes.filter(isDimensionChange);
   let best: { dimension: DimensionKey; size: number } | null = null;
   for (const dimension of DIMENSIONS) {
-    const change = entry.changes.find(c => c.dimension === dimension);
+    const change = changes.find(c => c.dimension === dimension);
     if (!change) continue;
     const size = change.from == null || change.to == null ? 0 : Math.abs(change.to - change.from);
     if (!best || size > best.size) best = { dimension, size };
   }
-  return best ? best.dimension : entry.changes[0].dimension;
+  return best ? best.dimension : changes[0].dimension;
 }
 
 /**
@@ -112,11 +113,17 @@ export function computeWeeklyChanges(history: HistoryData | null | undefined): W
   };
 
   for (const [country, snapshots] of Object.entries(history.countries)) {
-    for (const entry of computeChangelog(snapshots, breaks)) {
-      if (entry.initial) {
-        week(entry.date).firstScored += 1;
+    for (const logged of computeChangelog(snapshots, breaks)) {
+      if (logged.initial) {
+        week(logged.date).firstScored += 1;
         continue;
       }
+      // The five dimensions only: the frontier lens (PRD 15) has its own
+      // drift record in drift.json, and a run that moved nothing but it
+      // changed no dimension.
+      const changes = logged.changes.filter(isDimensionChange);
+      if (changes.length === 0) continue;
+      const entry = { ...logged, changes };
       const w = week(entry.date);
       w.changed += 1;
       w.countries.push(country);

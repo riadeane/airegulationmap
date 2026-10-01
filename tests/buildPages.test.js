@@ -13,6 +13,8 @@ import {
   pageDescription,
   renderCountryIndex,
   renderCountryPage,
+  renderFrontierSection,
+  jsonLd,
 } from '../scripts/build_pages';
 
 // --- fixture ---------------------------------------------------------------
@@ -307,6 +309,95 @@ describe('renderCountryPage evidence line', () => {
     expect(renderCountryPage(modelFor('Nowhere', inputsWithEvidence()))).not.toContain('<p class="entry-evidence">');
     // The base fixture's Chile entry has sub-scores but no evidence key.
     expect(renderCountryPage(modelFor('Chile'))).not.toContain('<p class="entry-evidence">');
+  });
+});
+
+// Frontier Risk Governance (PRD 15): a section of its own, only for a
+// country scored on the lens.
+describe('renderCountryPage frontier section', () => {
+  function inputsWithFrontier() {
+    const inputs = fixture();
+    inputs.scores.Chile = { ...inputs.scores.Chile, frontierRisk: 2.5, frontierTrack: 'H' };
+    inputs.scores.Argentina = { ...inputs.scores.Argentina, frontierRisk: null, frontierTrack: 'G' };
+    inputs.regulation.Chile = {
+      ...inputs.regulation.Chile,
+      frontierRisk: 'No binding duties on frontier developers; an evaluation unit is planned.',
+      frontierSources: 'https://www.senado.cl/frontier|https://example.org/frontier',
+    };
+    inputs.subscores = normalizeSubscores({
+      schema_version: 1,
+      countries: {
+        Chile: {
+          ...inputs.subscores.countries.Chile,
+          frontier: {
+            date: '2026-10-05', track: 'H', rubric: 'f1',
+            developer_obligations: { score: 2, rationale: 'Voluntary commitments only.', eu_level: true },
+            evaluation_oversight: { score: 3, rationale: 'An institute tests some models.' },
+            incident_emergency_preparedness: { score: null, rationale: 'No source found.' },
+            international_coordination: { score: 4, rationale: 'Network member.', computed: true },
+          },
+        },
+        Argentina: {
+          date: '2026-10-05',
+          frontier: {
+            date: '2026-10-05', track: 'G', rubric: 'f1',
+            developer_obligations: { score: 'na', rationale: 'Does not apply on the global track.' },
+            evaluation_oversight: { score: 'na', rationale: 'Does not apply on the global track.' },
+            incident_emergency_preparedness: { score: null, rationale: 'Nothing found.' },
+            international_coordination: { score: 2, rationale: 'Paris only.', computed: true },
+          },
+        },
+      },
+    });
+    return inputs;
+  }
+
+  it('renders the score, the track, the four sub-indicators, the text and its sources', () => {
+    const html = renderCountryPage(modelFor('Chile', inputsWithFrontier()));
+    const section = html.slice(html.indexOf('<section id="frontier-risk"'), html.indexOf('</section>', html.indexOf('<section id="frontier-risk"')));
+    expect(section).toContain('<h2 id="frontier-risk-heading">Frontier Risk Governance <span class="dim-score">2.50</span></h2>');
+    expect(section).toContain('<strong>Frontier host track.</strong>');
+    expect(section).toContain('capped at one point above the weakest of them');
+    expect(section).toContain('<th scope="row">Developer obligations <span class="source-tag">EU-level</span></th><td class="num">2</td>');
+    expect(section).toContain('<th scope="row">Incident and emergency preparedness</th><td class="num">Insufficient evidence</td>');
+    expect(section).toContain('Computed from public lists');
+    expect(section).toContain('No binding duties on frontier developers');
+    expect(section).toContain('<h3>Frontier sources</h3>');
+    expect(section.indexOf('senado.cl/frontier')).toBeLessThan(section.indexOf('example.org/frontier'));
+    expect(section).toContain('Measured against a stated standard; not a measure of how safe a country is.');
+    expect(section).toContain('href="/methodology.html#frontier-risk-governance"');
+    // After the dimensions, before key legislation.
+    expect(html.indexOf('id="enforcement-level"')).toBeLessThan(html.indexOf('id="frontier-risk"'));
+    expect(html.indexOf('id="frontier-risk"')).toBeLessThan(html.indexOf('id="legislation"'));
+  });
+
+  it('shows "Not applicable" off the track and insufficient evidence for the score', () => {
+    const section = renderFrontierSection(modelFor('Argentina', inputsWithFrontier()));
+    expect(section).toContain('<span class="dim-score">Insufficient evidence</span>');
+    expect(section).toContain('<strong>Global track.</strong>');
+    expect(section).toContain('<th scope="row">Developer obligations</th><td class="num">Not applicable</td>');
+    expect(section).toContain('<th scope="row">Evaluation and oversight</th><td class="num">Not applicable</td>');
+    expect(section).not.toMatch(/<td class="num">1<\/td>/);
+  });
+
+  it('adds the frontier score to JSON-LD only when the country has one', () => {
+    const inputs = inputsWithFrontier();
+    const chile = jsonLd(modelFor('Chile', inputs));
+    expect(chile.variableMeasured.map(v => v.name)).toContain('Frontier Risk Governance');
+    const frontier = chile.variableMeasured.find(v => v.name === 'Frontier Risk Governance');
+    expect(frontier.value).toBe(2.5);
+    expect(frontier.description).toMatch(/frontier host track/);
+    expect(frontier.description).toMatch(/not a measure of how safe a country is/);
+    // Insufficient evidence publishes no value; no frontier data, nothing.
+    expect(jsonLd(modelFor('Argentina', inputs)).variableMeasured.map(v => v.name)).not.toContain('Frontier Risk Governance');
+    expect(jsonLd(modelFor('Nowhere', inputs)).variableMeasured.map(v => v.name)).not.toContain('Frontier Risk Governance');
+  });
+
+  it('omits the section for a country without frontier data', () => {
+    expect(renderFrontierSection(modelFor('Nowhere', inputsWithFrontier()))).toBe('');
+    const html = renderCountryPage(modelFor('Chile'));
+    expect(html).not.toContain('id="frontier-risk"');
+    expect(html).not.toContain('Frontier Risk Governance');
   });
 });
 

@@ -74,7 +74,7 @@ flowchart TD
 | `handoff.py` | The open-batch record (`state/open_batch.json`): a handed-over batch plus the options it was submitted with (#194) |
 | `retry.py` | Reusable transient-error retry policy |
 | `prompt.py` | The research prompt template + rendering |
-| `models.py` | `ResearchResult` pydantic model - schema, validation, projections |
+| `models.py` | `ResearchResult` pydantic model - schema, validation, projections; the per-track frontier answers (`ResearchResultH/C/G`), `FrontierRecord` and the capped lens score |
 | `repository.py` | `Dataset` - load/apply/validate/atomic-save the five stores |
 | `history.py` | History snapshot append + change detection |
 | `staleness.py` | `StalenessPolicy` - which countries need re-research |
@@ -82,7 +82,9 @@ flowchart TD
 | `digest.py` | Weekly digest: change selection, one structured-output request, `public/digest/` writers (week JSON, index, Atom), `--run <id>` regeneration |
 | `consistency.py` | Post-run EU consistency check: members whose AI Act sub-indicators differ from the EU's most common score (log + step summary) |
 | `links.py` | Source link check: drops dead cited URLs before gating, reads live page titles for `sources.title`; `report` / `titles` CLI |
-| `gold.py` | Gold set and drift check: the gold file's contract, the pure agreement metrics, the `drift.json` record, the step-summary block, `--model <id>` comparison CLI |
+| `gold.py` | Gold set and drift check: the gold file's contract, the pure agreement metrics, the `drift.json` record, the step-summary block, `--model <id>` comparison CLI; frontier gold entries and the drift row's `frontier` block |
+| `frontier.py` | Frontier Risk Governance (PRD 15): loads and validates `frontier_tracks.json` and `frontier_international.json`, computes `international_coordination`, and `FrontierContext.assemble` turns a model's frontier block into a `FrontierRecord` (researched, computed and `na` sub-indicators) |
+| `frontier_checks.py` | One-off checks on the lens: `sensitivity` (aggregation methods on the gold set), `behaviour` (reversed anchors, paraphrased section), `crossval` (Spearman against external indices) |
 | `names.py` | `CountryNames` - country-name normalization |
 | `sources.py` | Source-URL classifier (Python port of `src/data/sources.ts`, kept behaviourally aligned) |
 | `config.py` | `Settings` (repo-root paths) + constants (CSV fields, staleness threshold, site URL, default model) |

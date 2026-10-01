@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import re
 
-from .models import ResearchResult
+from .models import FRONTIER_HISTORY_KEY, FRONTIER_TRACK_HISTORY_KEY, ResearchResult
 
 # The five dimension keys in the history JSON (camelCase). averageScore and date
 # are intentionally excluded from change detection - a snapshot exists to record
@@ -22,7 +22,10 @@ DIMENSION_KEYS = tuple(dim.history_key for dim in ResearchResult.DIMENSIONS)
 # past ratings on the timeline. A change in it alone is a change-point too:
 # the map shows it. Snapshots written before it was recorded carry no key.
 CONFIDENCE_KEY = "confidence"
-CHANGE_KEYS = (*DIMENSION_KEYS, CONFIDENCE_KEY)
+# Frontier Risk Governance (PRD 15): the lens score and the track it was
+# scored on, present once a country has been scored on the lens.
+FRONTIER_KEYS = (FRONTIER_HISTORY_KEY, FRONTIER_TRACK_HISTORY_KEY)
+CHANGE_KEYS = (*DIMENSION_KEYS, CONFIDENCE_KEY, *FRONTIER_KEYS)
 
 
 def append_snapshot(history: dict, country: str, snapshot: dict) -> bool:
@@ -64,6 +67,33 @@ def append_snapshot(history: dict, country: str, snapshot: dict) -> bool:
             return False
 
     snapshots.append(snapshot)
+    return True
+
+
+def set_frontier(history: dict, country: str, day: str, values: dict) -> bool:
+    """Record the lens's ``values`` (``frontierRisk``, ``frontierTrack``)
+    for ``country`` as of ``day``. Returns ``True`` when history changed.
+
+    The lens lands after the five dimensions (a separate gate decision), so
+    the snapshot for ``day`` may already exist: it is amended in place, and
+    stays a change-point because its values differ from the one before or
+    the main apply already made it one. Otherwise a copy of the latest
+    snapshot, dated ``day`` and carrying the new values, is appended. Equal
+    values change nothing. A country with no snapshot yet gets none here:
+    its first main apply always writes one."""
+    snapshots = history["countries"].setdefault(country, [])
+    if not snapshots:
+        return False
+    last = snapshots[-1]
+    if all(last.get(k) == v for k, v in values.items()):
+        return False
+    if last.get("date") == day:
+        last.update(values)
+        previous = snapshots[-2] if len(snapshots) > 1 else None
+        if previous is not None and not any(last.get(k) != previous.get(k) for k in CHANGE_KEYS):
+            snapshots.pop()  # the amendment undid today's only change
+        return True
+    snapshots.append({**last, "date": day, **values})
     return True
 
 

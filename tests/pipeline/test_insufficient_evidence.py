@@ -137,7 +137,7 @@ class TestHistory:
 class TestRubricGuard:
     def test_versions(self):
         assert RUBRIC_VERSION == "v3.2"
-        assert PROMPT_VERSION == "v3.5-2026-10"
+        assert PROMPT_VERSION == "v3.6-2026-10"
 
     def test_rubric_of_reads_v3_1(self):
         assert rubric_of({"rubric": "v3.1"}) == "v3.1"

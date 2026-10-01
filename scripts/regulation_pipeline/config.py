@@ -23,16 +23,20 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # Column order + exact headers for public/scores.csv and public/regulation_data.csv.
 # This is the persistence contract the frontend CSV loader reads; a test asserts
 # the repository emits exactly these keys so a typo can't silently drop a column.
+# The Frontier Risk Governance columns (PRD 15) are appended at the end so
+# positional readers of the older columns keep working: in scores.csv the lens
+# score and the track it was scored on (both empty until the country is first
+# scored on the lens), in regulation_data.csv its text and its own sources.
 SCORES_FIELDS = [
     "Country", "Regulation Status", "Policy Lever", "Governance Type",
     "Actor Involvement", "Average Score", "Enforcement Level",
-    "Last Updated", "Data Version",
+    "Last Updated", "Data Version", "Frontier Risk", "Frontier Track",
 ]
 
 REGULATION_FIELDS = [
     "Country", "Regulation Status", "Policy Lever", "Governance Type",
     "Actor Involvement", "Enforcement Level", "Specific Laws",
-    "Sources", "Last Updated", "Confidence",
+    "Sources", "Last Updated", "Confidence", "Frontier Risk", "Frontier Sources",
 ]
 
 # Countries stale after this many days without a fresh, confident answer.
@@ -142,6 +146,20 @@ class Settings:
     def gold_set_json(self) -> Path:
         """Hand-verified sub-indicator scores for ten countries (see gold.py)."""
         return self.root / "public" / "data" / "gold_set.json"
+
+    @property
+    def frontier_tracks_json(self) -> Path:
+        """Frontier Risk Governance tracks (PRD 15): the countries on track H
+        or C, assigned by the maintainer from Epoch AI data; every other
+        country is on track G."""
+        return self.root / "public" / "data" / "frontier_tracks.json"
+
+    @property
+    def frontier_international_json(self) -> Path:
+        """Summit signatories, measurement-network members, bilateral
+        frontier-safety dialogues and leading roles, from which
+        ``international_coordination`` is computed (see frontier.py)."""
+        return self.root / "public" / "data" / "frontier_international.json"
 
     @property
     def drift_json(self) -> Path:

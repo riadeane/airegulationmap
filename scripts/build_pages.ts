@@ -14,8 +14,13 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ATTRIBUTES, ATTRIBUTE_KEYS, ATTRIBUTE_LABELS, GROUPS, INSUFFICIENT_EVIDENCE_LABEL, attributesIn, isInsufficient } from '../src/constants';
-import type { AttributeGroup, AttributeKey, DimensionKey } from '../src/constants';
+import {
+  ATTRIBUTES, ATTRIBUTE_KEYS, ATTRIBUTE_LABELS, COMPUTED_NOTE, EU_LEVEL_LABEL, EU_LEVEL_NOTE, FRONTIER_CAP_SENTENCE,
+  FRONTIER_METHODOLOGY_PATH, FRONTIER_SUBINDICATORS, FRONTIER_SUBINDICATOR_KEYS, FRONTIER_TRACKS, GROUPS,
+  INSUFFICIENT_EVIDENCE_LABEL, attributesIn, isInsufficient, parseFrontierTrack,
+} from '../src/constants';
+import type { AttributeGroup, AttributeKey, DimensionKey, FrontierTrack } from '../src/constants';
+import { frontierCellValue, levelMeaning } from '../src/data/meaning';
 import type { BlocsData } from '../src/data/blocs';
 import { parseRegulationCsv, parseScoresCsv } from '../src/data/loader';
 import type { RegulationData, RegulationEntry, ScoreData, ScoreEntry } from '../src/data/loader';
@@ -45,8 +50,11 @@ export const TOP_LEVEL_PATHS = [
 ];
 
 // The five scored dimensions in display order: implementation, then
-// governance style (the shared vocabulary in src/constants.ts).
-const DIMENSIONS = ATTRIBUTE_KEYS.filter((k): k is DimensionKey => k !== 'averageScore');
+// governance style (the shared vocabulary in src/constants.ts). The
+// frontier lens has its own section (renderFrontierSection).
+const DIMENSIONS = ATTRIBUTE_KEYS.filter(
+  (k): k is DimensionKey => k !== 'averageScore' && k !== 'frontierRisk'
+);
 
 /** The one line under the scores table (PRD 16). */
 export const SCORES_NOTE =
@@ -85,6 +93,8 @@ export interface CountryPageModel {
   subscores: SubscoreEntry | null;
   /** Official sources first, original order within each kind. */
   sources: ClassifiedSource[];
+  /** The frontier text's sources (PRD 15), ordered the same way. */
+  frontierSources: ClassifiedSource[];
   blocs: BlocPeers[];
   prev: PageLink | null;
   next: PageLink | null;
@@ -135,6 +145,7 @@ export function buildModels(inputs: BuildInputs): CountryPageModel[] {
       regulation,
       subscores: inputs.subscores?.countries[name] ?? null,
       sources: orderSources(classifySources(regulation?.sources)),
+      frontierSources: orderSources(classifySources(regulation?.frontierSources)),
       blocs: blocEntries
         .filter(([, bloc]) => bloc.members.includes(name))
         .map(([code, bloc]) => ({
@@ -211,22 +222,42 @@ export function pageDescription(model: CountryPageModel): string {
   return text;
 }
 
-/** Schema.org Dataset markup with the six scores as variableMeasured. */
+/** The track a page's frontier section is about, from the score row or
+ *  the sub-indicator block. */
+function frontierTrackOf(model: CountryPageModel): FrontierTrack | null {
+  return parseFrontierTrack(model.score.frontierTrack) ?? model.subscores?.frontier?.track ?? null;
+}
+
+/** True when the country has anything on the frontier lens (PRD 15). */
+export function hasFrontier(model: CountryPageModel): boolean {
+  return model.score.frontierTrack != null
+    || model.subscores?.frontier != null
+    || !!cleanRegulationText(model.regulation?.frontierRisk)
+    || model.frontierSources.length > 0;
+}
+
+/** Schema.org Dataset markup with the scores as variableMeasured: the
+ *  six, plus Frontier Risk Governance once the country has a score on it. */
 export function jsonLd(model: CountryPageModel): Record<string, unknown> {
   const url = SITE_ORIGIN + countryPagePath(model.name);
-  // An insufficient-evidence (null) score has no value to publish.
+  // An insufficient-evidence (null) score has no value to publish; nor has
+  // a country never scored on the frontier lens (undefined).
+  const track = frontierTrackOf(model);
   const variableMeasured = ATTRIBUTE_KEYS
     .map(key => ({ key, value: model.score[key] }))
     .filter(({ value }) => value != null)
     .map(({ key, value }) => {
       const m = ATTRIBUTES[key];
+      const trackNote = key === 'frontierRisk' && track
+        ? ` Scored on the ${FRONTIER_TRACKS[track].label.toLowerCase()} track. ${FRONTIER_CAP_SENTENCE}`
+        : '';
       return {
         '@type': 'PropertyValue',
         name: m.label,
         value,
         minValue: 1,
         maxValue: 5,
-        description: `${m.question} 1 = ${m.low}, 5 = ${m.high}. ${m.notClaim}`,
+        description: `${m.question} 1 = ${m.low}, 5 = ${m.high}. ${m.notClaim}${trackNote}`,
       };
     });
   const asOf = dataAsOf(model);
@@ -845,16 +876,82 @@ ${body}${subscores ? subscores + '\n' : ''}      </section>`;
   }).filter(Boolean).join('\n');
 }
 
+/** The Frontier Risk Governance section (PRD 15): the score, the track in
+ *  words, the four sub-indicators ("Not applicable" off the track), their
+ *  rationales, the text and its sources, then what the score does not
+ *  claim. Empty for a country never scored on the lens. */
+export function renderFrontierSection(model: CountryPageModel): string {
+  if (!hasFrontier(model)) return '';
+  const m = ATTRIBUTES.frontierRisk;
+  const score = model.score.frontierRisk;
+  const scoreTag = score !== undefined
+    ? ` <span class="dim-score">${formatScore(score)}</span>`
+    : '';
+  const track = frontierTrackOf(model);
+  const trackText = track
+    ? ` <strong>${escapeHtml(FRONTIER_TRACKS[track].label)} track.</strong> ${escapeHtml(FRONTIER_TRACKS[track].description)} ${escapeHtml(FRONTIER_CAP_SENTENCE)}`
+    : '';
+
+  const block = model.subscores?.frontier;
+  const rows = block
+    ? FRONTIER_SUBINDICATOR_KEYS
+      .filter(key => block[key])
+      .map(key => {
+        const cell = block[key]!;
+        const flag = cell.eu_level ? ` <span class="source-tag">${escapeHtml(EU_LEVEL_LABEL)}</span>` : '';
+        const notes: string[] = [];
+        if (typeof cell.score === 'number') {
+          const meaning = levelMeaning('frontier', key, cell.score);
+          if (meaning) notes.push(`${cell.score}: ${meaning}.`);
+        }
+        if (cell.eu_level) notes.push(EU_LEVEL_NOTE);
+        if (cell.computed) notes.push(COMPUTED_NOTE);
+        if (cell.rationale) notes.push(cell.rationale);
+        return `          <tr><th scope="row">${escapeHtml(FRONTIER_SUBINDICATORS[key].label)}${flag}</th><td class="num">${escapeHtml(frontierCellValue(cell.score))}</td><td class="rationale">${notes.map(escapeHtml).join(' ')}</td></tr>`;
+      })
+    : [];
+  const assessed = block?.date ? ` (assessed ${escapeHtml(block.date)})` : '';
+  const table = rows.length > 0
+    ? `      <table class="subscores">
+        <caption>Sub-indicators${assessed}</caption>
+        <thead>
+          <tr><th scope="col">Sub-indicator</th><th scope="col">Score</th><th scope="col">What it means</th></tr>
+        </thead>
+        <tbody>
+${rows.join('\n')}
+        </tbody>
+      </table>\n`
+    : '';
+
+  const text = cleanRegulationText(model.regulation?.frontierRisk);
+  const textHtml = text ? `      <p>${escapeHtml(text)}</p>\n` : '';
+  const sources = model.frontierSources.length > 0
+    ? `      <h3>Frontier sources</h3>
+      <ol class="sources">
+${model.frontierSources.map(s => `        <li>${sourceItem(s)}</li>`).join('\n')}
+      </ol>\n`
+    : '';
+
+  return `      <section id="frontier-risk" aria-labelledby="frontier-risk-heading">
+      <h2 id="frontier-risk-heading">${escapeHtml(m.label)}${scoreTag}</h2>
+      <p>${escapeHtml(m.question)}${trackText}</p>
+${table}${textHtml}${sources}      <p class="scores-note">${escapeHtml(m.notClaim)} It is not part of the implementation index. <a href="${FRONTIER_METHODOLOGY_PATH}">How the frontier lens is scored</a></p>
+      </section>`;
+}
+
+// One source as a list item's content: the URL and the official tag. Only
+// http(s) sources become links; anything else shows as text.
+function sourceItem(s: ClassifiedSource): string {
+  const tag = s.kind === 'official' ? ' <span class="source-tag">official</span>' : '';
+  const href = safeHttpUrl(s.url);
+  const label = escapeHtml(s.url);
+  const entry = href ? `<a href="${escapeHtml(href)}" rel="noopener noreferrer">${label}</a>` : label;
+  return `${entry}${tag}`;
+}
+
 function renderSources(model: CountryPageModel): string {
   if (model.sources.length === 0) return '';
-  const items = model.sources.map(s => {
-    const tag = s.kind === 'official' ? ' <span class="source-tag">official</span>' : '';
-    // Only http(s) sources become links; anything else shows as text.
-    const href = safeHttpUrl(s.url);
-    const label = escapeHtml(s.url);
-    const entry = href ? `<a href="${escapeHtml(href)}" rel="noopener noreferrer">${label}</a>` : label;
-    return `        <li>${entry}${tag}</li>`;
-  });
+  const items = model.sources.map(s => `        <li>${sourceItem(s)}</li>`);
   const official = model.sources.filter(s => s.kind === 'official').length;
   const note = official > 0
     ? `${official} of ${model.sources.length} sources are official (government, legislature or regulator) and are listed first.`
@@ -960,6 +1057,7 @@ ${renderScoresTable(model)}
       </section>
 ${noEntry}
 ${renderDimensionSections(model)}
+${renderFrontierSection(model)}
 ${lawsSection}
 ${renderSources(model)}
 ${renderPeers(model)}

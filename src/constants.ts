@@ -11,12 +11,18 @@
 //   methodology's technical section.
 // - Governance style (governance type, actor involvement): how a country
 //   governs. Neither end is better. "Descriptive" in code.
+// - Frontier risk governance (PRD 15, the frontierRisk attribute): how
+//   close a country's governance of catastrophic frontier-AI risk comes to
+//   a standard stated in the methodology, scored by track and capped at the
+//   weakest applicable element. Normative, but never part of the
+//   implementation index (averageScore).
 //
 // Endpoints follow the v3 anchors in scripts/regulation_pipeline/prompt.py.
 // Data field names (averageScore / avg_score, CSV headers) never change;
 // only what readers see does.
 
-/** The six score attributes, in display order: implementation, then style. */
+/** The seven score attributes, in display order: implementation, then
+ *  style, then frontier risk governance. */
 export const ATTRIBUTE_KEYS = [
   'averageScore',
   'regulationStatus',
@@ -24,16 +30,18 @@ export const ATTRIBUTE_KEYS = [
   'enforcementLevel',
   'governanceType',
   'actorInvolvement',
+  'frontierRisk',
 ] as const;
 
-/** One of the six score attributes ('averageScore' | 'regulationStatus' | …). */
+/** One of the seven score attributes ('averageScore' | 'regulationStatus' | …). */
 export type AttributeKey = typeof ATTRIBUTE_KEYS[number];
 
-/** The five independently scored dimensions (averageScore is derived). */
-export type DimensionKey = Exclude<AttributeKey, 'averageScore'>;
+/** The five independently scored dimensions of the research rubric
+ *  (averageScore is derived; frontierRisk is its own lens, PRD 15). */
+export type DimensionKey = Exclude<AttributeKey, 'averageScore' | 'frontierRisk'>;
 
-/** The two lenses a score is read through. */
-export type AttributeGroup = 'implementation' | 'style';
+/** The three lenses a score is read through. */
+export type AttributeGroup = 'implementation' | 'style' | 'frontier';
 
 export interface AttributeMeaning {
   /** Display label ("Implementation Index"). */
@@ -117,6 +125,16 @@ export const ATTRIBUTES: Record<AttributeKey, AttributeMeaning> = {
     highMember: 'Broadest',
     lowMember: 'Narrowest',
   },
+  frontierRisk: {
+    label: 'Frontier Risk Governance',
+    group: 'frontier',
+    question: 'How close is governance of catastrophic frontier-AI risk to the standard stated in the methodology?',
+    low: 'Nothing observable',
+    high: 'Meets the stated standard',
+    notClaim: 'Measured against a stated standard; not a measure of how safe a country is.',
+    highMember: 'Closest to the standard',
+    lowMember: 'Furthest from the standard',
+  },
 };
 
 export interface GroupMeaning {
@@ -142,6 +160,12 @@ export const GROUPS: Record<AttributeGroup, GroupMeaning> = {
     caption: 'how, not how well',
     phrase: 'how, not how well',
     plural: 'governance style dimensions',
+  },
+  frontier: {
+    label: 'Frontier risk governance',
+    caption: 'distance to a stated standard, not how safe a country is',
+    phrase: 'against a stated standard',
+    plural: 'frontier risk governance',
   },
 };
 
@@ -177,6 +201,143 @@ export const IMPLEMENTATION_LEVELS: Record<1 | 2 | 3 | 4 | 5, string> = {
   4: 'In place, one element incomplete, deferred or not yet exercised',
   5: 'Fully in place, applicable and exercised',
 };
+
+// ---------------------------------------------------------------------------
+// Frontier Risk Governance (PRD 15): tracks, sub-indicators and their anchors
+// in plain words. The anchors paraphrase FRONTIER_ANCHORS in
+// scripts/regulation_pipeline/prompt.py (national level only; a voluntary
+// access agreement can support a 4 on evaluation_oversight). A
+// frontier-specific text is the Bletchley Declaration, a Seoul text or the
+// 2026 Call for Control of Frontier AI Models.
+
+/** Where the methodology states the standard, the tracks and the cap. */
+export const FRONTIER_METHODOLOGY_PATH = '/methodology.html#frontier-risk-governance';
+
+/** The track a country is scored on: frontier host, compute or chokepoint, global. */
+export type FrontierTrack = 'H' | 'C' | 'G';
+
+export const FRONTIER_TRACKS: Record<FrontierTrack, { label: string; description: string }> = {
+  H: {
+    label: 'Frontier host',
+    description: 'A developer of a frontier-scale model is based here, so all four sub-indicators apply.',
+  },
+  C: {
+    label: 'Compute or chokepoint',
+    description: 'Frontier-scale compute or a node of the advanced-chip supply chain is here, but no frontier developer; developer obligations do not apply.',
+  },
+  G: {
+    label: 'Global',
+    description: 'No frontier developer or frontier-scale compute is based here; incident preparedness and international coordination apply.',
+  },
+};
+
+/** A track code from a file or the database ('H', ' c ', …), or null. */
+export function parseFrontierTrack(raw: unknown): FrontierTrack | null {
+  if (typeof raw !== 'string') return null;
+  const t = raw.trim().toUpperCase();
+  return t === 'H' || t === 'C' || t === 'G' ? t : null;
+}
+
+/** The four sub-indicators, in rubric order. */
+export const FRONTIER_SUBINDICATOR_KEYS = [
+  'developer_obligations',
+  'evaluation_oversight',
+  'incident_emergency_preparedness',
+  'international_coordination',
+] as const;
+
+export type FrontierSubindicator = typeof FRONTIER_SUBINDICATOR_KEYS[number];
+
+export interface FrontierSubindicatorMeaning {
+  label: string;
+  /** The tracks it applies to; on the others it is "Not applicable". */
+  tracks: readonly FrontierTrack[];
+  /** What each level means. */
+  levels: Record<1 | 2 | 3 | 4 | 5, string>;
+}
+
+export const FRONTIER_SUBINDICATORS: Record<FrontierSubindicator, FrontierSubindicatorMeaning> = {
+  developer_obligations: {
+    label: 'Developer obligations',
+    tracks: ['H'],
+    levels: {
+      1: 'No binding rule, voluntary framework or company commitment touches frontier developers',
+      2: 'Voluntary frameworks, a promotion law without duties, or company commitments only',
+      3: 'A binding legal hook or mandatory standards touching frontier-model risk, without the full set of duties',
+      4: 'A statute with the full set of duties, enacted but not yet applicable, its enforcement deferred or its model-access powers not yet used',
+      5: 'That statute in force, with an adjustable or capability-based threshold and a regulator that has used its model-access powers',
+    },
+  },
+  evaluation_oversight: {
+    label: 'Evaluation and oversight',
+    tracks: ['H', 'C'],
+    levels: {
+      1: 'No state body evaluates frontier AI models',
+      2: 'An evaluation body announced or recommended, or one without dedicated staff or budget',
+      3: 'A body with an evaluation mandate that has tested some frontier models, with limited access or public record',
+      4: 'A funded, staffed body with standing pre-deployment access (voluntary agreements count) to most of the developers it oversees and a public record, or a legal access mandate not yet used',
+      5: 'Legally mandated access for state or accredited evaluators before deployment, with evaluations run and reported',
+    },
+  },
+  incident_emergency_preparedness: {
+    label: 'Incident and emergency preparedness',
+    tracks: ['H', 'C', 'G'],
+    levels: {
+      1: 'No AI incident reporting, whistleblower protection or emergency planning exists or is planned',
+      2: 'Planned or recommended only',
+      3: 'One of incident reporting, whistleblower protection and an emergency plan in force, or several enacted but not yet applicable',
+      4: 'Two of the three in force',
+      5: 'All three in force, with incident reports due within 72 hours and legal power to halt a deployment',
+    },
+  },
+  international_coordination: {
+    label: 'International coordination',
+    tracks: ['H', 'C', 'G'],
+    levels: {
+      1: 'No AI summit text, network membership or frontier-safety dialogue',
+      2: 'Only broad AI declarations (Paris 2025, New Delhi 2026)',
+      3: 'A signatory of a frontier-specific text, a measurement-network member without one, or a standing bilateral frontier-safety dialogue',
+      4: 'A measurement-network member that signed a frontier-specific text',
+      5: 'A network member that signed the Bletchley and Seoul texts and leads joint evaluation or verification work',
+    },
+  },
+};
+
+/** A frontier sub-indicator that does not apply to the country's track. */
+export const NOT_APPLICABLE_LABEL = 'Not applicable';
+
+/** The sub-indicator score the pipeline writes for "does not apply". */
+export type NotApplicable = 'na';
+
+export function isNotApplicable(value: unknown): value is NotApplicable {
+  return value === 'na';
+}
+
+/** How the lens aggregates, in one line (legend, live region). */
+export const FRONTIER_AGGREGATION_NOTE = 'Scored by track; capped at the weakest element.';
+
+/** The same rule in full (panel, pages, exports). */
+export const FRONTIER_CAP_SENTENCE =
+  'The score is the mean of the sub-indicators that apply to the track, capped at one point above the weakest of them.';
+
+/** developer_obligations rests on EU law (the AI Act's general-purpose AI
+ *  regime), not a national one: the `eu_level` flag. */
+export const EU_LEVEL_LABEL = 'EU-level';
+export const EU_LEVEL_NOTE = 'Rests on the EU AI Act, not a national law.';
+
+/** international_coordination is computed, never researched by the model. */
+export const COMPUTED_NOTE = 'Computed from public lists of summit signatories and network members.';
+
+/**
+ * True when at least one country has been scored on the frontier lens
+ * (has a track). The selector, the scatter axes and the explainer offer
+ * the lens only then: the data ships after the first run on it.
+ */
+export function hasFrontierTrack(
+  rows: Readonly<Record<string, { readonly frontierTrack?: string | null } | undefined>>
+): boolean {
+  return Object.values(rows).some(row => row?.frontierTrack != null);
+}
 
 /**
  * What owns the main area. Exactly one of these is active at a time - the map,

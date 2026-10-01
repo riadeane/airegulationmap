@@ -28,7 +28,8 @@ from .consistency import eu_members, eu_outliers
 from .consistency import log_lines as eu_log_lines
 from .consistency import markdown_summary as eu_markdown_summary
 from .digest import write_run_digest
-from .gold import check_run, markdown_summary
+from .frontier import FrontierContext, FrontierDataError
+from .gold import check_run, frontier_markdown, markdown_summary
 from .links import LinkChecker
 from .names import CountryNames
 from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION, RUBRIC_VERSION
@@ -195,8 +196,14 @@ def _run(
             )
             raise typer.Exit(code=1)
 
+    try:
+        frontier = FrontierContext.load(settings)
+    except FrontierDataError as exc:
+        logger.error("frontier reference data is malformed: %s. Nothing was researched.", exc)
+        raise typer.Exit(code=1) from exc
+
     research_client = ResearchClient(
-        client, model=model, today=today, evidence_provider=evidence_provider,
+        client, model=model, today=today, evidence_provider=evidence_provider, frontier=frontier,
     )
 
     def use_search_for(country: str) -> bool:
@@ -283,6 +290,7 @@ def _run(
         calibration_break=calibration_break,
         run_id=supabase_mirror.run_id if supabase_mirror is not None else None,
         link_checker=LinkChecker() if link_check and not dry_run else None,
+        frontier=frontier,
     )
     write_digest = digest if digest is not None else _is_scheduled()
     replace_digest = _is_scheduled() or bool(open_batch and open_batch.options.get("scheduled"))
@@ -336,9 +344,14 @@ def _run(
     if open_batch is not None:
         handoff.clear(state_path)
     logger.info(result.gate.summary_line())
-    for line in gate.review_lines(result.gate):
+    if any(result.frontier_gate.counts.values()):
+        logger.info("Frontier %s", result.frontier_gate.summary_line())
+    for line in gate.review_lines(result.gate) + gate.review_lines(result.frontier_gate):
         logger.warning(line)
-    _write_step_summary(gate.markdown_summary(result.gate, result.calibration_break))
+    _write_step_summary(
+        gate.markdown_summary(result.gate, result.calibration_break)
+        + gate.frontier_markdown_summary(result.frontier_gate)
+    )
     _gold_check(result, settings, model, prompt_version, today, supabase_mirror, record=full_run)
     _eu_check(settings)
     if write_digest and result.fatal:
@@ -399,6 +412,8 @@ def _gold_check(
         return
     if check is not None:
         _write_step_summary(markdown_summary(check.metrics, check.gold))
+        if check.frontier is not None:
+            _write_step_summary(frontier_markdown(check.frontier))
 
 
 def _eu_check(settings: Settings) -> None:

@@ -142,11 +142,14 @@ def test_emit_sql_is_idempotent_and_escapes(settings, tmp_path):
     assert "on conflict (url) do update" in joined
     assert "on conflict (id) do nothing" in joined
     # Evidence columns: inserted and refreshed on conflict; SQL booleans.
-    assert "scored_at, grounded, initiatives_used, web_search)" in joined
+    assert "scored_at, grounded, initiatives_used, web_search, frontier_risk" in joined
     assert "grounded = excluded.grounded, initiatives_used = excluded.initiatives_used, " in joined
     assert "web_search = excluded.web_search" in joined
-    assert "'2026-06-13', true, 7, true\nfrom countries where name = 'Testland'" in joined
-    assert "null, null, null\nfrom countries where name = 'Nulland'" in joined
+    # Frontier Risk Governance columns (PRD 15) follow; null before the lens.
+    assert "'2026-06-13', true, 7, true, null, null, null\nfrom countries where name = 'Testland'" in joined
+    assert "null, null, null, null, null, null\nfrom countries where name = 'Nulland'" in joined
+    assert "frontier_subscores = excluded.frontier_subscores" in joined
+    assert "frontier_sources_raw = excluded.frontier_sources_raw" in joined
     # Quote escaping (prose contains 'quotes').
     assert "with ''quotes'' inside" in joined
     # FK resolution never uses client-side UUIDs for countries.
@@ -172,7 +175,7 @@ def test_chunking_respects_size(settings, tmp_path):
     for p in paths:
         # A single oversized statement may exceed the cap, but our fixture
         # statements are small; each chunk stays near the limit.
-        assert len(p.read_text(encoding="utf-8")) < 1200
+        assert len(p.read_text(encoding="utf-8")) < 1600
 
 
 class _FakeSeedClient:

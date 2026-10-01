@@ -162,16 +162,28 @@ class LinkChecker:
     def filter_result(self, result: ResearchResult) -> tuple[ResearchResult, list[LinkStatus]]:
         """``result`` without its dead URLs, with the live pages' titles
         attached (``ResearchResult.source_titles``), and the dropped
-        statuses. A result that loses a URL is re-validated, so one left
-        with no source is capped at low confidence."""
+        statuses. A result that loses a URL is re-validated (as its own
+        class, so a Frontier Risk Governance block survives), so one left
+        with no source is capped at low confidence. The frontier block's
+        own sources (PRD 15) are checked the same way."""
         urls = [source.url for source in classify_sources(result.sources)]
-        statuses = self.check(urls)
-        dead = [statuses[url] for url in urls if statuses[url].state == DEAD]
+        answer = result.frontier_answer()
+        frontier_urls = (
+            [source.url for source in classify_sources(answer.sources)] if answer is not None else []
+        )
+        every = list(dict.fromkeys(urls + frontier_urls))
+        statuses = self.check(every)
+        dead = [statuses[url] for url in every if statuses[url].state == DEAD]
         titles = {url: s.title for url, s in statuses.items() if s.state == OK and s.title}
         if dead:
             dead_urls = {s.url for s in dead}
-            kept = " | ".join(url for url in urls if url not in dead_urls)
-            filtered = ResearchResult.model_validate({**result.model_dump(), "sources": kept})
+            data = result.model_dump()
+            data["sources"] = " | ".join(url for url in urls if url not in dead_urls)
+            if answer is not None:
+                data["frontier_risk"]["sources"] = " | ".join(
+                    url for url in frontier_urls if url not in dead_urls
+                )
+            filtered = type(result).model_validate(data)
             filtered.with_provenance(result.provenance)
             result = filtered
         return result.with_source_titles(titles), dead

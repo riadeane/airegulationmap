@@ -19,6 +19,17 @@ A dimension or composite score can be ``None`` (insufficient evidence,
 rubric v3.1): ``scores.csv`` then holds an empty cell (the csv module writes
 ``None`` as ``""``), the history snapshot holds ``null``, and the
 subscores.json sub-indicator is ``{"score": null, "rationale": ...}``.
+
+Frontier Risk Governance (PRD 15) travels in the same five stores but lands
+on its own (:meth:`Dataset.apply_frontier`), so the stability gate can decide
+it apart from the five dimensions: ``scores.csv`` gains ``Frontier Risk`` and
+``Frontier Track`` (both empty until the country is first scored on the
+lens), ``regulation_data.csv`` gains its text and ``Frontier Sources``, each
+subscores.json entry a ``frontier`` block (metadata beside the dimension
+blocks, like ``evidence``), history snapshots ``frontierRisk`` and
+``frontierTrack``, and ``pending.json`` a ``frontier_pending`` list for held
+frontier candidates. A main apply carries the frontier columns and snapshot
+keys over unchanged, and a frontier apply leaves the five dimensions alone.
 """
 
 from __future__ import annotations
@@ -34,7 +45,17 @@ from pathlib import Path
 
 from . import history as history_mod
 from .config import REGULATION_FIELDS, SCORES_FIELDS, Settings
-from .models import METHODOLOGY_VERSION, ResearchResult
+from .models import (
+    FRONTIER_COLUMN,
+    FRONTIER_HISTORY_KEY,
+    FRONTIER_SOURCES_COLUMN,
+    FRONTIER_TRACK_COLUMN,
+    FRONTIER_TRACK_HISTORY_KEY,
+    METHODOLOGY_VERSION,
+    TRACKS,
+    FrontierRecord,
+    ResearchResult,
+)
 from .names import CountryNames
 
 logger = logging.getLogger(__name__)
@@ -47,6 +68,17 @@ _SCORE_COLUMNS = (
 # Key of the per-country research record inside a subscores.json entry:
 # ``{grounded, initiatives_used, search, model, run_id}``.
 EVIDENCE_KEY = "evidence"
+# Key of the Frontier Risk Governance block inside a subscores.json entry
+# (``FrontierRecord.entry``): metadata beside the dimension blocks.
+FRONTIER_KEY = "frontier"
+# Entry keys that are not one of the five dimension blocks.
+_NON_DIMENSION_KEYS = frozenset({EVIDENCE_KEY, FRONTIER_KEY})
+
+# scores.csv / regulation_data.csv columns of the lens, which a main apply
+# carries over from the stored row.
+_FRONTIER_SCORE_FIELDS = (FRONTIER_COLUMN, FRONTIER_TRACK_COLUMN)
+_FRONTIER_TEXT_FIELDS = (FRONTIER_COLUMN, FRONTIER_SOURCES_COLUMN)
+_FRONTIER_SNAPSHOT_KEYS = (FRONTIER_HISTORY_KEY, FRONTIER_TRACK_HISTORY_KEY)
 
 
 @dataclass(frozen=True)
@@ -84,8 +116,8 @@ class Dataset:
     def load(cls, settings: Settings, names: CountryNames) -> Dataset:
         return cls(
             settings,
-            scores=_load_csv(settings.scores_csv, names),
-            regulation=_load_csv(settings.regulation_csv, names),
+            scores=_load_csv(settings.scores_csv, names, SCORES_FIELDS),
+            regulation=_load_csv(settings.regulation_csv, names, REGULATION_FIELDS),
             history=_load_json(settings.history_json, {"schema_version": 1, "countries": {}}),
             subscores=_load_json(settings.subscores_json, {"schema_version": 1, "countries": {}}),
             pending=_load_json(settings.pending_json, _empty_pending()),
@@ -130,6 +162,28 @@ class Dataset:
         seen = self._pending.setdefault("seen_sources", {})
         seen[country] = sorted(set(seen.get(country, ())) | set(urls))
         self._pending["seen_sources"] = dict(sorted(seen.items()))
+
+    def frontier_pending_for(self, country: str) -> dict | None:
+        """The gate's stored frontier candidate for ``country``:
+        ``{"candidate": float | None, "track": "H", "first_seen": "YYYY-MM-DD"}``
+        or ``None``."""
+        for entry in self._pending.get("frontier_pending", []):
+            if entry.get("country") == country:
+                return {k: v for k, v in entry.items() if k != "country"}
+        return None
+
+    def set_frontier_pending(self, country: str, entry: dict | None) -> None:
+        """Store (or with ``None`` clear) the gate's frontier candidate. The
+        list exists only once something was held, so a dataset that never
+        held a frontier score keeps ``pending.json`` byte-identical."""
+        stored = self._pending.get("frontier_pending")
+        if stored is None and entry is None:
+            return
+        kept = [e for e in (stored or []) if e.get("country") != country]
+        if entry is not None:
+            kept.append({"country": country, **entry})
+        kept.sort(key=lambda e: e["country"])
+        self._pending["frontier_pending"] = kept
 
     def pending_for(self, country: str) -> dict | None:
         """The gate's stored candidate for ``country``:
@@ -201,7 +255,9 @@ class Dataset:
                 country, prior.get("Confidence"), prior.get("Sources"), prior.get("Last Updated"),
             )
 
-        self._regulation[country] = _regulation_row(country, result, today)
+        self._regulation[country] = {
+            **_regulation_row(country, result, today), **_frontier_fields(prior, _FRONTIER_TEXT_FIELDS),
+        }
 
         if not apply_scores:
             held = dict(existing_scores)
@@ -217,20 +273,59 @@ class Dataset:
                 scores_applied=False,
             )
 
-        self._scores[country] = _scores_row(country, result, version + 1, today)
+        self._scores[country] = {
+            **_scores_row(country, result, version + 1, today),
+            **_frontier_fields(existing_scores, _FRONTIER_SCORE_FIELDS),
+        }
+        # The frontier block lands on its own (apply_frontier); keep it.
+        stored_frontier = self._subscores["countries"].get(country, {}).get(FRONTIER_KEY)
         self._subscores["countries"][country] = _subscores_entry(result, today)
+        if stored_frontier is not None:
+            self._subscores["countries"][country][FRONTIER_KEY] = stored_frontier
         # The tag describes the newest entries; older entries keep the v2
         # integer shape until their next research pass. Readers must accept
         # both (see ``split_subscores_entry``).
         self._subscores["methodology"] = METHODOLOGY_VERSION
 
         snapshot = _history_snapshot(result, today)
+        # The lens moves on its own; a main snapshot repeats its last state.
+        latest = (self._history.get("countries", {}).get(country) or [{}])[-1]
+        snapshot.update({k: latest[k] for k in _FRONTIER_SNAPSHOT_KEYS if k in latest})
         added = history_mod.append_snapshot(self._history, country, snapshot)
 
         return ApplyOutcome(
             average=result.average_score(),
             confidence=result.effective_confidence(),
             history_added=added,
+        )
+
+    def apply_frontier(
+        self, country: str, record: FrontierRecord, today: date, *, apply_score: bool = True,
+    ) -> bool:
+        """Fold one assembled Frontier Risk Governance record into the
+        stores, after :meth:`apply` wrote the country's main rows.
+
+        The text and sources always land in regulation_data.csv. With
+        ``apply_score`` (the gate let it through) the score and track land in
+        scores.csv, the block in subscores.json, and the history records the
+        change: today's snapshot is amended when the main apply wrote one,
+        else a copy of the latest snapshot with the new frontier values is
+        appended. Returns ``True`` when history changed. A country must have
+        main rows first (``apply`` creates them)."""
+        reg = self._regulation[country]
+        reg[FRONTIER_COLUMN] = record.text
+        reg[FRONTIER_SOURCES_COLUMN] = record.sources
+        if not apply_score:
+            return False
+        row = self._scores[country]
+        row[FRONTIER_COLUMN] = record.score
+        row[FRONTIER_TRACK_COLUMN] = record.track
+        self._subscores.setdefault("countries", {}).setdefault(country, {})[FRONTIER_KEY] = (
+            record.entry(today)
+        )
+        return history_mod.set_frontier(
+            self._history, country, today.isoformat(),
+            {FRONTIER_HISTORY_KEY: record.score, FRONTIER_TRACK_HISTORY_KEY: record.track},
         )
 
     def _record_held_confidence(self, country: str, confidence: str, today: date) -> bool:
@@ -258,7 +353,7 @@ class Dataset:
                 missing = set(SCORES_FIELDS) - set(row)
                 extra = set(row) - set(SCORES_FIELDS)
                 errors.append(f"{country}: scores columns off (missing={missing}, extra={extra})")
-            for field in _SCORE_COLUMNS:
+            for field in (*_SCORE_COLUMNS, FRONTIER_COLUMN):
                 value = row.get(field, "")
                 if value in ("", "NA", None):
                     continue
@@ -269,6 +364,11 @@ class Dataset:
                     continue
                 if not 1 <= score <= 5:
                     errors.append(f"{country}: {field} score {score} out of range [1,5]")
+            track = row.get(FRONTIER_TRACK_COLUMN) or ""
+            if track not in ("", *TRACKS):
+                errors.append(f"{country}: {FRONTIER_TRACK_COLUMN} {track!r} is not one of {TRACKS}")
+            elif not track and row.get(FRONTIER_COLUMN) not in ("", None):
+                errors.append(f"{country}: {FRONTIER_COLUMN} is set without a {FRONTIER_TRACK_COLUMN}")
         return errors
 
     # -- persistence -----------------------------------------------------------
@@ -324,10 +424,31 @@ class Dataset:
                         f"latest history snapshot ({latest.get('date')}: {recorded})"
                     )
                     break
+            else:
+                # The lens: a snapshot without the keys is "never scored",
+                # which scores.csv writes as an empty track.
+                stored = _as_score(row.get(FRONTIER_COLUMN))
+                recorded = latest.get(FRONTIER_HISTORY_KEY)
+                recorded = None if recorded is None else round(float(recorded), 2)
+                track = row.get(FRONTIER_TRACK_COLUMN) or None
+                if (
+                    (None if stored is None else round(stored, 2)) != recorded
+                    or track != latest.get(FRONTIER_TRACK_HISTORY_KEY)
+                ):
+                    errors.append(
+                        f"{country}: scores.csv frontier {stored} ({track}) differs from its "
+                        f"latest history snapshot ({latest.get('date')}: {recorded}, "
+                        f"{latest.get(FRONTIER_TRACK_HISTORY_KEY)})"
+                    )
         return errors
 
 
 # -- projections (research result -> persistence rows) -------------------------
+
+
+def _frontier_fields(row: dict | None, fields: tuple[str, ...]) -> dict:
+    """The lens's columns from a stored row, empty when there is none."""
+    return {field: (row or {}).get(field, "") for field in fields}
 
 
 def _scores_row(country: str, result: ResearchResult, version: int, today: date) -> dict:
@@ -381,11 +502,12 @@ def split_subscores_entry(entry: dict) -> tuple[dict, dict | None]:
     v2 (``"binding_force": 4``) and v2.1 (``"binding_force": {"score": 4,
     "rationale": "..."}``, where ``score`` may be ``null`` for insufficient
     evidence and stays ``None`` here). Returns ``None`` rationales for a v2 entry. The
-    ``evidence`` block is not a dimension and appears in neither."""
+    ``evidence`` and ``frontier`` blocks are not dimensions and appear in
+    neither."""
     scores: dict = {}
     rationales: dict = {}
     for key, block in entry.items():
-        if key == EVIDENCE_KEY:
+        if key in _NON_DIMENSION_KEYS:
             continue
         if not isinstance(block, dict):
             scores[key] = block  # "date" and any future scalar metadata
@@ -432,7 +554,10 @@ def _as_score(value) -> float | None:
 # -- low-level IO --------------------------------------------------------------
 
 
-def _load_csv(path: Path, names: CountryNames) -> dict[str, dict]:
+def _load_csv(path: Path, names: CountryNames, fields: list[str] | None = None) -> dict[str, dict]:
+    """Rows keyed by canonical name. With ``fields`` a column the file lacks
+    (one added to the contract since it was written) loads as an empty
+    cell, so every row carries the full contract."""
     rows: dict[str, dict] = {}
     if not path.exists():
         return rows
@@ -450,6 +575,8 @@ def _load_csv(path: Path, names: CountryNames) -> dict[str, dict]:
                     row["Data Version"] = int(row["Data Version"])
                 except (TypeError, ValueError):
                     row["Data Version"] = 1
+            for field in fields or ():
+                row.setdefault(field, "")
             rows[canonical] = row
     return rows
 

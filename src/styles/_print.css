@@ -5,8 +5,10 @@
    markup is the brief: this sheet hides the app chrome, restyles the
    panel as one serif column, and reorders it with flex `order` so the
    record line, confidence, citation and permanent link close the page.
-   Order: title, ISO codes, scores, sub-indicators, the five text
-   sections, key legislation, sources with full URLs, then the record. */
+   Order: title, ISO codes, scores, sub-indicators, the frontier risk
+   governance block (when the country has one: score, track, its four
+   sub-indicators, text and sources), the five text sections, key
+   legislation, sources with full URLs, then the record. */
 
 @media print {
   /* Running header and footer through page-margin boxes, where the
@@ -387,7 +389,8 @@
     color: var(--print-ink);
   }
 
-  body.print-brief .subscore-panel .subscore-rationale {
+  body.print-brief .subscore-panel .subscore-rationale,
+  body.print-brief .frontier-subscores .subscore-rationale {
     max-width: none;
     margin: 0 0 2pt;
     font-size: 9pt;
@@ -396,14 +399,16 @@
   }
 
   /* Sources: one per line, full URL after the title. */
-  body.print-brief #sources-list {
+  body.print-brief #sources-list,
+  body.print-brief #frontier-sources-list {
     display: block;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  body.print-brief #sources-list li {
+  body.print-brief #sources-list li,
+  body.print-brief #frontier-sources-list li {
     display: block;
     margin: 0 0 2pt;
     font-size: 9pt;
@@ -412,7 +417,8 @@
     break-inside: avoid;
   }
 
-  body.print-brief #sources-list li a {
+  body.print-brief #sources-list li a,
+  body.print-brief #frontier-sources-list li a {
     display: inline;
     padding: 0;
     background: none;
@@ -421,7 +427,8 @@
     text-decoration: none;
   }
 
-  body.print-brief #sources-list li a::after {
+  body.print-brief #sources-list li a::after,
+  body.print-brief #frontier-sources-list li a::after {
     content: ' ' attr(href);
     font-family: 'Geist Mono', ui-monospace, monospace;
     font-size: 7.5pt;

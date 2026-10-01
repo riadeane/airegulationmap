@@ -624,14 +624,16 @@
 }
 
 /* Sources */
-#sources-list {
+#sources-list,
+#frontier-sources-list {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-#sources-list li a {
+#sources-list li a,
+#frontier-sources-list li a {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 3px;
@@ -644,7 +646,8 @@
   letter-spacing: 0.01em;
 }
 
-#sources-list li a:hover {
+#sources-list li a:hover,
+#frontier-sources-list li a:hover {
   background: var(--accent);
   color: var(--bg);
 }
@@ -873,7 +876,8 @@
    text, not a caption: it is a claim to read and check, so it keeps
    sentence case, a reading line-height, and a bounded measure. The
    ancestor selector outranks `.panel-section p`. */
-.subscore-panel .subscore-rationale {
+.subscore-panel .subscore-rationale,
+.frontier-subscores .subscore-rationale {
   margin: 1px 0 5px;
   font-size: 0.74rem;
   line-height: 1.45;
@@ -905,7 +909,8 @@
 /* What the sub-indicator's level means (PRD 16): the v3 ladder for the
    implementation dimensions, the descriptive anchors for governance style.
    Quiet mono number, plain-words meaning. */
-.subscore-panel .subscore-meaning {
+.subscore-panel .subscore-meaning,
+.frontier-subscores .subscore-meaning {
   margin: 1px 0 2px;
   font-size: 0.7rem;
   line-height: 1.4;
@@ -922,12 +927,49 @@
   text-align: right;
 }
 
-/* An insufficient-evidence sub-indicator: words, not a number, in the
-   body face and the muted tone. */
-.subscore-value.subscore-insufficient {
+/* An insufficient-evidence sub-indicator, or a frontier one that does not
+   apply on the country's track: words, not a number, in the body face and
+   the muted tone. */
+.subscore-value.subscore-insufficient,
+.subscore-value.subscore-na {
   font-family: inherit;
   color: var(--text-tertiary);
   margin-left: auto;
+}
+
+/* Frontier risk governance (PRD 15): the lens's block after governance
+   style. The same parts as the other blocks, read in order: the score row,
+   the track in words, the four sub-indicators (open, not behind a caret:
+   they are the score's whole explanation), the text and its sources. */
+.frontier-track {
+  margin: 8px 0 0;
+}
+
+.panel-section p.frontier-track {
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.frontier-track-label {
+  color: var(--text-primary);
+}
+
+.frontier-subscores {
+  margin: 10px 0 0;
+}
+
+.panel-section p.frontier-details {
+  margin-top: 12px;
+}
+
+.frontier-sources {
+  margin-top: 12px;
+}
+
+/* EU-level: the official tag's look, beside the sub-indicator's name. */
+.subscore-flag {
+  margin-left: 4px;
+  vertical-align: 1px;
 }
 
 /* Sources: official tag + copy-all */
@@ -957,7 +999,8 @@
   border-color: var(--accent);
 }
 
-#sources-list li {
+#sources-list li,
+#frontier-sources-list li {
   display: inline-flex;
   align-items: center;
   gap: 5px;

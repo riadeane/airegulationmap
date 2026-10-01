@@ -40,7 +40,7 @@ from typing import Protocol
 import httpx
 
 from ..models import ResearchResult
-from ..repository import EVIDENCE_KEY, split_subscores_entry
+from ..repository import EVIDENCE_KEY, FRONTIER_KEY, split_subscores_entry
 from ..sources import classify_sources
 from .client import SupabaseClient, SupabaseError
 
@@ -223,15 +223,19 @@ class SupabaseMirror:
         try:
             self._client.insert("gold_checks", [full])
         except SupabaseError:
-            # Migration 0013 adds the gold-set columns; before it is applied
-            # the insert fails on them, so the check still lands without.
-            legacy = {k: v for k, v in full.items() if k not in _GOLD_SET_COLUMNS}
+            # Migrations 0013 (gold-set columns) and 0014 (frontier) add
+            # columns; before they are applied the insert fails on them, so
+            # the check still lands without.
+            legacy = {
+                k: v for k, v in full.items() if k not in (*_GOLD_SET_COLUMNS, "frontier")
+            }
             if legacy == full:
                 raise
             logger.warning(
-                "mirror: gold_checks has no %s columns (is migration "
-                "0013_gold_checks_gold_set.sql applied?) - row written without them",
-                "/".join(_GOLD_SET_COLUMNS),
+                "mirror: gold_checks has no %s columns (are migrations "
+                "0013_gold_checks_gold_set.sql and 0014_frontier_risk_governance.sql "
+                "applied?) - row written without them",
+                "/".join((*_GOLD_SET_COLUMNS, "frontier")),
             )
             self._client.insert("gold_checks", [legacy])
 
@@ -245,8 +249,8 @@ class SupabaseMirror:
             cid = country_ids[e.country]
             scores_rows.append(_score_row(cid, e, self._run_id))
             summary_rows.append(_summary_row(cid, e, self._run_id))
-        self._client.upsert("country_scores", scores_rows, on_conflict="country_id")
-        self._client.upsert("country_summaries", summary_rows, on_conflict="country_id")
+        self._upsert_with_fallback("country_scores", scores_rows, _FRONTIER_SCORE_COLUMNS)
+        self._upsert_with_fallback("country_summaries", summary_rows, _FRONTIER_SUMMARY_COLUMNS)
 
         # History: sync each country to the file's snapshots, keeping the run
         # id of every snapshot that already existed. Upsert first, prune
@@ -267,6 +271,23 @@ class SupabaseMirror:
                 })
 
         self._sync_sources(country_ids)
+
+    def _upsert_with_fallback(self, table: str, rows: list[dict], newer: tuple[str, ...]) -> None:
+        """Upsert ``rows``; when the database lacks the ``newer`` columns
+        (migration 0014, Frontier Risk Governance, not yet applied) the
+        rows land without them, so the five dimensions still mirror."""
+        try:
+            self._client.upsert(table, rows, on_conflict="country_id")
+        except SupabaseError:
+            legacy = [{k: v for k, v in row.items() if k not in newer} for row in rows]
+            if legacy == rows:
+                raise
+            logger.warning(
+                "mirror: %s has no %s columns (is migration "
+                "0014_frontier_risk_governance.sql applied?) - rows written without them",
+                table, "/".join(newer),
+            )
+            self._client.upsert(table, legacy, on_conflict="country_id")
 
     def _prior_history(self, country_id: str) -> list[dict]:
         """The country's existing ``score_history`` rows
@@ -379,6 +400,34 @@ def _score_row(country_id: str, e: _Entry, run_id: str) -> dict:
         "scored_at": e.subscores.get("date") or e.today.isoformat(),
         "updated_at": _now(),
         **evidence_columns(e.subscores),
+        **frontier_columns(row, e.subscores),
+    }
+
+
+# country_scores / country_summaries columns added by migration 0014 (PRD 15).
+_FRONTIER_SCORE_COLUMNS = ("frontier_risk", "frontier_track", "frontier_subscores")
+_FRONTIER_SUMMARY_COLUMNS = ("frontier_risk_text", "frontier_sources_raw")
+
+
+def frontier_columns(scores_row: dict, entry: dict | None) -> dict:
+    """The lens's ``country_scores`` columns from the scores.csv row and the
+    subscores.json entry's ``frontier`` block: all ``None`` for a country
+    not yet scored on the lens. Shared with the seed."""
+    block = (entry or {}).get(FRONTIER_KEY)
+    return {
+        "frontier_risk": _num(scores_row.get("Frontier Risk")),
+        "frontier_track": scores_row.get("Frontier Track") or None,
+        "frontier_subscores": dict(block) if isinstance(block, dict) else None,
+    }
+
+
+def frontier_summary_columns(regulation_row: dict | None) -> dict:
+    """The lens's ``country_summaries`` columns from a regulation_data.csv
+    row (``None`` when empty). Shared with the seed."""
+    row = regulation_row or {}
+    return {
+        "frontier_risk_text": row.get("Frontier Risk") or None,
+        "frontier_sources_raw": row.get("Frontier Sources") or None,
     }
 
 
@@ -421,6 +470,19 @@ def _summary_row(country_id: str, e: _Entry, run_id: str) -> dict:
         "run_id": run_id,
         "summarized_at": e.today.isoformat(),
         "updated_at": _now(),
+        **_frontier_text_columns(e.result),
+    }
+
+
+def _frontier_text_columns(result: ResearchResult) -> dict:
+    """The lens's text and sources from the (link-checked) result, which
+    is what regulation_data.csv now holds; ``None`` without a block."""
+    answer = result.frontier_answer()
+    if answer is None:
+        return {"frontier_risk_text": None, "frontier_sources_raw": None}
+    return {
+        "frontier_risk_text": answer.text.strip() or None,
+        "frontier_sources_raw": answer.cleaned_sources().strip() or None,
     }
 
 

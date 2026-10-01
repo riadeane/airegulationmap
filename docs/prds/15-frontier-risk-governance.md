@@ -1,10 +1,12 @@
 # PRD 15: Frontier risk governance dimension
 
-Status: Proposed (September 2026, tracking #154, implementation #157).
-Owner: unassigned. Depends on: decisions #158 (US layer), #159 (track lists),
-#160 (voluntary regimes) and #161 (value statement); #162 (the insufficient
-evidence state) and #163 (signed drift bias); PRD 16 for presentation; #106
-(a verified gold set) before launch.
+Status: Implemented, not launched (October 2026, tracking #154,
+implementation #157). Merging the implementation is the launch (no switch),
+so it waits on two things: the funding and authorship disclosure and the
+value statement's final wording (#161), and verified frontier gold entries
+(#106). Decided 2026-10-01: #158 (national level only), #159 (track lists,
+below), #160 (a voluntary regime can reach 4). Done: #162, #163. PRD 16
+phase 2 is implemented with it.
 
 Research behind this PRD:
 [`docs/research/frontier-risk-governance-scoring.md`](../research/frontier-risk-governance-scoring.md).
@@ -66,13 +68,20 @@ evidence" as a 1.
    the maintainer from data, never by the model: `{country, track, basis,
    sources, reviewed_on}`.
    - **H (frontier host):** home to a developer of a model at or above
-     10^25 FLOP (the EU presumption threshold) in Epoch AI's model database.
-     Provisional: United States, China, France, Canada, South Korea, Germany,
-     United Arab Emirates, United Kingdom. Confirm against Epoch before launch.
-   - **C (compute or chokepoint):** hosts frontier-scale clusters in Epoch's
-     GPU-cluster data, or is a node in the advanced-chip supply chain.
-     Candidates, not yet researched: Saudi Arabia, Japan, Malaysia, Singapore,
-     the Netherlands, Taiwan.
+     10^25 FLOP (the EU presumption threshold) in Epoch AI's model database:
+     Epoch's compute column, or where it is blank an Epoch point estimate in
+     the notes or its 10^25 list (not an upper bound); a subsidiary lab
+     counts at its own headquarters. Decided (#159): United States, China,
+     Saudi Arabia, United Kingdom, France. Checked against Epoch on
+     2026-10-01: the provisional Canada, South Korea, Germany and UAE have no
+     model within 2.5x of the threshold, and at 10^26 only the US qualifies.
+   - **C (compute or chokepoint):** an operational site of at least 50,000
+     H100-equivalents in Epoch's AI data centres hub (the GPU-cluster
+     dataset is deprecated), or a sole or majority supplier of an
+     accelerator step. Decided (#159): Malaysia, Indonesia, Norway, Taiwan,
+     the Netherlands, Germany, South Korea, Japan. Licensed exports to a
+     planned site do not count, so the UAE is G until Epoch shows Stargate
+     UAE operational.
    - **G (global):** every other country.
    Validated by a pytest that every name matches `scores.csv` and every
    track is one of H, C, G. Reviewed each quarter.
@@ -184,20 +193,28 @@ evidence" as a 1.
   (Vitest and e2e).
 - Lint, typecheck, Vitest, pytest and e2e pass.
 
-## Open decisions
+## Decisions
 
-1. #158: which US layer counts for `developer_obligations` and
-   `incident_emergency_preparedness`: federal, or the strongest layer
-   covering most domestic frontier developers (California). Moves the US by
-   up to two points.
-2. #159: the final H and C track lists.
-3. #160: whether a voluntary evaluation regime can reach 4 on
-   `evaluation_oversight` (the anchors above say yes; the alternative caps
-   voluntary regimes at 3).
+1. #158 (2026-10-01): **national level only**, as rubric v3.2. US state
+   statutes (California SB 53, New York's RAISE Act) are named in the text
+   and never raise a frontier score. EU law counts for EU members.
+2. #159 (2026-10-01): the track rules and lists above, in
+   `public/data/frontier_tracks.json`.
+3. #160 (2026-10-01): **a voluntary evaluation regime can reach 4** on
+   `evaluation_oversight`; its rationale says "voluntary".
 4. #161: the public name is decided, **"Frontier Risk Governance"**
-   (2026-09-28). Still open: the value statement's wording, the right of
-   reply, and the funding disclosure (deferred by the maintainer; the
-   dimension does not launch without it).
+   (2026-09-28). Still open: the value statement's wording (a draft is on
+   the methodology page), the right of reply, and the funding disclosure
+   (an HTML comment marks its place; the dimension does not launch without
+   it).
+
+Implementation choices beyond the requirements: the lens has its own
+sources and its own stability-gate decision, so frontier evidence never
+moves the five dimensions; `international_coordination` is fully computed
+(bilateral dialogues and leading roles are curated in the reference file,
+not added by the model); element (b) of incident preparedness needs
+whistleblower protection written for or extended to AI; the September 2026
+Call for Control of Frontier AI Models counts as a frontier-specific text.
 
 ## Risks
 

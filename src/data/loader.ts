@@ -2,6 +2,9 @@ import { text } from 'd3-fetch';
 import { csvParse } from 'd3-dsv';
 import type { DSVRowString } from 'd3-dsv';
 
+import { parseFrontierTrack } from '../constants';
+import type { FrontierTrack } from '../constants';
+
 /** A row of scores.csv, keyed by camelCase accessors. */
 export interface ScoreEntry {
   country: string;
@@ -13,6 +16,15 @@ export interface ScoreEntry {
   enforcementLevel: number | null;
   lastUpdated: string | null;
   dataVersion: number;
+  /**
+   * Frontier Risk Governance (PRD 15): a number, null for insufficient
+   * evidence on the country's track, or absent (undefined) when the
+   * country has never been scored on the lens ("no data" there). Never
+   * part of averageScore.
+   */
+  frontierRisk?: number | null;
+  /** The track the frontier score was made on; absent with no frontier data. */
+  frontierTrack?: FrontierTrack | null;
 }
 
 /** A row of regulation_data.csv (free-text fields). */
@@ -27,6 +39,10 @@ export interface RegulationEntry {
   sources: string | null;
   lastUpdated: string | null;
   confidence: string | null;
+  /** 1-3 sentences on how the country governs frontier AI risk (PRD 15). */
+  frontierRisk: string | null;
+  /** Pipe-separated URLs behind the frontier text, like `sources`. */
+  frontierSources: string | null;
 }
 
 export type ScoreData = Record<string, ScoreEntry>;
@@ -48,9 +64,24 @@ export function parseScore(raw: string | number | null | undefined): number | nu
   return Number.isFinite(v) && v >= SCORE_MIN && v <= SCORE_MAX ? v : null;
 }
 
+/**
+ * The frontier fields of a row (PRD 15). An empty track means the country
+ * has never been scored on the lens, so both keys stay absent ("no data"),
+ * whatever the score cell says; with a track, an empty or invalid score is
+ * null (insufficient evidence). Shared with the Supabase hydration path.
+ */
+export function parseFrontier(
+  rawScore: string | number | null | undefined,
+  rawTrack: unknown
+): Pick<ScoreEntry, 'frontierRisk' | 'frontierTrack'> {
+  const frontierTrack = parseFrontierTrack(rawTrack);
+  if (!frontierTrack) return {};
+  return { frontierRisk: parseScore(rawScore), frontierTrack };
+}
+
 /** Parse the body of scores.csv. Shared by the app loader and the static page build. */
 export function parseScoresCsv(body: string): ScoreData {
-  const rows = csvParse(body, (d: DSVRowString) => {
+  const rows = csvParse(body, (d: DSVRowString): ScoreEntry => {
     const version = Number(d['Data Version'] ?? '');
     return {
       country: d.Country ?? '',
@@ -62,6 +93,7 @@ export function parseScoresCsv(body: string): ScoreData {
       enforcementLevel: parseScore(d['Enforcement Level']),
       lastUpdated: d['Last Updated'] || null,
       dataVersion: Number.isFinite(version) && version >= 1 ? version : 1,
+      ...parseFrontier(d['Frontier Risk'], d['Frontier Track']),
     };
   });
   // Drop rows with no country key - a blank/garbled line must not create
@@ -77,7 +109,7 @@ export async function loadScores(): Promise<ScoreData> {
 
 /** Parse the body of regulation_data.csv. Shared by the app loader and the static page build. */
 export function parseRegulationCsv(body: string): RegulationData {
-  const rows = csvParse(body, (d: DSVRowString) => ({
+  const rows = csvParse(body, (d: DSVRowString): RegulationEntry => ({
     country: d.Country ?? '',
     regulationStatus: d['Regulation Status'] ?? null,
     policyLever: d['Policy Lever'] ?? null,
@@ -88,6 +120,9 @@ export function parseRegulationCsv(body: string): RegulationData {
     sources: d['Sources'] || null,
     lastUpdated: d['Last Updated'] || null,
     confidence: d['Confidence'] || null,
+    // Empty until the country is researched with the frontier lens.
+    frontierRisk: d['Frontier Risk'] || null,
+    frontierSources: d['Frontier Sources'] || null,
   }));
   return Object.fromEntries(rows.map(d => [d.country, d]));
 }

@@ -261,7 +261,7 @@
         <ol class="panel-intro-steps">
           <li><span class="panel-intro-num">01</span> Select a country to read its entry and sources.</li>
           <li><span class="panel-intro-num">02</span> Use <strong>+&nbsp;Compare</strong> to set up to four side by side.</li>
-          <li><span class="panel-intro-num">03</span> A higher score means more is in force, not better regulation.</li>
+          <li><span class="panel-intro-num">03</span> A higher implementation score means more is in force, not better regulation.</li>
         </ol>
         <p class="panel-intro-links">
           <button type="button" class="panel-intro-explain" data-explainer aria-haspopup="dialog">How to read this map &rarr;</button>
@@ -402,6 +402,29 @@
           <!-- Print brief only (shown by _print.css). -->
           <p class="print-scores-note" hidden>These scores show how much is in force and how the country governs. They are not a judgement of the quality of its regulation.</p>
         </div>
+        <!-- Frontier risk governance (PRD 15): filled by panel/frontier.ts and
+             shown only for a country scored on the lens. -->
+        <div class="panel-section panel-group" data-group="frontier" id="frontier-section" hidden>
+          <div class="panel-group-head">
+            <span class="panel-section-label" data-group-label="frontier">Frontier risk governance</span>
+            <span class="panel-group-caption" data-group-caption="frontier">distance to a stated standard, not how safe a country is</span>
+          </div>
+          <div class="dimensions-list">
+            <div class="dimension-row" data-dimension="frontierRisk">
+              <button type="button" class="dim-main">
+                <span class="dim-label">Frontier Risk Governance</span>
+                <span class="dim-dots" id="dots-frontier"></span>
+              </button>
+            </div>
+          </div>
+          <p class="frontier-track" id="frontier-track"></p>
+          <div class="frontier-subscores" id="frontier-subscores"></div>
+          <p class="frontier-details" id="frontier-details"></p>
+          <div class="frontier-sources" id="frontier-sources">
+            <div class="panel-section-label">FRONTIER SOURCES</div>
+            <ul id="frontier-sources-list" class="sources-list"></ul>
+          </div>
+        </div>
         <div class="panel-section" id="peers-section" hidden>
           <div class="panel-section-label">COMPARE WITH</div>
           <div id="peer-chips" class="peer-chips" role="group" aria-label="Peer sets to compare with"></div>
@@ -512,7 +535,7 @@
       <button id="help-overlay-close" class="help-overlay-close" type="button" aria-label="Close">&times;</button>
       <section class="help-section help-explainer" aria-labelledby="help-overlay-title">
         <h2 class="help-overlay-title" id="help-overlay-title">How to read this map</h2>
-        <p class="help-lede">Every score runs from 1 to 5 and belongs to one of two lenses.</p>
+        <p class="help-lede">Every score runs from 1 to 5 and belongs to one of <span id="help-lens-count">two</span> lenses.</p>
         <dl class="help-lenses">
           <dt><span class="help-lens-key" data-group="implementation" aria-hidden="true"></span>Implementation</dt>
           <dd>
@@ -522,6 +545,15 @@
           <dt><span class="help-lens-key" data-group="style" aria-hidden="true"></span>Governance style</dt>
           <dd>
             <p>How a country governs AI, not how well. Governance type runs from centralised (1) to distributed (5); actor involvement from narrow (1) to broad (5). Neither end is better.</p>
+          </dd>
+          <!-- Frontier risk governance (PRD 15): shown by helpOverlay.ts once
+               some country has been scored on the lens. -->
+          <dt data-frontier-lens hidden><span class="help-lens-key" data-group="frontier" aria-hidden="true"></span>Frontier risk governance</dt>
+          <dd data-frontier-lens hidden>
+            <p>How close a country&rsquo;s governance of catastrophic risk from frontier AI comes to a standard stated in the methodology: whether the state can see, test and stop a dangerous frontier model. It is not part of the implementation index.</p>
+            <p>Each country is scored on a track. A frontier host, where a developer of a frontier-scale model is based, is scored on four sub-indicators; a compute or chokepoint country, with frontier-scale compute or a node of the advanced-chip supply chain, on three; every other country, on the global track, on two. A sub-indicator outside the track reads &ldquo;Not applicable&rdquo;, never a 1.</p>
+            <p>The score is the mean of the sub-indicators that apply, capped at one point above the weakest of them, so a high mark on one element cannot cover for a missing one.</p>
+            <p>It is an audit against a stated standard, not a measure of how safe a country is. <a href="/methodology.html#frontier-risk-governance">How the frontier lens is scored</a></p>
           </dd>
         </dl>
         <p class="help-plain"><strong>A higher score is not a better score.</strong> The map shows how much is in force, not whether the rules are good, fair or effective.</p>

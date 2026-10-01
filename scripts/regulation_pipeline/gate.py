@@ -15,6 +15,13 @@ move to or from ``None`` is a score change like any other: it needs new
 evidence or has to repeat on the next run. Its direction is "to insufficient
 evidence" or "from insufficient evidence" rather than up or down, and it
 always goes on the review list, since no size can be measured.
+
+Frontier Risk Governance (PRD 15) is gated by the same rules in a decision
+of its own (:func:`decide_frontier`): its evidence is the frontier block's
+own sources, so frontier evidence never lets a five-dimension move through
+and a five-dimension source never lets a frontier move through. The first
+frontier score of a country, and a score on a new track (the maintainer's
+track file changed), always land.
 """
 
 from __future__ import annotations
@@ -24,7 +31,14 @@ from dataclasses import dataclass, field
 from datetime import date
 from urllib.parse import urlparse
 
-from .models import ResearchResult, format_score
+from .models import (
+    FRONTIER_COLUMN,
+    FRONTIER_SOURCES_COLUMN,
+    FRONTIER_TRACK_COLUMN,
+    FrontierRecord,
+    ResearchResult,
+    format_score,
+)
 from .sources import classify_sources
 
 # Provenance labels, one per country per run.
@@ -384,3 +398,109 @@ def _large_moves(
         for key, (before, after) in changes.items()
         if before is None or after is None or abs(after - before) >= LARGE_MOVE
     )
+
+
+# -- Frontier Risk Governance (PRD 15) ---------------------------------------------
+
+# The lens's key in review lines and the step summary.
+FRONTIER_DIMENSION = "frontier_risk"
+
+
+def decide_frontier(
+    existing_scores: dict | None,
+    existing_reg: dict | None,
+    record: FrontierRecord,
+    pending: dict | None,
+    today: date,
+    seen_sources: frozenset[str] = frozenset(),
+) -> Decision:
+    """The evidence rule, then the persistence rule, for the lens alone.
+
+    ``existing_scores`` / ``existing_reg`` are the country's stored rows
+    (``Frontier Risk``, ``Frontier Track``, ``Frontier Sources``);
+    ``pending`` the stored frontier candidate ``{"candidate", "track",
+    "first_seen"}``. A country never scored on the lens, or scored on
+    another track, applies: there is no comparable earlier score."""
+    old_track = (existing_scores or {}).get(FRONTIER_TRACK_COLUMN) or None
+    new = record.score
+    if old_track is None:
+        return Decision(APPLIED_EVIDENCE, True, "first frontier score")
+    old = _stored_frontier(existing_scores)
+    if old_track != record.track:
+        return Decision(
+            APPLIED_EVIDENCE, True, f"track changed from {old_track} to {record.track}",
+            large_moves=(LargeMove(FRONTIER_DIMENSION, old, new),),
+        )
+    if old == new:
+        return Decision(UNCHANGED, True, "frontier score unchanged")
+
+    moves = _large_moves({FRONTIER_DIMENSION: (old, new)})
+    known = cited_urls((existing_reg or {}).get(FRONTIER_SOURCES_COLUMN)) | seen_sources
+    fresh = tuple(
+        source.url for source in classify_sources(record.sources)
+        if normalise_url(source.url) not in known
+    )
+    if fresh:
+        return Decision(
+            APPLIED_EVIDENCE, True, f"new frontier source: {fresh[0]}",
+            large_moves=moves, new_sources=fresh,
+        )
+
+    direction = _directions({FRONTIER_DIMENSION: old}, {FRONTIER_DIMENSION: new})
+    if (
+        pending is not None and pending.get("track") == record.track and _is_recent(pending, today)
+        and _directions({FRONTIER_DIMENSION: old}, {FRONTIER_DIMENSION: pending.get("candidate")})
+        == direction
+    ):
+        return Decision(
+            APPLIED_PERSISTED, True, f"same frontier move as {pending.get('first_seen')}",
+            large_moves=moves,
+        )
+    entry = {"candidate": new, "track": record.track, "first_seen": today.isoformat()}
+    return Decision(
+        HELD, False, f"no frontier evidence (frontier_risk {direction[FRONTIER_DIMENSION]})",
+        pending=entry,
+    )
+
+
+def frontier_markdown_summary(tally: GateTally) -> str:
+    """The lens's gate block for the GitHub step summary (empty when no
+    country was researched on the lens)."""
+    if not any(tally.counts.values()):
+        return ""
+    out = ["", "## Stability gate: Frontier Risk Governance", ""]
+    out.append("| Rule | Countries |")
+    out.append("|------|-----------|")
+    for rule in RULES:
+        out.append(f"| `{rule}` | {tally.counts.get(rule, 0)} |")
+    if tally.review:
+        out += ["", "| Country | Old | New | New sources |", "|---------|-----|-----|-------------|"]
+        for country, decision in tally.review:
+            sources = "<br>".join(decision.new_sources) or "none"
+            for move in decision.large_moves:
+                out.append(
+                    f"| {country} | {format_score(move.old)} | {format_score(move.new)} | {sources} |"
+                )
+    return "\n".join(out) + "\n"
+
+
+def ungated_frontier(existing_scores: dict | None, record: FrontierRecord) -> Decision:
+    """The ``--no-gate`` decision for the lens: it lands, labelled."""
+    old_track = (existing_scores or {}).get(FRONTIER_TRACK_COLUMN) or None
+    if old_track is None:
+        return Decision(APPLIED_EVIDENCE, True, "first frontier score")
+    old = _stored_frontier(existing_scores)
+    if old_track == record.track and old == record.score:
+        return Decision(UNCHANGED, True, "frontier score unchanged")
+    return Decision(
+        APPLIED_UNGATED, True, "gate off",
+        large_moves=_large_moves({FRONTIER_DIMENSION: (old, record.score)}),
+    )
+
+
+def _stored_frontier(row: dict | None) -> float | None:
+    """The stored lens score, ``None`` for an empty cell."""
+    value = (row or {}).get(FRONTIER_COLUMN, "")
+    if value in _EMPTY_CELLS:
+        return None
+    return round(float(value), 2)

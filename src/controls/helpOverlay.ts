@@ -9,8 +9,23 @@
 // showModal() makes the rest of the page inert (the focus trap), Esc and
 // the close button and a backdrop click close it, and focus returns to the
 // control that opened it.
+//
+// The third lens, frontier risk governance (PRD 15), is described only once
+// some country has been scored on it, as the score selector offers it.
 
 import { maybeEl } from '../dom';
+import { getState, on } from '../state/store';
+import { hasFrontierTrack } from '../constants';
+
+/** Show the frontier lens's entry (and count it) while the data has it. */
+function syncFrontierLens(): void {
+  const offered = hasFrontierTrack(getState().scoreData);
+  document.querySelectorAll<HTMLElement>('#help-overlay [data-frontier-lens]').forEach(node => {
+    node.hidden = !offered;
+  });
+  const count = document.getElementById('help-lens-count');
+  if (count) count.textContent = offered ? 'three' : 'two';
+}
 
 let opener: HTMLElement | null = null;
 
@@ -37,6 +52,9 @@ export function closeHelpOverlay(): void {
 export function initHelpOverlay(): void {
   const dialog = maybeEl<HTMLDialogElement>('help-overlay');
   if (!dialog) return;
+
+  syncFrontierLens();
+  on('scoreData', syncFrontierLens);
 
   document.getElementById('help-overlay-close')
     ?.addEventListener('click', closeHelpOverlay);

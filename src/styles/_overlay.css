@@ -112,6 +112,16 @@
   background: linear-gradient(to right, var(--ramp-style-low), var(--ramp-style-high));
 }
 
+.help-lens-key[data-group="frontier"] {
+  background: linear-gradient(to right, var(--ramp-frontier-low), var(--ramp-frontier-high));
+}
+
+/* The frontier lens's entry waits for frontier data (helpOverlay.ts); the
+   dt's flex display above would otherwise override [hidden]. */
+.help-lenses [hidden] {
+  display: none;
+}
+
 .help-plain {
   color: var(--text-primary);
   padding: 10px 0;
@@ -199,13 +209,15 @@
   color: var(--text-tertiary);
 }
 
-.help-overlay-footer a {
+.help-overlay-footer a,
+.help-lenses a {
   color: var(--text-secondary);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.help-overlay-footer a:hover {
+.help-overlay-footer a:hover,
+.help-lenses a:hover {
   color: var(--accent);
 }
 

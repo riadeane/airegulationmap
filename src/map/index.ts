@@ -1,5 +1,5 @@
 import { on, getState } from '../state/store';
-import { generateMap, updateMap, markComparisonCountries, displayedEntry, isHatched } from './renderer';
+import { generateMap, updateMap, markComparisonCountries, displayedEntry, frontierTrackFor, isHatched } from './renderer';
 import { updateLegendLabels, updateLegendUncertainty } from './legend';
 import { ATTRIBUTE_LABELS, isInsufficient } from '../constants';
 import { modeAnnouncement } from '../data/meaning';
@@ -35,10 +35,13 @@ function announceCountry(name: string | null) {
   const score = entry?.[currentAttribute];
   // The hatch is visual; say it too, as the tooltip does.
   const flag = isHatched(name) ? ' Low confidence.' : '';
+  // The frontier lens names the track the score was made on (PRD 15).
+  const track = currentAttribute === 'frontierRisk' ? frontierTrackFor(name, entry, vintage) : null;
+  const trackText = track ? ` ${track}.` : '';
   region.textContent = score != null
-    ? `Selected ${name}. ${label}: ${score} of 5${vintage ? ` as of ${vintage}` : ''}.${flag}`
+    ? `Selected ${name}. ${label}: ${score} of 5${vintage ? ` as of ${vintage}` : ''}.${trackText}${flag}`
     : isInsufficient(score)
-      ? `Selected ${name}. ${label}: insufficient evidence${vintage ? ` as of ${vintage}` : ''}.`
+      ? `Selected ${name}. ${label}: insufficient evidence${vintage ? ` as of ${vintage}` : ''}.${trackText}`
       : `Selected ${name}. No ${label} data.`;
 }
 

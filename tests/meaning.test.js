@@ -21,7 +21,7 @@ describe('the score vocabulary', () => {
         expect(typeof m[field], `${key}.${field}`).toBe('string');
         expect(m[field].length, `${key}.${field}`).toBeGreaterThan(0);
       }
-      expect(['implementation', 'style']).toContain(m.group);
+      expect(['implementation', 'style', 'frontier']).toContain(m.group);
       expect(m.question.endsWith('?'), key).toBe(true);
     }
   });
@@ -140,6 +140,7 @@ describe('JSON export meta', () => {
     expect(Object.keys(meta.fields)).toEqual([
       'Average Score', 'Regulation Status (Score)', 'Policy Lever (Score)',
       'Enforcement Level (Score)', 'Governance Type (Score)', 'Actor Involvement (Score)',
+      'Frontier Risk',
     ]);
     expect(meta.fields['Average Score']).toEqual({
       label: 'Implementation Index',

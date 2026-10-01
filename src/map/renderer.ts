@@ -17,7 +17,7 @@ import { makeColorScale } from './ramp';
 import type { ColorScale } from './ramp';
 import { addLegend, setLegendInsufficient, updateLegend } from './legend';
 import { fillColor, anyInsufficient } from './fill';
-import { scoreLine } from '../data/meaning';
+import { frontierTrackLine, scoreLine } from '../data/meaning';
 import { createTooltip, showTooltip, hideTooltip } from './tooltip';
 import { setupZoom } from './zoom';
 import type { ZoomHandle } from './zoom';
@@ -324,6 +324,7 @@ function appendCountries(
         ? ' <span class="tooltip-flag">low confidence</span>'
         : '';
       const confidence = confidenceAtDate(countryName);
+      const track = currentAttribute === 'frontierRisk' ? frontierTrackFor(countryName, entry, vintage) : null;
       showTooltip(event,
         `<strong>${countryName}${flag}</strong>` +
         (score != null
@@ -331,6 +332,7 @@ function appendCountries(
           : isInsufficient(score)
             ? `<br>${ATTRIBUTE_LABELS[currentAttribute] || currentAttribute}: insufficient evidence${vintage ? ` (${vintage})` : ''}`
             : '<br>No data') +
+        (track ? `<br>${track}` : '') +
         (confidence ? `<br>Confidence: ${confidence}` : '') +
         hint
       );
@@ -565,6 +567,18 @@ export function displayedEntry(name: string): { entry: MapScoreEntry | undefined
   const past = scoresAtDate();
   if (past) return { entry: past[name], vintage: getState().timelineDate };
   return { entry: getState().scoreData[name], vintage: null };
+}
+
+/**
+ * The frontier lens's track line for a country as the map paints it
+ * ("Frontier host track, EU-level developer obligations"), or null with no
+ * frontier data. The EU-level flag lives in the latest sub-indicators, so
+ * a past date shows the track alone.
+ */
+export function frontierTrackFor(name: string, entry: MapScoreEntry | undefined, vintage: string | null): string | null {
+  const euLevel = !vintage
+    && getState().subscores?.countries[name]?.frontier?.developer_obligations?.eu_level === true;
+  return frontierTrackLine(entry?.frontierTrack, euLevel);
 }
 
 export function updateMap(overrideScoreData?: MapScores): void {

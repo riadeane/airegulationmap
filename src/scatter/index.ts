@@ -21,7 +21,7 @@ import 'd3-transition';
 import { getState, on } from '../state/store';
 import { visibleCountrySet } from '../state/selectors';
 import { toggleScatter, showMap, selectCountry, setScatterAxes } from '../state/interactions';
-import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn } from '../constants';
+import { ATTRIBUTES, ATTRIBUTE_LABELS, GROUPS, attributesIn, hasFrontierTrack } from '../constants';
 import type { AttributeGroup, AttributeKey } from '../constants';
 import { makeColorScale } from '../map/ramp';
 import { cssVar, onThemeChange } from '../map/cssColors';
@@ -68,24 +68,44 @@ type PlottedDot = ScatterDot & { x: number; y: number };
 let svg: Selection<SVGSVGElement, unknown, HTMLElement, unknown> | null = null;
 let xScale: ScaleLinear<number, number>, yScale: ScaleLinear<number, number>;
 
+function axisOptgroup(group: AttributeGroup): HTMLOptGroupElement {
+  const optgroup = document.createElement('optgroup');
+  optgroup.label = GROUPS[group].label;
+  optgroup.dataset.group = group;
+  for (const value of attributesIn(group)) {
+    if (value === 'averageScore') continue;
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = ATTRIBUTES[value].label;
+    optgroup.appendChild(opt);
+  }
+  return optgroup;
+}
+
+// The frontier lens is an axis like the others once some country has a
+// frontier track (as in the score selector); countries never scored on it
+// have no position on that axis and are left out, as insufficient
+// evidence is.
+function syncFrontierAxis(): void {
+  const offered = hasFrontierTrack(getState().scoreData);
+  for (const id of ['scatter-x', 'scatter-y']) {
+    const sel = el<HTMLSelectElement>(id);
+    const existing = sel.querySelector('optgroup[data-group="frontier"]');
+    if (offered && !existing) sel.appendChild(axisOptgroup('frontier'));
+    else if (!offered && existing) existing.remove();
+  }
+  const { scatterX, scatterY } = getState();
+  el<HTMLSelectElement>('scatter-x').value = scatterX;
+  el<HTMLSelectElement>('scatter-y').value = scatterY;
+}
+
 function populateAxisSelects(): void {
   const { scatterX, scatterY } = getState();
   for (const [id, current] of [['scatter-x', scatterX], ['scatter-y', scatterY]]) {
     const sel = el<HTMLSelectElement>(id);
     // Grouped by lens, as in the score selector. The index is derived, so
     // it is the dot colour rather than an axis.
-    for (const group of ['implementation', 'style'] as AttributeGroup[]) {
-      const optgroup = document.createElement('optgroup');
-      optgroup.label = GROUPS[group].label;
-      for (const value of attributesIn(group)) {
-        if (value === 'averageScore') continue;
-        const opt = document.createElement('option');
-        opt.value = value;
-        opt.textContent = ATTRIBUTES[value].label;
-        optgroup.appendChild(opt);
-      }
-      sel.appendChild(optgroup);
-    }
+    for (const group of ['implementation', 'style'] as AttributeGroup[]) sel.appendChild(axisOptgroup(group));
     sel.value = current;
     sel.addEventListener('change', () => {
       const { scatterX: x, scatterY: y } = getState();
@@ -195,8 +215,9 @@ function updateChart(): void {
   const countries = Object.entries(scoreData)
     .map(([name, scores]): ScatterDot => ({
       name,
-      x: scores[scatterX],
-      y: scores[scatterY],
+      // `?? null`: no frontier data has no position, like insufficient evidence.
+      x: scores[scatterX] ?? null,
+      y: scores[scatterY] ?? null,
       avg: scores.averageScore,
       visible: visibleSet.has(name),
     }))
@@ -322,6 +343,8 @@ export function initScatter(): void {
   if (!btn || !closeBtn) return;
 
   populateAxisSelects();
+  syncFrontierAxis();
+  on('scoreData', syncFrontierAxis);
   renderColorKey();
 
   const trendBox = maybeEl<HTMLInputElement>('scatter-trend');

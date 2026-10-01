@@ -11,6 +11,13 @@ export interface HistorySnapshot {
    *  when the pipeline recorded one. Snapshots written before it did carry
    *  none, and readers fall back to the current confidence. */
   confidence?: string | null;
+  /** Frontier Risk Governance (PRD 15), once the country has been scored
+   *  on the lens: a number or null (insufficient evidence). Snapshots from
+   *  before carry neither frontier key: "no data" on the lens at that date,
+   *  not insufficient evidence. */
+  frontierRisk?: number | null;
+  /** The track ('H' | 'C' | 'G') that frontier score was made on. */
+  frontierTrack?: string;
 }
 
 /**
@@ -69,6 +76,15 @@ export function buildScoresAtDate(
     for (const snapshot of ordered) {
       if (snapshot.date > targetDate) break;
       chosen = snapshot;
+    }
+    // The frontier lens did not exist before a country's first frontier
+    // snapshot, so a carried-back state never carries a frontier score
+    // (PRD 15): that date reads "no data" on the lens.
+    if (chosen.date > targetDate && ('frontierRisk' in chosen || 'frontierTrack' in chosen)) {
+      const before = { ...chosen };
+      delete before.frontierRisk;
+      delete before.frontierTrack;
+      chosen = before;
     }
     result[country] = chosen;
   }

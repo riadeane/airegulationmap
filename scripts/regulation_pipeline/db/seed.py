@@ -40,7 +40,7 @@ from ..config import Settings
 from ..names import CountryNames
 from ..repository import Dataset, split_subscores_entry
 from ..sources import classify_sources
-from .mirror import evidence_columns
+from .mirror import evidence_columns, frontier_columns, frontier_summary_columns
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +127,7 @@ def build_seed(settings: Settings, names: CountryNames) -> SeedData:
             "data_version": int(srow.get("Data Version") or 1),
             "scored_at": srow.get("Last Updated") or None,
             **evidence_columns(raw_subscores.get(country)),
+            **frontier_columns(srow, raw_subscores.get(country)),
         })
         seed.summaries.append({
             "country": country,
@@ -138,6 +139,7 @@ def build_seed(settings: Settings, names: CountryNames) -> SeedData:
             "specific_laws": rrow.get("Specific Laws") or None,
             "sources_raw": rrow.get("Sources") or None,
             "summarized_at": rrow.get("Last Updated") or None,
+            **frontier_summary_columns(rrow),
         })
 
         for snap in history.get(country, []):
@@ -212,13 +214,15 @@ def emit_sql(seed: SeedData) -> list[str]:
         stmts.append(
             "insert into country_scores (country_id, regulation_status, policy_lever, governance_type, "
             "actor_involvement, enforcement_level, avg_score, subscores, rationales, confidence, data_version, run_id, scored_at, "
-            "grounded, initiatives_used, web_search)\n"
+            "grounded, initiatives_used, web_search, frontier_risk, frontier_track, frontier_subscores)\n"
             f"select id, {_sql_num(s['regulation_status'])}, {_sql_num(s['policy_lever'])}, "
             f"{_sql_num(s['governance_type'])}, {_sql_num(s['actor_involvement'])}, "
             f"{_sql_num(s['enforcement_level'])}, {_sql_num(s['avg_score'])}, {_sql_jsonb(s['subscores'])}, "
             f"{_sql_jsonb(s['rationales'])}, "
             f"{_sql_str(s['confidence'])}, {s['data_version']}, {_sql_str(SEED_RUN_ID)}, {_sql_str(s['scored_at'])}, "
-            f"{_sql_bool(s['grounded'])}, {_sql_num(s['initiatives_used'])}, {_sql_bool(s['web_search'])}\n"
+            f"{_sql_bool(s['grounded'])}, {_sql_num(s['initiatives_used'])}, {_sql_bool(s['web_search'])}, "
+            f"{_sql_num(s['frontier_risk'])}, {_sql_str(s['frontier_track'])}, "
+            f"{_sql_jsonb(s['frontier_subscores'])}\n"
             f"from countries where name = {_sql_str(s['country'])}\n"
             "on conflict (country_id) do update set regulation_status = excluded.regulation_status, "
             "policy_lever = excluded.policy_lever, governance_type = excluded.governance_type, "
@@ -227,7 +231,8 @@ def emit_sql(seed: SeedData) -> list[str]:
             "confidence = excluded.confidence, "
             "data_version = excluded.data_version, run_id = excluded.run_id, scored_at = excluded.scored_at, "
             "grounded = excluded.grounded, initiatives_used = excluded.initiatives_used, "
-            "web_search = excluded.web_search, "
+            "web_search = excluded.web_search, frontier_risk = excluded.frontier_risk, "
+            "frontier_track = excluded.frontier_track, frontier_subscores = excluded.frontier_subscores, "
             "updated_at = now();"
         )
 
@@ -235,18 +240,20 @@ def emit_sql(seed: SeedData) -> list[str]:
         stmts.append(
             "insert into country_summaries (country_id, regulation_status_text, policy_lever_text, "
             "governance_type_text, actor_involvement_text, enforcement_level_text, specific_laws, "
-            "sources_raw, run_id, summarized_at)\n"
+            "sources_raw, run_id, summarized_at, frontier_risk_text, frontier_sources_raw)\n"
             f"select id, {_sql_str(s['regulation_status_text'])}, {_sql_str(s['policy_lever_text'])}, "
             f"{_sql_str(s['governance_type_text'])}, {_sql_str(s['actor_involvement_text'])}, "
             f"{_sql_str(s['enforcement_level_text'])}, {_sql_str(s['specific_laws'])}, "
-            f"{_sql_str(s['sources_raw'])}, {_sql_str(SEED_RUN_ID)}, {_sql_str(s['summarized_at'])}\n"
+            f"{_sql_str(s['sources_raw'])}, {_sql_str(SEED_RUN_ID)}, {_sql_str(s['summarized_at'])}, "
+            f"{_sql_str(s['frontier_risk_text'])}, {_sql_str(s['frontier_sources_raw'])}\n"
             f"from countries where name = {_sql_str(s['country'])}\n"
             "on conflict (country_id) do update set regulation_status_text = excluded.regulation_status_text, "
             "policy_lever_text = excluded.policy_lever_text, governance_type_text = excluded.governance_type_text, "
             "actor_involvement_text = excluded.actor_involvement_text, "
             "enforcement_level_text = excluded.enforcement_level_text, specific_laws = excluded.specific_laws, "
             "sources_raw = excluded.sources_raw, run_id = excluded.run_id, "
-            "summarized_at = excluded.summarized_at, updated_at = now();"
+            "summarized_at = excluded.summarized_at, frontier_risk_text = excluded.frontier_risk_text, "
+            "frontier_sources_raw = excluded.frontier_sources_raw, updated_at = now();"
         )
 
     for h in seed.history:

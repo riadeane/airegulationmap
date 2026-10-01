@@ -24,6 +24,13 @@ Four metrics, all pure functions of the two score sets (:func:`compare`):
 ``python -m regulation_pipeline.gold --model <id>`` researches only the
 gold countries with the given model and prints the same metrics without
 touching the dataset: the model-comparison tool.
+
+Frontier Risk Governance (PRD 15): a gold country may carry a ``frontier``
+block with its own status, track and the track's researched sub-indicators.
+The run's assembled frontier records are compared with it separately
+(:func:`compare_frontier`), and the drift row gains a ``frontier`` block
+with MAE and the mean signed error, so a model that leans on the lens shows.
+The lens does not launch on draft frontier gold scores (PRD 15 req. 13).
 """
 
 from __future__ import annotations
@@ -42,11 +49,12 @@ from typing import TYPE_CHECKING
 import typer
 
 from .config import Settings
-from .models import ResearchResult
+from .models import TRACKS, FrontierRecord, ResearchResult, researched_subindicators
 from .prompt import GROUNDED_PROMPT_VERSION, PROMPT_VERSION
 
 if TYPE_CHECKING:  # the mirror is optional; keep the db layer out of the import graph
     from .db.mirror import SupabaseMirror
+    from .frontier import FrontierContext
     from .service import RunResult
     from .strategies import ResearchStrategy
 
@@ -80,6 +88,23 @@ class GoldSetError(ValueError):
 
 
 @dataclass(frozen=True)
+class GoldFrontier:
+    """A gold country's Frontier Risk Governance scores: the track it is on
+    and an integer 1-5 for each sub-indicator the model researches on that
+    track (``international_coordination`` is computed, so never gold). It
+    has its own ``status``: the lens's gold scores are verified apart from
+    the five dimensions'."""
+
+    status: str
+    track: str
+    subscores: dict[str, int]
+    justification: str
+    sources: tuple[str, ...]
+    verified_on: str | None = None
+    drafted_on: str | None = None
+
+
+@dataclass(frozen=True)
 class GoldCountry:
     """One hand-verified country: 20 sub-indicator scores (five dimensions
     times four), a one-line
@@ -94,6 +119,7 @@ class GoldCountry:
     sources: tuple[str, ...]
     verified_on: str | None = None
     drafted_on: str | None = None
+    frontier: GoldFrontier | None = None
 
 
 @dataclass(frozen=True)
@@ -108,6 +134,16 @@ class GoldSet:
 
     def verified(self) -> list[str]:
         return [c.country for c in self.countries if c.status == "verified"]
+
+    def frontier_names(self) -> list[str]:
+        """Countries with frontier gold scores, in gold-set order."""
+        return [c.country for c in self.countries if c.frontier is not None]
+
+    def frontier_verified(self) -> list[str]:
+        return [
+            c.country for c in self.countries
+            if c.frontier is not None and c.frontier.status == "verified"
+        ]
 
 
 def load_gold_set(path: Path) -> GoldSet:
@@ -200,6 +236,10 @@ def _parse_country(entry: object, index: int) -> GoldCountry:
     ):
         raise GoldSetError(f"{label}: sources must be a non-empty list of URLs")
 
+    frontier = None
+    if entry.get("frontier") is not None:
+        frontier = _parse_frontier(entry["frontier"], label)
+
     return GoldCountry(
         country=name.strip(),
         status=status,
@@ -208,6 +248,51 @@ def _parse_country(entry: object, index: int) -> GoldCountry:
         sources=tuple(s.strip() for s in sources),
         verified_on=verified_on,
         drafted_on=drafted_on,
+        frontier=frontier,
+    )
+
+
+def _parse_frontier(block: object, label: str) -> GoldFrontier:
+    """Validate a gold country's ``frontier`` block: a status, a track, an
+    integer 1-5 for exactly the track's researched sub-indicators, a
+    justification and sources."""
+    label = f"{label} frontier"
+    if not isinstance(block, dict):
+        raise GoldSetError(f"{label} must be an object")
+    status = block.get("status")
+    if status not in STATUSES:
+        raise GoldSetError(f"{label}: status must be one of {STATUSES}, got {status!r}")
+    verified_on = block.get("verified_on")
+    if status == "verified" and not _is_date(verified_on):
+        raise GoldSetError(f"{label}: a verified entry needs verified_on (YYYY-MM-DD)")
+    drafted_on = block.get("drafted_on")
+    if drafted_on is not None and not _is_date(drafted_on):
+        raise GoldSetError(f"{label}: drafted_on must be YYYY-MM-DD or null")
+    track = block.get("track")
+    if track not in TRACKS:
+        raise GoldSetError(f"{label}: track must be one of {TRACKS}, got {track!r}")
+    names = researched_subindicators(track)
+    raw = block.get("subscores")
+    if not isinstance(raw, dict) or set(raw) != set(names):
+        raise GoldSetError(f"{label}: subscores must have exactly {list(names)} for track {track}")
+    for sub in names:
+        value = raw[sub]
+        if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= 5:
+            raise GoldSetError(f"{label}: subscores.{sub} must be an integer 1-5, got {value!r}")
+    justification = block.get("justification")
+    if not isinstance(justification, str) or not justification.strip():
+        raise GoldSetError(f"{label}: justification is missing")
+    sources = block.get("sources")
+    if (
+        not isinstance(sources, list)
+        or not sources
+        or not all(isinstance(s, str) and s.strip() for s in sources)
+    ):
+        raise GoldSetError(f"{label}: sources must be a non-empty list of URLs")
+    return GoldFrontier(
+        status=status, track=track, subscores={k: raw[k] for k in names},
+        justification=justification.strip(), sources=tuple(s.strip() for s in sources),
+        verified_on=verified_on, drafted_on=drafted_on,
     )
 
 
@@ -337,6 +422,122 @@ def compare(gold: GoldSet, results: Mapping[str, ResearchResult]) -> GoldMetrics
     return GoldMetrics(compared, missing, mae, round(within, 3), worst, len(devs), bias, skipped)
 
 
+@dataclass(frozen=True)
+class FrontierMetrics:
+    """Agreement between a run's frontier records and the frontier gold
+    scores, over the researched sub-indicators. A country whose record is
+    on another track than its gold entry is listed in ``missing`` (the
+    scores do not compare); a run sub-indicator with insufficient evidence
+    is not compared and counts in ``skipped``."""
+
+    compared: tuple[str, ...]
+    missing: tuple[str, ...]
+    mae: float | None
+    bias: float | None
+    within_one: float | None
+    count: int
+    skipped: int
+    gold_verified: int
+
+    @property
+    def warning(self) -> bool:
+        return self.count > 0 and (
+            (self.within_one or 0) < WARN_WITHIN_ONE or abs(self.bias or 0) > WARN_ABS_BIAS
+        )
+
+    def to_json(self) -> dict:
+        return {
+            "compared": len(self.compared),
+            "missing": list(self.missing),
+            "mae": self.mae,
+            "bias": self.bias,
+            "within_one": self.within_one,
+            "skipped": self.skipped,
+            "gold_verified": self.gold_verified,
+        }
+
+
+def compare_frontier(gold: GoldSet, records: Mapping[str, FrontierRecord]) -> FrontierMetrics | None:
+    """The frontier metrics for ``records`` (raw, ungated, by country), or
+    ``None`` when the gold set holds no frontier entries or none of them
+    was in the run. Pure."""
+    entries = [c for c in gold.countries if c.frontier is not None]
+    if not entries or not any(c.country in records for c in entries):
+        return None
+    compared: list[str] = []
+    missing: list[str] = []
+    deltas: list[int] = []
+    skipped = 0
+    for entry in entries:
+        record = records.get(entry.country)
+        assert entry.frontier is not None
+        if record is None or record.track != entry.frontier.track:
+            missing.append(entry.country)
+            continue
+        compared.append(entry.country)
+        for sub, gold_score in entry.frontier.subscores.items():
+            run = record.subscores.get(sub)
+            if run is None or isinstance(run, str):
+                skipped += 1
+                continue
+            deltas.append(int(run) - gold_score)
+    verified = set(gold.frontier_verified())
+    if not deltas:
+        return FrontierMetrics(
+            tuple(compared), tuple(missing), None, None, None, 0, skipped,
+            sum(1 for c in compared if c in verified),
+        )
+    return FrontierMetrics(
+        compared=tuple(compared),
+        missing=tuple(missing),
+        mae=round(sum(abs(d) for d in deltas) / len(deltas), 3),
+        bias=round(sum(deltas) / len(deltas), 3),
+        within_one=round(sum(1 for d in deltas if abs(d) <= 1) / len(deltas), 3),
+        count=len(deltas),
+        skipped=skipped,
+        gold_verified=sum(1 for c in compared if c in verified),
+    )
+
+
+def frontier_summary(metrics: FrontierMetrics) -> str:
+    """One log line for the lens's gold check."""
+    line = (
+        f"gold frontier: {len(metrics.compared)} countries, {metrics.count} sub-indicators, "
+        f"mae={_num(metrics.mae)}, bias={_signed(metrics.bias)}, "
+        f"within_one={_num(metrics.within_one)}"
+    )
+    if metrics.skipped:
+        line += f", insufficient_evidence={metrics.skipped}"
+    if metrics.missing:
+        line += f", missing or on another track: {', '.join(metrics.missing)}"
+    return f"Calibration warning: {line}" if metrics.warning else line
+
+
+def frontier_markdown(metrics: FrontierMetrics) -> str:
+    """The lens's gold block for the GitHub step summary."""
+    heading = (
+        "## Calibration warning: Frontier Risk Governance gold set"
+        if metrics.warning else "## Frontier Risk Governance gold set"
+    )
+    out = ["", heading, "", "| Metric | Value |", "|--------|-------|"]
+    out.append(
+        f"| Countries compared | {len(metrics.compared)} ({metrics.gold_verified} verified) |"
+    )
+    out.append(f"| Sub-indicators compared | {metrics.count} |")
+    if metrics.skipped:
+        out.append(f"| Insufficient evidence (not compared) | {metrics.skipped} |")
+    out.append(f"| MAE | {_num(metrics.mae)} |")
+    out.append(f"| Bias (run − gold) | {_signed(metrics.bias)} |")
+    out.append(f"| Within one point | {_num(metrics.within_one)} |")
+    if metrics.missing:
+        out += ["", "Missing or on another track: " + ", ".join(metrics.missing)]
+    return "\n".join(out) + "\n"
+
+
+def _num(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.3f}"
+
+
 # -- the drift record ----------------------------------------------------------
 
 
@@ -350,7 +551,7 @@ def gold_version(path: Path) -> str:
 def drift_row(
     metrics: GoldMetrics, *, run_id: str, run_date: date, model: str, prompt_version: str,
     gold: GoldSet | None = None, gold_version: str | None = None,
-    grounded_countries: int | None = None,
+    grounded_countries: int | None = None, frontier: FrontierMetrics | None = None,
 ) -> dict:
     """One ``drift.json`` row (and the shape mirrored to ``gold_checks``).
 
@@ -378,6 +579,8 @@ def drift_row(
         row["gold_version"] = gold_version
     if grounded_countries is not None:
         row["grounded_countries"] = grounded_countries
+    if frontier is not None:
+        row["frontier"] = frontier.to_json()
     return row
 
 
@@ -511,6 +714,7 @@ class GoldCheck:
     metrics: GoldMetrics
     gold: GoldSet
     row: dict
+    frontier: FrontierMetrics | None = None
 
 
 def check_run(
@@ -538,6 +742,9 @@ def check_run(
     gold = load_gold_set(settings.gold_set_json)
     metrics = compare(gold, result.raw_results)
     logger.info(summary_line(metrics, gold))
+    frontier = compare_frontier(gold, result.raw_frontier)
+    if frontier is not None:
+        logger.info(frontier_summary(frontier))
     if not metrics.compared:
         return None
     grounded = _grounded_countries(result, metrics) if prompt_version == GROUNDED_PROMPT_VERSION else None
@@ -548,10 +755,11 @@ def check_run(
         metrics, run_id=result.run_id, run_date=run_date, model=model,
         prompt_version=prompt_version, gold=gold,
         gold_version=gold_version(settings.gold_set_json), grounded_countries=grounded,
+        frontier=frontier,
     )
     if not record:
         logger.info("gold: partial run - no drift row written (the series is full runs only)")
-        return GoldCheck(metrics, gold, row)
+        return GoldCheck(metrics, gold, row, frontier)
     append_drift_row(settings.drift_json, row)
     logger.info("gold: drift row appended to %s", settings.drift_json.relative_to(settings.root))
     if mirror is not None:
@@ -559,7 +767,7 @@ def check_run(
             mirror.record_gold_check(row)
         except Exception:
             logger.warning("gold: mirror to gold_checks failed - continuing", exc_info=True)
-    return GoldCheck(metrics, gold, row)
+    return GoldCheck(metrics, gold, row, frontier)
 
 
 def _grounded_countries(result: RunResult, metrics: GoldMetrics) -> int:
@@ -576,6 +784,26 @@ def _grounded_countries(result: RunResult, metrics: GoldMetrics) -> int:
 
 
 # -- the model-comparison CLI --------------------------------------------------
+
+
+def assemble_frontier(
+    context: FrontierContext | None, results: Mapping[str, ResearchResult],
+) -> dict[str, FrontierRecord]:
+    """The frontier records of ``results`` (those that carry a frontier
+    block), assembled as a run would. A block for the wrong track is
+    logged and left out."""
+    records: dict[str, FrontierRecord] = {}
+    if context is None:
+        return records
+    for country, result in results.items():
+        answer = result.frontier_answer()
+        if answer is None:
+            continue
+        try:
+            records[country] = context.assemble(country, answer)
+        except ValueError as exc:
+            logger.warning("gold: %s", exc)
+    return records
 
 
 def research_gold(
@@ -614,6 +842,7 @@ def _compare_cli(
     from .api import ResearchClient
     from .batch import BatchRunner
     from .cli import configure_logging
+    from .frontier import FrontierContext, FrontierDataError
     from .names import CountryNames
     from .repository import Dataset
     from .strategies import BatchStrategy, SyncStrategy
@@ -634,10 +863,15 @@ def _compare_cli(
     names = CountryNames.load(settings.country_names_json)
     dataset = Dataset.load(settings, names)
     reg_rows = {c: dataset.regulation_row(c) or {} for c in gold.names()}
+    try:
+        frontier = FrontierContext.load(settings)
+    except FrontierDataError as exc:
+        logger.error("%s", exc)
+        raise typer.Exit(code=1) from exc
 
     # SDK-level silent retries stay off; retry.py does explicit, logged retries.
     client = anthropic.Anthropic(api_key=api_key, max_retries=0)
-    research_client = ResearchClient(client, model=model, today=today)
+    research_client = ResearchClient(client, model=model, today=today, frontier=frontier)
     strategy = (
         BatchStrategy(research_client, BatchRunner(client), lambda _c: search)
         if batch
@@ -646,14 +880,17 @@ def _compare_cli(
     logger.info("gold: researching %d countries with %s", len(gold), model)
     results = research_gold(strategy, gold, reg_rows)
     metrics = compare(gold, results)
+    frontier_metrics = compare_frontier(gold, assemble_frontier(frontier, results))
     if json_out:
         row = drift_row(
             metrics, run_id=str(uuid.uuid4()), run_date=today, model=model,
-            prompt_version=PROMPT_VERSION,
+            prompt_version=PROMPT_VERSION, frontier=frontier_metrics,
         )
         typer.echo(json.dumps(row, ensure_ascii=False, indent=2))
     else:
         typer.echo(text_report(metrics, gold, results))
+        if frontier_metrics is not None:
+            typer.echo(frontier_summary(frontier_metrics))
     if not metrics.compared:
         raise typer.Exit(code=1)
 

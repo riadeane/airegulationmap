@@ -65,12 +65,20 @@
        warm stone ramp, light = centralised or narrow, dark = distributed
        or broad. Low chroma so it reads as position, not achievement, and
        visibly different from the blue.
-     Both low ends keep enough chroma and distance from --no-data that
+     - Frontier risk governance (PRD 15): a plum ramp, light = nothing
+       observable, dark = meets the stated standard. Its hue sits apart
+       from the blue and the stone and well away from red, and it keeps
+       chroma on both colour axes, so it stays apart from the
+       --score-insufficient neutral for protan, deutan and tritan
+       observers about as well as the blue does.
+     Every low end keeps enough chroma and distance from --no-data that
      "little in force" never reads as "no data". */
   --ramp-impl-low:   oklch(86% 0.045 250);
   --ramp-impl-high:  oklch(47% 0.13 262);
   --ramp-style-low:  oklch(84% 0.035 85);
   --ramp-style-high: oklch(47% 0.04 55);
+  --ramp-frontier-low:  oklch(86% 0.075 320);
+  --ramp-frontier-high: oklch(49% 0.15 315);
 
   /* Direction of a score change (changelog, "This week"): one neutral
      tone for up and down alike. The glyph and the signed number carry
@@ -100,9 +108,10 @@
   color-scheme: dark;
 }
 
-/* Light theme. The two choropleth ramps keep their meaning (light =
-   less in force / centralised, dark = more in force / distributed) and
-   darken at the high end for the cream background. */
+/* Light theme. The three choropleth ramps keep their meaning (light =
+   less in force / centralised / nothing observable, dark = more in force /
+   distributed / meets the stated standard) and darken at the high end for
+   the cream background. */
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
@@ -131,6 +140,8 @@
     --ramp-impl-high:  oklch(37% 0.12 262);
     --ramp-style-low:  oklch(87% 0.035 85);
     --ramp-style-high: oklch(40% 0.035 55);
+    --ramp-frontier-low:  oklch(88% 0.075 322);
+    --ramp-frontier-high: oklch(40% 0.15 318);
 
     --comparison-1:    oklch(48% 0.16 60);
     --comparison-2:    oklch(45% 0.16 245);
@@ -169,6 +180,8 @@
   --ramp-impl-high:  oklch(37% 0.12 262);
   --ramp-style-low:  oklch(87% 0.035 85);
   --ramp-style-high: oklch(40% 0.035 55);
+  --ramp-frontier-low:  oklch(88% 0.075 322);
+  --ramp-frontier-high: oklch(40% 0.15 318);
 
   --comparison-1:    oklch(48% 0.16 60);
   --comparison-2:    oklch(45% 0.16 245);

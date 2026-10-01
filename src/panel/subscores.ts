@@ -114,6 +114,8 @@ function renderBreakdown(container: HTMLElement, dimension: DimensionKey): boole
 export function renderAllBreakdowns(): void {
   const historical = getState().timelineDate != null;
   document.querySelectorAll<HTMLElement>('.dimension-row[data-dimension]').forEach(row => {
+    // The frontier row's sub-indicators live in its own block (frontier.ts).
+    if (!(row.dataset.dimension! in DIMENSION_TO_SNAKE)) return;
     const panel = panelFor(row);
     if (historical) panel.replaceChildren();
     else renderBreakdown(panel, row.dataset.dimension as DimensionKey);

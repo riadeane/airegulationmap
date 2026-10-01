@@ -348,7 +348,7 @@
 
     <h2 id="what-a-score-means">What a score means, and what it does not</h2>
     <p>
-      Every score runs from 1 to 5 and belongs to one of two lenses.
+      Every score runs from 1 to 5 and belongs to one of three lenses.
     </p>
     <ul>
       <li><strong>Implementation</strong> (the implementation index,
@@ -363,6 +363,14 @@
         involvement): how a country governs AI. Governance type runs from
         centralised (1) to distributed (5); actor involvement from narrow
         (1) to broad (5). Neither end is better.</li>
+      <li><strong>Frontier Risk Governance</strong>: how close a country's
+        governance of catastrophic risk from frontier AI comes to a stated
+        standard: whether the state can see, test and stop a dangerous
+        model. Unlike the other two lenses it is evaluative, against the
+        standard set out under
+        <a href="#frontier-risk-governance">Frontier Risk Governance</a>, and
+        it is scored by track, so most countries are scored on fewer
+        elements. It is not a measure of how safe a country is.</li>
     </ul>
     <p>
       <strong>A higher score is not a better score.</strong> An
@@ -384,7 +392,9 @@
     <h2 id="what-this-is">What this is</h2>
     <p>
       The AI Regulation Map visualizes the current state of AI governance in
-      196 countries across six dimensions, each scored 1&ndash;5. It is
+      196 countries across six dimensions, each scored 1&ndash;5, plus a
+      separate <a href="#frontier-risk-governance">Frontier Risk Governance</a>
+      lens. It is
       intended as a <em>reference view</em> for policy researchers, academics,
       and civil society: a place to form a comparable mental model of how
       different jurisdictions approach AI, and a jumping-off point to the
@@ -767,6 +777,272 @@
     </ul>
     <p>The sets rest only on bloc membership and score distance. No other signal (region, language, income group) is used.</p>
 
+    <h2 id="frontier-risk-governance">Frontier Risk Governance</h2>
+    <p>
+      A third lens, read apart from the other two. It asks whether a state
+      can <strong>see, test and stop a dangerous frontier AI model</strong>:
+      how close national governance of catastrophic risk from the most
+      capable general-purpose AI models comes to a stated standard. Unlike
+      the implementation lens it is evaluative, so the standard is set out
+      below. It is not part of the implementation index, and it does not
+      change any other score.
+    </p>
+
+    <h3 id="frontier-value-statement">The standard and what it does not claim</h3>
+    <!-- DRAFT (#161): the value statement's wording, the right of reply and the
+         funding and authorship disclosure await the maintainer. The lens does
+         not launch until the disclosure below is written. -->
+    <p>
+      This lens rates national governance of catastrophic risk from frontier
+      AI (chemical, biological, radiological and nuclear misuse, cyber
+      offence, loss of control and harmful manipulation) against a standard
+      drawn from the frontier AI safety governance literature listed under
+      <a href="#frontier-references">Reference frameworks</a>. A higher score
+      means closer to that standard. The lens does not rate rights
+      protection, fairness or present-day harms from AI, which are a
+      different question; the Council of Europe Framework Convention, a
+      human-rights treaty, stays under actor involvement. It does not rate
+      companies or models. And it does not claim that a country with a
+      higher score is safer: see <a href="#frontier-validity">Validity</a>.
+    </p>
+    <p>
+      The standard targets a state's ability to see, test and stop a
+      dangerous model, not openness as such: releasing model weights is not
+      scored. Halt authority, the priority of those who favour pausing
+      frontier development, is one element of one sub-indicator rather than
+      the only route to a high score.
+    </p>
+    <!-- Funding and authorship disclosure (#161), to be written by the
+         maintainer before launch: who designed the rubric, who funds the
+         project, and any ties to organisations cited below. -->
+    <p>
+      Governments, developers and researchers who think a frontier score is
+      wrong can say so with the <em>Report an issue</em> action in a
+      country's panel. Reports are public and are answered with sources.
+    </p>
+
+    <h3 id="frontier-tracks">Tracks</h3>
+    <p>
+      Most of what the literature asks of states applies only where frontier
+      models are built or trained, so every country is scored on one of three
+      tracks, with a different set of sub-indicators, following the Nuclear
+      Threat Initiative's Nuclear Security Index, which ranks countries with
+      weapons-usable material apart from those without. A country is never
+      scored low for lacking a duty that cannot apply to it. Tracks are
+      assigned by the maintainer from published data, never by the research
+      model, and reviewed each quarter. The assignments, with the basis and
+      sources of each, are in
+      <a href="/data/frontier_tracks.json"><code>frontier_tracks.json</code></a>.
+    </p>
+    <ul>
+      <li><strong>Frontier host (H):</strong> home to the developer of a model
+        trained with at least 10<sup>25</sup> FLOP, the EU AI Act's
+        presumption threshold, in
+        <a href="https://epoch.ai/data/ai-models" rel="noopener noreferrer">Epoch AI's model data</a>
+        (Epoch's compute figure, or where it left that blank an Epoch point
+        estimate in its notes or its list of models over 10<sup>25</sup>
+        FLOP; a subsidiary lab counts at its own headquarters). October 2026:
+        China, France, Saudi Arabia, the United Kingdom and the United
+        States. All four sub-indicators apply.</li>
+      <li><strong>Compute or chokepoint (C):</strong> not a frontier host, but
+        an operational AI data centre of at least 50,000 H100-equivalents in
+        <a href="https://epoch.ai/data/ai-data-centers" rel="noopener noreferrer">Epoch AI's data</a>,
+        or home to a sole or majority global supplier of a step without which
+        leading-edge AI accelerators cannot be made (leading-edge logic
+        fabrication, advanced packaging, EUV lithography and its optics,
+        high-bandwidth memory). October 2026: Germany, Indonesia, Japan,
+        Malaysia, the Netherlands, Norway, South Korea and Taiwan. Developer
+        obligations do not apply. The text also records compute visibility in
+        the country's own jurisdiction (licensing, know-your-customer rules,
+        action against chip diversion); alignment with another state's export
+        controls is not itself credited.</li>
+      <li><strong>Global (G):</strong> every other country. Only incident and
+        emergency preparedness and international coordination apply.</li>
+    </ul>
+    <p>
+      A sub-indicator that does not apply is shown as <em>Not applicable</em>,
+      never as a 1 and never in a score colour. EU law that applies in a
+      member state counts as its national law; where a member state's
+      developer obligations rest on the EU AI Act rather than a national law,
+      the panel flags them as <em>EU-level</em>, so one Brussels regulation is
+      not read as a national achievement.
+    </p>
+
+    <h3 id="frontier-risk">Sub-indicators and anchors</h3>
+    <p>
+      Each sub-indicator is scored 1 to 5 on the same ladder as the other
+      dimensions (see <a href="#levels">Levels</a>), may be
+      <a href="#insufficient-evidence">insufficient evidence</a>, and every
+      score above 2 names the instrument, body or agreement it rests on. The
+      rules of rubric v3.2 apply: only the national level counts, and a 5
+      needs every element of its anchor in force and exercised. A body is
+      scored on what it does, not what it is called: renaming a "safety"
+      institute does not change its score, testing unreleased models for
+      catastrophic risk does. Voluntary frameworks and company commitments
+      reach at most 2 on developer obligations; a voluntary access
+      agreement can reach 4 on evaluation and oversight, and its rationale
+      says so.
+    </p>
+    <p>
+      Incident and emergency preparedness counts three elements: (a) statutory AI incident reporting to a named agency with a fixed deadline; (b) statutory whistleblower protection written for or extended to AI (for example covering breaches of an AI law or disclosures about frontier models); (c) AI risk in a national emergency or crisis plan with a designated lead. General incident or whistleblower law with no provision for AI does not count for (a) or (b).
+    </p>
+    <div class="rubric">
+      <div class="rubric-sub">
+        <h4>Developer obligations <code>developer_obligations</code></h4>
+        <p>Binding duties on developers of frontier models. Applies on track H.</p>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no binding rule, voluntary framework or company commitment touches frontier developers</dd>
+          <dt class="rubric-score">2</dt><dd>voluntary frameworks, a promotion law without duties, or company commitments only</dd>
+          <dt class="rubric-score">3</dt><dd>a binding statutory hook or mandatory standards touching frontier-model risk, without the full duty set</dd>
+          <dt class="rubric-score">4</dt><dd>a statute with the full duty set (a compute or capability threshold, a mandatory published safety and security framework, pre-release model reports, incident duties, penalties, and a regulator with model-access powers) enacted but not yet applicable, its enforcement deferred, or its model-access powers not yet used</dd>
+          <dt class="rubric-score">5</dt><dd>that statute in force, with a threshold the regulator can adjust or that is capability-based, and a regulator that has used its model-access powers</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Evaluation and oversight <code>evaluation_oversight</code></h4>
+        <p>State access to, and capacity to test, frontier models before deployment. Applies on tracks H and C.</p>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no state body evaluates frontier AI models</dd>
+          <dt class="rubric-score">2</dt><dd>an evaluation body announced or recommended, or one without dedicated staff or budget</dd>
+          <dt class="rubric-score">3</dt><dd>a body with an evaluation mandate that has tested some frontier models, with limited access or public record</dd>
+          <dt class="rubric-score">4</dt><dd>a funded, staffed body with standing pre-deployment access agreements covering most of the frontier developers it oversees and a public record of evaluations, or a legal access mandate not yet exercised</dd>
+          <dt class="rubric-score">5</dt><dd>legally mandated access for state or accredited evaluators before external and consequential internal deployment, with evaluations conducted and reported</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>Incident and emergency preparedness <code>incident_emergency_preparedness</code></h4>
+        <p>Whether the state can learn of a catastrophic AI incident and act on it. Applies on every track.</p>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>none of elements (a) to (c) exists or is planned</dd>
+          <dt class="rubric-score">2</dt><dd>one or more planned or recommended only (a strategy, guideline or bill not yet enacted)</dd>
+          <dt class="rubric-score">3</dt><dd>one element in force, or several enacted but not yet applicable</dd>
+          <dt class="rubric-score">4</dt><dd>two of the three in force</dd>
+          <dt class="rubric-score">5</dt><dd>all three in force, with a reporting deadline of 72 hours or less (24 hours where harm is imminent) and legal authority to restrict or halt the deployment of an AI model</dd>
+        </dl>
+      </div>
+      <div class="rubric-sub">
+        <h4>International coordination <code>international_coordination</code></h4>
+        <p>Frontier-specific international commitments and joint work. Applies on every track; computed from public lists, never researched by the model.</p>
+        <dl>
+          <dt class="rubric-score">1</dt><dd>no AI summit text, network membership or frontier-safety dialogue</dd>
+          <dt class="rubric-score">2</dt><dd>only broad AI declarations (Paris 2025, New Delhi 2026)</dd>
+          <dt class="rubric-score">3</dt><dd>a signatory of a frontier-specific text (the Bletchley Declaration, a Seoul text, or the 2026 Call for Control of Frontier AI Models), a network member without one, or a party to a standing bilateral frontier-safety dialogue</dd>
+          <dt class="rubric-score">4</dt><dd>a measurement-network member that signed a frontier-specific text</dd>
+          <dt class="rubric-score">5</dt><dd>a network member that signed the Bletchley Declaration and a Seoul text and holds a leading role in joint evaluation or verification</dd>
+        </dl>
+      </div>
+    </div>
+    <p>
+      International coordination is computed from public lists in
+      <a href="/data/frontier_international.json"><code>frontier_international.json</code></a>:
+      the signatories of the Bletchley Declaration, the Seoul Declaration and
+      Ministerial Statement, the 2026 Call for Control of Frontier AI Models,
+      the Paris (2025) and New Delhi (2026) summit statements, the members of
+      the International Network for Advanced AI Measurement, Evaluation and
+      Science, standing bilateral frontier-safety dialogues that met in the
+      past year, and current leading roles in joint evaluation. Signing the
+      latest summit text is deliberately weak evidence: those signatures track
+      diplomacy as much as commitment.
+    </p>
+
+    <h3 id="frontier-aggregation">How the score is built</h3>
+    <p>
+      The Frontier Risk Governance score is the mean of the sub-indicators
+      that apply on the country's track, <strong>capped at the lowest of them
+      plus one</strong>. One weak element caps the whole score, so strength
+      elsewhere cannot hide it: a world-class evaluator without a binding
+      frontier regime does not score as if it had one. The
+      <a href="https://www.oecd.org/content/dam/oecd/en/publications/reports/2008/08/handbook-on-constructing-composite-indicators-methodology-and-user-guide_g1gh9301/9789264043466-en.pdf" rel="noopener noreferrer">OECD/JRC Handbook on composite indicators</a>
+      recommends non-compensatory aggregation where components are not
+      substitutes. If any applicable sub-indicator is insufficient evidence,
+      the score is insufficient evidence. Scores can be compared across
+      tracks only on the two sub-indicators every track shares.
+    </p>
+    <p>
+      Frontier hosts and compute or chokepoint countries are researched in
+      depth on the lens; global-track countries get one or two targeted
+      searches, since one question applies to them. The lens has its own
+      sources and passes the same <a href="#update-cadence">stability gate</a>
+      as the other dimensions in a decision of its own, so frontier evidence
+      never moves another score. Its gold-set entries are published in
+      <a href="/data/gold_set.json"><code>gold_set.json</code></a> with their own
+      draft or verified status, and every drift check reports the lens's
+      mean signed error, so a model that leans high or low on it shows.
+    </p>
+
+    <h3 id="frontier-references">Reference frameworks</h3>
+    <ul>
+      <li><strong>Risk taxonomy:</strong> the
+        <a href="https://internationalaisafetyreport.org/publication/international-ai-safety-report-2026" rel="noopener noreferrer">International AI Safety Report 2026</a>
+        (malicious use, malfunctions including loss of control, systemic
+        risks) and the four systemic risks of the
+        <a href="https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai" rel="noopener noreferrer">EU General-Purpose AI Code of Practice</a>,
+        which CSET calls
+        <a href="https://cset.georgetown.edu/article/eu-ai-code-safety/" rel="noopener noreferrer">"a minimum standard"</a>
+        for frontier risk management.</li>
+      <li><strong>Obligation checklist:</strong> METR's
+        <a href="https://metr.org/notes/2026-01-29-frontier-ai-safety-regulations/" rel="noopener noreferrer">comparison of frontier AI safety regulations</a>.</li>
+      <li><strong>Binding versus voluntary:</strong> the accountability chain in
+        <a href="https://arxiv.org/abs/2608.19278" rel="noopener noreferrer">"Mapping General-Purpose AI Governance in Twenty AI Middle-Power Jurisdictions"</a>.</li>
+      <li><strong>The leading edge:</strong> IAPS's
+        <a href="https://www.iaps.ai/research/priorities-for-frontier-ai-policy" rel="noopener noreferrer">Priorities for Frontier AI Policy</a>
+        (September 2026), which moves the standard to internal deployment and
+        model-weight security.</li>
+      <li><strong>Structure:</strong> the
+        <a href="https://www.ntiindex.org/about-the-nti-index/" rel="noopener noreferrer">NTI Index</a>
+        for tracks and the OECD/JRC Handbook for aggregation.</li>
+    </ul>
+    <p>
+      The research behind these choices, with every source, is in
+      <a href="https://github.com/riadeane/airegulationmap/blob/main/docs/research/frontier-risk-governance-scoring.md" rel="noopener noreferrer">the project's research report</a>.
+    </p>
+
+    <h3 id="frontier-critics">Criticism of this framing</h3>
+    <p>
+      A frontier-risk score is contested, and its critics are cited here
+      alongside its sources. The literature on the
+      <a href="https://arxiv.org/html/2603.14495" rel="noopener noreferrer">divide between AI ethics and AI safety</a>
+      describes "present-day harms" set against "long-term risks", and
+      critics argue that the safety field's ties to effective altruism foster
+      ideological homogeneity. The
+      <a href="https://firstmonday.org/ojs/index.php/fm/article/view/13636" rel="noopener noreferrer">TESCREAL critique</a>
+      ties the pursuit of general AI to a bundle of ideologies, and the
+      <a href="https://ainowinstitute.org/publications/research/ai-now-2025-landscape-report" rel="noopener noreferrer">AI Now Institute</a>
+      argues that general-AI and race narratives obscure structural harms and
+      market concentration. From inside the technical community, some argue
+      that safety rules favouring closed models amount to regulatory
+      capture, and
+      <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5278644" rel="noopener noreferrer">Se&aacute;n &Oacute; h&Eacute;igeartaigh</a>
+      warns that the US-China "AI race" framing has been used to justify
+      less oversight. Two biases are handled in the anchors: export controls,
+      which much of the world experiences as imposed from outside, are not
+      credited for their own sake, and binding state rules count as much as
+      the voluntary company commitments that dominate Western practice.
+      <a href="https://arxiv.org/abs/2502.09288" rel="noopener noreferrer">Gyevnar and Kasirzadeh</a>
+      argue for treating the two concerns side by side rather than merging
+      them, which is why this lens sits beside the others and changes none
+      of them.
+    </p>
+
+    <h3 id="frontier-validity">Validity</h3>
+    <div class="callout">
+      <strong>An audit against a stated standard, not a measure of safety.</strong>
+      No study links any of these governance indicators to lower catastrophic
+      risk. The Global Health Security Index, which scored countries'
+      preparedness on paper, was
+      <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10910940/" rel="noopener noreferrer">associated with worse COVID-19 outcomes</a>.
+      Read a Frontier Risk Governance score as a transparent check of whether
+      a state can see, test and stop a dangerous model against the standard
+      above, not as a statement of how safe the country is.
+    </div>
+    <p>
+      To check that the lens measures something other than readiness, its
+      correlation with the OECD.AI Index's AI Safety Institute network flag,
+      the Global Index on Responsible AI's Trust and Safety score and Oxford
+      Insights' Resilience pillar will be published here after the first full
+      run. A high correlation would mean the lens is re-measuring readiness.
+    </p>
+
     <h2 id="confidence">Confidence levels</h2>
     <p>Each country record carries a confidence label that reflects how much public, primary evidence was available to the research pass.</p>
     <ul>
@@ -794,6 +1070,7 @@
       <li><strong>v3.1, September 2026.</strong> The v3 anchors plus an <a href="#insufficient-evidence">insufficient evidence</a> value, which is no longer scored as 1. The tie-break toward the lower of two levels now applies only when the evidence supports both. Countries with thin source coverage can move up at this break because gaps stop counting as absences.</li>
       <li><strong>v3.2, October 2026.</strong> Tighter anchors. The first v3.1 run gave 5s on the strength of a single instrument, counted sub-national law and general law applied to AI, and told the model that leading jurisdictions reach 5 on most sub-indicators. A 5 now needs every element of its anchor in force, applicable and exercised (anything deferred or not yet used caps at 4); only the national level counts, with EU law counting for EU members; general law with no provision written for AI scores at most 2; a rule for one use case scores at most 3 on binding force and 2 on scope; and every implementation sub-indicator defines all five levels. Implementation scores move down at this break, most where a high score rested on one instrument, deferred obligations or state law. The one v3.1 run (28 September 2026) did not land in the dataset files, so the v3.2 break is the one that follows v2 in <code>history.json</code>.</li>
     </ul>
+    <p>The <a href="#frontier-risk-governance">Frontier Risk Governance</a> lens (October 2026) has its own anchors generation, <code>f1</code>, recorded with every frontier score. Adding it left the five dimensions' rubric unchanged, so it is not a break in their series; a later change to the frontier anchors breaks the frontier series only.</p>
     <p>Each break is recorded in <code>history.json</code> under <code>breaks</code> with its date, model, prompt version, and reason; the v3.2 break is recorded there when the first full v3.2 run lands (v3, v3.1 and v3.2 followed each other before a full run landed, so that run records a single break from v2). The timeline marks the date, and a country's score history labels changes on that date as a recalibration rather than a policy change. A relative view (a score divided by that week's maximum) is a possible display option for the frontend; it is never the stored number.</p>
 
     <h2 id="limitations">Known limitations</h2>
