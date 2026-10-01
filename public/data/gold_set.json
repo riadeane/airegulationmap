@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "rubric": "v3.1-2026-09",
-  "notes": "Hand-verifiable sub-indicator scores for ten countries across the maturity range, scored against the fixed anchors of the v3 rubric in scripts/regulation_pipeline/prompt.py. Every entry is a draft: an agent drafted it on 2026-09-23 from the dataset's June 2026 sub-indicators, their cited sources and the listed primary sources. A country becomes verified only when the maintainer has checked each of its 20 scores against the listed sources, set status to verified and recorded verified_on; re-verify each quarter. Eight countries come from the former priority-country list, removed in #41 (Chile is left out as the closest profile to Brazil) and two (Bhutan, Kiribati) are low-coverage countries where thin web coverage tests the model's floor. The pipeline compares each run's raw results with these scores (gold.py) and appends the agreement to drift.json.",
+  "notes": "Hand-verifiable sub-indicator scores for ten countries across the maturity range, scored against the fixed anchors of the v3 rubric in scripts/regulation_pipeline/prompt.py. Every entry is a draft: an agent drafted it on 2026-09-23 from the dataset's June 2026 sub-indicators, their cited sources and the listed primary sources. A country becomes verified only when the maintainer has checked each of its 20 scores against the listed sources, set status to verified and recorded verified_on; re-verify each quarter. Eight countries come from the former priority-country list, removed in #41 (Chile is left out as the closest profile to Brazil) and two (Bhutan, Kiribati) are low-coverage countries where thin web coverage tests the model's floor. The pipeline compares each run's raw results with these scores (gold.py) and appends the agreement to drift.json. Frontier Risk Governance (PRD 15): each country also carries a frontier block, with its own status, scoring the sub-indicators its track asks the model to research (international_coordination is computed, never gold). Drafted on 2026-10-01 from a sourced fact dossier under the maintainer's decisions of that day (national level only, a voluntary regime can reach 4 on evaluation_oversight, tracks per frontier_tracks.json); FLAG lines in a justification mark placements a strict reader could move. The lens does not launch on draft frontier gold scores.",
   "countries": [
     {
       "country": "China",
@@ -52,7 +52,25 @@
         "https://www.cac.gov.cn/2022-01/04/c_1642894606364259.htm",
         "https://www.tc260.org.cn",
         "https://oecd.ai/en/dashboards/countries/China"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "H",
+        "subscores": {
+          "developer_obligations": 3,
+          "evaluation_oversight": 3,
+          "incident_emergency_preparedness": 3
+        },
+        "justification": "developer_obligations 3: the amended Cybersecurity Law's AI clause (in force 1 Jan 2026) and mandatory generative AI security assessment and filing bind developers, but there is no frontier threshold, safety framework duty or model-access power; TC260's AI Safety Governance Framework 3.0 (14 Sep 2026) is not binding. evaluation_oversight 3: CAC's mandatory pre-launch assessment tests content security, not catastrophic risk; CAICT's AI Safety Benchmark 2.0 tests deception, loss of control and dangerous-domain misuse, with a limited public record; CnAISDA has no dedicated staff or budget. FLAG: the PRD's illustration placed China at 2. incident_emergency_preparedness 3: the National Emergency Response Plan (Feb 2025) lists AI safety as a monitoring item under CAC coordination (element c); cyber incident reporting and the public-reporting clause are general law, not AI-specific, so they do not count.",
+        "sources": [
+          "https://www.gov.cn/gongbao/2025/issue_11926/202503/content_7014002.html",
+          "https://www.cac.gov.cn/2025-12/29/c_1768735112911946.htm",
+          "https://aisafetychina.substack.com/p/state-of-ai-safety-in-china-2026",
+          "https://ai-frontiers.org/articles/is-china-serious-about-ai-safety"
+        ]
+      }
     },
     {
       "country": "Japan",
@@ -103,7 +121,23 @@
         "https://www8.cao.go.jp/cstp/ai/",
         "https://fpf.org/blog/understanding-japans-ai-promotion-act-an-innovation-first-blueprint-for-ai-regulation/",
         "https://www.twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/japan"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "C",
+        "subscores": {
+          "evaluation_oversight": 3,
+          "incident_emergency_preparedness": 2
+        },
+        "justification": "Track C as a chip-supply chokepoint (Tokyo Electron, Lasertec, photoresists; #159). evaluation_oversight 3: J-AISI (inside IPA, 31 staff, JPY 8.8bn FY2025 supplementary budget) has taken part in network joint testing but has no pre-release access agreement and no published pre-deployment evaluation; the Second AI Basic Plan (14 Jul 2026) plans proactive evaluation of frontier AI. Compute visibility: chip-equipment export licensing and strengthened catch-all controls, no domestic KYC for cloud or GPU customers. incident_emergency_preparedness 2: incident collection and crisis information sharing are planned in the Basic Plan; the AI Promotion Act has no reporting duty; the Whistleblower Protection Act is general law.",
+        "sources": [
+          "https://www8.cao.go.jp/cstp/ai/ai_plan/aiplan_eng_20260714.pdf",
+          "https://www.shugiin.go.jp/internet/itdb_gian.nsf/html/gian/honbun/houan/g21709029.htm",
+          "https://sgaisi.sg/"
+        ]
+      }
     },
     {
       "country": "United States of America",
@@ -155,7 +189,25 @@
         "https://leg.colorado.gov/bills/sb24-205",
         "https://www.ai.gov/",
         "https://www.kslaw.com/news-and-insights/new-state-ai-laws-are-effective-on-january-1-2026-but-a-new-executive-order-signals-disruption"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "H",
+        "subscores": {
+          "developer_obligations": 2,
+          "evaluation_oversight": 4,
+          "incident_emergency_preparedness": 2
+        },
+        "justification": "National level only (#158). developer_obligations 2: no federal statute binds frontier developers; EO 14409 (June 2026) and the 29 Sep 2026 White House frontier-safety accord are voluntary. California SB 53 and New York's RAISE Act are sub-national and do not count. evaluation_oversight 4: CAISI (renamed CAISSI on 29 Sep 2026) holds voluntary pre-deployment agreements with OpenAI, Anthropic, Google DeepMind, Microsoft and xAI and reports more than 40 evaluations. FLAG: no agreement with Meta, no published pre-deployment report on a US model since December 2024, and no permanent director since 20 Jul 2026; a strict reader could give 3. incident_emergency_preparedness 2: federal incident reporting and halt authority are planned (America's AI Action Plan, July 2025) and the AI Whistleblower Protection Act (S.1792) is only proposed.",
+        "sources": [
+          "https://www.nist.gov/news-events/news/2025/09/caisi-works-openai-and-anthropic-promote-secure-ai-innovation",
+          "https://www.nist.gov/news-events/news-updates/tag/2810121",
+          "https://www.whitehouse.gov/wp-content/uploads/2025/07/Americas-AI-Action-Plan.pdf",
+          "https://www.congress.gov/bill/119th-congress/senate-bill/1792"
+        ]
+      }
     },
     {
       "country": "Germany",
@@ -206,7 +258,25 @@
         "https://www.gleisslutz.com/en/know-how/federal-government-draft-bill-implement-eu-artificial-intelligence-act",
         "https://www.activemind.legal/guides/ki-mig/",
         "https://www.ki-strategie-deutschland.de/"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "C",
+        "subscores": {
+          "evaluation_oversight": 4,
+          "incident_emergency_preparedness": 4
+        },
+        "justification": "Track C as a chip-supply chokepoint (Carl Zeiss SMT EUV optics, Trumpf drive lasers; #159). EU law counts as national law. evaluation_oversight 4: the EU AI Office's legal mandate to evaluate and access general-purpose AI models with systemic risk (AI Act Art. 92) is enforceable since 2 Aug 2026 but not yet exercised (requests for information only); AISI Deutschland (BSI and Bundesnetzagentur, since 31 Aug 2026) has no legal powers. FLAG: 2 if only national bodies counted. incident_emergency_preparedness 4: (a) AI Act Art. 55 serious-incident reporting to the AI Office is in force and has been used (OpenAI filing confirmed 7 Sep 2026); (b) KI-MIG (in force 29 Jul 2026) adds AI Act breaches to the Whistleblower Protection Act; (c) no AI in a German national emergency plan.",
+        "sources": [
+          "https://www.gesetze-im-internet.de/ki-mig/BJNR0DF0B0026.html",
+          "https://artificialintelligenceact.eu/article/92/",
+          "https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai",
+          "https://thenextweb.com/news/openai-eu-incident-report-german-wiki",
+          "https://bmds.bund.de/aktuelles/pressemitteilungen/detail/aisi-deutschland-gegruendet"
+        ]
+      }
     },
     {
       "country": "United Kingdom",
@@ -257,7 +327,25 @@
         "https://www.gov.uk/government/publications/ai-opportunities-action-plan",
         "https://www.legislation.gov.uk/ukpga/2025/18/contents",
         "https://bills.parliament.uk/bills/3942"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "H",
+        "subscores": {
+          "developer_obligations": 2,
+          "evaluation_oversight": 4,
+          "incident_emergency_preparedness": 2
+        },
+        "justification": "Track H through Google DeepMind's London headquarters (#159). developer_obligations 2: no frontier AI bill (none in the King's Speech of 13 May 2026); duties are voluntary company commitments and research partnerships. evaluation_oversight 4: the AI Security Institute (about GBP 66m a year, 100+ technical staff) has voluntary pre-deployment access to leading models and a public record (GPT-6 Astra tested before release, joint Kimi K3 assessment with CAISI). FLAG: it was left out of pre-release testing of Claude Mythos 5.1 after a US request in September 2026. incident_emergency_preparedness 2: an agentic AI incident response capability is committed (HCWS314, 7 Sep 2026) but no statutory AI incident reporting exists; the Public Interest Disclosure Act is general law with no AI provision; the National Risk Register 2025 treats AI as a chronic risk, not an emergency.",
+        "sources": [
+          "https://www.aisi.gov.uk/about",
+          "https://www.aisi.gov.uk/blog",
+          "https://questions-statements.parliament.uk/written-statements/detail/2026-09-07/hcws314",
+          "https://assets.publishing.service.gov.uk/media/67b5f85732b2aab18314bbe4/National_Risk_Register_2025.pdf"
+        ]
+      }
     },
     {
       "country": "Singapore",
@@ -308,7 +396,21 @@
         "https://www.pdpc.gov.sg/help-and-resources/2020/01/model-ai-governance-framework",
         "https://aiverifyfoundation.sg/",
         "https://www.mas.gov.sg/news/media-releases/2025/mas-guidelines-for-artificial-intelligence-risk-management"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "G",
+        "subscores": {
+          "incident_emergency_preparedness": 2
+        },
+        "justification": "Track G: no frontier developer and no operational site of 50,000 H100e (#159). incident_emergency_preparedness 2: incident reporting is a voluntary dimension of the Model AI Governance Framework for Generative AI (2024) and the Agentic AI framework (2026) recommends escalation paths; no AI whistleblower statute (protections are sector-specific); no AI in a national emergency plan found.",
+        "sources": [
+          "https://www.morganlewis.com/pubs/2024/07/singapore-expands-its-ai-governance-approach-to-include-generative-ai",
+          "https://cms.law/en/int/expert-guides/whistleblower-protection-and-reporting-channels/singapore"
+        ]
+      }
     },
     {
       "country": "Brazil",
@@ -359,7 +461,21 @@
         "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm",
         "https://www.gov.br/anpd/pt-br",
         "https://www.loc.gov/item/global-legal-monitor/2025-05-23/brazil-senate-advances-discussions-on-bill-to-regulate-ai-use/"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "G",
+        "subscores": {
+          "incident_emergency_preparedness": 2
+        },
+        "justification": "incident_emergency_preparedness 2: PL 2338/2023 (Senate-approved December 2024) Art. 42 would require reporting of serious security incidents, but the bill is still with the Chamber's special committee, with a vote expected after the October 2026 elections; no AI whistleblower provision or AI in a national emergency plan found.",
+        "sources": [
+          "https://www.camara.leg.br/proposicoesWeb/prop_mostrarintegra?codteor=3106629&filename=Avulso+PL+2338%2F2023",
+          "https://monitor.lcfconsulting.com.br/proposicoes/pl-2338-2023/"
+        ]
+      }
     },
     {
       "country": "Kenya",
@@ -410,7 +526,21 @@
         "https://www.odpc.go.ke/",
         "https://ict.go.ke/",
         "https://www.kictanet.or.ke/document/memorandum-on-the-artificial-intelligence-bill-2026-senate-bills-no-4-of-2025/"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "G",
+        "subscores": {
+          "incident_emergency_preparedness": 1
+        },
+        "justification": "incident_emergency_preparedness 1: the Artificial Intelligence Bill, 2026 (Senate Bills No. 4 of 2026) sets up an AI Commissioner and risk tiers but no incident reporting, whistleblower protection or emergency powers, and the National AI Strategy 2025-2030 plans an AI risk and safety institute but none of the three elements (both read in full).",
+        "sources": [
+          "https://www.parliament.go.ke/sites/default/files/2026-04/Bill%20Digest%20-%20The%20Artificial%20Intelligence%20Bill,%20No.4%20of%202026.pdf",
+          "https://ict.go.ke/node/641"
+        ]
+      }
     },
     {
       "country": "Bhutan",
@@ -460,7 +590,20 @@
         "https://tech.gov.bt/wp-content/uploads/2025/10/National-AI-Strategy-2025.pdf",
         "https://tech.gov.bt/guideline-for-generative-artificial-intelligence-usage-in-the-civil-service-2024/",
         "https://tech.gov.bt/publications/"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "G",
+        "subscores": {
+          "incident_emergency_preparedness": 1
+        },
+        "justification": "incident_emergency_preparedness 1: the National AI Strategy 2025 mentions no AI incident reporting, whistleblower protection or AI emergency planning, and folds AI risk assessment into cybersecurity guidelines; no AI bill found. FLAG: the Disaster Management Act was not checked for AI.",
+        "sources": [
+          "https://tech.gov.bt/wp-content/uploads/2025/10/National-AI-Strategy-2025.pdf"
+        ]
+      }
     },
     {
       "country": "Kiribati",
@@ -509,7 +652,20 @@
       "sources": [
         "https://www.mict.gov.ki",
         "https://oecd.ai/en/dashboards/countries/Kiribati"
-      ]
+      ],
+      "frontier": {
+        "status": "draft",
+        "verified_on": null,
+        "drafted_on": "2026-10-01",
+        "track": "G",
+        "subscores": {
+          "incident_emergency_preparedness": 1
+        },
+        "justification": "incident_emergency_preparedness 1: the Ministry of Information, Communications and Transport Strategic Plan 2025-2028 does not mention AI, and there is no national AI strategy. FLAG: the national disaster risk management plan was not checked for AI.",
+        "sources": [
+          "https://www.mict.gov.ki/sites/default/files/publications/MSP%202025-28_FINAL_19%20June%202025.pdf"
+        ]
+      }
     }
   ]
 }

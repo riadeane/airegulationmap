@@ -320,8 +320,10 @@ FRONTIER_ANCHORS: dict[str, str] = {
 # What the three elements of incident_emergency_preparedness are.
 FRONTIER_INCIDENT_ELEMENTS = (
     "(a) statutory AI incident reporting to a named agency with a fixed deadline; "
-    "(b) statutory whistleblower protection that covers disclosures of catastrophic AI "
-    "risk; (c) AI risk in a national emergency or crisis plan with a designated lead"
+    "(b) statutory whistleblower protection written for or extended to AI (for example "
+    "covering breaches of an AI law or disclosures about frontier models); (c) AI risk in a "
+    "national emergency or crisis plan with a designated lead. General incident or "
+    "whistleblower law with no provision for AI does not count for (a) or (b)"
 )
 
 _TRACK_MEANING = {
