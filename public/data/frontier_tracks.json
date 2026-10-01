@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-01",
+  "h_threshold_flop": 1e+25,
+  "rules": {
+    "H": "Home to the developer of a model at or above 1e25 FLOP of training compute in Epoch AI's model data: Epoch's Training compute column, or, where Epoch left that blank, an Epoch point estimate in the record's notes or in Epoch's published list of models over 1e25 FLOP (upper bounds do not count). A developer counts at Epoch's country and, where Epoch codes it under its parent company, at its own headquarters too. Decided by the maintainer on 2026-10-01 (#159).",
+    "C": "Not on track H, and either an operational site or cluster of at least 50,000 H100-equivalents in Epoch AI's AI data centres hub or GPU clusters data, or the host of a sole or majority global supplier of a step without which leading-edge AI accelerators cannot be made (leading-edge logic fabrication, 2.5D advanced packaging, EUV lithography or its optics and lasers, HBM memory, EDA, EUV process tools and photoresists). Publicly licensed chip exports to a planned site do not count. Decided by the maintainer on 2026-10-01 (#159).",
+    "G": "Every country not listed here."
+  },
+  "notes": "Assigned by the maintainer from data, never by the research model, and reviewed each quarter. Epoch snapshot: all_ai_models.csv and data_centers.csv downloaded 2026-10-01. Names match public/scores.csv.",
+  "countries": [
+    {
+      "country": "United States of America",
+      "track": "H",
+      "basis": "Epoch AI's model data (all_ai_models.csv, downloaded 2026-10-01) lists 18 US models at or above 1e25 FLOP from eight developers (OpenAI, xAI, Meta AI, Google DeepMind, Anthropic, Nvidia, Cursor, Inflection AI), the largest being OpenAI's GPT-6 Astra at about 1e27 FLOP (Likely), and OpenAI and xAI also clear 1e26 (GPT-4.5 3.8e26 and Grok 3 3.5e26, both Likely).",
+      "sources": [
+        "https://epoch.ai/data/ai-models",
+        "https://epoch.ai/data/all_ai_models.csv"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "China",
+      "track": "H",
+      "basis": "Epoch AI lists five Chinese developers at or above 1e25 FLOP (ByteDance Doubao-pro 2.5e25 Likely, Moonshot Kimi K3 2.0e25 Speculative, Alibaba Qwen3-Max 1.5e25 Speculative, Huawei Pangu Ultra 1.07e25 Confident, Meituan LongCat-2.0 1.01e25 Likely) but none at 1e26.",
+      "sources": [
+        "https://epoch.ai/data/all_ai_models.csv",
+        "https://arxiv.org/abs/2504.07866"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "Saudi Arabia",
+      "track": "H",
+      "basis": "Epoch AI lists Saudi Aramco's unreleased Metabrain AI (March 2024) at 1.05e25 FLOP (Likely, from 250B parameters x 7T tokens), the only Saudi model at or above 1e25 and only 5% over the line; Saudi Arabia would otherwise be C as a recipient of US-licensed exports (HUMAIN, up to 35,000 GB300-class chips, November 2025).",
+      "sources": [
+        "https://epoch.ai/data/all_ai_models.csv",
+        "https://epoch.ai/data-insights/models-over-1e25-flop",
+        "https://www.offshore-technology.com/news/saudi-aramco-unveils-industry-first-generative-ai-model/"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "United Kingdom",
+      "track": "H",
+      "basis": "Rule-dependent: Google DeepMind, headquartered in London, has Epoch estimates above 1e25 FLOP (Gemini 1.0 Ultra 5e25 Speculative; Gemini 1.5 Pro 1.58e25 in notes), and Epoch coded it US, UK, Canada, France and Multinational in its June 2025 list of 1e25 models but codes it US only in the October 2026 file, so H holds only under the headquarters clause; failing that the UK is C via Google's Waltham Cross site (123,800 H100e operational in Epoch's AI data centres hub).",
+      "sources": [
+        "https://epoch.ai/data-insights/models-over-1e25-flop",
+        "https://en.wikipedia.org/wiki/Google_DeepMind",
+        "https://epoch.ai/data/ai-data-centers"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "France",
+      "track": "H",
+      "basis": "Rule-dependent and contested: Epoch's June 2025 list of models over 1e25 FLOP included Mistral AI's Mistral Large (1.1e25) and Mistral Large 2 (2.1e25), both Likely, but the October 2026 file leaves both compute values blank and now calls the Mistral Large 2 figure an upper bound, so France is H only if Epoch estimates in notes or published lists count, and otherwise meets no C criterion and falls to G.",
+      "sources": [
+        "https://epoch.ai/data-insights/models-over-1e25-flop",
+        "https://epoch.ai/data/all_ai_models.csv"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "Malaysia",
+      "track": "C",
+      "basis": "Epoch's AI data centres hub (updated 2026-10-01) estimates DayOne Kempas at 480,639 H100e and DayOne Nusajaya at 281,670 H100e operational in Johor (owners and users not given), the largest sites outside the US and 5.4% of all compute the hub tracks; Malaysia also performs about 13% of global chip assembly, test and packaging.",
+      "sources": [
+        "https://epoch.ai/data/ai-data-centers",
+        "https://epoch.ai/data/data_centers/data_centers.csv",
+        "https://www.mida.gov.my/mida-news/securing-malaysias-position-in-the-global-semiconductor-supply-chain/"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "Indonesia",
+      "track": "C",
+      "basis": "Epoch's AI data centres hub estimates Oracle Batam at 84,386 H100e operational since May 2025 (owner Oracle, likely; user Tencent, speculative), above the 50,000 H100e line.",
+      "sources": [
+        "https://epoch.ai/data/ai-data-centers",
+        "https://epoch.ai/data/data_centers/data_centers.csv"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "Norway",
+      "track": "C",
+      "basis": "Epoch's AI data centres hub estimates CoreWeave Norway at 50,773 H100e operational since July 2025 (user OpenAI, speculative), only 1.5% above the 50,000 H100e line, with Microsoft Narvik projected at up to 265,285 H100e from end-2026.",
+      "sources": [
+        "https://epoch.ai/data/ai-data-centers",
+        "https://epoch.ai/data/data_centers/data_centers.csv"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "Taiwan",
+      "track": "C",
+      "basis": "Supply-chain chokepoint: TSMC fabricates almost all leading-edge AI accelerators and holds most CoWoS advanced-packaging capacity; Epoch's largest Taiwanese cluster is only 1,024 H100e and no Taiwanese model has a compute estimate.",
+      "sources": [
+        "https://cset.georgetown.edu/publication/the-semiconductor-supply-chain/",
+        "https://www.trendforce.com/news/2026/04/28/news-tsmc-cowos-wafer-asp-reportedly-nears-7nm-levels-advanced-packaging-poised-to-become-a-key-profit-driver/"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "Netherlands",
+      "track": "C",
+      "basis": "Supply-chain chokepoint: ASML is the only maker of the EUV lithography systems needed for leading-edge logic and HBM; Epoch's largest Dutch cluster is 443 H100e.",
+      "sources": [
+        "https://www.asml.com/en/products/euv-lithography-systems",
+        "https://cset.georgetown.edu/publication/the-semiconductor-supply-chain/"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "Germany",
+      "track": "C",
+      "basis": "Supply-chain chokepoint: Carl Zeiss SMT is the sole supplier of EUV optics and Trumpf of the EUV drive lasers in ASML systems; Germany also hosts JUPITER (23,536 H100e in Epoch's GPU clusters data), below the 50,000 H100e line, and no German model in Epoch exceeds 4.5e23 FLOP.",
+      "sources": [
+        "https://www.zeiss.com/semiconductor-manufacturing-technology/smt-magazine/euv-lithography-as-an-european-joint-project.html",
+        "https://www.zeiss.com/content/dam/smt/campaigns/dzp/200907_zeiss_trumpf_iof_joint_pi_dzp_en.pdf",
+        "https://epoch.ai/data/gpu-clusters"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "South Korea",
+      "track": "C",
+      "basis": "Supply-chain chokepoint: SK hynix (50%) and Samsung (33%) held 83% of global HBM revenue in Q2 2026 (Counterpoint); Epoch lists no Korean model above 3.9e24 FLOP (LG EXAONE 4.5) and no cluster above 2,496 H100e.",
+      "sources": [
+        "https://en.sedaily.com/finance/2026/09/03/samsung-doubles-hbm-market-share-to-33-percent-narrowing",
+        "https://cset.georgetown.edu/publication/the-semiconductor-supply-chain/"
+      ],
+      "reviewed_on": "2026-10-01"
+    },
+    {
+      "country": "Japan",
+      "track": "C",
+      "basis": "Supply-chain chokepoint: Tokyo Electron (EUV coater/developers), Lasertec (EUV mask inspection) and JSR, TOK and Shin-Etsu (photoresists, wafers) dominate steps with no ready substitute; Epoch lists no Japanese model above 1.2e24 FLOP and no cluster above 6,128 H100e.",
+      "sources": [
+        "https://cset.georgetown.edu/publication/the-semiconductor-supply-chain/",
+        "https://csis-website-prod.s3.amazonaws.com/s3fs-public/2023-05/230530_Thadani_MappingSemiconductor_SupplyChain.pdf"
+      ],
+      "reviewed_on": "2026-10-01"
+    }
+  ]
+}

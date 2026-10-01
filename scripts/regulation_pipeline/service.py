@@ -10,6 +10,11 @@ service only orchestrates applying, validating the dataset, and saving.
 
 Every applied result also records its research provenance (PRD 14) in the
 country's subscores.json entry, tagged with this run's id.
+
+With a :class:`~regulation_pipeline.frontier.FrontierContext` (PRD 15) each
+result's Frontier Risk Governance block is assembled into a record, gated
+on its own (:func:`gate.decide_frontier`) and applied after the five
+dimensions, so the lens never changes whether they land.
 """
 
 from __future__ import annotations
@@ -22,13 +27,15 @@ from typing import TYPE_CHECKING
 
 from . import gate
 from .errors import FatalAPIError
-from .models import ResearchResult, format_score
+from .gate import GateTally
+from .models import FrontierRecord, ResearchResult, format_score
 from .repository import Dataset
 from .staleness import StalenessPolicy
 from .strategies import ResearchStrategy
 
 if TYPE_CHECKING:  # avoid importing the db layer unless a mirror is used
     from .db.mirror import Mirror
+    from .frontier import FrontierContext
     from .links import LinkChecker
 
 logger = logging.getLogger(__name__)
@@ -63,7 +70,9 @@ class RunResult:
     ``raw_results`` holds every validated result the strategy returned, by
     country, exactly as the model scored it: before the stability gate, so
     a held result is present with its candidate scores. The drift check
-    reads these so it measures the model, not the gate.
+    reads these so it measures the model, not the gate. ``raw_frontier``
+    holds the assembled Frontier Risk Governance records the same way, and
+    ``frontier_gate`` the lens's own gate tally.
     """
 
     updated: int
@@ -74,6 +83,9 @@ class RunResult:
     changes: tuple[CountryChange, ...] = field(default_factory=tuple)
     calibration_break: dict | None = None
     raw_results: dict[str, ResearchResult] = field(default_factory=dict)
+    raw_frontier: dict[str, FrontierRecord] = field(default_factory=dict)
+    # GateTally by name: the ``gate`` field above shadows the module here.
+    frontier_gate: GateTally = field(default_factory=GateTally)
 
 
 class PipelineService:
@@ -88,6 +100,7 @@ class PipelineService:
         calibration_break: dict | None = None,
         run_id: str | None = None,
         link_checker: LinkChecker | None = None,
+        frontier: FrontierContext | None = None,
     ):
         self._dataset = dataset
         self._staleness = staleness
@@ -111,6 +124,11 @@ class PipelineService:
         # as it was.
         self._links = link_checker
         self._dead_links = 0
+        # Frontier Risk Governance (PRD 15): assembles each answer's frontier
+        # block. Without it a result's frontier block (if any) is ignored.
+        self._frontier = frontier
+        self._raw_frontier: dict[str, FrontierRecord] = {}
+        self._frontier_tally = gate.GateTally()
 
     def select(self, targets: list[str] | None, *, force: bool) -> tuple[list[str], list[str]]:
         """Return ``(all_targets, to_update)``. ``targets`` is an explicit
@@ -229,7 +247,8 @@ class PipelineService:
         return RunResult(
             updated=updated, failed=sorted(set(failed)), fatal=fatal, gate=tally,
             run_id=self._run_id, changes=tuple(changes), calibration_break=recorded_break,
-            raw_results=dict(raw),
+            raw_results=dict(raw), raw_frontier=dict(self._raw_frontier),
+            frontier_gate=self._frontier_tally,
         )
 
     def standing(self, country: str) -> str:
@@ -276,6 +295,7 @@ class PipelineService:
         except Exception:
             logger.exception("failed to apply result for %s", country)
             return None
+        self._apply_frontier(country, result, old_scores, old_regulation)
 
         note = "(new snapshot)" if outcome.history_added else "(no snapshot)"
         logger.info(
@@ -297,6 +317,44 @@ class PipelineService:
             rule=decision.rule,
         )
         return decision, change
+
+    def _apply_frontier(
+        self, country: str, result: ResearchResult, old_scores: dict | None, old_reg: dict | None,
+    ) -> None:
+        """Assemble, gate and apply the result's Frontier Risk Governance
+        block, after the five dimensions landed. A failure here is logged and
+        leaves the lens as it was; the five dimensions are already applied."""
+        answer = result.frontier_answer()
+        if self._frontier is None or answer is None:
+            return
+        try:
+            record = self._frontier.assemble(country, answer)
+            self._raw_frontier[country] = record
+            if self._gate_enabled:
+                decision = gate.decide_frontier(
+                    old_scores, old_reg, record, self._dataset.frontier_pending_for(country),
+                    self._today, seen_sources=self._dataset.seen_sources_for(country),
+                )
+            else:
+                decision = gate.ungated_frontier(old_scores, record)
+            self._dataset.remember_sources(
+                country,
+                gate.cited_urls((old_reg or {}).get("Frontier Sources")) | gate.cited_urls(record.sources),
+            )
+            self._dataset.apply_frontier(country, record, self._today, apply_score=decision.apply_scores)
+            self._dataset.set_frontier_pending(country, decision.pending)
+        except Exception:
+            logger.exception("failed to apply the frontier block for %s", country)
+            return
+        self._frontier_tally.add(country, decision)
+        logger.info(
+            "%s: frontier %s - %s; %s", country, decision.rule, decision.reason, record.describe(),
+        )
+        for move in decision.large_moves:
+            logger.warning(
+                "%s: large move %s %s -> %s", country, move.dimension,
+                format_score(move.old), format_score(move.new),
+            )
 
     # -- mirror plumbing (never raises) ----------------------------------------
 

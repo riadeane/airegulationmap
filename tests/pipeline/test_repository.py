@@ -22,6 +22,22 @@ def result_model(**overrides) -> ResearchResult:
     return ResearchResult.model_validate({**full_result(), **overrides})
 
 
+def _with_contract(csv_bytes: bytes, fields: list[str]) -> bytes:
+    """``csv_bytes`` as the current contract writes it: the header names
+    every field, and each row gets an empty cell for every column the file
+    lacks (always the trailing ones). Already-current bytes come back
+    unchanged."""
+    lines = csv_bytes.decode("utf-8").split("\r\n")
+    have = len(lines[0].split(","))
+    missing = len(fields) - have
+    if missing == 0:
+        return csv_bytes
+    assert lines[0].split(",") == fields[:have], "new columns must be appended at the end"
+    out = [",".join(fields)]
+    out += [line + "," * missing if line else line for line in lines[1:]]
+    return "\r\n".join(out).encode("utf-8")
+
+
 EVIDENCE = {
     "grounded": True, "initiatives_used": 7, "search": True,
     "model": "claude-test", "run_id": "run-1",
@@ -209,11 +225,25 @@ class TestPersistence:
         names = CountryNames.load(settings.country_names_json)
         Dataset.load(settings, names).save()
 
-        for rel in [
-            "public/scores.csv", "public/regulation_data.csv",
-            "public/history.json", "public/data/subscores.json",
-        ]:
+        for rel in ["public/history.json", "public/data/subscores.json"]:
             assert (tmp_path / rel).read_bytes() == (REPO_ROOT / rel).read_bytes(), rel
+        # The CSVs: byte-identical once they carry the current contract. A
+        # file written before the Frontier Risk Governance columns (PRD 15)
+        # gains them, empty, at the end of every row, and nothing else moves.
+        for rel, fields in [
+            ("public/scores.csv", SCORES_FIELDS), ("public/regulation_data.csv", REGULATION_FIELDS),
+        ]:
+            original = (REPO_ROOT / rel).read_bytes()
+            assert (tmp_path / rel).read_bytes() == _with_contract(original, fields), rel
+
+        # A second save of the saved files changes nothing.
+        saved = {
+            rel: (tmp_path / rel).read_bytes()
+            for rel in ("public/scores.csv", "public/regulation_data.csv")
+        }
+        Dataset.load(settings, names).save()
+        for rel, data in saved.items():
+            assert (tmp_path / rel).read_bytes() == data, rel
 
     def test_round_trip_with_evidence_is_byte_identical(self, tmp_path):
         # The evidence block (PRD 14) sorts inside the entry like everything

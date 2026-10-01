@@ -35,12 +35,24 @@ Evidence coverage (PRD 14): a validated result can carry a
 :class:`ResearchProvenance` - how many verified policy initiatives the prompt
 embedded, whether the model had web search, and the model id. It is attached
 by the strategy from the request it sent, never parsed from the model's answer.
+
+Frontier Risk Governance (PRD 15): a seventh, separately presented lens. A
+country sits on one track (``H`` frontier host, ``C`` compute or chokepoint,
+``G`` global), assigned by the maintainer in ``frontier_tracks.json``. The
+research answer for a country carries a ``frontier_risk`` block holding only
+the sub-indicators its track asks the model to research
+(:class:`FrontierAnswerH` / ``C`` / ``G``); ``international_coordination`` is
+computed from public lists (:mod:`frontier`), and the rest are ``"na"``. The
+assembled :class:`FrontierRecord` scores the lens: the mean of the applicable
+sub-indicators capped at the lowest plus one, or ``None`` when any of them is
+insufficient evidence. It never enters the composite.
 """
 
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from datetime import date
 from typing import Annotated, Any, ClassVar, Literal
 
 from pydantic import (
@@ -355,6 +367,29 @@ class ResearchResult(BaseModel):
         """True when any dimension is ``None`` (insufficient evidence)."""
         return any(dim.score is None for dim in self.dimensions().values())
 
+    def frontier_answer(self) -> FrontierAnswer | None:
+        """The model's Frontier Risk Governance block, or ``None`` for a
+        result researched without the lens (a plain :class:`ResearchResult`)."""
+        return getattr(self, "frontier_risk", None)
+
+    @classmethod
+    def parse(cls, raw: Any) -> ResearchResult:
+        """Validate a raw answer into the result class its shape names: a
+        ``frontier_risk`` block holding ``developer_obligations`` is a track H
+        answer, one holding ``evaluation_oversight`` but not that a track C
+        answer, any other a track G answer; no block is a plain result. The
+        request's structured-output schema fixes the shape, so the shape
+        names the track the request asked for; :meth:`frontier.FrontierContext.assemble`
+        still checks it against the country's track."""
+        block = raw.get("frontier_risk") if isinstance(raw, dict) else None
+        if not isinstance(block, dict):
+            return ResearchResult.model_validate(raw)
+        if "developer_obligations" in block:
+            return ResearchResultH.model_validate(raw)
+        if "evaluation_oversight" in block:
+            return ResearchResultC.model_validate(raw)
+        return ResearchResultG.model_validate(raw)
+
     @model_validator(mode="after")
     def _cap_unsourced_confidence(self) -> ResearchResult:
         """Keep the model self-consistent with :meth:`effective_confidence`.
@@ -398,6 +433,202 @@ class ResearchResult(BaseModel):
         ``required``) matches what the API expects.
         """
         return strip_titles(cls.model_json_schema())
+
+
+# -- Frontier Risk Governance (PRD 15) -------------------------------------------
+
+# The anchors' generation, written into every frontier record. Bump it when
+# the frontier anchors change: the lens then has a break of its own, and the
+# five dimensions' RUBRIC_VERSION stays where it is.
+FRONTIER_RUBRIC_VERSION = "f1"
+
+Track = Literal["H", "C", "G"]
+TRACKS: tuple[str, ...] = ("H", "C", "G")
+DEFAULT_TRACK = "G"
+
+# A sub-indicator that does not apply to the country's track. Assigned from
+# the track file, never by the model, and never counted as a score.
+NA = "na"
+
+# The four sub-indicators in display order, and the tracks each applies to.
+FRONTIER_SUBINDICATORS: tuple[str, ...] = (
+    "developer_obligations",
+    "evaluation_oversight",
+    "incident_emergency_preparedness",
+    "international_coordination",
+)
+FRONTIER_APPLIES: dict[str, frozenset[str]] = {
+    "developer_obligations": frozenset({"H"}),
+    "evaluation_oversight": frozenset({"H", "C"}),
+    "incident_emergency_preparedness": frozenset({"H", "C", "G"}),
+    "international_coordination": frozenset({"H", "C", "G"}),
+}
+# Computed from the committed public lists (frontier.py), never researched.
+COMPUTED_SUBINDICATORS: tuple[str, ...] = ("international_coordination",)
+
+# Column headers (scores.csv: score and track; regulation_data.csv: text and
+# sources) and history.json keys of the lens.
+FRONTIER_COLUMN = "Frontier Risk"
+FRONTIER_TRACK_COLUMN = "Frontier Track"
+FRONTIER_SOURCES_COLUMN = "Frontier Sources"
+FRONTIER_HISTORY_KEY = "frontierRisk"
+FRONTIER_TRACK_HISTORY_KEY = "frontierTrack"
+
+_TRACK_WORDS = {"H": "frontier host", "C": "compute or chokepoint", "G": "global"}
+
+
+def applies(subindicator: str, track: str) -> bool:
+    """True when ``subindicator`` is scored on ``track``."""
+    return track in FRONTIER_APPLIES[subindicator]
+
+
+def researched_subindicators(track: str) -> tuple[str, ...]:
+    """The sub-indicators the model researches on ``track``: the applicable
+    ones minus the computed ``international_coordination``."""
+    return tuple(
+        name for name in FRONTIER_SUBINDICATORS
+        if applies(name, track) and name not in COMPUTED_SUBINDICATORS
+    )
+
+
+def na_rationale(track: str) -> str:
+    """The fixed rationale of a sub-indicator that does not apply."""
+    if track == "C":
+        return "Does not apply on the compute or chokepoint track: no frontier developer is based here."
+    return (
+        "Does not apply on the global track: no frontier developer or frontier-scale "
+        "compute is based here."
+    )
+
+
+def frontier_score(subscores: dict[str, int | str | None]) -> float | None:
+    """The lens score from the four sub-indicator values (an integer 1-5,
+    ``None`` for insufficient evidence, or :data:`NA`).
+
+    The mean of the applicable values, capped at the lowest applicable value
+    plus one, to 2 decimals: one weak element caps the score, so strength
+    elsewhere cannot hide it (the OECD/JRC Handbook's warning about
+    compensatory aggregation). ``None`` when any applicable value is
+    insufficient evidence or nothing applies."""
+    values = [value for value in subscores.values() if value != NA]
+    if not values or any(value is None for value in values):
+        return None
+    numbers = [int(value) for value in values]  # type: ignore[arg-type]
+    mean = sum(numbers) / len(numbers)
+    return round(min(mean, min(numbers) + 1), 2)
+
+
+class FrontierAnswer(BaseModel):
+    """The model's Frontier Risk Governance block: the researched
+    sub-indicators of one track, a short ``text`` and the ``sources`` behind
+    the frontier claims (pipe-separated URLs, kept apart from the main
+    ``sources`` so frontier evidence never moves the five dimensions'
+    stability gate). Concrete subclasses name the track's sub-indicators."""
+
+    model_config = _STRICT
+
+    track: ClassVar[str]
+
+    def subscores(self) -> dict[str, int | None]:
+        return {name: getattr(self, name).score for name in researched_subindicators(self.track)}
+
+    def rationales(self) -> dict[str, str]:
+        return {name: getattr(self, name).rationale for name in researched_subindicators(self.track)}
+
+    def cleaned_sources(self) -> str:
+        """``sources`` without placeholder segments ("-", "N/A")."""
+        return _drop_placeholder_sources(self.sources)
+
+
+class FrontierAnswerH(FrontierAnswer):
+    track = "H"
+    developer_obligations: SubIndicator
+    evaluation_oversight: SubIndicator
+    incident_emergency_preparedness: SubIndicator
+    text: str
+    sources: str
+
+
+class FrontierAnswerC(FrontierAnswer):
+    track = "C"
+    evaluation_oversight: SubIndicator
+    incident_emergency_preparedness: SubIndicator
+    text: str
+    sources: str
+
+
+class FrontierAnswerG(FrontierAnswer):
+    track = "G"
+    incident_emergency_preparedness: SubIndicator
+    text: str
+    sources: str
+
+
+class ResearchResultH(ResearchResult):
+    """A research answer for a track H country: the five dimensions plus the
+    frontier block. The schema puts ``frontier_risk`` last."""
+
+    frontier_risk: FrontierAnswerH
+
+
+class ResearchResultC(ResearchResult):
+    frontier_risk: FrontierAnswerC
+
+
+class ResearchResultG(ResearchResult):
+    frontier_risk: FrontierAnswerG
+
+
+_RESULT_MODELS: dict[str, type[ResearchResult]] = {
+    "H": ResearchResultH, "C": ResearchResultC, "G": ResearchResultG,
+}
+
+
+def result_model_for(track: str | None) -> type[ResearchResult]:
+    """The result class whose output schema a request for ``track`` sends;
+    the plain :class:`ResearchResult` without a track."""
+    if track is None:
+        return ResearchResult
+    return _RESULT_MODELS[track]
+
+
+@dataclass(frozen=True)
+class FrontierRecord:
+    """One country's assembled Frontier Risk Governance entry: all four
+    sub-indicators (researched, computed, or :data:`NA`), their rationales,
+    the track it was scored on, the EU-level flag, and the text and sources
+    the model gave. Built by :meth:`frontier.FrontierContext.assemble`."""
+
+    track: str
+    subscores: dict[str, int | str | None]
+    rationales: dict[str, str]
+    text: str
+    sources: str
+    eu_level: bool = False
+
+    @property
+    def score(self) -> float | None:
+        return frontier_score(self.subscores)
+
+    def entry(self, today: date) -> dict:
+        """The ``frontier`` block of the country's subscores.json entry."""
+        block: dict[str, Any] = {
+            "date": today.isoformat(),
+            "track": self.track,
+            "rubric": FRONTIER_RUBRIC_VERSION,
+        }
+        for name in FRONTIER_SUBINDICATORS:
+            item: dict[str, Any] = {"score": self.subscores[name], "rationale": self.rationales[name]}
+            if name == "developer_obligations" and self.eu_level:
+                item["eu_level"] = True
+            if name in COMPUTED_SUBINDICATORS:
+                item["computed"] = True
+            block[name] = item
+        return block
+
+    def describe(self) -> str:
+        """One log line: the score and the track in words."""
+        return f"{format_score(self.score)} ({_TRACK_WORDS[self.track]} track)"
 
 
 def strip_titles(node: Any) -> Any:

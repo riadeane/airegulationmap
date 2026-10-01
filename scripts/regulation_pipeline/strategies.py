@@ -152,7 +152,9 @@ def _validate(
     if raw is None:
         return None
     try:
-        result = ResearchResult.model_validate(raw)
+        # The answer's shape names the result class: a frontier block of
+        # track H, C or G, or none (models.ResearchResult.parse).
+        result = ResearchResult.parse(raw)
     except ValidationError as exc:
         logger.warning("invalid response for %s: %s", country, _summarize(exc))
         return None

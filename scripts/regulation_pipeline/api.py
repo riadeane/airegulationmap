@@ -10,6 +10,13 @@ Every request carries its :class:`~regulation_pipeline.models.ResearchProvenance
 (initiatives embedded, web search, model), built alongside the params from the
 same single evidence lookup, so the strategy can attach it to the validated
 result without asking the evidence provider twice.
+
+With a :class:`~regulation_pipeline.frontier.FrontierContext` (PRD 15) every
+request also asks for the Frontier Risk Governance block of the country's
+track: the prompt gains the lens's section and the schema the track's
+``frontier_risk`` object. Track H and C countries (about fifteen) get a larger
+search and token budget for the deeper frontier research; track G countries
+keep the plain budget, since the lens asks them one question.
 """
 
 from __future__ import annotations
@@ -19,12 +26,16 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
+from typing import TYPE_CHECKING
 
 import anthropic
 
-from .models import ResearchProvenance, ResearchResult
+from .models import ResearchProvenance, result_model_for
 from .prompt import MAX_GROUNDED_INITIATIVES, render_grounded_prompt, render_prompt
 from .retry import call_with_retries
+
+if TYPE_CHECKING:
+    from .frontier import FrontierContext, FrontierPrompt
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +48,11 @@ _SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search", "max_uses":
 # Thinking tokens count toward max_tokens, and the default model thinks before
 # it answers. Leave room so the structured answer is never truncated.
 _MAX_TOKENS = 16000
+# Frontier hosts and compute or chokepoint countries research three or two
+# frontier sub-indicators in depth, on top of the five dimensions.
+_FRONTIER_DEEP_TRACKS = frozenset({"H", "C"})
+_FRONTIER_MAX_USES = 16
+_FRONTIER_MAX_TOKENS = 20000
 # Web search runs in a server-side sampling loop. When that loop reaches its
 # iteration limit the API stops with stop_reason "pause_turn" and no answer
 # yet; sending the paused turn back resumes it where it left off. The cap
@@ -76,8 +92,12 @@ class ResearchClient:
         model: str,
         today: date,
         evidence_provider: Callable[[str], list[dict]] | None = None,
+        frontier: FrontierContext | None = None,
     ):
         self._client = client
+        # Frontier Risk Governance (PRD 15): the tracks and public lists.
+        # Without it the request is the five dimensions alone.
+        self._frontier = frontier
         self._model = model
         self._today = today
         # Grounded mode: returns a country's verified policy initiatives
@@ -92,17 +112,21 @@ class ResearchClient:
     def usage(self) -> dict[str, int]:
         return dict(self._usage)
 
-    def _prompt_for(self, country: str, existing_reg: dict | None) -> ResearchPrompt:
+    def _prompt_for(
+        self, country: str, existing_reg: dict | None, frontier: FrontierPrompt | None = None,
+    ) -> ResearchPrompt:
         """Render the prompt, asking the evidence provider (if any) exactly
         once. The count mirrors ``render_grounded_prompt``'s cap, so it is the
         number of initiatives the model actually read."""
         if self._evidence_provider is None:
-            return ResearchPrompt(render_prompt(country, self._today, existing_reg), None)
+            return ResearchPrompt(render_prompt(country, self._today, existing_reg, frontier), None)
         initiatives = self._evidence_provider(country)
         if not initiatives:
-            return ResearchPrompt(render_prompt(country, self._today, existing_reg), 0)
+            return ResearchPrompt(render_prompt(country, self._today, existing_reg, frontier), 0)
         return ResearchPrompt(
-            render_grounded_prompt(country, self._today, existing_reg, initiatives),
+            render_grounded_prompt(
+                country, self._today, existing_reg, initiatives, frontier=frontier,
+            ),
             min(len(initiatives), MAX_GROUNDED_INITIATIVES),
         )
 
@@ -111,22 +135,30 @@ class ResearchClient:
     ) -> ResearchRequest:
         """Build the ``messages.create`` kwargs for one country and the
         provenance of that request. Shared by the synchronous path and the
-        Batches path so both send identical requests."""
-        prompt = self._prompt_for(country, existing_reg)
+        Batches path so both send identical requests. With a frontier context
+        the schema is the country's track's (``models.result_model_for``)."""
+        frontier = (
+            self._frontier.prompt_for(country, existing_reg) if self._frontier is not None else None
+        )
+        track = frontier.track if frontier is not None else None
+        deep = track in _FRONTIER_DEEP_TRACKS
+        prompt = self._prompt_for(country, existing_reg, frontier)
         params = {
             "model": self._model,
-            "max_tokens": _MAX_TOKENS,
+            "max_tokens": _FRONTIER_MAX_TOKENS if deep else _MAX_TOKENS,
             "messages": [{"role": "user", "content": prompt.text}],
             # Structured outputs: the API constrains the answer to this schema,
             # so every sub-indicator arrives as {score, rationale} with the score
             # a guaranteed int 1-5 and all fields present. Rationale length is
             # checked in pydantic, since the schema cannot express it.
             "output_config": {
-                "format": {"type": "json_schema", "schema": ResearchResult.output_schema()}
+                "format": {"type": "json_schema", "schema": result_model_for(track).output_schema()}
             },
         }
         if use_search:
-            params["tools"] = [_SEARCH_TOOL]
+            params["tools"] = [
+                {**_SEARCH_TOOL, "max_uses": _FRONTIER_MAX_USES} if deep else _SEARCH_TOOL
+            ]
         provenance = ResearchProvenance(
             initiatives_used=prompt.initiatives_used, search=use_search, model=self._model,
         )
