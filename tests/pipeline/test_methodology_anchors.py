@@ -163,7 +163,7 @@ def test_page_quotes_the_level_ladder():
 
 
 def test_an_edited_anchor_is_caught():
-    edited = RESEARCH_PROMPT.replace("5 = binding AI rules in force", "5 = binding AI rules adopted")
+    edited = RESEARCH_PROMPT.replace("5 = binding AI rules in force whose", "5 = binding AI rules adopted whose")
     assert edited != RESEARCH_PROMPT
     anchors = prompt_anchors(edited)["regulation_status"]["binding_force"]
     assert page().blocks[("regulation_status", "binding_force")] != anchors

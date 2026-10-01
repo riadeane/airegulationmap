@@ -354,9 +354,11 @@
       <li><strong>Implementation</strong> (the implementation index,
         regulation status, policy lever and enforcement level): how much
         AI governance is in force and operating in a country. A 1 means
-        no observable activity. A 5 means the rules are in force, the
-        bodies are staffed and acting, and enforcement is routine and
-        published.</li>
+        no observable activity. A 5 means every element of a demanding
+        anchor is met at the national level: the rules apply today, the
+        bodies are staffed and using their powers, and enforcement is
+        routine and published. Anything deferred or not yet used holds a
+        score at 4, so 5s are rare.</li>
       <li><strong>Governance style</strong> (governance type and actor
         involvement): how a country governs AI. Governance type runs from
         centralised (1) to distributed (5); actor involvement from narrow
@@ -488,14 +490,37 @@
       <div class="rubric-row"><div class="rubric-score">1</div><div class="rubric-body"><strong>No observable activity.</strong> &ldquo;no observable activity for that sub-indicator.&rdquo; A 1 needs positive evidence of absence (see <a href="#insufficient-evidence">above</a>).</div></div>
       <div class="rubric-row"><div class="rubric-score">2</div><div class="rubric-body"><strong>Non-binding or preparatory only.</strong> &ldquo;only non-binding or preparatory activity: a strategy, a consultation, or general law with no AI-specific provision.&rdquo;</div></div>
       <div class="rubric-row"><div class="rubric-score">3</div><div class="rubric-body"><strong>Exists in part.</strong> &ldquo;the state exists in part: partial scope, one instrument or body, isolated actions, or rules drafted but not in force.&rdquo;</div></div>
-      <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body"><strong>In place, one element incomplete or not yet exercised.</strong> &ldquo;the state is in place, but one element is incomplete, in a transition period, or not yet exercised in practice.&rdquo;</div></div>
-      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body"><strong>In place and operating.</strong> &ldquo;the state is fully in place and operating: the instrument is in force, the body is staffed and acting, the practice is routine and published.&rdquo;</div></div>
+      <div class="rubric-row"><div class="rubric-score">4</div><div class="rubric-body"><strong>In place, one element incomplete, deferred or not yet exercised.</strong> &ldquo;the state is in place, but one element is incomplete, deferred, in a transition period, or not yet exercised in practice.&rdquo;</div></div>
+      <div class="rubric-row"><div class="rubric-score">5</div><div class="rubric-body"><strong>Fully in place, applicable and exercised.</strong> &ldquo;every element of the sub-indicator's 5 anchor is in force, applicable and exercised. The instrument applies today, the body is staffed and using its powers, the practice is routine and published. Any element that is deferred, stayed, in a transition period, not yet applicable or not yet exercised caps the score at 4.&rdquo;</div></div>
       <div class="rubric-row"><div class="rubric-score">null</div><div class="rubric-body"><strong>Insufficient evidence.</strong> &ldquo;insufficient evidence: no source you found confirms either the presence or the absence of what the sub-indicator asks about.&rdquo; Not a low score: it is left out of the dimension mean.</div></div>
     </div>
     <p>
-      A jurisdiction reaches 5 when its own record shows that state; it
-      does not need to be ahead of any other country, and perfection is
-      not required. The research scores the state that sources dated on or
+      A 5 is not a ranking and not a judgement that the rules are good:
+      it means the anchor is met in full, by the country's own record,
+      whatever other countries do. It is demanding on purpose, and a
+      single instrument never earns it. Three further rules apply to the
+      implementation dimensions (from rubric v3.2):
+    </p>
+    <ul>
+      <li><strong>National level only.</strong> For an EU member state, EU
+        regulations and directives that apply in it count as its national
+        law. Laws, agencies and actions of states, provinces, regions or
+        cities never raise an implementation score; they are recorded under
+        governance type (sub-national role) and in the text. A US state
+        statute, however strict, does not count toward the United
+        States' implementation scores.</li>
+      <li><strong>AI-specific means written for AI.</strong> General law
+        with no provision written for AI (data protection, consumer
+        protection, competition, product liability, export control,
+        cybersecurity) scores at most 2, even when a regulator applies it
+        to AI firms.</li>
+      <li><strong>A narrow instrument stays narrow.</strong> A binding rule
+        for one use case or one kind of content (deepfakes, intimate
+        images, election content, one type of chatbot) scores at most 3 on
+        binding force and at most 2 on scope.</li>
+    </ul>
+    <p>
+      The research scores the state that sources dated on or
       before the research date confirm, not the direction of travel and not
       the gap to other countries, so a country's score changes only when
       its own record changes. When the evidence supports two adjacent
@@ -505,10 +530,12 @@
     </p>
     <p>
       Each sub-indicator also has its own anchors, listed under the
-      dimensions below: the prompt defines what a 1, a 3 and a 5 mean for
-      that sub-indicator and tells the model to score strictly against that
-      definition. The anchors are quoted verbatim, as the model reads them;
-      a 2 or a 4 sits between two anchors. The code name beside each
+      dimensions below. On the implementation dimensions the prompt defines
+      all five levels for each sub-indicator (since rubric v3.2); on the
+      governance style dimensions it defines a 1, a 3 and a 5, and a 2 or a
+      4 sits between two anchors. The model is told to score strictly
+      against these definitions, and they are quoted verbatim, as the model
+      reads them. The code name beside each
       sub-indicator is its key in <code>subscores.json</code> and in the
       API's <code>subscores</code> column. On the governance style
       dimensions a level is a position, not an amount, so the country panel
@@ -523,36 +550,44 @@
         <h4>Binding force <code>binding_force</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>nothing binding exists or proposed</dd>
-          <dt class="rubric-score">3</dt><dd>binding AI legislation drafted/in legislative process</dd>
-          <dt class="rubric-score">5</dt><dd>binding AI rules in force</dd>
+          <dt class="rubric-score">2</dt><dd>binding AI rules announced or proposed, not yet before the legislature</dd>
+          <dt class="rubric-score">3</dt><dd>binding AI legislation in the legislative process, or binding AI rules in force for one use case only</dd>
+          <dt class="rubric-score">4</dt><dd>binding AI rules in force for several sectors or use cases, or a cross-sector AI law adopted whose main obligations do not yet apply</dd>
+          <dt class="rubric-score">5</dt><dd>binding AI rules in force whose obligations apply today across sectors</dd>
         </dl>
       </div>
       <div class="rubric-sub">
         <h4>Scope <code>scope</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>no AI coverage in any sector</dd>
-          <dt class="rubric-score">3</dt><dd>a few sectors or use-cases covered</dd>
-          <dt class="rubric-score">5</dt><dd>horizontal cross-sector coverage</dd>
+          <dt class="rubric-score">2</dt><dd>one use case, one kind of content, or the public sector only</dd>
+          <dt class="rubric-score">3</dt><dd>a few sectors or use cases covered</dd>
+          <dt class="rubric-score">4</dt><dd>cross-sector coverage by design, with major parts (such as high-risk duties) not yet applicable</dd>
+          <dt class="rubric-score">5</dt><dd>horizontal cross-sector coverage that applies today, including high-risk uses in the private sector</dd>
         </dl>
       </div>
       <div class="rubric-sub">
         <h4>Implementation <code>implementation</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>paper commitments only</dd>
+          <dt class="rubric-score">2</dt><dd>adopted, with no implementing rules, guidance or competent authority yet</dd>
           <dt class="rubric-score">3</dt><dd>partially in force or in transition period</dd>
-          <dt class="rubric-score">5</dt><dd>fully operational with secondary rules and guidance issued</dd>
+          <dt class="rubric-score">4</dt><dd>in force with most implementing rules and guidance issued, but gaps remain (an authority not designated, standards unfinished, deadlines deferred)</dd>
+          <dt class="rubric-score">5</dt><dd>fully operational: every obligation applies, implementing rules, standards and guidance are issued, and every competent authority is designated and acting</dd>
         </dl>
       </div>
       <div class="rubric-sub">
         <h4>AI specificity <code>ai_specificity</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>only general law incidentally touching AI</dd>
+          <dt class="rubric-score">2</dt><dd>general law applied to AI by regulators or courts, with no provision written for AI</dd>
           <dt class="rubric-score">3</dt><dd>AI explicitly addressed within adapted general law</dd>
-          <dt class="rubric-score">5</dt><dd>dedicated AI-specific instruments</dd>
+          <dt class="rubric-score">4</dt><dd>a dedicated AI-specific instrument covering one area or use case</dd>
+          <dt class="rubric-score">5</dt><dd>dedicated AI-specific instruments covering AI systems generally</dd>
         </dl>
       </div>
     </div>
-    <p><em>Illustrations, not definitions.</em> An EU member state implementing the EU AI Act sits near 4 to 5 on most regulation status sub-indicators; the United States (sectoral rules and executive action, no horizontal statute) near 3; a country whose only instrument is a published national AI strategy near 2. A country with no AI-specific policy activity scores 1 once its official record confirms the absence.</p>
+    <p><em>Illustrations, not definitions.</em> A cross-sector AI law in force whose main obligations apply from a later date scores 5 on AI specificity, 4 on binding force and scope, and at most 4 on implementation; this is where the EU AI Act sits for its member states until its Annex III high-risk obligations apply. A country whose only national AI-specific binding rule targets one use case scores 3 on binding force and 2 on scope; a country whose only instrument is a published national AI strategy sits near 2. A country with no AI-specific policy activity scores 1 once its official record confirms the absence.</p>
 
     <h3 id="policy-lever">Policy Lever</h3>
     <p>How many kinds of policy instrument are in use: binding law, guidance and standards, funding and other economic tools, and the institutions that carry them. It counts instruments in use, not whether they work.</p>
@@ -561,32 +596,40 @@
         <h4>Binding instruments <code>binding_instruments</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>no binding instruments</dd>
-          <dt class="rubric-score">3</dt><dd>one binding instrument</dd>
-          <dt class="rubric-score">5</dt><dd>multiple binding instruments across domains</dd>
+          <dt class="rubric-score">2</dt><dd>only general law (data protection, consumer protection, competition, export control) applied to AI</dd>
+          <dt class="rubric-score">3</dt><dd>one AI-specific binding instrument</dd>
+          <dt class="rubric-score">4</dt><dd>two AI-specific binding instruments in force, or more where some do not yet apply</dd>
+          <dt class="rubric-score">5</dt><dd>three or more AI-specific binding instruments in force and applying today, in different domains</dd>
         </dl>
       </div>
       <div class="rubric-sub">
         <h4>Soft law &amp; standards <code>soft_law</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>no guidance/standards/codes</dd>
+          <dt class="rubric-score">2</dt><dd>one high-level principles or ethics document</dd>
           <dt class="rubric-score">3</dt><dd>some published guidance</dd>
-          <dt class="rubric-score">5</dt><dd>mature, maintained suite of standards and codes</dd>
+          <dt class="rubric-score">4</dt><dd>national guidance and standards in several areas, not maintained or not referenced by regulators</dd>
+          <dt class="rubric-score">5</dt><dd>a maintained suite of national guidance, standards and codes, updated in the last two years and referenced by regulators</dd>
         </dl>
       </div>
       <div class="rubric-sub">
         <h4>Economic tools <code>economic_tools</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>no funding/procurement/sandbox programs</dd>
+          <dt class="rubric-score">2</dt><dd>funding announced but not yet disbursed</dd>
           <dt class="rubric-score">3</dt><dd>one or two programs</dd>
-          <dt class="rubric-score">5</dt><dd>several active programs</dd>
+          <dt class="rubric-score">4</dt><dd>several funded programs, but no operating regulatory sandbox or AI procurement rules</dd>
+          <dt class="rubric-score">5</dt><dd>several funded programs plus an operating regulatory sandbox and AI procurement rules</dd>
         </dl>
       </div>
       <div class="rubric-sub">
         <h4>Institutional capacity <code>institutional_capacity</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>no dedicated bodies</dd>
+          <dt class="rubric-score">2</dt><dd>an advisory council or a ministry unit with no legal AI mandate</dd>
           <dt class="rubric-score">3</dt><dd>bodies designated but thinly resourced</dd>
-          <dt class="rubric-score">5</dt><dd>staffed, operational institutions with compliance infrastructure</dd>
+          <dt class="rubric-score">4</dt><dd>a staffed body with a legal AI mandate that has not yet used its compliance powers</dd>
+          <dt class="rubric-score">5</dt><dd>staffed institutions with a legal AI mandate that use compliance powers (inspections, approvals, binding decisions)</dd>
         </dl>
       </div>
     </div>
@@ -672,32 +715,40 @@
         <h4>Sanctions framework <code>sanctions_framework</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>no penalties defined</dd>
-          <dt class="rubric-score">3</dt><dd>penalties defined for some obligations</dd>
-          <dt class="rubric-score">5</dt><dd>comprehensive penalty framework</dd>
+          <dt class="rubric-score">2</dt><dd>only general-law penalties reach AI</dd>
+          <dt class="rubric-score">3</dt><dd>penalties defined for some AI-specific obligations</dd>
+          <dt class="rubric-score">4</dt><dd>penalties defined for most AI-specific obligations, or for all where some do not yet apply</dd>
+          <dt class="rubric-score">5</dt><dd>penalties defined and applicable for every AI-specific obligation in force</dd>
         </dl>
       </div>
       <div class="rubric-sub">
         <h4>Actions taken <code>actions_taken</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>never enforced</dd>
-          <dt class="rubric-score">3</dt><dd>isolated enforcement actions</dd>
-          <dt class="rubric-score">5</dt><dd>routine, published enforcement actions</dd>
+          <dt class="rubric-score">2</dt><dd>warnings issued or investigations opened, with no decision, or actions under general law only</dd>
+          <dt class="rubric-score">3</dt><dd>isolated enforcement decisions under AI-specific law</dd>
+          <dt class="rubric-score">4</dt><dd>repeated enforcement decisions under AI-specific law, not routinely published</dd>
+          <dt class="rubric-score">5</dt><dd>routine, published enforcement decisions under AI-specific law, including sanctions imposed</dd>
         </dl>
       </div>
       <div class="rubric-sub">
         <h4>Dedicated authority <code>dedicated_authority</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>nobody owns AI enforcement</dd>
+          <dt class="rubric-score">2</dt><dd>general regulators act on AI within their existing remits</dd>
           <dt class="rubric-score">3</dt><dd>authority designated without dedicated resources</dd>
-          <dt class="rubric-score">5</dt><dd>resourced authority with explicit AI remit</dd>
+          <dt class="rubric-score">4</dt><dd>resourced authority with an explicit AI remit for part of the AI rules in force</dd>
+          <dt class="rubric-score">5</dt><dd>resourced authority with an explicit AI remit covering all AI rules in force</dd>
         </dl>
       </div>
       <div class="rubric-sub">
         <h4>Monitoring practice <code>monitoring_practice</code></h4>
         <dl>
           <dt class="rubric-score">1</dt><dd>no audits or monitoring</dd>
+          <dt class="rubric-score">2</dt><dd>monitoring planned, or one-off studies</dd>
           <dt class="rubric-score">3</dt><dd>occasional reviews</dd>
-          <dt class="rubric-score">5</dt><dd>routine audits and public reporting</dd>
+          <dt class="rubric-score">4</dt><dd>regular monitoring without public reporting, or audits in one sector</dd>
+          <dt class="rubric-score">5</dt><dd>routine audits across sectors with regular public reporting</dd>
         </dl>
       </div>
     </div>
@@ -735,14 +786,15 @@
     <p><strong>Gold set and drift check (September 2026).</strong> Ten countries across the range of the implementation index (China, Japan, the United States, Germany, the United Kingdom, Singapore, Brazil, Kenya, Bhutan and Kiribati) have a gold score for each of their twenty sub-indicators, with a one-line justification per dimension and the sources used, published in <a href="/data/gold_set.json"><code>gold_set.json</code></a>. Each entry states whether it is a <em>draft</em> or <em>verified</em>: an entry is verified only when the maintainer has checked every score against the listed sources and recorded the date, and the set is re-verified each quarter. All ten entries are currently drafts awaiting that check. After every research run the scores the model returned for these countries, taken before the stability gate so the check measures the model rather than the gate, are compared with the gold scores on four metrics: the mean absolute error per dimension, the mean signed error per dimension (whether the model scores higher or lower than the gold set, which the absolute error cannot show), the share of sub-indicators within one point, and the largest single deviation. One row per run is appended to <a href="/data/drift.json"><code>drift.json</code></a> and mirrored to the <code>gold_checks</code> table of the API, so a model or prompt change that moves the calibration shows up as a break in that series rather than as silent drift. A run whose within-one share falls below 0.8, or that leans by more than half a point on any dimension, carries a calibration warning in its summary; it is never blocked.</p>
 
     <h2 id="rubric-versions">Rubric versions</h2>
-    <p>The scoring rubric has changed three times. Each change is a documented break in the series, never a silent drift. Earlier snapshots are kept as they were scored; nothing in the past is re-scored or offset, because past web content cannot be re-researched and an offset would be invented data.</p>
+    <p>The scoring rubric has changed four times. Each change is a documented break in the series, never a silent drift. Earlier snapshots are kept as they were scored; nothing in the past is re-scored or offset, because past web content cannot be re-researched and an offset would be invented data.</p>
     <ul>
       <li><strong>v1, March 2026.</strong> Integer scores per dimension, four-dimension composite.</li>
       <li><strong>v2, June 2026.</strong> Four sub-indicators per dimension, quarter-point means, three-dimension composite index. A 5 meant the global frontier at the time of scoring.</li>
       <li><strong>v3, September 2026.</strong> Fixed anchors. The frontier definition made scores comparable across countries but not across time: a country could fall without changing anything because the frontier moved, and weekly runs re-estimated the frontier every week. Each level now describes an observable state, as set out under <a href="#levels">Levels</a>. The sub-indicator definitions and the output structure are unchanged. The first v3 run is also the first on Claude Opus 5, so the two changes share one break in the series, not two.</li>
       <li><strong>v3.1, September 2026.</strong> The v3 anchors plus an <a href="#insufficient-evidence">insufficient evidence</a> value, which is no longer scored as 1. The tie-break toward the lower of two levels now applies only when the evidence supports both. Countries with thin source coverage can move up at this break because gaps stop counting as absences.</li>
+      <li><strong>v3.2, October 2026.</strong> Tighter anchors. The first v3.1 run gave 5s on the strength of a single instrument, counted sub-national law and general law applied to AI, and told the model that leading jurisdictions reach 5 on most sub-indicators. A 5 now needs every element of its anchor in force, applicable and exercised (anything deferred or not yet used caps at 4); only the national level counts, with EU law counting for EU members; general law with no provision written for AI scores at most 2; a rule for one use case scores at most 3 on binding force and 2 on scope; and every implementation sub-indicator defines all five levels. Implementation scores move down at this break, most where a high score rested on one instrument, deferred obligations or state law. The one v3.1 run (28 September 2026) did not land in the dataset files, so the v3.2 break is the one that follows v2 in <code>history.json</code>.</li>
     </ul>
-    <p>Each break is recorded in <code>history.json</code> under <code>breaks</code> with its date, model, prompt version, and reason; the v3.1 break is recorded there when the first full v3.1 run lands (v3.1 followed v3 before a full v3 run had landed, so that run records a single break). The timeline marks the date, and a country's score history labels changes on that date as a recalibration rather than a policy change. A relative view (a score divided by that week's maximum) is a possible display option for the frontend; it is never the stored number.</p>
+    <p>Each break is recorded in <code>history.json</code> under <code>breaks</code> with its date, model, prompt version, and reason; the v3.2 break is recorded there when the first full v3.2 run lands (v3, v3.1 and v3.2 followed each other before a full run landed, so that run records a single break from v2). The timeline marks the date, and a country's score history labels changes on that date as a recalibration rather than a policy change. A relative view (a score divided by that week's maximum) is a possible display option for the frontend; it is never the stored number.</p>
 
     <h2 id="limitations">Known limitations</h2>
     <ul>
@@ -751,7 +803,7 @@
       <li><strong>Aggregate hides regional variance.</strong> Federations (US, India, Brazil) are scored at the national level; substantial sub-national variation is flattened.</li>
       <li><strong>Draft vs. enacted.</strong> The rubric tries to distinguish these, but a bill that passes the week after a research pass will not update until the next weekly run.</li>
       <li><strong>No independent audit.</strong> Scores are LLM-inferred, not human-coded, and have not been audited by domain experts. The sub-indicator breakdown in <code>subscores.json</code> exists precisely so that every dimension score can be checked claim-by-claim.</li>
-      <li><strong>Methodology changes.</strong> Sub-indicator scoring and the three-dimension composite index arrived in June 2026; fixed anchors replaced the frontier calibration in September 2026 (see <a href="#rubric-versions">Rubric versions</a>). Score movements on those dates partly reflect the methodology change, not only regulatory change.</li>
+      <li><strong>Methodology changes.</strong> Sub-indicator scoring and the three-dimension composite index arrived in June 2026; fixed anchors replaced the frontier calibration in September 2026 and were tightened in October 2026 (see <a href="#rubric-versions">Rubric versions</a>). Score movements on those dates partly reflect the methodology change, not only regulatory change.</li>
     </ul>
 
     <h2 id="data-access">Data access for analysts</h2>

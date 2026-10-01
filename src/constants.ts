@@ -165,7 +165,8 @@ export const SCORE_OPTIONS: { value: AttributeKey; text: string }[] =
 
 /**
  * What a sub-indicator level means on the implementation dimensions: the
- * v3 anchors in scripts/regulation_pipeline/prompt.py, in plain words.
+ * shared ladder in scripts/regulation_pipeline/prompt.py (rubric v3.2), in
+ * plain words.
  * Governance style sub-indicators are descriptive and carry their own
  * anchor phrases instead (STYLE_ANCHORS in data/subscores.ts).
  */
@@ -173,8 +174,8 @@ export const IMPLEMENTATION_LEVELS: Record<1 | 2 | 3 | 4 | 5, string> = {
   1: 'No observable activity',
   2: 'Non-binding or preparatory only',
   3: 'Exists in part',
-  4: 'In place, one element incomplete or not yet exercised',
-  5: 'In place and operating',
+  4: 'In place, one element incomplete, deferred or not yet exercised',
+  5: 'Fully in place, applicable and exercised',
 };
 
 /**

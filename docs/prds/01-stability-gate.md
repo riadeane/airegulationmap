@@ -119,6 +119,10 @@ read as absolute. Make the calibration block agree with them.
    sub-indicators and perfection is not required. Keep the reference points
    (an EU member state near 4 to 5, the United States near 3) as examples of
    the anchors, not as the definition.
+   *Superseded by rubric v3.2 (October 2026):* the first v3.1 run showed this
+   setting made 5s common. A 5 now needs every element of its anchor in
+   force, applicable and exercised, and only national law counts (see
+   "Rubric versions" in `public/methodology.html`).
 2. Do not change the shape of `ResearchResult`. Only the meaning text moves.
 3. Bump `PROMPT_VERSION` in `prompt.py` to a v3 tag and record the change in
    `public/methodology.html` under a "Rubric versions" heading: what changed,

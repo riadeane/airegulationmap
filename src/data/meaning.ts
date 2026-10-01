@@ -51,8 +51,8 @@ export function groupCaption(group: AttributeGroup): string {
 
 /**
  * What one sub-indicator level means. Implementation sub-indicators read
- * the shared v3 ladder ("4: In place, one element incomplete or not yet
- * exercised"). Governance style sub-indicators are descriptive and show
+ * the shared ladder ("4: In place, one element incomplete, deferred or not
+ * yet exercised"). Governance style sub-indicators are descriptive and show
  * their own anchors; an even score sits between two anchors.
  */
 export function levelMeaning(group: AttributeGroup, subindicator: string, score: number): string | null {
