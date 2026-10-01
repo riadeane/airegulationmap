@@ -765,3 +765,19 @@ class TestChecks:
         path = tmp_path / "idx.csv"
         path.write_text("country,oecd_aisi,girai_ts\nA,1,50.5\nB,0,\n")
         assert read_index_csv(path) == {"oecd_aisi": {"A": 1.0, "B": 0.0}, "girai_ts": {"A": 50.5}}
+
+
+class TestSharedNewSource:
+    def test_a_new_url_in_both_blocks_is_evidence_for_both(self, tmp_path):
+        """A new source cited in the main and the frontier block is new to
+        both gates: the main apply remembering it must not hide it from the
+        frontier gate."""
+        _run(tmp_path, [("Freedonia", ResearchResult.parse(raw("G")))], context())
+        moved = raw("G", 1, policy_lever={
+            "binding_instruments": sub(1), "soft_law": sub(1), "economic_tools": sub(1),
+            "institutional_capacity": sub(1), "text": "Changed.",
+        }, sources="https://example.gov/ai|https://new.example/law")
+        moved["frontier_risk"]["sources"] = "https://new.example/law"
+        result, ds = _run(tmp_path, [("Freedonia", ResearchResult.parse(moved))], context(), NEXT_WEEK)
+        assert result.gate.counts[gate.APPLIED_EVIDENCE] == 1
+        assert result.frontier_gate.counts[gate.APPLIED_EVIDENCE] == 1

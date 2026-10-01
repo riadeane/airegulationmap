@@ -263,6 +263,10 @@ class PipelineService:
         unexpected error on one country can never abort the whole run."""
         old_scores = _copy(self._dataset.scores_row(country))
         old_regulation = _copy(self._dataset.regulation_row(country))
+        # The cited-source memory as it stood before this result, so the
+        # lens's gate judges novelty the way the main gate did, not against
+        # URLs this same result just added.
+        seen_before = self._dataset.seen_sources_for(country)
         try:
             existing_scores = self._dataset.scores_row(country)
             existing_reg = self._dataset.regulation_row(country)
@@ -295,7 +299,7 @@ class PipelineService:
         except Exception:
             logger.exception("failed to apply result for %s", country)
             return None
-        self._apply_frontier(country, result, old_scores, old_regulation)
+        self._apply_frontier(country, result, old_scores, old_regulation, seen_before)
 
         note = "(new snapshot)" if outcome.history_added else "(no snapshot)"
         logger.info(
@@ -320,6 +324,7 @@ class PipelineService:
 
     def _apply_frontier(
         self, country: str, result: ResearchResult, old_scores: dict | None, old_reg: dict | None,
+        seen_before: frozenset[str],
     ) -> None:
         """Assemble, gate and apply the result's Frontier Risk Governance
         block, after the five dimensions landed. A failure here is logged and
@@ -333,7 +338,7 @@ class PipelineService:
             if self._gate_enabled:
                 decision = gate.decide_frontier(
                     old_scores, old_reg, record, self._dataset.frontier_pending_for(country),
-                    self._today, seen_sources=self._dataset.seen_sources_for(country),
+                    self._today, seen_sources=seen_before,
                 )
             else:
                 decision = gate.ungated_frontier(old_scores, record)
