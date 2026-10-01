@@ -13,16 +13,16 @@ import logging
 import os
 import sys
 from collections.abc import Callable
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import anthropic
 import typer
 
-from . import gate
+from . import gate, handoff
 from . import history as history_mod
 from .api import ResearchClient
-from .batch import BatchRunner
+from .batch import BatchPending, BatchRunner
 from .config import DEFAULT_MODEL, Settings, estimate_cost_usd
 from .consistency import eu_members, eu_outliers
 from .consistency import log_lines as eu_log_lines
@@ -67,7 +67,7 @@ def _run(
     ),
     batch: bool = typer.Option(
         True, "--batch/--no-batch",
-        help="Use the Message Batches API: 50% token pricing, results within ~1h "
+        help="Use the Message Batches API: 50% token pricing, results within 24h "
         "(default). --no-batch runs synchronously.",
     ),
     max_runtime_minutes: int = typer.Option(
@@ -115,10 +115,52 @@ def _run(
         "for scheduled runs (GITHUB_EVENT_NAME=schedule), off otherwise. A digest "
         "failure never fails the run.",
     ),
+    collect_only: bool = typer.Option(
+        False, "--collect-only",
+        help="Only collect a batch an earlier run left running (state/open_batch.json); "
+        "exit 0 without any API call when there is none. Any run collects an open "
+        "batch first and submits nothing new while one is recorded.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose (DEBUG) logging"),
 ) -> None:
     """Update AI regulation data using the Claude API."""
     configure_logging(verbose)
+
+    # A batch an earlier run left running is collected before anything else,
+    # with the options it was submitted with, and nothing new is submitted
+    # while one is recorded (#194).
+    state_path = Settings().open_batch_json
+    open_batch = handoff.load(state_path)
+    if open_batch is None and collect_only:
+        logger.info("No open batch to collect.")
+        return
+    if open_batch is not None:
+        if open_batch.expired(datetime.now(UTC)):
+            logger.error(
+                "Open batch %s was submitted more than 29 days ago; its results are gone. "
+                "Removing the record. %d countries were not updated.",
+                open_batch.batch.batch_id, len(open_batch.countries),
+            )
+            handoff.clear(state_path)
+            raise typer.Exit(code=1)
+        options = open_batch.options
+        logger.warning(
+            "Open batch %s (%d countries, submitted %s): collecting it with the options it "
+            "was submitted with; this run's other flags are ignored.",
+            open_batch.batch.batch_id, len(open_batch.countries),
+            open_batch.batch.submitted_at.isoformat() if open_batch.batch.submitted_at else "?",
+        )
+        if dry_run:
+            logger.info("DRY RUN - would collect batch %s", open_batch.batch.batch_id)
+            return
+        model = options.get("model", model)
+        search = options.get("search", search)
+        grounded = options.get("grounded", grounded)
+        gate_enabled = options.get("gate_enabled", gate_enabled)
+        break_reason = options.get("break_reason", "")
+        digest = options.get("digest", False)
+        countries = "" if options.get("full_run", True) else ",".join(open_batch.countries)
+        batch, force = True, True
 
     full_run = not countries.strip()
     if not gate_enabled and full_run and not break_reason.strip():
@@ -160,9 +202,12 @@ def _run(
     def use_search_for(country: str) -> bool:
         return search
 
-    batch_runner = BatchRunner(client) if batch else None
+    batch_runner = BatchRunner(client, handoff=True) if batch else None
     strategy = (
-        BatchStrategy(research_client, batch_runner, use_search_for)
+        BatchStrategy(
+            research_client, batch_runner, use_search_for,
+            resume=open_batch.batch if open_batch is not None else None,
+        )
         if batch_runner
         else SyncStrategy(
             research_client,
@@ -203,7 +248,9 @@ def _run(
     # break and apply every score, so the scale change is labelled rather
     # than landing as evidence-backed "policy change".
     calibration_due = history_mod.calibration_due(dataset.breaks(), RUBRIC_VERSION)
-    if calibration_due and gate_enabled and full_run and force:
+    if open_batch is not None:
+        pass  # the submitting run already decided the gate and the break
+    elif calibration_due and gate_enabled and full_run and force:
         gate_enabled = False
         break_reason = f"Switch to scoring rubric {RUBRIC_VERSION} (model {model})"
         logger.warning(
@@ -238,13 +285,20 @@ def _run(
         link_checker=LinkChecker() if link_check and not dry_run else None,
     )
     write_digest = digest if digest is not None else _is_scheduled()
+    replace_digest = _is_scheduled() or bool(open_batch and open_batch.options.get("scheduled"))
 
-    all_targets, to_update = service.select(targets, force=force)
+    if open_batch is not None:
+        all_targets, to_update = dataset.countries(), open_batch.countries
+    else:
+        all_targets, to_update = service.select(targets, force=force)
     logger.info("Countries to update: %d / %d", len(to_update), len(all_targets))
     if not to_update:
         logger.info("Nothing to update.")
         if write_digest and not dry_run:
-            _write_digest(RunResult(updated=0, failed=[]), client, settings, model, today)
+            _write_digest(
+                RunResult(updated=0, failed=[]), client, settings, model, today,
+                replace=replace_digest,
+            )
         return
 
     if dry_run:
@@ -255,7 +309,32 @@ def _run(
             logger.info("DRY RUN - would record break: %s", calibration_break["reason"])
         return
 
-    result = service.run(strategy, to_update)
+    try:
+        result = service.run(strategy, to_update)
+    except BatchPending as pending:
+        # Leave the batch running and record it; the next run collects it.
+        # Nothing was applied, so there is nothing to commit but the record.
+        handoff.save(state_path, handoff.Handoff(
+            batch=pending.batch,
+            run_id=open_batch.run_id if open_batch is not None else service.run_id,
+            # A batch handed on again keeps its record as it was, so an
+            # unfinished collect leaves nothing to commit.
+            options=open_batch.options if open_batch is not None else {
+                "model": model, "search": search, "grounded": grounded,
+                "gate_enabled": gate_enabled, "break_reason": break_reason.strip(),
+                "full_run": full_run, "digest": write_digest, "scheduled": replace_digest,
+            },
+        ))
+        message = (
+            f"Batch {pending.batch.batch_id} ({len(pending.batch.id_map)} requests) is still "
+            "processing. It keeps running; the collect schedule (or any later run) applies "
+            "its results. Nothing was applied in this run."
+        )
+        logger.warning(message)
+        _write_step_summary(f"## Batch handed over\n\n{message}\n")
+        return
+    if open_batch is not None:
+        handoff.clear(state_path)
     logger.info(result.gate.summary_line())
     for line in gate.review_lines(result.gate):
         logger.warning(line)
@@ -267,7 +346,7 @@ def _run(
         # (or "no changes") as the week's story.
         logger.warning("digest: skipped because the run aborted")
     elif write_digest:
-        _write_digest(result, client, settings, model, today)
+        _write_digest(result, client, settings, model, today, replace=replace_digest)
     if result.fatal:
         raise typer.Exit(code=2)
 
@@ -285,15 +364,18 @@ def _is_scheduled() -> bool:
 
 def _write_digest(
     result: RunResult, client: anthropic.Anthropic, settings: Settings, model: str, today: date,
+    *, replace: bool | None = None,
 ) -> None:
     """Post-run digest. Downgraded to a warning on any failure: the data
     files are already saved, and a missing digest must not change the exit
     code that drives the workflow's commit step. Only a scheduled run may
-    replace the week's digest; a manual run fills a week without one (#101)."""
+    replace the week's digest; a manual run fills a week without one (#101).
+    ``replace`` overrides that for a run collecting a batch a scheduled run
+    submitted (#194)."""
     try:
         write_run_digest(
             result, client=client, settings=settings, model=model, run_date=today,
-            replace=_is_scheduled(),
+            replace=_is_scheduled() if replace is None else replace,
         )
     except Exception:
         logger.warning("digest: failed - continuing", exc_info=True)

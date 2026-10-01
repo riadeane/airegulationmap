@@ -30,7 +30,14 @@ from datetime import date
 # (no leading "As of <date>," clause, no hedging, one statement of an
 # absence, complete lists; #141); and a rule never to construct OECD.AI
 # country-dashboard URLs, which no longer exist (#92).
-PROMPT_VERSION = "v3.4-2026-09"
+# v3.5 (2026-10): rubric v3.2. The first v3.1 run (2026-09-28) gave 5s on
+# the strength of one instrument and counted US state statutes, so a 5
+# now needs every element of its anchor in force, applicable and
+# exercised (anything deferred caps at 4); only the national level counts
+# (EU law counts for EU members); general law applied to AI scores at most
+# 2; a one-use-case rule at most 3 on binding_force and 2 on scope; and
+# the twelve implementation sub-indicators spell out all five levels.
+PROMPT_VERSION = "v3.5-2026-10"
 
 # The rubric generation alone (the part of PROMPT_VERSION a calibration
 # break is about). Bump it with the rubric: the first full run on a new
@@ -38,12 +45,15 @@ PROMPT_VERSION = "v3.4-2026-09"
 # (history.calibration_due), so a scale change never lands as silent drift.
 # v3.1 (2026-09, issue #162): the v3 anchors plus the insufficient-evidence
 # value (null), which is no longer scored as 1.
-RUBRIC_VERSION = "v3.1"
+# v3.2 (2026-10): tighter anchors (see PROMPT_VERSION v3.5). Scores move
+# down where a 5 rested on one instrument, deferred obligations or
+# sub-national law.
+RUBRIC_VERSION = "v3.2"
 
 # The evidence-grounded variant (same rubric + output schema, plus a
 # verified-records block). Grounded prompts are LONGER than plain ones -
 # pair grounded runs with --batch for the 50% token pricing.
-GROUNDED_PROMPT_VERSION = "v3.4-grounded-2026-09"
+GROUNDED_PROMPT_VERSION = "v3.5-grounded-2026-10"
 
 # Caps keeping the evidence block bounded: the most recent initiatives
 # carry the signal, and full overviews would dwarf the rubric.
@@ -87,13 +97,15 @@ Calibration - read before scoring:
   before today let you verify. Do not score the direction of travel, and do not score
   the gap to other countries. A country's score changes only when its own record
   changes.
-- 5 = the state is fully in place and operating: the instrument is in force, the body
-  is staffed and acting, the practice is routine and published. A jurisdiction reaches
-  5 on a sub-indicator when its own record shows that state. It does not need to be
-  the best in the world, and perfection is not required. Today's leading
-  jurisdictions reach 5 on most sub-indicators.
-- 4 = the state is in place, but one element is incomplete, in a transition period,
-  or not yet exercised in practice.
+- 5 = every element of the sub-indicator's 5 anchor is in force, applicable and
+  exercised. The instrument applies today, the body is staffed and using its powers,
+  the practice is routine and published. Any element that is deferred, stayed, in a
+  transition period, not yet applicable or not yet exercised caps the score at 4. A 5
+  is not a ranking (it does not need the best record in the world) and not a judgement
+  that the rules are good; it means the anchor is met in full. Expect 5s to be rare,
+  and never give one on the strength of a single instrument.
+- 4 = the state is in place, but one element is incomplete, deferred, in a transition
+  period, or not yet exercised in practice.
 - 3 = the state exists in part: partial scope, one instrument or body, isolated
   actions, or rules drafted but not in force.
 - 2 = only non-binding or preparatory activity: a strategy, a consultation, or general
@@ -107,11 +119,27 @@ Calibration - read before scoring:
   absence of what the sub-indicator asks about. Return null for the score and say in the
   rationale what you searched. Null is not a low score; do not use it to avoid a hard
   judgment when the evidence supports a level.
-- Examples of where the anchors land (illustrations, not the definition): an EU
-  member state implementing the EU AI Act sits near 4-5 on most regulation_status
-  sub-indicators; the United States (sectoral rules and executive action, no
-  horizontal statute) near 3; a country whose only instrument is a published national
-  AI strategy near 2; no AI-specific policy activity is 1.
+- Score the national level only. For an EU member state, EU regulations and
+  directives that apply in it count as its national law. Laws, agencies and actions of
+  states, provinces, regions or cities never raise a regulation_status, policy_lever or
+  enforcement_level sub-indicator; record them in governance_type.subnational_role and
+  in the text.
+- AI-specific means written for AI: a binding rule whose subject is AI systems, AI
+  models or their outputs. General law with no provision written for AI (data
+  protection, consumer protection, competition, product liability, export control,
+  cybersecurity) is not AI-specific, even when a regulator applies it to AI firms. On
+  the regulation_status, policy_lever and enforcement_level sub-indicators it scores
+  at most 2, except where an anchor below says otherwise.
+- A narrow instrument stays narrow. A binding rule that covers one use case or one
+  kind of content (for example deepfakes, intimate images, election content, or one
+  type of chatbot) scores at most 3 on binding_force and at most 2 on scope, however
+  strictly it binds.
+- Examples of where the anchors land (illustrations, not the definition): a
+  cross-sector AI law in force whose main obligations apply from a later date scores 5
+  on ai_specificity, 4 on binding_force and scope, and at most 4 on implementation; a
+  country whose only national AI-specific binding rule targets one use case scores 3
+  on binding_force and 2 on scope; a country whose only instrument is a published
+  national AI strategy sits near 2; no AI-specific policy activity is 1.
 - When the evidence supports two adjacent levels and you are torn between them, give
   the lower one. This tie-break applies only between levels the evidence supports; it
   never turns missing evidence into a 1.
@@ -135,17 +163,17 @@ Style for each dimension's "text" and for "specific_laws":
 Return ONLY a valid JSON object with these exact keys:
 {{
   "regulation_status": {{
-    "binding_force": {{"score": <1 = nothing binding exists or proposed; 3 = binding AI legislation drafted/in legislative process; 5 = binding AI rules in force>, "rationale": "<the one fact behind this score>"}},
-    "scope": {{"score": <1 = no AI coverage in any sector; 3 = a few sectors or use-cases covered; 5 = horizontal cross-sector coverage>, "rationale": "<the one fact behind this score>"}},
-    "implementation": {{"score": <1 = paper commitments only; 3 = partially in force or in transition period; 5 = fully operational with secondary rules and guidance issued>, "rationale": "<the one fact behind this score>"}},
-    "ai_specificity": {{"score": <1 = only general law incidentally touching AI; 3 = AI explicitly addressed within adapted general law; 5 = dedicated AI-specific instruments>, "rationale": "<the one fact behind this score>"}},
+    "binding_force": {{"score": <1 = nothing binding exists or proposed; 2 = binding AI rules announced or proposed, not yet before the legislature; 3 = binding AI legislation in the legislative process, or binding AI rules in force for one use case only; 4 = binding AI rules in force for several sectors or use cases, or a cross-sector AI law adopted whose main obligations do not yet apply; 5 = binding AI rules in force whose obligations apply today across sectors>, "rationale": "<the one fact behind this score>"}},
+    "scope": {{"score": <1 = no AI coverage in any sector; 2 = one use case, one kind of content, or the public sector only; 3 = a few sectors or use cases covered; 4 = cross-sector coverage by design, with major parts (such as high-risk duties) not yet applicable; 5 = horizontal cross-sector coverage that applies today, including high-risk uses in the private sector>, "rationale": "<the one fact behind this score>"}},
+    "implementation": {{"score": <1 = paper commitments only; 2 = adopted, with no implementing rules, guidance or competent authority yet; 3 = partially in force or in transition period; 4 = in force with most implementing rules and guidance issued, but gaps remain (an authority not designated, standards unfinished, deadlines deferred); 5 = fully operational: every obligation applies, implementing rules, standards and guidance are issued, and every competent authority is designated and acting>, "rationale": "<the one fact behind this score>"}},
+    "ai_specificity": {{"score": <1 = only general law incidentally touching AI; 2 = general law applied to AI by regulators or courts, with no provision written for AI; 3 = AI explicitly addressed within adapted general law; 4 = a dedicated AI-specific instrument covering one area or use case; 5 = dedicated AI-specific instruments covering AI systems generally>, "rationale": "<the one fact behind this score>"}},
     "text": "<current regulatory approach, 1-3 sentences justifying the sub-scores>"
   }},
   "policy_lever": {{
-    "binding_instruments": {{"score": <1 = no binding instruments; 3 = one binding instrument; 5 = multiple binding instruments across domains>, "rationale": "<the one fact behind this score>"}},
-    "soft_law": {{"score": <1 = no guidance/standards/codes; 3 = some published guidance; 5 = mature, maintained suite of standards and codes>, "rationale": "<the one fact behind this score>"}},
-    "economic_tools": {{"score": <1 = no funding/procurement/sandbox programs; 3 = one or two programs; 5 = several active programs>, "rationale": "<the one fact behind this score>"}},
-    "institutional_capacity": {{"score": <1 = no dedicated bodies; 3 = bodies designated but thinly resourced; 5 = staffed, operational institutions with compliance infrastructure>, "rationale": "<the one fact behind this score>"}},
+    "binding_instruments": {{"score": <1 = no binding instruments; 2 = only general law (data protection, consumer protection, competition, export control) applied to AI; 3 = one AI-specific binding instrument; 4 = two AI-specific binding instruments in force, or more where some do not yet apply; 5 = three or more AI-specific binding instruments in force and applying today, in different domains>, "rationale": "<the one fact behind this score>"}},
+    "soft_law": {{"score": <1 = no guidance/standards/codes; 2 = one high-level principles or ethics document; 3 = some published guidance; 4 = national guidance and standards in several areas, not maintained or not referenced by regulators; 5 = a maintained suite of national guidance, standards and codes, updated in the last two years and referenced by regulators>, "rationale": "<the one fact behind this score>"}},
+    "economic_tools": {{"score": <1 = no funding/procurement/sandbox programs; 2 = funding announced but not yet disbursed; 3 = one or two programs; 4 = several funded programs, but no operating regulatory sandbox or AI procurement rules; 5 = several funded programs plus an operating regulatory sandbox and AI procurement rules>, "rationale": "<the one fact behind this score>"}},
+    "institutional_capacity": {{"score": <1 = no dedicated bodies; 2 = an advisory council or a ministry unit with no legal AI mandate; 3 = bodies designated but thinly resourced; 4 = a staffed body with a legal AI mandate that has not yet used its compliance powers; 5 = staffed institutions with a legal AI mandate that use compliance powers (inspections, approvals, binding decisions)>, "rationale": "<the one fact behind this score>"}},
     "text": "<policy mechanisms used, 1-2 sentences>"
   }},
   "governance_type": {{
@@ -163,10 +191,10 @@ Return ONLY a valid JSON object with these exact keys:
     "text": "<actors and geographic scope, 1-2 sentences>"
   }},
   "enforcement_level": {{
-    "sanctions_framework": {{"score": <1 = no penalties defined; 3 = penalties defined for some obligations; 5 = comprehensive penalty framework>, "rationale": "<the one fact behind this score>"}},
-    "actions_taken": {{"score": <1 = never enforced; 3 = isolated enforcement actions; 5 = routine, published enforcement actions>, "rationale": "<the one fact behind this score>"}},
-    "dedicated_authority": {{"score": <1 = nobody owns AI enforcement; 3 = authority designated without dedicated resources; 5 = resourced authority with explicit AI remit>, "rationale": "<the one fact behind this score>"}},
-    "monitoring_practice": {{"score": <1 = no audits or monitoring; 3 = occasional reviews; 5 = routine audits and public reporting>, "rationale": "<the one fact behind this score>"}},
+    "sanctions_framework": {{"score": <1 = no penalties defined; 2 = only general-law penalties reach AI; 3 = penalties defined for some AI-specific obligations; 4 = penalties defined for most AI-specific obligations, or for all where some do not yet apply; 5 = penalties defined and applicable for every AI-specific obligation in force>, "rationale": "<the one fact behind this score>"}},
+    "actions_taken": {{"score": <1 = never enforced; 2 = warnings issued or investigations opened, with no decision, or actions under general law only; 3 = isolated enforcement decisions under AI-specific law; 4 = repeated enforcement decisions under AI-specific law, not routinely published; 5 = routine, published enforcement decisions under AI-specific law, including sanctions imposed>, "rationale": "<the one fact behind this score>"}},
+    "dedicated_authority": {{"score": <1 = nobody owns AI enforcement; 2 = general regulators act on AI within their existing remits; 3 = authority designated without dedicated resources; 4 = resourced authority with an explicit AI remit for part of the AI rules in force; 5 = resourced authority with an explicit AI remit covering all AI rules in force>, "rationale": "<the one fact behind this score>"}},
+    "monitoring_practice": {{"score": <1 = no audits or monitoring; 2 = monitoring planned, or one-off studies; 3 = occasional reviews; 4 = regular monitoring without public reporting, or audits in one sector; 5 = routine audits across sectors with regular public reporting>, "rationale": "<the one fact behind this score>"}},
     "text": "<how strictly rules are enforced, 1 sentence>"
   }},
   "specific_laws": "<REQUIRED if any exist: comma-separated official names of laws, acts, executive orders, or national strategies WITH years, e.g. 'AI Act (2024), Data Protection Act (2018)'. Empty string ONLY if no AI-relevant instrument of any kind exists>",

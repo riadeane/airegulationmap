@@ -161,7 +161,7 @@ test('an expanded dimension says what each sub-indicator level means', async ({ 
   await page.click('.dimension-row[data-dimension="regulationStatus"] .dim-expand');
   const meanings = page.locator('.subscore-meaning[data-group="implementation"]');
   await expect(meanings.first()).toBeVisible();
-  await expect(meanings.first()).toHaveText(/^[1-5]: (No observable activity|Non-binding or preparatory only|Exists in part|In place, one element incomplete or not yet exercised|In place and operating)$/);
+  await expect(meanings.first()).toHaveText(/^[1-5]: (No observable activity|Non-binding or preparatory only|Exists in part|In place, one element incomplete, deferred or not yet exercised|Fully in place, applicable and exercised)$/);
 });
 
 test('where nothing is in force, governance type says so instead of a 1 (#96)', async ({ page }) => {

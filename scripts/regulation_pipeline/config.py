@@ -147,3 +147,9 @@ class Settings:
     def drift_json(self) -> Path:
         """One row of gold-set agreement metrics per run (see gold.py)."""
         return self.root / "public" / "data" / "drift.json"
+
+    @property
+    def open_batch_json(self) -> Path:
+        """A batch a run left running for a later run to collect (handoff.py,
+        #194). Pipeline state, so outside ``public/``."""
+        return self.root / "state" / "open_batch.json"

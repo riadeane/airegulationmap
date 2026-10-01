@@ -600,7 +600,7 @@ def _compare_cli(
     ),
     batch: bool = typer.Option(
         False, "--batch/--no-batch",
-        help="Use the Message Batches API (50% token pricing, results within ~1h). "
+        help="Use the Message Batches API (50% token pricing, results within 24h). "
         "Default: synchronous, so ten countries answer in minutes.",
     ),
     json_out: bool = typer.Option(False, "--json", help="Print the drift row as JSON instead of the report."),

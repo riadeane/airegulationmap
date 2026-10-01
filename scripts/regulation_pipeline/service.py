@@ -21,6 +21,7 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 from . import gate
+from .batch import BatchPending
 from .errors import FatalAPIError
 from .models import ResearchResult, format_score
 from .repository import Dataset
@@ -112,6 +113,10 @@ class PipelineService:
         self._links = link_checker
         self._dead_links = 0
 
+    @property
+    def run_id(self) -> str:
+        return self._run_id
+
     def select(self, targets: list[str] | None, *, force: bool) -> tuple[list[str], list[str]]:
         """Return ``(all_targets, to_update)``. ``targets`` is an explicit
         (already-canonicalized) country list, or ``None`` for "every known
@@ -157,6 +162,17 @@ class PipelineService:
                     tally.add(country, decision)
                     changes.append(change)
                     self._mirror_record(country, result)
+        except BatchPending as pending:
+            # The batch is still running and nothing was applied (the runner
+            # raises before the first answer): no save, no break. The caller
+            # records the batch for a later run to collect (#194).
+            if updated:  # defensive: never lose applied work
+                self._dataset.save()
+            self._mirror_call(
+                "finish", updated, 0, False,
+                note=f"batch {pending.batch.batch_id} still processing; handed to a later run",
+            )
+            raise
         except Exception as exc:
             # FatalAPIError is the expected abort; anything else (a network
             # error the strategy did not absorb, a bug) must not throw away

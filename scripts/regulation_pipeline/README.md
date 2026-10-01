@@ -70,7 +70,8 @@ flowchart TD
 | `service.py` | `PipelineService` - select → research → validate → persist |
 | `strategies.py` | `ResearchStrategy` ABC + `SyncStrategy` / `BatchStrategy` |
 | `api.py` | `ResearchClient` - build request params, parse the response |
-| `batch.py` | `BatchRunner` - Message Batches submit/poll/classify + salvage |
+| `batch.py` | `BatchRunner` - Message Batches submit/poll/classify, handoff of a main batch still running (`BatchPending`), salvage of follow-up batches |
+| `handoff.py` | The open-batch record (`state/open_batch.json`): a handed-over batch plus the options it was submitted with (#194) |
 | `retry.py` | Reusable transient-error retry policy |
 | `prompt.py` | The research prompt template + rendering |
 | `models.py` | `ResearchResult` pydantic model - schema, validation, projections |
@@ -408,9 +409,22 @@ flowchart TD
 
 ## Batch lifecycle
 
-`BatchRunner` submits, polls to completion, and classifies each result. On timeout
-it **cancels and salvages** the requests that already succeeded (and were already
-billed) instead of discarding the run. Submit, poll, cancel and results calls go
+`BatchRunner` submits, polls to completion, and classifies each result. A run's
+**main batch** still processing at the end of the wait is **handed off** (#194):
+with `handoff=True` (the CLI) the runner raises `BatchPending` instead of
+canceling, the CLI records the batch and the run's options in
+`state/open_batch.json`, applies nothing, and exits 0. The next run (the
+workflow's collect schedule, every two hours on Mondays and Tuesdays with
+`--collect-only`, a dispatch, or the next weekly run) collects that batch
+instead of submitting one: it waits up to `COLLECT_WAIT_SECONDS` (10 minutes),
+hands the batch on again if it is still running, and otherwise applies its
+results with the recorded options (model, search, gate and calibration break,
+full run, digest), then deletes the record. A record older than the 29 days the
+API keeps results is removed and the run fails. Before #194 the runner canceled
+the main batch and kept only the finished requests; on 2026-09-28 that lost 129
+of 196 countries. A **follow-up batch** still running at the end of the budget,
+or any batch without handoff (the gold CLI), is still canceled and its
+already-succeeded (already-billed) requests salvaged. Submit, poll, cancel and results calls go
 through the retry policy below, and one wait budget (`max_wait`, 4 hours) covers
 every batch of a run. The budget is wall-clock time since the run's first submit
 (`time.monotonic`, injectable), so retry backoff and slow requests count, not
@@ -425,7 +439,9 @@ stateDiagram-v2
     Submitted --> Polling
     Polling --> Polling: retrieve · in_progress
     Polling --> Ended: status == ended
-    Polling --> Canceling: total wait of the run >= max_wait
+    Polling --> HandedOff: main batch, wait spent, handoff on
+    HandedOff --> [*]: BatchPending<br/>recorded in state/open_batch.json<br/>a later run resumes at Polling
+    Polling --> Canceling: follow-up batch (or no handoff), wait spent
     Canceling --> Ended: drain within grace
     Canceling --> Unreadable: grace exhausted
     Ended --> Classify: results()

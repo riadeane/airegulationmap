@@ -136,8 +136,8 @@ class TestHistory:
 
 class TestRubricGuard:
     def test_versions(self):
-        assert RUBRIC_VERSION == "v3.1"
-        assert PROMPT_VERSION == "v3.4-2026-09"
+        assert RUBRIC_VERSION == "v3.2"
+        assert PROMPT_VERSION == "v3.5-2026-10"
 
     def test_rubric_of_reads_v3_1(self):
         assert rubric_of({"rubric": "v3.1"}) == "v3.1"
@@ -153,7 +153,7 @@ class TestRubricGuard:
         assert calibration_due([june, v3, v31], "v3.1") is False
         assert calibration_due([june, v3, {**v31, "complete": False}], "v3.1") is True
 
-    def test_the_committed_history_makes_the_v3_1_break_due(self):
+    def test_the_committed_history_makes_the_rubric_break_due(self):
         from pathlib import Path
 
         path = Path(__file__).resolve().parents[2] / "public" / "history.json"

@@ -86,8 +86,8 @@ describe('the strings each surface shows', () => {
 
 describe('levelMeaning', () => {
   it('reads the v3 ladder on implementation sub-indicators', () => {
-    expect(levelMeaning('implementation', 'binding_force', 5)).toBe('In place and operating');
-    expect(levelMeaning('implementation', 'scope', 4)).toBe('In place, one element incomplete or not yet exercised');
+    expect(levelMeaning('implementation', 'binding_force', 5)).toBe('Fully in place, applicable and exercised');
+    expect(levelMeaning('implementation', 'scope', 4)).toBe('In place, one element incomplete, deferred or not yet exercised');
     expect(levelMeaning('implementation', 'scope', 3)).toBe('Exists in part');
     expect(levelMeaning('implementation', 'scope', 2)).toBe('Non-binding or preparatory only');
     expect(levelMeaning('implementation', 'scope', 1)).toBe('No observable activity');
