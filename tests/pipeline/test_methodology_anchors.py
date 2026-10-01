@@ -15,8 +15,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
-from regulation_pipeline.models import ResearchResult
-from regulation_pipeline.prompt import RESEARCH_PROMPT
+from regulation_pipeline.models import FRONTIER_SUBINDICATORS, ResearchResult
+from regulation_pipeline.prompt import FRONTIER_ANCHORS, FRONTIER_INCIDENT_ELEMENTS, RESEARCH_PROMPT
 
 METHODOLOGY = Path(__file__).resolve().parents[2] / "public" / "methodology.html"
 
@@ -151,7 +151,32 @@ def test_page_quotes_the_anchors(dimension, key):
 
 
 def test_page_lists_no_other_subindicators():
-    assert set(page().blocks) == set(SUBINDICATORS)
+    assert set(page().blocks) == set(SUBINDICATORS) | {
+        ("frontier_risk", name) for name in FRONTIER_SUBINDICATORS
+    }
+
+
+# The Frontier Risk Governance lens (PRD 15) keeps its anchors in their own
+# constant, sent to the model by track; the page quotes all four under
+# <h3 id="frontier-risk">.
+FRONTIER = {
+    name: {level: _squash(text) for level, text in _ANCHOR.findall(FRONTIER_ANCHORS[name])}
+    for name in FRONTIER_SUBINDICATORS
+}
+
+
+def test_frontier_anchors_parse_into_five_levels():
+    for name, levels in FRONTIER.items():
+        assert set(levels) == {"1", "2", "3", "4", "5"}, name
+
+
+@pytest.mark.parametrize("name", FRONTIER_SUBINDICATORS)
+def test_page_quotes_the_frontier_anchors(name):
+    assert page().blocks.get(("frontier_risk", name)) == FRONTIER[name]
+
+
+def test_page_quotes_the_incident_elements():
+    assert _squash(FRONTIER_INCIDENT_ELEMENTS) in page_text()
 
 
 def test_page_quotes_the_level_ladder():

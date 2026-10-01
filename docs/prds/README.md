@@ -21,8 +21,8 @@ ornament, designed for comparison, citeable by default, calm density.
 | 12 | [Monthly trend piece](12-monthly-trend-piece.md) | Pipeline + site | 02 | Proposed |
 | 13 | [Uncertainty on the map](13-uncertainty-on-map.md) | Frontend | - | Implemented (#58) |
 | 14 | [Evidence coverage per country](14-evidence-coverage.md) | Pipeline + panel | - | Implemented (#57) |
-| 15 | [Frontier risk governance dimension](15-frontier-risk-governance.md) | Pipeline + site | 16 (presentation) | Proposed |
-| 16 | [Score meaning and reader guidance](16-score-meaning-and-reader-guidance.md) | Frontend + site | 15 (phase 2 only) | Proposed |
+| 15 | [Frontier risk governance dimension](15-frontier-risk-governance.md) | Pipeline + site | 16 (presentation) | Implemented, not launched (waits on #161, #106) |
+| 16 | [Score meaning and reader guidance](16-score-meaning-and-reader-guidance.md) | Frontend + site | 15 (phase 2 only) | Phase 1 implemented; phase 2 with PRD 15 |
 
 Suggested order: 01, 02, 03, then the rest in any order. 01 protects the data
 quality that every other PRD assumes.

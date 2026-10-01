@@ -701,3 +701,67 @@ class TestMirror:
         assert table == "country_scores"
         assert ("frontier_risk" in written[0]) is not missing
         assert written[0]["avg_score"] == 3.0
+
+
+# -- the one-off checks (PRD 15 requirements 7, 15, 16) ------------------------
+
+
+class TestChecks:
+    def test_aggregations(self):
+        from regulation_pipeline.frontier_checks import arithmetic, capped, geometric
+
+        assert arithmetic([5, 5, 5, 2]) == 4.25
+        assert capped([5, 5, 5, 2]) == 3.0
+        assert geometric([4, 1]) == 2.0
+
+    def test_spearman_and_ties(self):
+        from regulation_pipeline.frontier_checks import ranks, spearman
+
+        assert ranks({"a": 3, "b": 3, "c": 1}) == {"a": 1.5, "b": 1.5, "c": 3.0}
+        assert spearman({"a": 1, "b": 2, "c": 3}, {"a": 10, "b": 20, "c": 30}) == (1.0, 3)
+        assert spearman({"a": 1, "b": 2, "c": 3}, {"a": 3, "b": 2, "c": 1}) == (-1.0, 3)
+        assert spearman({"a": 1, "b": 2}, {"a": 1, "b": 2}) == (None, 2)
+
+    def test_sensitivity_on_the_committed_gold_set(self):
+        from regulation_pipeline.frontier_checks import gold_frontier_values, sensitivity
+
+        ctx = FrontierContext.load(Settings())
+        values = gold_frontier_values(REPO_ROOT / "public" / "data" / "gold_set.json", ctx)
+        assert len(values) == 10
+        rows, summary = sensitivity(values)
+        assert summary["capped"]["max_rank_move"] == 0
+        for row in rows:
+            assert row.scores["capped"] <= min(row.values) + 1
+
+    def test_prompt_variants_keep_the_definitions(self):
+        from regulation_pipeline.frontier_checks import (
+            PARAPHRASE,
+            apply_variant,
+            paraphrase,
+            reverse_anchor_order,
+        )
+
+        prompt = render_prompt("Chile", TODAY, None, FrontierPrompt("H", False, "", ""))
+        reversed_prompt = reverse_anchor_order(prompt)
+        assert reversed_prompt != prompt
+        assert "<5 = that statute in force" in reversed_prompt
+        assert all(text in paraphrase(prompt) for text in PARAPHRASE.values())
+        params = {"messages": [{"role": "user", "content": prompt}], "model": "m"}
+        assert apply_variant(params, reverse_anchor_order)["messages"][0]["content"] == reversed_prompt
+        assert params["messages"][0]["content"] == prompt  # the original is untouched
+
+    def test_moved_counts_researched_subindicators_only(self):
+        from regulation_pipeline.frontier_checks import moved
+
+        a = {"X": record("H", {"developer_obligations": 2})}
+        b = {"X": record("H", {"developer_obligations": 3, "international_coordination": 1})}
+        assert moved(a, b) == {
+            "compared": 3, "changed": 1, "by_country": {"X": ["developer_obligations 2 -> 3"]},
+        }
+
+    def test_crossval_reads_an_index_csv(self, tmp_path):
+        from regulation_pipeline.frontier_checks import read_index_csv
+
+        path = tmp_path / "idx.csv"
+        path.write_text("country,oecd_aisi,girai_ts\nA,1,50.5\nB,0,\n")
+        assert read_index_csv(path) == {"oecd_aisi": {"A": 1.0, "B": 0.0}, "girai_ts": {"A": 50.5}}
