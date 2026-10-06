@@ -3,29 +3,45 @@
   "pending": [],
   "seen_sources": {
     "Afghanistan": [
+      "8am.media/eng/taliban-security-cameras-kabul-residents-fear-rising-thefts-and-an-ineffective-system",
+      "bti-project.org/en/reports/country-report/AFG",
+      "euaa.europa.eu/sites/default/files/publications/2026-01/2026_01_Afghanistan_COI_Report_Country_Focus.pdf",
       "gpai.ai",
       "oecd.ai/en/dashboards/countries/Afghanistan",
+      "oecd.ai/en/incidents/2025-02-27-46e3",
       "un.org/en/un-chronicle/artificial-intelligence-and-development"
     ],
     "Albania": [
       "cms.law/en/int/expert-guides/ai-regulation-scanner/albania",
       "coe.int/en/web/artificial-intelligence",
+      "coe.int/en/web/artificial-intelligence/the-framework-convention-on-artificial-intelligence",
       "ey.com/en_al/insights/law/albania-data-protection-commissioner-under-the-new-data-protection-law",
       "iss.europa.eu/publications/commentary/artificial-intelligence-real-politics-what-albanias-ai-minister-means-eu",
+      "konsultimipublik.gov.al/Konsultime/Detaje/982",
       "levellers.ai/what-is/ai-regulation-albania",
+      "scidevcenter.org/2026/07/09/scidev-comments-and-suggestions-on-the-draft-law-on-artificial-intelligence",
+      "scidevcenter.org/2026/09/17/digital-rights-e-bulletin-august-september-2026",
       "scidevcenter.org/wp-content/uploads/2026/02/AIACT_Paper_Final.pdf"
     ],
     "Algeria": [
+      "aps.dz/fr/algerie/education-et-technologie/mtszxh7i-baddari-preside-la-deuxieme-reunion-de-coordination-sur-la-mise-en-%C5%93uvre-de-la-strategie-nationale-d-intelligence-artificielle",
       "cms.law/en/int/expert-guides/cms-expert-guide-to-data-protection-and-cyber-security-laws/algeria2",
       "cookieyes.com/blog/algeria-data-protection-law",
       "digitalpolicyalert.org/change/14175-algerian-national-artificial-intelligence-strategy",
+      "digitalpolicyalert.org/digest/dpa-digital-digest-algeria",
       "digitalpolicyalert.org/event/29116-algerian-government-announces-adoption-of-national-ai-strategy",
-      "newlinesinstitute.org/middle-east-center/why-algeria-is-positioned-to-become-north-africas-ai-leader"
+      "mesrs.dz/fr/2026/09/le-ministre-de-lenseignement-superieur-et-de-la-recherche-scientifique-preside-la-premiere-reunion-de-coordination-consacree-a-la-mise-en-oeuvre-de-la-strategie-nationale-de-lintelli",
+      "newlinesinstitute.org/middle-east-center/why-algeria-is-positioned-to-become-north-africas-ai-leader",
+      "news.radioalgerie.dz/en/node/86938"
     ],
     "Andorra": [
       "anuragverma.co/worldwatch/andorra/ai",
       "apda.ad/noticia/l-apda-verifica-el-compliment-de-la-normativa-andorrana-de-proteccio-de-dades-per-part-dels-partits-politics",
+      "coe.int/en-GB/web/conventions/full-list2?module=signatures-by-treaty&treatynum=225",
+      "consellgeneral.ad/ca/noticies/el-consell-general-aprova-la-modificacio-del-codi-penal",
+      "diariandorra.ad/nacional/260422/l-agencia-proteccio-dades-proposa-endurir-codi-penal-davant-els-riscos-ia_194595.html",
       "dig.watch/resource/andorran-code-of-ethics-for-artificial-intelligence",
+      "govern.ad/ca/ministeris-i-secretaries-d-estat/ministeri-de-funcio-publica-i-transformacio-digital/estrategia-de-transformacio-digital-2030",
       "levellers.ai/what-is/ai-regulation-andorra",
       "nucamp.co/blog/coding-bootcamp-andorra-and-government-the-complete-guide-to-using-ai-in-the-government-industry-in-andorra-in-2025"
     ],
@@ -34,34 +50,55 @@
       "anuragverma.co/worldwatch/angola/ai",
       "cms.law/en/int/expert-guides/cms-expert-guide-to-data-protection-and-cyber-security-laws/angola",
       "digitalpolicyalert.org/blog/data-protection-in-africa-roundup",
+      "expansao.co.ao/angola/detalhe/lei-sobre-inteligencia-artificial-preve-multas-de-ate-1500-milhoes-kz-e-prisao-ate-12-anos-68260.html",
+      "observador.pt/2026/08/06/lei-angolana-contra-fake-news-entra-em-vigor-e-abrange-conteudos-criados-no-estrangeiro",
+      "pti.ao/juristas-defendem-criacao-de-lei-especifica-para-a-ia-em-angola",
       "techhiveadvisory.africa/insights/review-of-angolas-proposed-law-on-artificial-intelligence"
     ],
     "Antigua and Barbuda": [
+      "antiguanewsroom.com/antigua-and-barbuda-drafting-legislation-to-regulate-the-use-of-artificial-intelligence-pm-confirms",
       "caricom.org",
+      "cullen-international.com/news/2026/09/Artificial-intelligence-regulation-and-policy-are-at-an-early-stage-in-the-Caribbean.html",
       "ectel.int",
+      "laws.gov.ag/wp-content/uploads/2019/02/a2013-10.pdf",
       "oas.org/en/sedi/dsi/ai/index.asp",
-      "oecd.ai/en/dashboards/countries/AntiguaAndBarbuda"
+      "oecd.ai/en/dashboards/countries/AntiguaAndBarbuda",
+      "unesco.org/en/articles/antigua-and-barbuda-unveils-landmark-ai-readiness-assessment-report",
+      "unesco.org/ethics-ai/en/antigua-and-barbuda"
     ],
     "Argentina": [
       "argentina.gob.ar",
+      "argentina.gob.ar/normativa/nacional/norma-426859",
+      "argentina.gob.ar/noticias/programa-de-transparencia-y-proteccion-de-datos-personales-en-el-uso-de-la-inteligencia",
+      "coe.int/en/web/artificial-intelligence/cai",
       "digital.nemko.com/regulations/ai-regulation-argentina",
       "globallegalinsights.com/practice-areas/ai-machine-learning-and-big-data-laws-and-regulations/argentina",
+      "hcdn.gob.ar/prensa/noticia/COMISION-DE-CIENCIA-TECNOLOGIA-E-INNOVACION-PRODUCTIVA-AVANZO-EN-UN-MARCO-REGULATORIO-PARA-LA-IA",
       "jurist.org/commentary/2025/12/why-argentinas-pioneering-privacy-law-is-now-playing-defense-against-ai",
       "mofo.com/artificial-intelligence/argentina",
+      "normas.gba.gob.ar/documentos/B11QWLI4.html",
       "oecd.ai/en/dashboards/policy-initiatives/santiago-declaration-to-promote-ethical-artificial-intelligence-in-latin-america-and-the-caribbean-1416"
     ],
     "Armenia": [
       "armenpress.am/en/article/1224355",
       "armenpress.am/en/article/1240664",
+      "armenpress.am/en/article/1258455",
       "coe.int/en/web/artificial-intelligence/-/armenia-signs-the-council-of-europe-s-framework-convention-on-artificial-intelligence-1",
       "eufordigital.eu/armenia-outlines-strategic-resources-and-priorities-for-ai-driven-future",
-      "loc.gov/item/global-legal-monitor/2025-01-22/armenia-new-law-provides-state-support-for-high-tech-and-it-sectors"
+      "hightech.gov.am/en",
+      "loc.gov/item/global-legal-monitor/2025-01-22/armenia-new-law-provides-state-support-for-high-tech-and-it-sectors",
+      "practiceguides.chambers.com/practice-guides/cybersecurity-2026/armenia"
     ],
     "Australia": [
+      "architecture.digital.gov.au/policy/responsible-use-of-ai-in-government",
       "esafety.gov.au",
+      "esafety.gov.au/newsroom/media-releases/esafety-takes-action-against-another-major-nudify-service-for-failing-to-protect-australian-children",
       "iapp.org/news/a/australia-unveils-ai-policy-roadmap",
       "industry.gov.au",
+      "industry.gov.au/science-technology-and-innovation/technology/artificial-intelligence",
       "minterellison.com/articles/australia-introduces-a-national-ai-plan-four-things-leaders-need-to-know",
+      "oaic.gov.au/engage-with-us/consultations/consultation-on-guidance-for-transparency-in-automated-decision-making",
+      "pmc.gov.au/domestic-policy/office-ai",
       "safeaiaus.org/safety-standards/ai-australian-legislation",
       "softwareseni.com/australias-ai-safety-institute-explained-funding-functions-and-how-to-engage-with-safety-evaluation",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/australia"
@@ -69,11 +106,16 @@
     "Austria": [
       "artificialintelligenceact.eu",
       "artificialintelligenceact.eu/national-implementation-plans",
+      "bundeskanzleramt.gv.at/bundeskanzleramt/nachrichten-der-bundesregierung/2026/03/5-konkrete-ki-anwendungen-fuer-oesterreichs-bundesverwaltung.html",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/austria",
+      "digitalaustria.gv.at/themen/kuenstliche-intelligenz/ai-act.html",
       "dsb.gv.at",
+      "dsb.gv.at/aktuelles/informationen-der-datenschutzbehoerde-zum-verhaeltnis-zwischen-der-dsgvo-und-der-verordnung-eu-ueber-kuenstliche-intelligenz-ki-vo-fuer-verantwortliche-des-privaten-bereichs",
       "eh.at/en/data-protection-supervision-2025-rising-caseloads-and-new-responsibilities",
       "oecd.org/en/publications/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1_6d530a88-en/austria_ccf9b51e-en.html",
-      "regulations.ai/countries/austria"
+      "oesterreich.gv.at/de/Gesetzliche-Neuerungen/Beschluss-des-Nationalrates/allgemeines-verwaltungsverfahrensgesetz-ua",
+      "regulations.ai/countries/austria",
+      "rtr.at/rtr/service/ki-servicestelle/faq/FAQ.de.html"
     ],
     "Azerbaijan": [
       "caspianlegalcenter.az/news/more/ai-use-crime",
@@ -85,19 +127,30 @@
     ],
     "Bahamas": [
       "bahamas.gov.bs",
+      "bahamas.gov.bs/news-press-release/innovation-ministry-to-establish-a-national-ai-committee-to-draft-the-country-s-first-ai-legislation",
       "caricom.org",
-      "oecd.ai/en/dashboards/countries/Bahamas"
+      "laws.bahamas.gov.bs/cms/images/LEGISLATION/PRINCIPAL/2025/2025-0074/2025-0074_1.pdf",
+      "oag.gov.bs/news-press-release/public-consultation-on-the-draft-data-protection-bill-2025",
+      "oecd.ai/en/dashboards/countries/Bahamas",
+      "urcabahamas.bs/wp-content/uploads/2024/06/Electricity-Act-2024.pdf",
+      "urcabahamas.bs/wp-content/uploads/2024/12/URCA-ECS-78-2024-Code-of-Practice-for-Content-Regulation-Revised.pdf"
     ],
     "Bahrain": [
       "digital.nemko.com/regulations/ai-regulation-bahrain",
+      "gdnonline.com/Details/1398122",
       "iga.gov.bh/Media/Agencies/Kingdom%20of%20Bahrain%20AI%20RAM%20Report.pdf",
       "iga.gov.bh/Media/Publications/National%20Digital%20Policies/General%20Policy%20for%20the%20Use%20of%20AI%20-%20%20Final%2030%20Jul%202025.pdf",
+      "ipu.org/impact/democracy-and-strong-parliaments/artificial-intelligence/parliamentary-actions-ai-policy",
       "middleeastainews.com/p/bahrain-launches-national-ai-policy",
       "newsofbahrain.com/bahrain/105401.html"
     ],
     "Bangladesh": [
       "aipolicy.gov.bd/docs/national-ai-policy-bangladesh-2026-2030-draft-v2.0.pdf",
+      "bssnews.net/js-session/401310",
+      "bssnews.net/news-flash/330104",
+      "ictd.gov.bd/pages/notices/national-ai-policy-bangladesh-2026-2030-draft-v11-6966e23b8c8a196928d558b4",
       "policymagazine.ca/bangladeshs-ai-moment-testing-the-implementation-gap",
+      "tbsnews.net/bangladesh/law-ai-use-be-enacted-after-expert-review-minister-1531836",
       "thedailystar.net/law-our-rights/news/urgency-comprehensive-ai-regulation-bangladesh-3924946",
       "thedailystar.net/tech-startup/news/bangladeshs-personal-data-protection-ordinance-2025-key-takeaways-4015401",
       "unesco.org/en/articles/bangladesh-advances-responsible-ai-agenda-through-multi-partner-cooperation"
@@ -106,137 +159,208 @@
       "barbados.gov.bb",
       "barbadosparliament.com",
       "barbadosparliament.com/uploads/sittings/attachments/Data_Protection_Act_2019-29.pdf",
+      "barbadostoday.bb/2026/09/25/barbados-to-host-un-ai-panel-as-global-concern-over-safeguards-grows",
       "caricom.org/caricom-single-market-and-economy/digital-economy",
       "caricom.org/caricom-single-market-and-economy/sectors/information-and-communication-technology",
       "caricom.org/our-work/programmes/science-technology-and-innovation",
+      "cbc.bb/main-stories/government-to-assess-ais-impact-on-barbadian-workforce",
       "cepal.org/en/events/second-ministerial-conference-digital-government-latin-america-and-caribbean",
+      "ctu.int/ctu-caribbean-ai-task-force-issues-interim-report-calling-for-harmonised-regional-ai-governance",
+      "lexmundi.com/guides/data-privacy-guide/jurisdictions/caribbean/barbados",
       "oecd.ai/en/dashboards/countries/Barbados"
     ],
     "Belarus": [
       "belarus.by/en/government/events/belarus-plans-to-start-drawing-up-ai-bill-in-2026_i_196192.html",
       "digitalpolicyalert.org/change/18807",
+      "eng.belta.by/economics/view/ai-applications-in-economy-branches-discussed-by-belarus-government-186719-2026",
       "eng.belta.by/president/view/lukashenko-presents-belarus-stance-on-using-ai-180997-2026",
       "eng.belta.by/society/view/belarus-to-introduce-20-25-new-ai-standards-in-2026-180910-2026",
+      "pravo.by/document?guid=3871&p0=C22500793",
+      "pravo.by/novosti/obshchestvenno-politicheskie-i-v-oblasti-prava/2026/maj/93598",
       "undp.org/belarus/press-releases/forum-minsk-brings-together-government-business-and-science-develop-artificial-intelligence-ecosystem-belarus"
     ],
     "Belgium": [
       "autoriteprotectiondonnees.be",
+      "autoriteprotectiondonnees.be/publications/l-impact-de-l-intelligence-artificielle-sur-la-vie-privee.pdf",
+      "bipt.be/operators/application-of-the-ai-act",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/belgium",
       "glacis.io/guide-eu-ai-act-belgium",
       "oecd.org/en/publications/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1_6d530a88-en/belgium_a82b426c-en.html",
+      "rtbf.be/article/garder-la-maitrise-de-l-intelligence-artificielle-la-belgique-se-dote-d-une-nouvelle-strategie-ia-11785830",
       "technologyslegaledge.com/state-of-the-act-eu-ai-act-implementation-in-key-member-states",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/belgium"
     ],
     "Belize": [
+      "belizejudiciary.org/wp-content/uploads/2025/11/Practice-Direction-No.-18-of-2025-Ethical-Use-of-Generative-Artificial-Intelligence-in-Court-Proceedings.pdf",
       "caribbeanai.org/ai-caribbean-blog/ai-governance-caribbean",
       "ctu.int/ctu-caribbean-ai-task-force-launched-to-guide-ethical-and-inclusive-artificial-intelligence-development-in-the-region",
       "dig.watch/resource/belizes-national-digital-agenda-2022-2025",
       "dig.watch/resource/the-data-protection-act-2021-act-no-45-of-2021-of-belize",
-      "pressoffice.gov.bz/presentation-of-belizes-global-digital-services-investment-policy"
+      "egov.gov.bz/2026/07/03/cyber-security-in-the-age-of-ai-may-13-2026",
+      "nationalassembly.gov.bz/wp-content/uploads/2021/12/Act-No-45-of-2021-Data-Protection-Act.pdf",
+      "pressoffice.gov.bz/presentation-of-belizes-global-digital-services-investment-policy",
+      "pressoffice.gov.bz/wp-content/uploads/2025/12/Ministry-of-E-Governance-Annual-Technical-Report_2025-compressed.pdf",
+      "unodc.org/dohadeclaration/en/news/2025/safeguarding-judicial-integrity-in-the-age-of-social-media-and-artificial-intelligence_a-perspective-from-belize.html"
     ],
     "Benin": [
       "council.science/wp-content/uploads/2025/02/AI-Paper-Case-Study-Benin_V1.pdf",
       "dlapiperdataprotection.com/index.html?t=law&c=BJ",
+      "innovation.gouv.bj/le-ministere/le-ministre",
+      "numerique.gouv.bj/publications/documents",
       "numerique.gouv.bj/publications/documents/strategie-nationale-d-intelligence-artificielle-et-des-megadonnees-2023-2027",
       "oecd.ai/en/dashboards/policy-initiatives/national-artificial-intelligence-and-big-data-strategy-2023-2027",
       "oecd.org/en/publications/oecd-artificial-intelligence-case-studies_c517fcf5-en/ai-governance-in-africa_1ff55135-en.html"
     ],
     "Bhutan": [
       "ipu.org/impact/democracy-and-strong-parliaments/artificial-intelligence/parliamentary-actions-ai-policy",
+      "tech.gov.bt/ai-startup",
       "tech.gov.bt/bhutan-joins-the-global-50-in-5-campaign-to-advance-digital-public-infrastructure",
       "tech.gov.bt/guideline-for-generative-artificial-intelligence-usage-in-the-civil-service-2024",
       "tech.gov.bt/publications",
       "tech.gov.bt/wp-content/uploads/2025/10/National-AI-Strategy-2025.pdf"
     ],
     "Bolivia": [
+      "agetic.gob.bo/comunicacion/noticias/notas-de-prensa",
       "cepal.org/en/notes/cartagena-declaration-artificial-intelligence-latin-america-and-caribbean-2024",
       "cepal.org/en/pressreleases/latin-america-and-caribbean-adopt-santiago-declaration-artificial-intelligence-2023",
+      "eldeber.com.bo/pais/senado-aprueba-proyecto-ley-uso-inteligencia-artificial-da-prerrogativas-agetic_1761265348",
+      "larazon.bo/sociedad/2025/10/23/senado-aprueba-ley-pionera-para-regular-la-inteligencia-artificial",
       "oecd.ai/en/dashboards/countries/Bolivia"
     ],
     "Bosnia and Herz.": [
+      "cms.law/en/int/expert-guides/ai-regulation-scanner/bosnia-and-herzegovina",
       "coe.int/en/web/artificial-intelligence/countries",
       "digital-strategy.ec.europa.eu/en/policies/ai-act",
+      "dlapiperdataprotection.com?t=law&c=BA",
       "europarl.europa.eu/RegData/etudes/BRIE/2023/740538/EPRS_BRI(2023)740538_EN.pdf",
-      "oecd.ai/en/dashboards/countries/Bosnia-Herzegovina"
+      "oecd.ai/en/dashboards/countries/Bosnia-Herzegovina",
+      "undp.org/bosnia-herzegovina/news/parliamentary-assembly-bosnia-and-herzegovina-lays-foundation-responsible-use-artificial-intelligence",
+      "undp.org/bosnia-herzegovina/news/safeguarding-rights-digital-age-joint-efforts-guide-responsible-ai-use-bosnia-and-herzegovina"
     ],
     "Botswana": [
       "dailynews.gov.bw/news-detail/88106",
       "dailynews.gov.bw/news-detail/88151",
       "misa.org/blog/new-botswana-data-protection-act-progressive-step-to-a-more-secure-digital-environment",
       "trade.gov/country-commercial-guides/botswana-digital-economy",
-      "unesco.org/ethics-ai/en/botswana"
+      "unesco.org/ethics-ai/en/botswana",
+      "unesco.org/ethics-ai/en/global-hub/botswana"
     ],
     "Brazil": [
+      "camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=2487262",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/brazil",
+      "dataprivacybr.org/eca-digital-entra-em-vigor-o-que-a-lei-preve-e-o-que-ainda-falta-regulamentar",
       "gov.br/anpd",
       "loc.gov/item/global-legal-monitor/2025-05-23/brazil-senate-advances-discussions-on-bill-to-regulate-ai-use",
       "mayerbrown.com/en/insights/publications/2026/04/enforcement-of-brazils-eca-digital-introduces-new-obligations-for-companies",
       "murayama.com.br/en/2026/05/18/chamber-of-deputies-schedules-vote-on-artificial-intelligence-legal-framework-for-may-27",
-      "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-brazil"
+      "portal.cfm.org.br/noticias/cfm-normatiza-uso-da-ia-na-medicina",
+      "tse.jus.br/legislacao/compilada/res/2026/resolucao-no-23-755-de-2-de-marco-de-2026",
+      "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-brazil",
+      "www12.senado.leg.br/noticias/materias/2026/09/16/sancionada-lei-de-incentivo-para-a-instalacao-de-data-centers"
     ],
     "Brunei": [
       "aiti.gov.bn",
+      "aiti.gov.bn/news/2025/guide-on-artificial-intelligence-governance-and-ethics-for-brunei-darussalam",
+      "aiti.gov.bn/regulatory/ai-governance-and-ethics",
       "asean.org/asean2025-forging-ahead-together",
+      "dlapiperdataprotection.com/index.html?t=law&c=BN",
       "mtic.gov.bn",
-      "oecd.ai/en/dashboards/countries/Brunei-Darussalam"
+      "oecd.ai/en/dashboards/countries/Brunei-Darussalam",
+      "oecd.ai/en/dashboards/policy-initiatives/guide-on-artificial-intelligence-ai-governance-and-ethics-for-brunei-darussalam"
     ],
     "Bulgaria": [
+      "artificialintelligenceact.eu/national-implementation-plans",
       "bta.bg/en/news/economy/1040178-bulgaria-still-lacks-oversight-of-high-risk-ai-systems-sanctions-under-ai-act-r",
       "cms-lawnow.com/en/ealerts/2025/12/there-are-around-2-000-ai-market-surveillance-authorities-in-the-eu",
+      "cms.law/en/int/expert-guides/ai-regulation-scanner/bulgaria",
       "cpdp.bg",
       "digitalalliance.bg/en/bulgarias-ai-ecosystem-2025",
       "oecd.org/content/dam/oecd/en/publications/reports/2025/10/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1-country-notes_b0385317/bulgaria_82ddaaba/26e81b51-en.pdf",
-      "regulations.ai/regulations/RAI-BG-NA-EAAIAXX-2024"
+      "parliament.bg/bg/bills/ID/167569",
+      "regulations.ai/regulations/RAI-BG-NA-EAAIAXX-2024",
+      "strategy.bg/strategicdocuments/View.aspx?lang=bg-BG&Id=1338"
     ],
     "Burkina Faso": [
+      "an.bf/793",
       "au.int/en/ai",
+      "droit-afrique.com/uploads/Burkina-Loi-2021-01-protection-personnes-donnees-personnelles.pdf",
       "itu.int/en/ITU-D/Regional-Presence/Africa/Pages/default.aspx",
       "oecd.ai/en/dashboards/countries/BurkinaFaso",
-      "reseau-cicle.org"
+      "presidencedufaso.bf/commission-de-linformatique-de-des-libertes-cil",
+      "reseau-cicle.org",
+      "sidwaya.info/intelligence-artificielle-au-burkina-faso-vers-la-validation-dune-feuille-de-route-nationale",
+      "wearetech.africa/fr/fils/actualites/gestion-publique/six-pays-d-afrique-de-l-ouest-adoptent-des-lignes-directrices-communes-sur-l-ia"
     ],
     "Burundi": [
+      "arct.gov.bi/category/decrets-et-lois",
+      "digitalbusiness.africa/burundi-la-strategie-nationale-de-lintelligence-artificielle-validee-axes-et-objectifs",
+      "en.abpinfo.bi/ai-a-practical-tool-for-development-in-burundi",
       "gsma.com/sub-saharan-africa",
       "itu.int/en/ITU-D/Regional-Presence/Africa/Pages/default.aspx",
       "ituc-africa.org",
-      "oecd.ai/en/dashboards/countries/Burundi"
+      "oecd.ai/en/dashboards/countries/Burundi",
+      "techafricanews.com/2026/04/23/burundi-launches-framework-to-integrate-artificial-intelligence-into-governance-and-economy",
+      "wearetech.africa/fr/fils/actualites/tech/intelligence-artificielle-a-seoul-le-burundi-presente-ses-ambitions"
     ],
     "Cambodia": [
+      "ai.gov.kh/press-release-on-process-of-artificial-intelligence-governance",
       "dlapiperdataprotection.com/index.html?t=law&c=KH",
       "iseas.edu.sg/articles-commentaries/iseas-perspective/2025-13-what-is-shaping-artificial-intelligence-ai-governance-policies-in-southeast-asia-by-kristina-fong",
       "mptc.gov.kh/en/2026/04/h-e-sam-sethserey-presided-over-the-workshop-to-gather-input-on-the-draft-artificial-intelligence-development-promotion-strategy-of-the-ministry-of-post-and-telecommunications",
       "oecd.ai/en/dashboards/policy-initiatives/national-artificial-intelligence-strategy-2025-2030",
-      "unesco.org/en/articles/cambodia-launches-ai-readiness-assessment-report-guide-ethical-and-inclusive-digital-transformation"
+      "unesco.org/en/articles/cambodia-launches-ai-readiness-assessment-report-guide-ethical-and-inclusive-digital-transformation",
+      "unesco.org/ethics-ai/en/cambodia"
     ],
     "Cameroon": [
       "iafrica.com/cameroon-launches-national-ai-strategy-to-drive-innovation-by-2040",
       "levellers.ai/what-is/ai-regulation-cameroon",
+      "minpostel.gov.cm/index.php/fr",
       "oecd.ai/en/dashboards/national/cameroon",
+      "oecd.ai/en/dashboards/policy-initiatives/cameroons-national-artificial-intelligence-strategy-snia",
       "pollicy.medium.com/key-features-of-law-2024-017-on-personal-data-protection-in-cameroon-5ee06f79dd1a",
-      "techafricanews.com/2025/07/08/cameroon-unveils-2040-ai-roadmap-anchored-on-seven-strategic-pillars"
+      "techafricanews.com/2025/07/08/cameroon-unveils-2040-ai-roadmap-anchored-on-seven-strategic-pillars",
+      "village-justice.com/articles/%EF%81%9Bcameroun%EF%81%9D-regime-autorisation-inoperant-regime-acountability-irresistible,58041.html"
     ],
     "Canada": [
       "canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai.html",
+      "canada.ca/en/innovation-science-economic-development/news/2026/06/government-of-canada-tables-new-legislation-to-protect-childrens-data-strengthen-privacy-and-build-trust-in-the-digital-economy.html",
       "ised-isde.canada.ca/site/artificial-intelligence-safety-institute/en",
+      "ised-isde.canada.ca/site/ised/sites/default/files/documents/AiStrategyReport_EN.pdf",
       "legisquebec.gouv.qc.ca/en/document/cs/p-39.1",
       "oecd.ai/en/dashboards/countries/Canada",
       "ontario.ca/laws/statute/24s22",
+      "parl.ca/DocumentViewer/en/45-1/bill/C-36/first-reading",
+      "priv.gc.ca/en/opc-actions-and-decisions/investigations/investigations-into-businesses/2026/pipeda-2026-002",
       "tbs-sct.canada.ca/pol/doc-eng.aspx?id=32592"
     ],
     "Cape Verde": [
       "au.int/en/ai",
+      "cnpd.cv/wp-content/uploads/2025/03/Lei-121.IX_.2021-alteracao-Lei-41.VIII_.2013.pdf",
+      "data4sdgs.org/news/cabo-verde-charts-bold-new-path-first-national-data-strategy-age-ai",
+      "expressodasilhas.cv/politica/2026/05/08/governo-lanca-agenda-digital-2035-para-acelerar-transformacao-tecnologica-do-pais/102653",
+      "governo.cv/wp-content/uploads/2026/04/economiadigital.pdf",
       "oecd.ai/en/dashboards/countries/CapeVerde",
       "smartafrica.org"
     ],
     "Central African Rep.": [
+      "africadataprotection.org/en/pays/republique-centrafricaine.html",
+      "agenceecofin.com/actualites-numerique/2506-129534-la-republique-centrafricaine-prepare-la-creation-d-un-centre-d-excellence-en-ia",
+      "arcep.cf/fr/images/documents/reglementation/lois/Loi_24_001_portant_protection_des_donnes_a_caractere_personnel.PDF",
       "au.int/en/ai",
       "ituc-africa.org/Central-African-Republic.html",
-      "oecd.ai/en/dashboards/countries/CentralAfricanRepublic"
+      "oecd.ai/en/dashboards/countries/CentralAfricanRepublic",
+      "oecd.org/en/publications/oecd-artificial-intelligence-case-studies_c517fcf5-en/ai-governance-in-africa_1ff55135-en.html"
     ],
     "Chad": [
+      "arcep.td/lois.html",
       "au.int/en/ai",
       "c4capabilities.org",
       "digitalwatch.giplatform.org/countries/chad",
-      "oecd.ai/en/dashboards/countries/Chad"
+      "oecd.ai/en/dashboards/countries/Chad",
+      "tchadinfos.com/2025/10/21/tchad-creation-dune-direction-generale-de-lintelligence-artificielle-au-ministere-du-numerique",
+      "tchadinfos.com/2026/07/06/le-tchad-participe-au-premier-dialogue-mondial-sur-la-gouvernance-de-lintelligence-artificielle-a-geneve",
+      "uneca.org/stories/chad-joins-africa%E2%80%99s-unified-data-governance-and-ai-readiness-movement-for-a-trusted-digital",
+      "unesco.org/ethics-ai/en/chad"
     ],
     "Chile": [
       "cadeproject.org/updates/chiles-artificial-intelligence-regulation-bill-advances-to-the-senate",
@@ -244,67 +368,107 @@
       "digital.nemko.com/regulations/ai-regulation-chile",
       "gob.cl",
       "kiteworks.com/cybersecurity-risk-management/chile-ai-laws-deadline-2026",
+      "minciencia.gob.cl/areas/inteligencia-artificial/Inteligencia-Artificial/politica-Nacional-Inteligencia-Artificial-Plan-Accion",
       "oecd.ai/en/dashboards/policy-initiatives/santiago-declaration-to-promote-ethical-artificial-intelligence-in-latin-america-and-the-caribbean-1416",
-      "pandectes.io/blog/chiles-law-no-21-719-explained-what-businesses-need-to-know"
+      "pandectes.io/blog/chiles-law-no-21-719-explained-what-businesses-need-to-know",
+      "senado.cl/comunicaciones/noticias/inteligencia-artificial-especialistas-de-la-industria-la-academia-y-sector",
+      "senado.cl/comunicaciones/noticias/senadores-conocen-propuesta-del-ejecutivo-para-ley-marco-de-ia",
+      "trade.gov/market-intelligence/chile-artificial-intelligence"
     ],
     "China": [
       "cac.gov.cn",
       "cac.gov.cn/2022-01/04/c_1642894606364259.htm",
       "cac.gov.cn/2023-07/13/c_1690898327029107.htm",
+      "cac.gov.cn/2025-09/15/c_1759653448369123.htm",
       "iclg.com",
       "miit.gov.cn",
+      "mofo.com/artificial-intelligence/china",
       "oecd.ai/en/dashboards/countries/China",
-      "tc260.org.cn"
+      "tc260.org.cn",
+      "twobirds.com/en/insights/2026/china/china's-new-regulations-on-ai-anthropomorphic-interactive-services"
     ],
     "Colombia": [
       "bu.com.co/en/insights/noticias/ai-takes-colombia-colombia-adopts-conpes-4144",
+      "colaboracion.dnp.gov.co/CDT/Conpes/Econ%C3%B3micos/4144.pdf",
       "connectontech.bakermckenzie.com/colombia-bill-of-law-regulating-artificial-intelligence",
+      "crcom.gov.co/es/noticias/comunicado-prensa/crc-autoriza-experimento-con-inteligencia-artificial-para-mejorar",
       "hklaw.com/en/insights/publications/2024/08/lineamientos-sobre-el-tratamiento-de-datos-personales-en-inteligencia",
       "minciencias.gov.co/sala_de_prensa/colombia-le-vuelve-apostar-al-uso-etico-la-inteligencia-artificial-minciencias-radica",
+      "mintic.gov.co/portal/715/w3-article-425888.html",
+      "mintic.gov.co/portal/inicio/Sala-de-prensa/Noticias/437197:Ministerio-TIC-publica-lineamientos-de-seguridad-y-privacidad-de-la-informacion-para-sistemas-de-inteligencia-artificial",
       "oecd.ai/en/dashboards/policy-initiatives/national-policy-on-artificial-intelligence-conpes-4144-3012",
-      "regulations.ai/regulations/colombia-summary"
+      "regulations.ai/regulations/colombia-summary",
+      "semana.com/economia/empresas/articulo/mas-controles-o-mas-innovacion-el-dilema-que-abre-la-nueva-ley-de-ia/202600"
     ],
     "Comoros": [
+      "anaden.org/uploads/media/5e3969272d9f8/strat-comores-numerique-v2-3-compresse.pdf",
       "au.int/en/documents/20240229/continental-ai-strategy",
+      "au.int/sites/default/files/treaties/29560-sl-AFRICAN_UNION_CONVENTION_ON_CYBER_SECURITY_AND_PERSONAL_DATA_PROTECTION_0.pdf",
+      "dataprotection.africa/comoros",
+      "dig.watch/countries/comoros",
       "gov.km",
       "oecd.ai/en/dashboards/countries/Comoros"
     ],
     "Congo": [
+      "aci.cg/congo-recherche-scientifique-une-nouvelle-loi-pour-structurer-le-secteur-et-encadrer-lia",
+      "adiac-congo.com/content/intelligence-artificielle-et-langues-nationales-le-congo-lance-les-travaux-de-sa-strategie",
       "itu.int/en/ITU-D/Regional-Presence/Africa/Pages/default.aspx",
-      "oecd.ai/en/dashboards/countries/Congo"
+      "oecd.ai/en/dashboards/countries/Congo",
+      "sgg.cg/JO/2019/congo-jo-2019-45.pdf",
+      "techafricanews.com/2026/01/09/congo-hosts-strategic-seminar-on-digital-regulation-and-ai-governance",
+      "uneca.org/dite-for-africa/ai-research-center,-congo-brazaville"
     ],
     "Costa Rica": [
       "delfino.cr/2026/03/costa-rica-oficializa-norma-tecnica-para-la-gestion-y-gobernanza-de-la-inteligencia-artificial",
+      "delfino.cr/2026/09/costa-rica-tiene-bases-para-adoptar-ia-pero-enfrenta-brechas-en-datos-talento-y-regulacion-segun-evaluacion-del-pnud",
       "digital.nemko.com/regulations/ai-regulation-costa-rica",
       "elfinancierocr.com/tecnologia/que-plantean-tres-proyectos-de-ley-sobre/ZT3GKQ3YZ5AQBNN64NLIZNDDZE/story",
       "eurocloud.org/news/article/legal-update-on-privacy-and-artificial-intelligence-costa-rica",
-      "forum.effectivealtruism.org/posts/ruZyjT5vrwnqsKoHq/ai-audit-in-costa-rica"
+      "forum.effectivealtruism.org/posts/ruZyjT5vrwnqsKoHq/ai-audit-in-costa-rica",
+      "inplp.com/latest-news/article/legal-update-on-privacy-and-artificial-intelligence-costa-rica",
+      "micitt.go.cr/gobierno_digital/inteligencia_artificial",
+      "ticotimes.net/2026/09/27/costa-rica-ai-blockchain-digital-assets-law-proposal"
     ],
     "Croatia": [
       "azop.hr",
+      "azop.hr/umjetna-inteligencija-i-zastita-osobnih-podataka",
+      "azop.hr/uredba-umjetna-inteligencija",
       "azop.hr/workshop-on-fundamental-rights-impact-assessment-fria-13-june-2025-zagreb",
       "cms.law/en/deu/legal-updates/there-are-around-2-000-ai-market-surveillance-authorities-in-the-eu",
+      "eur-lex.europa.eu/legal-content/HR/ALL?uri=CELEX:32024R1689",
       "intellinews.com/croatia-to-launch-ai-development-plan-as-minister-warns-of-major-job-market-shifts-383204",
+      "mpudt.gov.hr/vijesti-8/sjednica-vlade-pri-izradi-planova-kojima-ce-se-regulirati-umjetna-inteligencija-u-fokusu-sigurnost-gradjana-i-njihovih-podataka/30074?lang=hr",
+      "oecd.org/en/publications/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1_6d530a88-en/croatia_38d8145c-en.html",
       "regulations.ai/regulations/RAI-HR-NA-NTPWGXX-2025",
       "regulations.ai/regulations/croatia-summary"
     ],
     "Cuba": [
       "digitalpolicyalert.org/change/3363-data-protection-regulation-in-personal-data-protection-law-ley-149",
       "ecured.cu/Consorcio_de_Inteligencia_Artificial_de_Cuba",
+      "media.cubadebate.cu/wp-content/uploads/2024/06/Politica_de_Transformacion_Digital_de_Cuba_Agenda_Digital_y_Estrategia.pdf",
+      "misiones.cubaminrex.cu/es/articulo/aprueba-el-parlamento-cubano-historica-ley-general-de-ciencia-tecnologia-e-innovacion",
       "oecd.ai/en/dashboards/policy-initiatives/strategy-for-the-development-of-artificial-intelligence-in-cuba",
       "trabajadores.cu/20240612/en-pdf-politica-para-la-transformacion-digital-la-agenda-digital-y-la-estrategia-para-el-uso-de-la-inteligencia-artificial",
       "unesco.org/ethics-ai/en/cuba"
     ],
     "Cyprus": [
+      "ai-act-service-desk.ec.europa.eu/en/national-resources",
       "ai.cy",
+      "artificialintelligenceact.eu/national-implementation-plans",
       "chambersandco.com/european-union-artificial-intelligence-act-and-its-implementation-in-cyprus",
+      "cyprus-mail.com/2026/08/18/violators-of-proposed-ai-laws-could-face-fines-of-e35-million",
       "dataprotection.gov.cy",
+      "e-consultation.gov.cy/wp-content/uploads/2026/07/National_AI_Strategy_Cyprus_2032_Final.pdf",
       "globallegalinsights.com/practice-areas/ai-machine-learning-and-big-data-laws-and-regulations/cyprus",
       "legal500.com/guides/chapter/cyprus-artificial-intelligence",
       "proceedings.open.tudelft.nl/DGO2025/article/download/1007/1041"
     ],
     "Czechia": [
       "cms.law/en/int/expert-guides/ai-regulation-scanner/czech-republic",
+      "ctu.gov.cz/tiskova-zprava-2.-srpna-2026-jako-klicove-datum-pro-pravidla-transparentnosti-podle-aktu-o-umele",
+      "ctu.gov.cz/tiskove-zpravy",
+      "mpo.gov.cz/cz/rozcestnik/pro-media/tiskove-zpravy/dalsi-krok-k-rozvoji-umele-inteligence-v-cesku--vlada-schvalila-navrh-na-zajisteni-implementace-ai-aktu--novym-gestorem-je-mpo--287763",
+      "mpo.gov.cz/cz/rozcestnik/pro-media/tiskove-zpravy/mpo-pripravilo-navrh-zakona-o-umele-inteligenci--cilem-je-vytvorit-co-nejlepsi-prostredi-pro-rozvoj-ai-v-cesku--289653",
       "mpo.gov.cz/en/guidepost/for-the-media/press-releases/czechia-as-a-technological-leader--government-approved-the-national-strategy-for-artificial-intelligence-of-the-czech-republic-2030--282278",
       "oecd.ai/en/dashboards/policy-initiatives/national-ai-strategy-of-the-czech-republic-2030-6563",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/czech-republic",
@@ -312,107 +476,170 @@
       "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-czech-republic"
     ],
     "Côte d'Ivoire": [
+      "agenceecofin.com/actualites-numerique/0406-139008-la-cote-d-ivoire-developpe-une-strategie-numerique-autour-de-7-piliers-et-40-projets-a-l-horizon-2035",
+      "artci.ci/en/data-protection",
       "au.int/en/pressreleases/20250517/communique-high-level-policy-dialogue-ai-africa",
       "dig.watch/resource/cote-divoires-national-strategy-for-ai",
       "ecofinagency.com/news-digital/0905-55432-cote-divoire-is-betting-big-on-ai-and-facing-bigger-cyber-risks",
       "iafrica.com/cote-divoire-unveils-2035-digital-strategy-with-ai-among-seven-priority-pillars",
-      "regulations.ai/regulations/RAI-CI-NA-CDNASXX-2025"
+      "regulations.ai/regulations/RAI-CI-NA-CDNASXX-2025",
+      "telecom.gouv.ci/new/uploads/publications/174196670372.pdf",
+      "unesco.org/ethics-ai/en/cotedivoire"
     ],
     "Dem. Rep. Congo": [
       "au.int/en/ai",
+      "droitnumerique.cd/wp-content/uploads/2024/08/Code-du-numerique-I-RD-Congo.pdf",
+      "ecofinagency.com/news-digital/1210-49482-drc-launches-1-5b-national-plan-to-build-a-digital-and-ai-economy",
       "itu.int/en/ITU-D/Regional-Presence/Africa/Pages/Publications/2023/AI_Africa.aspx",
       "itu.int/en/ITU-D/Regulatory-Market/Pages/Countries/Africa/Congo-DRC.aspx",
       "mptntic.cd",
       "oecd.ai/en/dashboards/countries/DemocraticRepublicofCongo",
       "oecd.ai/en/dashboards/countries/DemocraticRepublicoftheCongo",
-      "unctad.org/topic/science-technology-and-innovation/digital-economy/artificial-intelligence"
+      "unctad.org/topic/science-technology-and-innovation/digital-economy/artificial-intelligence",
+      "unesco.org/en/articles/drc-has-its-national-report-artificial-intelligence-readiness-ram",
+      "unesco.org/ethics-ai/en/drc",
+      "unesco.org/fr/articles/la-rdc-se-dote-dune-strategie-nationale-pour-une-intelligence-artificielle-ethique-et-inclusive"
     ],
     "Denmark": [
       "dataguidance.com/news/denmark-datatilsynet-publishes-2025-annual-report",
       "datatilsynet.dk",
+      "datatilsynet.dk/presse-og-nyheder/nyhedsarkiv/2026/jan/datatilsynets-fokusomraader-for-tilsyn-i-2026",
+      "digst.dk/nyheder/nyhedsarkiv/2026/september/foerste-tilsyn-med-forbudt-ai-praksis-er-afsluttet",
+      "digst.dk/tilsyn/ai-forordningen/reglerne-i-ai-forordningen",
       "en.digst.dk/digital-governance/new-technologies/danish-strategies-for-artificial-intelligence",
       "ppc.land/denmark-sets-precedent-with-early-ai-act-implementation-legislation",
       "regulations.ai/regulations/RAI-DK-NA-SPAILXX-2025",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/denmark"
     ],
     "Djibouti": [
+      "adi.dj/article/138866",
       "itunews.itu.int",
+      "journalofficiel.dj/texte-juridique/loi-n195-an-25-9eme-l-portant-creation-de-lautorite-nationale-de-cybersecurite",
+      "lanation.dj/premier-forum-national-sur-lintelligence-artificielle-djibouti-devoile-sa-strategie-nationale-2026-2030",
       "mpttn.dj",
       "oecd.ai/en/dashboards/countries/Djibouti",
       "unctad.org/page/digital-economy",
-      "unctad.org/page/digital-economy-africa"
+      "unctad.org/page/digital-economy-africa",
+      "unesco.org/fr/articles/djibouti-sengage-dans-lelaboration-dune-strategie-nationale-en-matiere-dia-alignee-aux-directives",
+      "wearetech.africa/fr/fils/actualites/tech/djibouti-se-dote-d-une-strategie-d-ia-sur-fond-de-preparation-encore-limitee"
     ],
     "Dominica": [
+      "caribbean.un.org/sites/default/files/2025-06/caribbea-artificial-intelligence-ai-united-nations-study.pdf",
       "caricom.org",
-      "oecd.ai/en/dashboards/countries/Dominica"
+      "ctu.int/wp-content/uploads/2025/12/CCAITF-Draft-Interim-Report-MASTER.pdf",
+      "cullen-international.com/news/2026/09/Artificial-intelligence-regulation-and-policy-are-at-an-early-stage-in-the-Caribbean.html",
+      "oecd.ai/en/dashboards/countries/Dominica",
+      "unesco.org/en/articles/unescos-caribbean-ai-roadmap-wins-regional-backing",
+      "uwi.edu/data-protection?q=resources-external-dominica"
     ],
     "Dominican Republic": [
+      "digeig.gob.do/wp-content/uploads/2026/02/Borrador-de-Codigo-de-Etica-de-la-IA-de-la-Republica-Dominicana_Texto-Final.pdf",
+      "elnacional.com.do/nacionales/si-alteras-videos-o-imagenes-con-ia-sin-concentimiento-podrias-ir-10-anos-preso-a-partir-de-agosto_574125.html",
       "informationdemocracy.org/wp-content/uploads/2025/11/FID_IPANDETEC_INSIGHT_Nr_6.pdf",
       "ipandetec.org/gobernanza-de-internet/regulacion-de-la-inteligencia-artificial-en-centroamerica-y-republica-dominicana-tendencias-legislativas-2025",
+      "minpre.gob.do/comunicacion/notas-de-prensa/gobierno-construye-centro-de-excelencia-en-inteligencia-artificial-con-apoyo-de-nvidia",
       "oecd.ai/en/dashboards/policy-initiatives/national-artificial-intelligence-strategy-enia",
       "senadord.gob.do/comision-de-educacion-superior-continua-analisis-proyecto-de-ley-inteligencia-artificial",
+      "senadord.gob.do/comision-de-senadores-acuerda-fusionar-proyectos-de-ley-que-buscan-regular-el-uso-de-la-inteligencia-artificial",
       "wtlgovernance.com/jurisdiction/dominican-republic"
     ],
     "East Timor": [
+      "catalpa.io/projects/ai-readiness-in-timor-leste-designing-the-future-responsibly",
+      "en.tatoli.tl/2026/08/21/timor-leste-to-host-government-dialogue-on-artificial-intelligence/15",
       "gov.tl",
       "mj.gov.tl",
       "mof.gov.tl",
       "oecd.ai/en/dashboards",
-      "oecd.ai/en/dashboards/countries/TimorLeste"
+      "oecd.ai/en/dashboards/countries/TimorLeste",
+      "timor-leste.gov.tl?p=44825&lang=en&n=1",
+      "unesco.org/en/articles/preparing-timor-leste-embrace-artificial-intelligence",
+      "unesco.org/ethics-ai/en/timor-leste"
     ],
     "Ecuador": [
+      "asambleanacional.gob.ec/es/noticia/118939-cecilia-baltazar-presenta-proyecto-de-ley-sobre-el-uso",
+      "lexis.com.ec/noticias/registro-oficial-del-dia-ecuador-aprueba-estrategia-nacional-para-el-desarrollo-y-uso-etico-de-la-inteligencia-artificial",
+      "observatorioecuadordigital.mintel.gob.ec/acerca-comite-ia",
       "oecd.ai/en/dashboards/countries/Ecuador",
       "registroficial.gob.ec",
-      "telecomunicaciones.gob.ec"
+      "spdp.gob.ec/resoluciones2",
+      "telecomunicaciones.gob.ec",
+      "unesco.org/es/articles/ecuador-presenta-su-estrategia-nacional-para-el-desarrollo-y-uso-etico-de-ia-unesco-presenta-la-ram"
     ],
     "Egypt": [
+      "ai.gov.eg/SynchedFiles/ar/Resources/Egypt%20National%20Guidelines%20for%20Trustworthy%20and%20Responsible%20AI.pdf",
       "ai.gov.eg/SynchedFiles/ar/Resources/Guide%20to%20Egypt%E2%80%99s%20National%20AI%20Governance%20Framework%2015-3-2026.pdf",
       "digitalpolicyalert.org/event/25288-adopted-egyptian-charter-for-responsible-artificial-intelligence-including-design-requirements",
+      "ipu.org/impact/democracy-and-strong-parliaments/artificial-intelligence/parliamentary-actions-ai-policy",
+      "mcit.gov.eg/en/Artificial_Intelligence",
+      "mped.gov.eg/adminpanel/sharedFiles/OECD_Artificial_Intelligence_Review_of_Egypt_c9a.pdf",
       "oecd.ai/en/dashboards/policy-initiatives/egypt-national-artificial-intelligence-strategy",
       "regulations.ai/regulations/egypt-summary",
       "unesco.org/en/articles/egypt-charts-path-towards-ethical-and-inclusive-ai-unesco-support"
     ],
     "El Salvador": [
       "asamblea.gob.sv/sites/default/files/documents/decretos/277EFC88-1C8D-4ACD-BE44-9DAFD64C6797.pdf",
+      "asamblea.gob.sv/sites/default/files/documents/decretos/FAA85F30-F97C-436B-8101-D3E93549D622.pdf",
       "blplegal.com/artificial-intelligence-and-technologies-promotion-law",
+      "diarioelsalvador.com/depais/congreso-avala-marco-legal-para-regular-la-innovacion-tecnologica/857102",
       "digitalpolicyalert.org/event/27749-law-for-the-promotion-of-artificial-intelligence-and-technologies-decree-no-234-including-intellectual-property-regulation",
       "jurisprudencia.gob.sv/DocumentosBoveda/D/2/2020-2029/2025/08/10D107.PDF",
-      "loc.gov/item/global-legal-monitor/2025-03-25/el-salvador-new-law-encourages-development-of-artificial-intelligence"
+      "loc.gov/item/global-legal-monitor/2025-03-25/el-salvador-new-law-encourages-development-of-artificial-intelligence",
+      "unesco.org/en/articles/el-salvador-moving-toward-human-centered-artificial-intelligence"
     ],
     "Equatorial Guinea": [
-      "oecd.ai/en/dashboards/countries/EquatorialGuinea"
+      "ahoraeg.com/tecnologia/2026/05/15/aauca-concluye-el-ii-foro-nacional-de-inteligencia-artificial-un-espacio-de-innovacion-para-el-futuro-tecnologico-de-guinea-ecuatorial",
+      "dataprotection.africa/equatorial-guinea",
+      "dig.watch/countries/equatorial-guinea",
+      "guinea24.com/lectura.php?id=678&i=",
+      "oecd.ai/en/dashboards/countries/EquatorialGuinea",
+      "realequatorialguinea.com/tecnologia/guinea-ecuatorial-da-los-primeros-pasos-para-disponer-de-una-ley-de-inteligencia-artificial"
     ],
     "Eritrea": [
+      "dig.watch/countries/eritrea",
       "freedomhouse.org/country/eritrea/freedom-net/2024",
-      "oecd.ai/en/dashboards/countries/Eritrea"
+      "levellers.ai/what-is/ai-regulation-eritrea",
+      "oecd.ai/en/dashboards/countries/Eritrea",
+      "shabait.com",
+      "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-african-union"
     ],
     "Estonia": [
+      "artificialintelligenceact.eu/national-implementation-plans",
       "cms-lawnow.com/en/ealerts/2025/12/there-are-around-2-000-ai-market-surveillance-authorities-in-the-eu",
       "globallegalinsights.com/practice-areas/ai-machine-learning-and-big-data-laws-and-regulations/estonia",
+      "kratid.ee/tehisintellektimaarus",
       "magnussonlaw.com/ai-law/shadow-ai-eu-estonia-legal-risks",
       "regulations.ai/regulations/estonia-summary",
       "ria.ee",
-      "riigikantselei.ee/en/eestiai-initiative"
+      "riigikantselei.ee/en/eestiai-initiative",
+      "ttja.ee/ariklient/ohutus/tooted-teenused/tehisintellektisusteemid"
     ],
     "Ethiopia": [
       "au.int/en/pressreleases/20250517/communique-high-level-policy-dialogue-ai-africa",
       "digitalpolicyalert.org/change/13879",
       "digitalpolicyalert.org/digest/dpa-digital-digest-ethiopia",
       "mondaq.com/privacy-protection/1766200/ethiopian-personal-data-protection-law-proclamation-13212024-business-compliance-guide",
-      "regulations.ai/regulations/ethiopia-summary"
+      "regulations.ai/regulations/RAI-ET-NA-AIIECXX-2022",
+      "regulations.ai/regulations/ethiopia-summary",
+      "telecompaper.com/news/ethiopia-cabinet-approves-draft-data-governance-law--1584167",
+      "unesco.org/ethics-ai/en/ethiopia"
     ],
     "Fiji": [
       "council.science/wp-content/uploads/2026/02/Fiji-AI.pdf",
+      "fijisun.com.fj/news/nation/ministry-drafts-ai-policy-to-guide-usage-in-schools",
       "fijitimes.com.fj/beyond-the-scope-fijis-digital-strategy",
       "fijitimes.com.fj/plans-to-protect-ai-users",
       "pacificislands.ai/ai-threats-in-fiji-and-data-protection-laws-could-this-new-strategy-be-too-little-too-late-2",
+      "pina.com.fj/2026/09/06/pacific-leaders-set-ai-rules-push-stronger-digital-connectivity",
       "trade.gov/country-commercial-guides/fiji-digital-economy"
     ],
     "Finland": [
       "lvm.fi/en",
       "oph.fi/en/teemat-ja-kehittaminen/backround-material-artificial-intelligence-act",
       "tem.fi/en/ai-regulation",
+      "tietosuoja.fi/-/uudet-saannot-vahvistavat-luottamusta-tekoalyyn-tekoalyasetusta-valvovien-viranomaisten-toimivaltuudet-tulivat-voimaan-1.1",
       "tietosuoja.fi/en",
+      "traficom.fi/fi/tekoalyn-saantely",
+      "traficom.fi/fi/uutiset/tekoalyn-kaytosta-nyt-kerrottava-aiempaa-avoimemmin-traficom-julkaisi-ohjeet-uusiin-velvoitteisiin",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/finland",
       "valtioneuvosto.fi/en/-/1410877/government-submits-to-parliament-legislation-to-implement-the-first-phase-of-eu-artificial-intelligence-act",
       "valtioneuvosto.fi/en/-/1410877/national-supervision-of-eu-artificial-intelligence-act-to-begin-laws-on-powers-of-authorities-to-take-effect-at-start-of-the-year"
@@ -422,15 +649,24 @@
       "cnil.fr/en/ai-cnil-finalises-its-recommendations-development-artificial-intelligence-systems",
       "cnil.fr/en/entry-force-european-ai-regulation-first-questions-and-answers-cnil",
       "cnil.fr/en/tag/Sanctions",
+      "economie.gouv.fr/dgccrf/actualites-dgccrf/ia-la-dgccrf-coordonnera-laction-des-autorites-de-surveillance-en-france",
+      "entreprises.gouv.fr/priorites-et-actions/transition-numerique/soutenir-le-developpement-de-lia-au-service-de-0",
       "gouvernement.fr/ia",
       "hsfkramer.com/insights/reports/ai-tracker/france",
+      "senat.fr/lessentiel/pjl25-118.pdf",
+      "sgdsn.gouv.fr/files/files/Nos_missions/Feuille%20de%20route%20INESIA%202026-2027.pdf",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/france"
     ],
     "Gabon": [
       "au.int/en/ai",
       "au.int/en/documents/20240202/continental-artificial-intelligence-strategy",
+      "droit-et-politique-en-afrique.info/wp-content/uploads/2026/04/Ordonnance-du-26-fevrier-2026-reglementation-de-lusage-des-reseaux-sociaux-Journal-Officiel-n%C2%B0110-du-8-au-15-avril-2026.pdf",
+      "gabonmediatime.com/gabon-communique-final-du-conseil-des-ministres-du-22-mai-2026",
+      "gabonreview.com/intelligence-artificielle-le-gabon-ouvre-le-chantier-dune-strategie-nationale-inclusive-et-souveraine",
       "itu.int/en/ITU-D/Regional-Presence/Africa/Pages/default.aspx",
-      "oecd.ai/en/dashboards/countries/Gabon"
+      "oecd.ai/en/dashboards/countries/Gabon",
+      "unesco.org/ethics-ai/en/gabon",
+      "unesdoc.unesco.org/ark:/48223/pf0000390429"
     ],
     "Gambia": [
       "au.int/en/ai",
@@ -443,135 +679,213 @@
       "1tv.ge/lang/en/news/georgia-eu-us-and-other-countries-sign-international-ai-treaty",
       "dlapiperdataprotection.com?t=law&c=GE",
       "idfi.ge/en/council-of-europe-framework-convention-on-ai",
+      "nbg.gov.ge/en/page/model-risk",
+      "pmcg-i.com/advancing-ethical-ai-readiness-in-georgia",
       "pmcg-i.com/launching-the-readiness-assessment-methodology-in-georgia-for-the-unesco-recommendation-on-the-ethics-of-artificial-intelligence",
+      "unesco.org/ethics-ai/en/articles/readiness-action-phased-roadmap-developing-ai-regulation-and-governance-georgia",
       "unesco.org/ethics-ai/en/georgia"
     ],
     "Germany": [
       "activemind.legal/guides/ki-mig",
+      "bmftr.bund.de/SharedDocs/Kurzmeldungen/DE/2026/07/300726-1-jahr-htad.html",
       "bmftr.bund.de/SharedDocs/Pressemitteilungen/DE/2026/05/200526-HTAD.html",
       "bundesnetzagentur.de",
       "bundesnetzagentur.de/1112336",
+      "bundesnetzagentur.de/DE/Fachthemen/Digitales/KI/18_Beschwerdestelle/start.html",
+      "bundesnetzagentur.de/SharedDocs/Pressemitteilungen/EN/2026/20260507_KI_Reallabore.html",
+      "bundesnetzagentur.de/SharedDocs/Pressemitteilungen/EN/2026/20260729_KI_VO.html",
       "bundesnetzagentur.de/ki-reallabor",
       "bundestag.de/dokumente/textarchiv/2026/kw12-de-kuenstliche-intelligenz-1151800",
       "euaicompass.com/eu-ai-act-germany.html",
       "gesetze-im-internet.de/ki-mig/BJNR0DF0B0026.html",
       "gleisslutz.com/en/know-how/federal-government-draft-bill-implement-eu-artificial-intelligence-act",
+      "justiz.bayern.de/gerichte-und-behoerden/landgericht/muenchen-1/presse/2025/11.php",
       "lexology.com/library/detail.aspx?g=2f183092-080a-409d-9ac9-9998cd3907f3",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/germany"
     ],
     "Ghana": [
       "businessghana.com/site/news/politics/337819/Gov-t-to-lay-Emerging-Technologies-Bill-before-Parliament-in-2026",
       "dataprotection.org.gh/the-data-protection-commission-launches-public-awareness-campaign",
+      "ghanabusinessnews.com/2026/10/05/dpc-begins-checks-on-data-protection-compliance",
       "gna.org.gh/2026/03/govt-to-introduce-new-data-protection-bill-to-regulate-ai-cross-border-data-flows",
       "moc.gov.gh/2026/04/24/ghana-launches-national-ai-strategy-to-drive-digital-transformation-and-economic-growth",
-      "rail.knust.edu.gh/2025/04/16/ghana-advances-national-ai-strategy-with-multi-stakeholder-consultation"
+      "rail.knust.edu.gh/2025/04/16/ghana-advances-national-ai-strategy-with-multi-stakeholder-consultation",
+      "rail.knust.edu.gh/ghana-launches-national-ai-strategy-with-rail-at-the-helm-of-a-responsible-ai-future"
     ],
     "Greece": [
+      "ai.gov.gr/en/secretariat",
       "athenarc.gr/en/archimedes/news-all",
       "dpa.gr",
+      "ey.com/en_gr/technical/tax/tax-alerts/ai-act-greek-legal-framework-for-the-supervision-of-artificial-intelligence-systems",
       "ey.com/en_gr/technical/tax/tax-alerts/l-4961-2022-the-greek-legal-framework-on-emerging-technologies",
       "intelligence.dlapiper.com/artificial-intelligence?t=01-law&c=GR",
+      "intelligence.dlapiper.com/artificial-intelligence?t=02-regulatory-guidance&c=GR",
       "legal500.com/guides/chapter/greece-artificial-intelligence",
+      "mindigital.gr/archives/8792",
       "oecd.org/en/publications/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1_6d530a88-en/greece_e5215c30-en.html"
     ],
     "Grenada": [
+      "cullen-international.com/news/2026/09/Artificial-intelligence-regulation-and-policy-are-at-an-early-stage-in-the-Caribbean.html",
+      "dig.watch/countries/grenada",
       "gov.gd",
+      "nowgrenada.com/2025/06/financial-institutions-must-brace-for-banking-data-protection-demands",
       "oas.org/en/sla/dil/docs/santiago_declaration_AI.pdf",
       "oas.org/en/sla/iajc/docs/Santiago_Declaration_AI.pdf",
-      "oecd.ai/en/dashboards/countries/Grenada"
+      "oecd.ai/en/dashboards/countries/Grenada",
+      "unesco.org/en/articles/unescos-caribbean-ai-roadmap-wins-regional-backing"
     ],
     "Guatemala": [
+      "guatemala.un.org/es/311127-evaluaci%C3%B3n-de-ia-en-guatemala",
       "jointsdgfund.org/article/guatemala-advances-toward-inclusive-and-responsible-use-artificial-intelligence",
       "lawgratis.com/blog-detail/artificial-intelligence-law-at-guatemala",
+      "prensalibre.com/guatemala/guatemala-prepara-su-estrategia-de-inteligencia-artificial-pero-aun-debe-definir-quien-la-dirigira",
+      "senacyt.gob.gt/component/content/article/humania",
+      "soy502.com/articulo/proponen-multas-alteracion-fotos-videos-ia-101772",
       "trade.gov/country-commercial-guides/guatemala-digital-economy",
       "undp.org/es/guatemala/blog/guatemala-avanza-hacia-un-uso-inclusivo-responsable-y-transformador-de-la-inteligencia-artificial",
       "wtlgovernance.com/jurisdiction/guatemala"
     ],
     "Guinea": [
+      "anssi.gov.gn/nproject/loi-l037-2016-relative-a-la-cybersecurite-et-la-protection-des-donnees-a-caractere-personnel",
       "au.int/en/ai",
       "au.int/en/documents/20200212/african-union-data-policy-framework",
-      "oecd.ai/en/dashboards/countries/Guinea"
+      "dounia.org",
+      "ecofinagency.com/news-digital/2212-51603-guinea-validates-10-year-national-ai-roadmap",
+      "guineenews.org/2025/10/18/la-guinee-trace-sa-feuille-de-route-de-lia-latelier-aila-debouche-sur-une-strategie-nationale-ambitieuse",
+      "oecd.ai/en/dashboards/countries/Guinea",
+      "presidence.gov.gn/presidence-de-la-republique-installation-des-nouveaux-conseillers-du-chef-de-letat"
     ],
     "Guinea-Bissau": [
+      "arn.gw",
       "au.int/en/ai",
+      "coe.int/en/web/octopus/-/guinea-bissau",
+      "faolex.fao.org/docs/pdf/gbs235634.pdf",
       "gov.gw",
       "oecd.ai/en/dashboards/countries/Guinea-Bissau",
-      "oecd.ai/en/dashboards/countries/GuineaBissau"
+      "oecd.ai/en/dashboards/countries/GuineaBissau",
+      "undp.org/pt/guinea-bissau/news/lancamento-da-estrategia-nacional-para-transformacao-digital",
+      "unu.edu/egov/project/national-strategy-digital-transformation-guinea-bissau"
     ],
     "Guyana": [
       "anuragverma.co/worldwatch/guyana/ai",
       "demerarawaves.com/2026/02/07/former-top-gecom-official-now-data-commissioner",
       "dig.watch/countries/guyana",
       "dpi.gov.gy/data-protection-bill-passed-in-national-assembly",
+      "guyanachronicle.com/2026/05/15/guyanas-digital-future-being-built-on-trust-transparency-and-accountability",
+      "guyanachronicle.com/2026/07/12/guyana-backs-responsible-ai-governance-at-un-dialogue",
       "parliament.gov.gy/media-centre/press-releases/guyana-advocates-parliamentary-action-on-artificial-intelligence-at-ipu-assembly"
     ],
     "Haiti": [
       "bsg.ox.ac.uk/research/publications/artificial-intelligence-governance-global-landscape",
+      "conatel.gouv.ht/actualites",
+      "haitilibre.com/en/news-48192-haiti-technology-roadmap-for-the-responsible-adoption-of-artificial-intelligence-in-haiti.html",
+      "iadb.org/en/project/HA-T1339",
+      "itu.int/itu-d/meetings/gsr-26/wp-content/uploads/sites/45/2026/05/GSR-26_Contribution_Haiti-Conatel_F.pdf",
+      "lenouvelliste.com/article/270840/vers-une-feuille-de-route-nationale-sur-lia-signature-dun-protocole-de-collaboration-entre-quatre-institutions",
       "oecd.ai/en/dashboards/countries/Haiti"
     ],
     "Honduras": [
+      "consortiumlegal.com/2026/02/23/panorama-regulatorio-de-la-inteligencia-artificial-en-centroamericana",
       "consortiumlegal.com/en/2026/02/23/regulatory-landscape-of-artificial-intelligence-in-central-america",
       "dig.watch/resource/honduras-digital-government-plan-2023-2026",
+      "diger.gob.hn/sites/default/files/2024-02/Plan%20de%20Gobierno%20Digital%20Honduras.pdf",
+      "elheraldo.hn/honduras/congreso-nacional-busca-penalizar-ciberacoso-inteligencia-artificial-suplantacion-identidad-digital-GI30924516",
       "latribuna.hn/2025/03/22/honduras-a-la-zaga-en-inteligencia-artificial-radiografia-de-una-oportunidad-que-puede-perderse",
       "proceso.hn/marco-de-la-inteligencia-artificial",
+      "sica.int/erdi/proyectos",
       "trade.gov/country-commercial-guides/honduras-digital-economy"
     ],
     "Hungary": [
+      "cdn.kormany.hu/uploads/document/c/c0/c0d/c0dfdbd37cfa520ae37361a168d244c85e7295af.pdf",
       "cms-lawnow.com/en/ealerts/2025/09/hungary-announces-new-ai-strategy-and-regulation-plans",
       "cms-lawnow.com/en/ealerts/2025/11/hungary-implements-institutional-framework-for-eu-ai-act",
+      "cms.law/en/hun/legal-updates/hungary-implements-institutional-framework-for-eu-ai-act",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/hungary",
       "digitalpolicyalert.org/event/34952-act-lxxv-of-2025-on-the-implementation-of-the-european-union-regulation-on-artificial-intelligence-in-hungary-enters-into-force-with-grace-period",
+      "gdpr.blog.hu/2026/09/02/new_set-up_in_the_supervision_of_ai_systems_in_hungary",
       "naih.hu",
+      "net.jogtar.hu/jogszabaly?docid=a2500075.tv",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/hungary"
     ],
     "Iceland": [
       "artificialintelligenceact.eu/national-implementation-plans",
       "efta.int/eea-lex/32024r1689",
       "grip.globalrelay.com/icelands-dpa-signals-continued-focus-on-cybersecurity-health-data-and-ai-governance",
+      "island.is/s/personuvernd",
+      "island.is/samradsgatt/mal/3862",
       "personuvernd.is",
-      "stjornarradid.is/library/04-Raduneytin/Menningar---nyskopunar--og-haskolaraduneytid/Iceland's%20AI%20Action%20Plan%20electronic%20version.pdf"
+      "stjornarradid.is/library/04-Raduneytin/Menningar---nyskopunar--og-haskolaraduneytid/Iceland's%20AI%20Action%20Plan%20electronic%20version.pdf",
+      "stjornarradid.is/rikisstjorn/thingmalaskra"
     ],
     "India": [
+      "cms.law/en/int/expert-guides/ai-regulation-scanner/india",
       "india.gov.in/spotlight/india-ai-mission",
       "indiaai.gov.in",
+      "medianama.com/2026/02/223-meity-amendments-it-rules-synthetic-media-deepfakes",
       "meity.gov.in",
       "meity.gov.in/content/india-ai",
       "meity.gov.in/data-protection-framework",
-      "oecd.ai/en/countries/india"
+      "oecd.ai/en/countries/india",
+      "pib.gov.in/PressReleasePage.aspx?PRID=2186639",
+      "pib.gov.in/PressReleasePage.aspx?PRID=2231208"
     ],
     "Indonesia": [
+      "eastasiaforum.org/2026/09/04/indonesias-ai-regulations-leave-state-repression-unchecked",
       "en.antaranews.com/news/418895/minister-highlights-urgency-of-specific-ai-laws-for-indonesia",
+      "govinsider.asia/indo-id/article/indonesia-prepares-presidential-regulations-to-guide-ai-adoption-in-government",
       "hsfkramer.com/insights/reports/ai-tracker/indonesia",
       "indonesiabusinesspost.com/5992/cyber-and-espionage/indonesia-prioritizes-ai-regulation-in-2026-says-communications-minister",
       "kominfo.go.id",
+      "ojk.go.id/id/publikasi/roadmap-dan-pedoman/perbankan/default.aspx",
+      "selular.id/2026/09/dua-perpres-ai-tunggu-tanda-tangan-presiden-prabowo",
       "thejakartapost.com/business/2025/10/29/ai-rules-pushed-to-2026-as-govt-charts-next-move.html",
       "thelegalwire.ai/two-priority-ai-presidential-decrees-to-be-signed-by-prabowo-in-early-2026"
     ],
     "Iran": [
       "aljazeera.com/news/2025/10/iran-parliament-ai-organization",
       "carnegieendowment.org/2024/04/iran-ai-governance",
+      "en.mehrnews.com/news/238085/Iran-to-launch-national-artificial-intelligence-organization",
+      "filter.watch/english/2025/09/30/investigative-report-september-2025-control-over-innovation",
+      "hooshio.com/what-is-iran-national-ai-development-law",
       "iapp.org/news/a/iran-ai-governance",
       "iapp.org/news/a/irans-national-ai-roadmap",
       "mcit.ir",
       "naio.ir",
-      "oecd.ai/en/dashboards/countries/Iran"
+      "oecd.ai/en/dashboards/countries/Iran",
+      "recordedfuture.com/research/irans-ai-ambitions-balancing-economic-isolation-national-security-imperatives",
+      "zoomit.ir/iran-news/467113-iran-national-ai-development-law-explained"
     ],
     "Iraq": [
+      "964media.com/719394",
+      "cmc.iq",
+      "iraq-businessnews.com/2024/08/22/first-meeting-of-iraq-supreme-committee-for-ai",
+      "iraq-businessnews.com/2026/09/28/public-consultation-opens-on-iraqs-draft-ai-regulation",
       "mcit.gov.iq",
       "oecd.ai/en/dashboards/countries/Iraq",
-      "un.org/en/ccmte/files/2024/AI-strategy-Iraq.pdf"
+      "un.org/en/ccmte/files/2024/AI-strategy-Iraq.pdf",
+      "unesco.org/en/articles/unesco-trains-iraqi-trainers-ethics-artificial-intelligence"
     ],
     "Ireland": [
+      "aioffice.gov.ie/national-competent-authorities",
       "data.oireachtas.ie/ie/oireachtas/committee/dail/34/joint_committee_on_enterprise_tourism_and_employment/submissions/2026/2026-03-04_briefing-note-declan-mccormack-principal-officer-ai-and-digital-regulation-unit-department-of-enterprise-tourism-and-employment_en.pdf",
       "dataprotection.ie",
       "enterprise.gov.ie/en/legislation/general-scheme-of-the-regulation-of-artificial-intelligence-bill-2026.html",
+      "enterprise.gov.ie/en/news-and-events/department-news/2026/july/20260730.html",
       "enterprise.gov.ie/en/what-we-do/innovation-research-development/artificial-intelligence/eu-ai-act",
+      "enterprise.gov.ie/en/who-we-are/offices-agencies/ai-office-of-ireland.html",
+      "irishstatutebook.ie/eli/2026/act/31/enacted/en/html",
       "matheson.com/insights/ireland-adopts-distributed-model-for-ai-oversight",
+      "oireachtas.ie/en/bills/bill/2026/69",
       "williamfry.com/knowledge/ireland-establishes-comprehensive-ai-regulatory-framework-under-eu-act"
     ],
     "Israel": [
       "digital.nemko.com/regulations/ai-regulation-israel",
+      "embassies.gov.il/multilateral-organizations-france/en/news/israel-signs-coe-ai-convention",
+      "iapp.org/news/a/proactive-caution-israels-approach-to-ai-regulation",
       "iclg.com/practice-areas/data-protection-laws-and-regulations/israel",
+      "innovationisrael.org.il/en/calls_for_proposal/ai-in-health-sandbox",
+      "israelnationalnews.com/news/430784",
+      "legal500.com/guides/wp-content/uploads/sites/1/2026/08/Israel-AI.pdf",
       "letsdatascience.com/news/israel-approves-national-ai-strategy-prioritizes-talent-and-40c9f79b",
       "oecd.ai/en/dashboards/policy-initiatives/national-program-for-artificial-intelligence-4541",
       "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-israel"
@@ -581,14 +895,21 @@
       "cms.law/en/int/expert-guides/ai-regulation-scanner/italy",
       "gamingtechlaw.com/2026/06/italy-ai-act-implementing-decrees-2026",
       "garanteprivacy.it",
+      "garanteprivacy.it/home/docweb/-/docweb-display/docweb/10269594",
+      "giurisprudenzapenale.com/2026/09/17/intelligenza-artificiale-pubblicato-in-gazzetta-ufficiale-e-in-vigore-dal-30-settembre-il-d-lgs-9-settembre-2026-n-160",
       "nortonrosefulbright.com/en/knowledge/publications/9bfedfea/italy-enacts-law-no-132-2025-on-artificial-intelligence-sector-rules-and-next-steps",
+      "noze.it/en/insights/ai-law-implementing-decrees",
       "squirepattonboggs.com",
       "wsgr.com/en/insights/openai-prevails-in-landmark-italian-ai-and-gdpr-enforcement-case.html"
     ],
     "Jamaica": [
       "caricom.org",
+      "jis.gov.jm/house-passes-legislation-to-strengthen-cybercrime-framework",
+      "jis.gov.jm/jamaica-lays-strong-foundation-for-ai-governance",
       "moj.gov.jm/sites/default/files/laws/The%20Data%20Protection%20Act.pdf",
-      "oecd.ai/en/dashboards/countries/Jamaica"
+      "oecd.ai/en/dashboards/countries/Jamaica",
+      "opm.gov.jm/wp-content/uploads/2025/02/National-Artificial-Intelligence-Task-Force-Policy-Recommendations-Final-1.pdf",
+      "unesco.org/ethics-ai/en/jamaica"
     ],
     "Japan": [
       "aisi.go.jp",
@@ -596,95 +917,153 @@
       "fpf.org/blog/understanding-japans-ai-promotion-act-an-innovation-first-blueprint-for-ai-regulation",
       "iapp.org/resources/article/global-ai-governance-japan",
       "meti.go.jp",
+      "pwc.com/jp/en/knowledge/news/legal-news/legal-20260827-6.html",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/japan",
-      "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-japan"
+      "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-japan",
+      "www8.cao.go.jp/cstp/ai/ai_plan/aiplan_eng_20260714.pdf"
     ],
     "Jordan": [
       "accesspartnership.com/opinion/access-alert-jordans-draft-national-charter-for-the-ethics-of-artificial-intelligence-is-open-for-public-consultation",
+      "cbj.gov.jo/EBV4.0/Root_Storage/AR/FinCert/Ai-Framework_English_Version.pdf",
       "dataguidance.com/jurisdictions/jordan",
       "dig.watch/resource/jordanian-artificial-intelligence-strategy-and-implementation-plan-2023-2027",
+      "jordantimes.com/news/business/cbj-issues-regulatory-framework-for-use-of-ai-in-banking-sector",
+      "modee.gov.jo/ebv4.0/root_storage/en/eb_list_page/40435648.pdf",
       "modee.gov.jo/ebv4.0/root_storage/en/eb_list_page/jordanian_digital_transformation_strategy_and_the_implementation_plan_2026-2028.pdf",
-      "oxfordinsights.com/insights/spotlight-series-jordan"
+      "oxfordinsights.com/insights/spotlight-series-jordan",
+      "petra.gov.jo/ar/news/%D8%A7%D9%84%D8%AD%D9%83%D9%88%D9%85%D8%A9-%D8%AA%D8%B5%D8%AF%D8%B1-%D8%AA%D8%B9%D9%85%D9%8A%D9%85%D8%A7-%D8%A8%D8%B4%D8%A3%D9%86-%D8%A7%D8%B3%D8%AA%D8%AE%D8%AF%D8%A7%D9%85-%D8%A7%D9%84%D8%B0%D9%83%D8%A7%D8%A1-%D8%A7%D9%84%D8%A7%D8%B5%D8%B7%D9%86%D8%A7%D8%B9%D9%8A-%D9%81%D9%8A-%D8%A7%D9%84%D8%AA%D8%B9%D8%A7%D9%85%D9%84-%D9%85%D8%B9-%D8%A7%D9%84%D8%B4%D8%B9%D8%A7%D8%B1%D8%A7%D8%AA-%D9%88%D8%A7%D9%84%D8%B1%D9%85%D9%88%D8%B2-%D8%A7%D9%84%D9%88%D8%B7%D9%86%D9%8A%D8%A9"
     ],
     "Kazakhstan": [
+      "adilet.zan.kz/rus/docs/Z2500000230",
       "kinstellar.com/news-and-insights/detail/4081/the-year-of-digitalisation-and-ai-in-kazakhstan-new-regulations",
       "legal500.com/developments/press-releases/the-law-of-the-republic-of-kazakhstan-dated-november-17-2025-no-230-viii-on-artificial-intelligence-was-adopted",
       "lexology.com",
       "loc.gov/item/global-legal-monitor/2026-01-12/kazakhstan-new-law-introduces-rules-for-ai-systems-operating-in-the-country",
+      "mofo.com/artificial-intelligence/kazakhstan",
       "mondaq.com/new-technology/1747632/ai-regulation-and-the-ministry-of-artificial-intelligence-in-kazakhstan",
-      "primeminister.kz/en/news/year-of-digitalization-and-artificial-intelligence-in-kazakhstan-the-government-has-identified-a-key-priority-the-introduction-of-technologies-across-all-sectors-of-the-economy-30934"
+      "primeminister.kz/en/news/year-of-digitalization-and-artificial-intelligence-in-kazakhstan-the-government-has-identified-a-key-priority-the-introduction-of-technologies-across-all-sectors-of-the-economy-30934",
+      "whitecase.com/insight-our-thinking/global-regulatory-tracker-kazakhstan"
     ],
     "Kenya": [
       "bowmanslaw.com/insights/kenya-artificial-intelligence-bill-2026-proposed-too-soon",
+      "cipit.strathmore.edu/the-standing-cabinet-committee-on-artificial-intelligence-implications-for-kenyas-evolving-ai-ecosystem",
+      "ict.go.ke/sites/default/files/AI%20Policy%20Doc/draft-kenya-ai-and-emerging-technologies-policy-2026.pdf",
       "kictanet.or.ke/document/memorandum-on-the-artificial-intelligence-bill-2026-senate-bills-no-4-of-2025",
+      "new.kenyalaw.org/akn/ke/bill/senate/2026-02-19/the-artificial-intelligence-bill-2026/eng@2026-02-19",
+      "odpc.go.ke",
       "odpc.go.ke/determinations-2026",
       "parliament.go.ke/sites/default/files/2026-04/Bill%20Digest%20-%20The%20Artificial%20Intelligence%20Bill,%20No.4%20of%202026.pdf",
       "techinafrica.com/ai-regulation-africa-2026-new-laws-compliance-startup-opportunities",
       "techweez.com"
     ],
     "Kiribati": [
+      "dig.watch/countries/kiribati",
+      "forumsec.org/sites/default/files/2026-09/55PIFLM%20Communique.pdf",
       "mict.gov.ki",
+      "mict.gov.ki/sites/default/files/publications/Data%20Protection%20Bill%202025.pdf",
+      "mict.gov.ki/sites/default/files/publications/MSP%202025-28_FINAL_19%20June%202025.pdf",
       "oecd.ai/en/dashboards/countries/Kiribati"
     ],
     "Kosovo": [
+      "aip.rks-gov.net/about-us",
       "digitalwatch.giganet.net/artificial-intelligence/national-ai-policies",
+      "enlargement.ec.europa.eu/document/download/127563ea-4c03-44a4-b56c-2d569afd86a5_en?filename=kosovo-report-2025.pdf",
+      "evropaelire.org/a/inteligjenca-artificiale-pa-kontroll-ne-ballkanin-perendimor/33794640.html",
       "oecd.ai/en/dashboards/countries/Kosovo",
-      "privacy.rks-gov.net"
+      "prishtinainsight.com/kosovo-needs-to-align-media-and-ai-legislation-with-eu-standards-mag",
+      "privacy.rks-gov.net",
+      "rit.edu/kosovo/news/rit-kosovo-advances-ai-governance-through-national-security-and-innovation-consortium"
     ],
     "Kuwait": [
       "agbi.com/analysis/ai/2026/02/kuwaits-dedication-to-ai-rollout-faces-challenges",
       "blogs.loc.gov/law/2024/12/falqs-ai-regulations-in-the-gulf-cooperation-council-member-states-part-two",
+      "cbk.gov.kw/en/legislation-and-regulation/innovation-hub/apply",
+      "citra.gov.kw/sites/en/Pages/NewsDetails.aspx?NewsID=107",
       "dco.org/media/digital-cooperation-organization-concludes-5th-general-assembly-with-adoption-of-the-kuwait-declaration-on-responsible-ai-for-global-digital-prosperity",
       "dig.watch/resource/the-kuwait-national-ai-strategy-2025-2028-draft",
-      "legal500.com/firms/238128-gla-company/c-kuwait/news-and-developments/kuwaits-ai-revolution-law-cloud-and-cybersecurity-at-the-core-of-digital-transformation"
+      "ilo.org/sites/default/files/2026-03/Adoption%20of%20AI%20and%20productivity%20growth%20in%20Kuwait's%20private%20sector.pdf",
+      "legal500.com/firms/238128-gla-company/c-kuwait/news-and-developments/kuwaits-ai-revolution-law-cloud-and-cybersecurity-at-the-core-of-digital-transformation",
+      "pinsentmasons.com/out-law/analysis/gulf-governments-approach-to-ai-regulation"
     ],
     "Kyrgyzstan": [
+      "base.spinform.ru/show_doc.fwx?rgn=168581",
+      "cbd.minjust.gov.kg",
+      "cis-legislation.com/document.fwx?rgn=164899",
       "digital.gov.kg",
-      "oecd.ai/en/dashboards/countries/Kyrgyzstan"
+      "oecd.ai/en/dashboards/countries/Kyrgyzstan",
+      "tazabek.kg/news:2541099"
     ],
     "Laos": [
       "asean.org/asean2025-forging-ahead-together",
       "aseandcp.asean.org/asean-digital-masterplan-2025",
+      "asianews.network/laos-government-advances-10-year-strategies-for-ai-satellite-development",
+      "kpl.gov.la/En/detail.aspx?id=96675",
+      "laopdr.un.org/en/300785-remarks-capacity-building-programme-ai-governance",
       "mcit.gov.la",
       "mpt.gov.la",
       "mtc.gov.la",
       "oecd.ai/en/dashboards/countries/LaoPeoplesDemocraticRepublic",
-      "oecd.ai/en/dashboards/countries/Laos"
+      "oecd.ai/en/dashboards/countries/Laos",
+      "unesco.org/en/articles/lao-pdr-sets-course-national-ai-strategy-guided-unesco-ethics-framework"
     ],
     "Latvia": [
       "artificialintelligenceact.eu/national-implementation-plans",
       "dvi.gov.lv",
+      "likumi.lv/ta/id/363378-finansu-tirgus-digitalas-darbibas-noturibas-un-maksliga-intelekta-izmantosanas-likums",
+      "lvportals.lv/dienaskartiba/386684-maksliga-intelekta-centrs-izsludina-projektu-uzsaukumu-dalibai-specialaja-regulativaja-vide-mi-sistemu-attistibai-2026",
       "oecd.org/en/publications/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1_6d530a88-en/latvia_e743b53f-en.html",
       "regulations.ai/regulations/RAI-LV-NA-LAICMXX-2025",
       "varam.gov.lv/en/article/cabinet-ministers-supports-establishment-national-centre-artificial-intelligence",
-      "varam.gov.lv/en/article/latvia-takes-step-towards-safe-and-responsible-artificial-intelligence-government-examines-implementation-plan-ai-act"
+      "varam.gov.lv/en/article/latvia-takes-step-towards-safe-and-responsible-artificial-intelligence-government-examines-implementation-plan-ai-act",
+      "varam.gov.lv/lv/maksliga-intelekta-mi-akts",
+      "vestnesis.lv/ta/id/368492-grozijumi-maksliga-intelekta-centra-likuma"
     ],
     "Lebanon": [
+      "aitechsummit.gov.lb",
       "iapp.org/resources/article/global-ai-legislation-tracker",
       "ipolicylab.org/Lebanon",
       "lebanon.gov.lb",
-      "oecd.ai/en/dashboards/countries/Lebanon"
+      "mitai.gov.lb",
+      "mitai.gov.lb/assets/MITAI_Strategy_Full_Presentation-C6XQD81p.pdf",
+      "oecd.ai/en/dashboards/countries/Lebanon",
+      "smex.org/our-thoughts-on-lebanons-new-ai-and-technology-ministry",
+      "today.lorientlejour.com/article/1478828/the-formation-of-lebanons-new-ai-ministry-has-the-tech-community-divided.html"
     ],
     "Lesotho": [
       "lca.org.ls",
-      "oecd.ai/en/dashboards/countries/Lesotho"
+      "lena.gov.ls/cybersecurity-bill-2026-takes-shape-under-stakeholder-scrutiny",
+      "lesotholii.org/akn/ls/act/2012/5/eng@2012-02-22",
+      "oecd.ai/en/dashboards/countries/Lesotho",
+      "oecd.ai/en/dashboards/national/lesotho",
+      "un.org/digital-emerging-technologies/content/lesotho-becomes-first-pilot-un-blueprint-national-ai-and-data-strategies"
     ],
     "Liberia": [
       "au.int/en/ai",
+      "liberiaigf.org/2026/06/25/official-statement-liberia-internet-governance-forum-liberia-igf-welcomes-the-enactment-of-liberias-first-data-protection-act",
       "lta.gov.lr",
-      "oecd.ai/en/dashboards/countries/Liberia"
+      "mopt.gov.lr/wp-content/uploads/2025/09/Liberia-National-Digital-Strategy.pdf",
+      "oecd.ai/en/dashboards/countries/Liberia",
+      "undp.org/liberia/press-releases/building-liberias-ai-future-undp-ul-consult-stakeholders",
+      "undp.org/liberia/press-releases/liberia-launched-landmark-ai-training-government-undp-support"
     ],
     "Libya": [
       "au.int/en/ai",
       "au.int/en/documents/20240229/african-union-continental-ai-strategy",
       "gpai.ai",
-      "oecd.ai/en/dashboards/countries/Libya"
+      "iafrica.com/libya-adopts-ai-ethics-charter-and-launches-national-ai-strategy-2026-2030-with-35-initiatives-across-six-pillars",
+      "lana.gov.ly/post.php?lang=en&id=307543",
+      "lawsociety.ly/en/legislation/law-no-5-of-2022-regarding-combating-cybercrimes",
+      "oecd.ai/en/dashboards/countries/Libya",
+      "oecd.ai/en/dashboards/policy-initiatives/national-artificial-intelligence-strategy-of-libya-2025-2030",
+      "smex.org/libyas-new-ai-strategy-celebrates-participation-yet-was-built-without-it"
     ],
     "Liechtenstein": [
       "coe.int/en/web/artificial-intelligence/-/liechtenstein-signs-the-council-of-europe-s-ai-treaty",
       "efta.int/eea-lex/32024r1689",
       "fma-li.li",
       "govinfosecurity.com/liechtensteins-data-regulator-releases-ai-chatbot-guidance-a-23526",
+      "llv.li/de/landesverwaltung/stabsstelle-fuer-digitale-innovation/digitalisierung/ai-act",
+      "llv.li/serviceportal2/amtsstellen/stabstelle-regierungskanzlei/bua_034_postulatsbeantwortung-massnahmen-gegen-missbrauch.pdf",
       "presseportal.ch/de/pm/100000148/100939614",
       "regierung.li/files/attachments/flr-broschuere-ki-strategie.pdf"
     ],
@@ -692,47 +1071,75 @@
       "ada.lt",
       "eimin.lrv.lt/en/sector-activities/digital-policy/artificial-intelligence",
       "eimin.lrv.lt/en/structure-and-contacts/news-1/eimin-initiative-accelerates-development-of-artificial-intelligence-in-lithuania",
+      "eimin.lrv.lt/lt/veiklos-sritys/skaitmenine-politika/dirbtinis-intelektas/strategija-ir-veiksmu-planas",
+      "eimin.lrv.lt/lt/ziniasklaidai/naujienos/eimin-parenge-istatyma-del-es-dirbtinio-intelekto-akto-igyvendinimo-MlI3",
+      "inovacijuagentura.lt/naujiena/lietuva-stiprina-dirbtinio-intelekto-ekosistema-parengtos-nacionalines-di-strategines-gaires",
       "kurklt.lt/en/projects/mapping-the-required-competences-for-the-eu-ai-act-mandated-regulatory-authorities-in-lithuania",
+      "lrt.lt/naujienos/mokslas-ir-it/11/3026068/rysiu-reguliavimo-tarnyba-paaiskina-kada-di-sukurta-turini-reikia-zenklinti-o-kada-ne",
       "oecd.ai/en/dashboards/policy-initiatives/lithuanian-artificial-intelligence-strategy-a-vision-of-the-future-3808",
-      "oecd.org/en/publications/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1_6d530a88-en/lithuania_295757f3-en.html"
+      "oecd.org/en/publications/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1_6d530a88-en/lithuania_295757f3-en.html",
+      "rrt.lt/veiklos-sritys/skaitmenine-erdve/di-informacija/di-reguliavimas"
     ],
     "Luxembourg": [
       "bsp.lu/lu/publications/newsletters-newsflashes/ai-i-luxembourg-draft-law-implementing-eu-artificial",
+      "chd.lu/en/node/3016",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/luxembourg",
       "cnpd.public.lu",
       "cnpd.public.lu/en/actualites/national/2026/01/ai-act-in-action-cp-jan2026.html",
+      "digital-strategy.ec.europa.eu/en/factpages/luxembourgs-2026-digital-decade-country-report",
       "innovative-initiatives.public.lu/stories/luxembourgs-ai-strategy-11",
-      "klgates.com/EU-and-Luxembourg-Update-on-the-European-Harmonised-Rules-on-Artificial-IntelligenceRecent-Developments-1-20-2026"
+      "klgates.com/EU-and-Luxembourg-Update-on-the-European-Harmonised-Rules-on-Artificial-IntelligenceRecent-Developments-1-20-2026",
+      "paperjam.lu/article/lirlande-cree-son-ai-office-le-luxembourg-cherche-son-gendarme",
+      "practiceguides.chambers.com/practice-guides/artificial-intelligence-2026/luxembourg/trends-and-developments"
     ],
     "Macedonia": [
       "coe.int/en/web/artificial-intelligence/-/north-macedonia-signs-the-council-of-europe-s-framework-convention-on-artificial-intelligence",
       "epi.org.mk/en/post/32138?lang=en",
+      "epi.org.mk/wp-content/uploads/Aligning-North-Macedonias-AI-Policy-with-the-EU_Bridging-the-Regulatory-Gap.pdf",
       "levellers.ai/what-is/ai-regulation-north-macedonia",
+      "mdt.gov.mk/en-GB/odnosi-so-javnost/soopstenija/andonovski-makedonija-dobiva-nacionalen-centar-za-vestacka-inteligencija-zapocnuva-proektot-vezilka",
       "mdt.gov.mk/en-GB/regulativa/strategija-za-razvoj-na-ikt-smart-mk-2030",
+      "sdk.mk/index.php/makedonija/do-krajot-na-godinata-treba-da-se-donese-strategijata-za-veshtachka-inteligentsija-se-planira-i-poseben-zakon-za-nejzina-etichka-upotreba-veli-ministerot-andonovski",
       "secureprivacy.ai/blog/complying-with-north-macedonia-law-on-personal-data-protection"
     ],
     "Madagascar": [
       "au.int/en/documents/20240201/african-union-continental-artificial-intelligence-strategy",
+      "digital.gov.mg/en/2022/07/05/loi-n-2014-038-sur-la-protection-des-donnees-a-caractere-personnel",
+      "henricapitant.org/wp-content/uploads/2025/04/JI-2025_Rapport-malgache_Responsabilite_Partie-1.pdf",
       "itu.int/en/ITU-D/Regional-Presence/Africa/Pages/Madagascar.aspx",
+      "midi-madagasikara.mg/forum-mondial-sur-lia-engagement-de-madagascar-a-co-creer-les-solutions-technologiques-de-demain",
+      "mndpt.gov.mg",
       "mptdn.gov.mg",
       "mpten.gov.mg",
       "oecd.ai/en/dashboards/countries/Madagascar",
+      "research.lawlab.africa/madagascar",
       "telecom.gov.mg"
     ],
     "Malawi": [
+      "comesa.int/comesa-launches-artificial-intelligence-and-digital-inclusion-consultations-in-malawi",
+      "itweb.africa/article/malawi-drafts-ai-bill-to-govern-public-sector-tech/PmxVE7KEOnpqQY85",
       "macra.org.mw",
+      "malawi24.com/2026/09/18/macra-warns-against-misuse-of-ai-digital-tools",
       "moit.gov.mw",
       "oecd.ai/en/dashboards/countries/Malawi",
-      "parliament.gov.mw"
+      "parliament.gov.mw",
+      "techafricanews.com/2026/07/24/malawi-validates-ai-readiness-report-to-guide-national-ai-adoption"
     ],
     "Malaysia": [
+      "ai.gov.my",
       "ai.gov.my/faq/ai-governance-and-ethics",
+      "bakermckenzie.com/en/insight/publications/2026/07/malaysia-public-consultation-on-the-ai-governance-bill",
       "bernama.com/en/general/news.php?id=2494573",
       "bowergroupasia.com/asean-digital-ministers-meeting-2026-where-regional-ambition-meets-national-priorities",
+      "freemalaysiatoday.com/category/nation/2026/10/05/ai-governance-bill-delayed-to-early-next-year",
       "kpmg.com/my/en/insights/2026/04/from-capacity-to-capability-my-ai-governance-imperative.html",
-      "lexology.com/library/detail.aspx?g=f904fcd5-3a6a-420b-bfc3-c4d45b29e97c"
+      "lexology.com/library/detail.aspx?g=f904fcd5-3a6a-420b-bfc3-c4d45b29e97c",
+      "thestar.com.my/news/nation/2026/09/10/ai-governance-bill-expected-to-be-tabled-in-parliament-by-q1-2027-at-the-latest-says-gobind",
+      "upc.mpc.gov.my/view-consultation/264"
     ],
     "Maldives": [
+      "bankofmaldives.com.mv/articles/894/mindco-to-establish-ai-and-data-competency-centre-with-bml-as-strategic-partner",
+      "presidency.gov.mv/Press/Article/36043",
       "regulations.ai/regulations/RAI-MV-NA-NAM2XXX-2024",
       "regulations.ai/regulations/maldives-summary",
       "unesco.org/en/articles/maldives-concludes-south-asias-first-ai-readiness-assessment-report-launched",
@@ -742,44 +1149,66 @@
       "article19.org/resources/mali-digital-rights",
       "au.int/en/documents/20241210/continental-ai-strategy",
       "bbc.com/news/world-africa-59763137",
+      "communication.gouv.ml",
       "diplomatie.gouv.fr/fr/dossiers-pays/mali",
+      "fr.apanews.net/security/mali-un-centre-public-dintelligence-artificielle-inaugure-pres-de-bamako",
       "gsma.com/solutions-and-impact/connectivity-for-good/mobile-for-development/gsma_resources/digital-policy-regulatory-overview-mali",
-      "oecd.ai/en/dashboards/countries/Mali"
+      "oecd.ai/en/dashboards/countries/Mali",
+      "sgg-mali.ml/JO/2013/mali-jo-2013-26.pdf",
+      "sgg-mali.ml/JO/2023/mali-jo-2023-20-2.pdf",
+      "wearetech.africa/en/fils-uk/news/tech/mali-invests-5-7-million-in-ai-and-robotics-training-center"
     ],
     "Malta": [
       "chambers.com/articles/malta-s-ai-act-framework-the-new-roles-of-the-mdia-and-idpc",
       "globallegalinsights.com/practice-areas/ai-machine-learning-and-big-data-laws-and-regulations/malta",
+      "gov.mt/en/Government/DOI/Press%20Releases/Pages/2026/02/13/PR260241en.aspx",
+      "gtg.com.mt/malta-takes-the-next-step-in-ai-regulation",
       "lexology.com/library/detail.aspx?g=2f75e70a-6786-45ac-a0c2-a760bc0ba4ef",
       "mdia.gov.mt",
       "mdia.gov.mt/services/artificial-intelligence",
       "mondaq.com/new-technology/1691634/maltas-ai-act-framework-the-new-roles-of-the-mdia-and-idpc"
     ],
     "Marshall Islands": [
+      "dataguidance.com/jurisdiction/marshall-islands",
+      "forumsec.org/sites/default/files/2026-09/55PIFLM%20Communique.pdf",
       "oecd.ai/en/dashboards/countries/MarshallIslands",
+      "pina.com.fj/2026/09/06/pacific-leaders-set-ai-rules-push-stronger-digital-connectivity",
       "rmigovernment.org",
-      "rmiparliament.org"
+      "rmiparliament.org",
+      "rmiparliament.org/cms/images/LEGISLATION/PRINCIPAL/2025/2025-0040/2025-0040_1.pdf"
     ],
     "Mauritania": [
       "au.int/en/documents/20200212/african-union-data-policy-framework",
       "au.int/en/documents/20200212/african-union-development-agency-artificial-intelligence-continental-strategy",
       "au.int/en/documents/20200612/african-union-data-policy-framework",
       "au.int/en/sa/digital",
+      "dataprotection.africa/mauritania",
+      "dig.watch/countries/mauritania",
+      "ecofinagency.com/news-digital/0906-56294-mauritania-expands-digital-development-program-to-include-ai-with-world-bank-support",
       "itairegulations.org",
-      "oecd.ai/en/dashboards/countries/Mauritania"
+      "mtnima.gov.mr/sites/default/files/Mauritani%20AI%20Strategy%20Draft%20April-2024.pdf",
+      "oecd.ai/en/dashboards/countries/Mauritania",
+      "oecd.ai/en/dashboards/policy-initiatives/national-artificial-intelligence-strategy-of-mauritania-2024-2029"
     ],
     "Mauritius": [
       "edbmauritius.org/newsroom/budget-2025-2026-artificial-intelligence",
       "fscmauritius.org/en/fintech-and-innovation",
+      "fscmauritius.org/media-corner/communiques-press-releases",
       "mitci.govmu.org/mitci/national-ai-strategy-and-fair-guidelines-unveiled-to-position-mauritius-as-a-high-tech-innovation-driven-economy",
+      "polity.org.za/article/an-ai-city-and-a-golden-visa-mauritius-opens-two-new-doors-to-foreign-capital-2026-07-31",
       "techcabal.com/2026/04/23/mauritius-new-ai-strategy-sets-a-new-bar-ethics-before-execution",
       "undp.org/mauritius-seychelles/press-releases/mauritius-launches-national-ai-strategy-and-fair-guidelines-supported-undp"
     ],
     "Mexico": [
       "basham.com.mx/en/legislative-alert-bill-to-regulate-the-use-of-artificial-intelligence",
+      "centralelectoral.ine.mx/2026/09/03/ine-modifica-lineamientos-para-proteger-a-infancias-contra-mal-uso-de-la-y-deepfakes",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/mexico",
       "gtlaw.com/en/insights/2025/3/nueva-ley-general-proteccion-de-datos",
+      "infobae.com/mexico/2026/04/30/desde-comision-del-senado-impulsan-iniciativa-de-ley-para-regular-el-uso-de-inteligencia-artificial-en-mexico",
       "insidetowers.com/mexico-dissolves-ift-replaces-it-with-new-telecom-regulatory-framework",
-      "oecd.ai/en/dashboards/policy-initiatives/proposal-for-the-national-agenda-for-artificial-intelligence-for-mexico-2024-2030-5306"
+      "itmastersmag.com/servicios/regulacion-inteligencia-artificial-mexico-lft-lfda",
+      "oecd.ai/en/dashboards/policy-initiatives/proposal-for-the-national-agenda-for-artificial-intelligence-for-mexico-2024-2030-5306",
+      "repositoriodocumental.ine.mx/xmlui/bitstream/handle/123456789/184916/JGEor202508-20-ap-5-2.pdf"
     ],
     "Micronesia": [
       "fsm.fm",
@@ -790,28 +1219,41 @@
     ],
     "Moldova": [
       "dlapiperdataprotection.com?t=law&c=MD",
+      "eu4moldova.eu/en/more-control-over-your-personal-data-what-moldovas-new-data-protection-law-means-for-citizens",
+      "eufordigital.eu/moldova-launches-special-body-to-align-the-national-ai-ecosystem",
       "interoperable-europe.ec.europa.eu/sites/default/files/custom-page/attachment/2025-11/iopeu-monitoring_2025-supporting-document_moldova_vfinal.pdf",
       "logos-pres.md/en/news/special-body-will-promote-ai-ecosystem-in-moldova",
+      "mecc.gov.md/en/node/17118",
+      "media-azi.md/en/euexplained-artificial-intelligence-what-we-have-what-needs-to-be-changed-whats-next",
       "meig.ch/highlight-32-2025-the-role-of-ai-in-the-eu-accession-process-the-case-of-moldova",
-      "moldpres.md/eng/society/moldova-signs-council-of-europe-framework-convention-on-artificial-intelligence-"
+      "moldpres.md/eng/society/moldova-signs-council-of-europe-framework-convention-on-artificial-intelligence-",
+      "unesco.org/ethics-ai/en/global-hub/republic-moldova"
     ],
     "Monaco": [
       "anuragverma.co/worldwatch/monaco/ai",
       "babl.ai/monaco-modernizes-data-protection-laws-to-meet-european-standards",
       "cms.law/en/mco/publication/the-new-monegasque-data-protection-law",
       "coe.int/en/web/portal/monaco",
-      "en.gouv.mc/Policy-Practice/A-Modern-State/Protection-of-personal-data"
+      "conseil-national.mc/2026/06/30/n281-proposition-de-loi-relative-au-renforcement-des-moyens-de-lutte-et-de-prevention-contre-les-contenus-haineux-en-ligne-2",
+      "en.gouv.mc/Policy-Practice/A-Modern-State/Protection-of-personal-data",
+      "gouv.mc/actualites/le-gouvernement-princier-reorganise-la-fonction-numerique-de-l-etat",
+      "legimonaco.mc/projet/1.087"
     ],
     "Mongolia": [
       "dlapiperdataprotection.com/index.html?t=law&c=MN",
       "gcscc.ox.ac.uk/article/reviewing-impacts-national-ai-readiness-assessments-lessons-mongolia",
+      "ipu.org/impact/democracy-and-strong-parliaments/artificial-intelligence/parliamentary-actions-ai-policy",
+      "mongolia.gov.mn/news/view/27737",
       "montsame.mn/en/read/369839",
       "undp.org/mongolia/blog/ai-and-mongolia-chance-close-gaps-not-widen-them",
       "undp.org/mongolia/press-releases/undp-co-organizes-mongolias-first-conference-national-strategy-ai-and-big-data"
     ],
     "Montenegro": [
       "balkaninsight.com/2025/05/29/amid-concern-over-ai-abuse-in-montenegro-lawmakers-play-catch-up/bi",
+      "balkaninsight.com/2026/09/21/in-montenegro-ai-is-helping-with-schoolwork-but-what-are-the-rules/bi",
+      "coe.int/en/web/portal/-/montenegro-signs-council-of-europe-framework-convention-on-artificial-intelligence",
       "eurocc.udg.edu.me/2026/03/30/ncc-montenegro-contributes-to-the-development-of-the-national-ai-strategy-2026-2030",
+      "rtcg.me/vijesti/drustvo/856811/bozovic-u-pripremi-novi-zakonski-okvir-kojim-ce-se-regulisati-zloupotreba-vjestacke-inteligencije.html",
       "schoenherr.eu/content/the-status-and-future-prospects-of-ai-regulation-and-development-in-montenegro",
       "undp.org/sites/g/files/zskgke326/files/2025-05/eng_undp-aila_montenegro.pdf",
       "westernbalkans-infohub.eu/news/constitutive-session-of-the-working-group-for-the-development-of-montenegros-artificial-intelligence-strategy-held"
@@ -819,34 +1261,56 @@
     "Morocco": [
       "eurastech.ma/en/blog/morocco-data-protection-law-09-08-complete-guide-2026",
       "iafrica.com/morocco-unveils-digital-x-0-law-to-embed-ai-data-governance-and-digital-identity-into-national-modernization-agenda",
+      "lebrief.ma/elections-2026-la-haca-publie-un-guide-pour-garantir-le-pluralisme-politique-dans-les-medias-100161506",
+      "lebrief.ma/elections-legislatives-fraude-organisee-100160832",
+      "lebrief.ma/projet-loi-agence-nationale-ia-100156120",
       "maroc.ma/en/news/morocco-seals-several-agreements-promote-ai",
       "moroccoworldnews.com/2024/04/20320/morocco-proposes-establishment-of-national-agency-for-ai-governance",
-      "moroccoworldnews.com/2026/01/274765/morocco-launches-maroc-ia-2030-roadmap-to-strengthen-ai-governance-digital-sovereignty"
+      "moroccoworldnews.com/2026/01/274765/morocco-launches-maroc-ia-2030-roadmap-to-strengthen-ai-governance-digital-sovereignty",
+      "village-justice.com/articles/construction-droit-maroc,58914.html"
     ],
     "Mozambique": [
       "dataguidance.com/jurisdiction/mozambique",
       "dlapiperdataprotection.com/index.html?t=law&c=MZ",
       "eusee.hivos.org/alert/public-consultation-on-the-first-draft-of-mozambiques-national-artificial-intelligence-strategy",
+      "iafrica.com/mozambique-drafts-ai-rules-for-schools-and-universities-due-at-cabinet-before-year-end",
+      "intic.gov.mz/consulta-publica-da-proposta-da-estrategia-nacional-de-inteligencia-artificial",
+      "intic.gov.mz/itu-aprova-apoio-ao-estabelecimento-do-sandbox-regulatorio-de-inteligencia-artificial-em-mocambique",
+      "intic.gov.mz/sectorial",
+      "lexafrica.com/2026/06/mozambique-ai-commission",
       "techafricanews.com/2026/04/17/mozambique-parliament-approves-cybersecurity-and-cybercrime-laws-to-strengthen-digital-governance",
       "techafricanews.com/2026/05/25/mozambique-presents-draft-national-ai-strategy-at-itu-workshop-in-kenya"
     ],
     "Myanmar": [
       "dfdl.com/insights/content-hub/articles/myanmar-cybersecurity-law-2025-key-insights",
       "english.news.cn/20250219/7be9255fc3b14a1796ae6919a693b171/c.html",
+      "gnlm.com.mm/ai-driven-innovation-centres-set-for-key-universities",
       "iseas.edu.sg/articles-commentaries/iseas-perspective/2025-13-what-is-shaping-artificial-intelligence-ai-governance-policies-in-southeast-asia-by-kristina-fong",
+      "iseas.edu.sg/wp-content/uploads/2026/01/ISEAS-Perspective_2026_13.pdf",
+      "mofa.gov.mm/en/joint-statement-of-the-republic-of-the-union-of-myanmar-and-the-peoples-republic-of-china-on-accelerating-the-building-of-a-china-myanmar-community-with-a-shared-future-17-june-2026",
       "nbr.org/publication/charting-aseans-path-to-ai-governance-uneven-yet-gaining-ground",
       "tilleke.com/insights/myanmar-cybersecurity-law-takes-effect"
     ],
     "Namibia": [
+      "cran.na/deepfakes-and-disinformation-awareness",
       "mict.gov.na",
       "mtc.com.na",
+      "namibian.com.na/national-ai-institute-launched",
+      "neweralive.na/ncrst-opens-national-ai-institute",
       "oecd.ai/en/dashboards/countries/Namibia",
       "smartafrica.org",
-      "smartafrica.org/member/namibia"
+      "smartafrica.org/member/namibia",
+      "unesco.org/en/articles/namibia-launches-artificial-intelligence-readiness-assessment-report",
+      "unesdoc.unesco.org/ark:/48223/pf0000394686"
     ],
     "Nauru": [
+      "aiasiapacific.org/wp-content/uploads/2024/08/The-State-of-Artificial-Intelligence-in-the-Pacific-Islands.pdf",
+      "coe.int/en/web/octopus/-/nau-1",
+      "forumsec.org/sites/default/files/2026-09/55PIFLM%20Communique.pdf",
       "gov.nr",
+      "nauru.gov.nr/media/204028/nndts_final_version_2025.pdf",
       "oecd.ai/en/dashboards/countries/Nauru",
+      "pina.com.fj/2026/08/14/pacific-ministers-back-ai-rules-and-safer-digital-spaces-as-connectivity-expands",
       "un.org/en/about-us/member-states"
     ],
     "Nepal": [
@@ -854,8 +1318,12 @@
       "dig.watch/resource/nepals-national-ai-policy-2082-2025",
       "dlapiperdataprotection.com?t=law&c=NP",
       "giwmscdnone.gov.np",
+      "giwmscdnone.gov.np/media/pdf_upload/National%20AI%20Policy-Final_uxc94vg.pdf",
       "kathmandupost.com/money/2025/08/16/nepal-rolls-out-ambitious-ai-policy",
-      "mocit.gov.np/content/13077/national-artifacial-intelligence-aci-policy-2082"
+      "kathmandupost.com/national/2026/07/05/nepal-brings-social-media-ai-advertising-under-new-national-policy",
+      "kathmandupost.com/national/2026/07/06/huge-bills-lineup-for-new-fiscal-year",
+      "mocit.gov.np/content/13077/national-artifacial-intelligence-aci-policy-2082",
+      "nepalitelecom.com/2025/12/election-commission-of-nepal-approves-election-code-of-conduct-for-falgun-21-election.html"
     ],
     "Netherlands": [
       "autoriteitpersoonsgegevens.nl",
@@ -863,15 +1331,22 @@
       "autoriteitpersoonsgegevens.nl/en/themes/algorithms-ai/coordination-of-algorithmic-and-ai-supervision/department-for-the-coordination-of-algorithmic-oversight-dca",
       "autoriteitpersoonsgegevens.nl/en/themes/algorithms-ai/eu-ai-act",
       "loyensloeff.com/insights/news--events/news/dutch-implementation-of-the-ai-act-decentralised-ai-supervision",
-      "stibbe.com/publications-and-insights/dutch-proposal-for-ai-supervision-hybrid-cooperation-between-market"
+      "nldigitalgovernment.nl/news/consultation-on-dutch-ai-act-implementation-bill-now-open",
+      "stibbe.com/publications-and-insights/dutch-proposal-for-ai-supervision-hybrid-cooperation-between-market",
+      "stibbe.com/publications-and-insights/the-dutch-ai-algorithms-report-a-call-to-action",
+      "twobirds.com/en/insights/2026/netherlands/dutch-government-publishes-draft-ai-act-implementing-legislation"
     ],
     "New Zealand": [
+      "beehive.govt.nz/release/accelerating-ai-research-and-innovation",
       "biometricupdate.com/202508/new-zealand-rolls-out-biometric-privacy-code",
+      "digital.govt.nz/news/government-chief-digital-officer-appoints-ai-expert-advisory-panel-to-guide-responsible-ai-use-in-public-service",
       "digital.govt.nz/standards-and-guidance/technology-and-architecture/artificial-intelligence/new-zealands-ai-strategy-and-guidance-for-business",
       "digital.govt.nz/standards-and-guidance/technology-and-architecture/artificial-intelligence/public-service-artificial-intelligence-framework",
       "mbie.govt.nz",
+      "mbie.govt.nz/assets/new-zealands-strategy-for-artificial-intelligence.pdf",
       "mbie.govt.nz/business-and-employment/economic-growth/digital-policy/new-zealands-ai-strategy-investing-with-confidence",
-      "privacy.org.nz"
+      "privacy.org.nz",
+      "simpsongrierson.com/insights-news/legal-updates/regulating-ai-in-new-zealand-and-abroad-mind-the-legal-gap"
     ],
     "Nicaragua": [
       "consortiumlegal.com/en/2026/02/23/regulatory-landscape-of-artificial-intelligence-in-central-america",
@@ -882,50 +1357,87 @@
     ],
     "Niger": [
       "ai-regulation.com/niger",
+      "anp.ne/semaine-de-lia-et-des-technologies-geospatiales-le-gouvernement-entend-elaborer-une-strategie-nationale-dans-le-domaine-par-une-demarche-inclusive",
+      "dataprotection.africa/niger",
+      "dig.watch/countries/niger",
+      "digitalearthafrica.org/en_za/building-nigers-geospatial-skills-at-siateg-2026",
       "en.wikipedia.org/wiki/2023_Nigerien_coup_d%27%C3%A9tat",
+      "indabaxniger.com",
       "oecd.ai/en/dashboards/countries/Niger",
       "oecd.org/en/publications/oecd-artificial-intelligence-case-studies_c517fcf5-en/ai-governance-in-africa_1ff55135-en.html"
     ],
     "Nigeria": [
       "digital.nemko.com/regulations/ai-regulation-in-nigeria",
+      "digitalpolicyalert.org/report/nigeria-ai-governance-approach",
+      "globallegalpost.com/lawoverborders/artificial-intelligence-law-guide-71222503/nigeria-market-insights-msi-107375230",
       "iapp.org/news/a/nigeria-moves-toward-comprehensive-ai-regulation",
+      "nitda.gov.ng/nitda-inaugurates-sandbox-technical-working-group-to-strengthen-regulatory-framework-for-digital-innovation/9560",
       "oecd.ai/en/dashboards/national/nigeria",
+      "thisdaylive.com/2026/07/09/national-digital-economy-and-e-governance-act-2026-ready-in-weeks",
       "tunanihq.org/assets/publication/Policy-Brief-NNAIS-Strategy-final.pdf",
+      "unesco.org/en/articles/ai-readiness-assessment-methodology-nigeria",
       "weetracker.com/2026/01/13/nigeria-africa-ai-regulatory-law"
+    ],
+    "North Korea": [
+      "38north.org/2026/02/north-koreas-integration-of-ai-across-cyber-economic-and-military-domains",
+      "automatedresearch.org/news/state_position/democratic-peoples-republic-of-korea",
+      "dailynk.com/english/north-korea-science-technology-law-revision-2026",
+      "dig.watch/countries/north-korea",
+      "stimson.org/2026/north-koreas-integration-of-ai-across-cyber-economic-and-military-domains"
     ],
     "Norway": [
       "cms.law/en/int/expert-guides/ai-regulation-scanner/norway",
       "datatilsynet.no",
+      "datatilsynet.no/aktuelt/aktuelle-nyheter-2025/ny-lov-om-ki-sendt-pa-horing",
+      "digi.no/artikler/nye-eu-regler-for-ki-norge-og-eos-henger-enna-langt-etter/575266",
       "haavind.no/techinsight/tech-insight/artificial-intelligence-act",
+      "lovdata.no/lov/2025-06-20-81",
+      "nkom.no/ki/regulering/hvem-handhever",
       "regjeringen.no/en/whats-new/gjor-norge-klar-for-trygg-og-innovativ-ki-bruk/id3093081",
+      "regjeringen.no/no/aktuelt/varsler-ny-nasjonal-strategi-for-kunstig-intelligens/id3175602",
       "regulations.ai/regulations/norway-summary",
       "svw.no/en/norways-new-ai-act-what-it-will-mean-for-your-business"
     ],
     "Oman": [
+      "decree.om/2026/rd20260050",
       "futura.law/media-center/news/oman-updates-national-ai-policy-d21d9",
       "mtcit.gov.om/ITAPortal/MediaCenter/NewsDetail.aspx?NID=181398",
       "mtcit.gov.om/library-3/legislations-policies-8/policies-73/general-policy-for-the-safe-and-ethical-use-of-artificial-intelligence-systems-291",
       "omanobserver.om/article/1170828/business/economy/oman-unveils-new-national-ai-safety-and-ethics-policy",
+      "omanobserver.om/article/1188895/oman/artificial-intelligence-special-zone-in-muscat-to-drive-digital-economy",
+      "trowers.com/insights/2026/june/personal-data-and-artificial-intelligence-recent-regulatory-developments-in-oman",
       "unesco.org/ethics-ai/en/oman"
     ],
     "Pakistan": [
+      "arabnews.com/node/2649083/pakistan",
+      "digitalrightsfoundation.pk/wp-content/uploads/2026/05/DRF-Analyses-Pakistans-National-AI-Policy-2025.pdf",
       "globenewswire.com/news-release/2026/02/20/3241856/0/en/pakistan-establishes-its-sovereign-ai-position-with-the-adoption-of-the-islamabad-ai-declaration.html",
       "innovapath.us",
       "issi.org.pk/issue-brief-on-pakistans-national-ai-policy-2025-developing-ai-ecosystem-and-ethical-data-governance",
+      "pda.gov.pk/press-details.php?id=islamabad-ai-declaration",
       "pid.gov.pk/site/press_detail/31885",
+      "senate.gov.pk/en/billsummary.php?bid=1544",
       "senate.gov.pk/uploads/documents/1725968951_269.pdf",
       "thefridaytimes.com/12-Dec-2025/pakistan-approves-first-national-ai-policy-major-legal-data-protection-gaps-remain"
     ],
     "Palau": [
       "gov.pw",
+      "islandsbusiness.com/pacnews/pacnews-two-27-july-2026",
+      "islandtimes.org/fake-news-posts-prompt-warnings-over-online-scams-and-deepfakes-in-palau",
+      "islandtimes.org/oek-passes-cybersecurity-bill-as-new-presidential-tech-office-raises-overlap-questions",
       "oecd.ai/en/dashboards/countries/Palau",
-      "palaugov.pw"
+      "palaugov.pw",
+      "pina.com.fj/2025/10/24/palau-senate-passes-nations-first-comprehensive-cybersecurity-bill"
     ],
     "Panama": [
       "ai.gatech.edu/news/georgia-tech-supports-panamas-national-ai-strategy-development",
+      "algoritmos.uniandes.edu.co/proyecto-de-ley-que-establece-la-gobernanza-adaptativa-de-la-inteligencia-artificial-en-panama",
       "antai.gob.pa/ley-81-de-proteccion-de-datos-personales",
+      "asamblea.gob.pa/Noticias/Noticias/PANAMA-A-LA-VANGUARDIA-DE-LA-TECNOLOGIA-CON-IA-SEGUN-PROYECTO-DE-LEY-APROBADO-EN-PRIMER-DEBATE",
       "consortiumlegal.com/en/2026/02/23/regulatory-landscape-of-artificial-intelligence-in-central-america",
+      "infobae.com/panama/2026/07/09/panama-busca-posicionarse-en-la-ruta-de-las-tecnologias-emergentes-incluida-la-ia",
       "quijano.com/model-law-on-artificial-intelligence-and-crime-and-its-implementation-in-panama",
+      "senacyt.gob.pa/en/gabinete-aprueba-la-estrategia-nacional-de-inteligencia-artificial",
       "wtlgovernance.com/jurisdiction/panama"
     ],
     "Papua New Guinea": [
@@ -940,38 +1452,59 @@
       "pacificislandsforum.org"
     ],
     "Paraguay": [
+      "bacn.gov.py/leyes-paraguayas/12924/ley-n-7593-2025-de-protecci-n-de-datos-personales-en-la-rep-blica-del-paraguay",
       "cepal.org/en/topics/artificial-intelligence",
       "mitic.gov.py",
+      "mitic.gov.py/paraguay-fortalece-su-posicionamiento-internacional-en-inteligencia-artificial-con-adhesion-a-declaracion-estrategica-en-washington",
+      "mitic.gov.py/presentan-informe-sobre-metodologia-de-evaluacion-del-estado-de-preparacion-en-inteligencia-artificial-de-paraguay",
       "oecd.ai/en/dashboards/countries/Paraguay",
+      "pj.gov.py/notas/29655-corte-suprema-de-justicia-aprobo-politica-para-el-uso-de-sistemas-de-inteligencia-artificial-en-el-poder-judicial",
       "repositorio.cepal.org/handle/11362/47559",
+      "senado.gov.py/index.php/noticias/noticias-comisiones/15360-socializan-proyecto-que-regula-el-desarrollo-e-implementacion-de-la-ia-2025-06-26-17-09-04",
       "senatics.gov.py"
     ],
     "Peru": [
       "cms.law/en/int/expert-guides/ai-regulation-scanner/peru",
       "cms.law/en/per/publication/approval-of-the-regulations-of-the-law-that-promotes-the-use-of-ai-in-peru",
       "digital.nemko.com/regulations/ai-regulation-in-peru",
+      "elperuano.pe/noticia/269418-inteligencia-artificial-en-delitos-agrava-sanciones",
+      "elperuano.pe/noticia/294752-peru-fija-reglas-para-la-inteligencia-artificial-en-el-sector-publico-hasta-2030",
+      "elperuano.pe/noticia/303676-empresas-de-ia-en-salud-educacion-y-justicia-deben-adecuarse-al-reglamento-hasta-el-10-de-setiembre",
+      "img.lpderecho.pe/wp-content/uploads/2025/09/Decreto-Supremo-115-2025-PCM-LPDerecho.pdf",
       "knowledge.dlapiper.com/dlapiperknowledge/globalemploymentlatestdevelopments/2025/Regulation-governing-the-use-of-artificial-intelligence-in-Peru",
       "mofo.com/artificial-intelligence/peru",
       "regulations.ai/regulations/RAI-PE-NA-SDN1NXX-2025"
     ],
     "Philippines": [
       "babl.ai/phillipines-introduces-new-guidelines-on-ai-and-social-media-use-for-2025-elections",
+      "bakermckenzie.com/en/insight/publications/2026/07/philippines-bsp-releases-ai-governance-framework",
+      "bakermckenzie.com/en/insight/publications/2026/07/philippines-launches-responsible-ai-governance-framework",
       "businessmirror.com.ph/2025/12/03/house-panel-tackles-ai-governance-bill-poe-pushes-for-creation-of-ai-development-authority",
       "moderndiplomacy.eu/2026/01/20/from-soft-law-to-hard-rules-pushing-for-binding-ai-governance-in-asean",
       "mofo.com/artificial-intelligence/philippines",
+      "pia.gov.ph/news/marcos-admin-launches-national-ai-center-to-close-technology-gap",
+      "privacy.gov.ph/pips-and-pics/advisories-circulars",
+      "rappler.com/technology/features/artificial-intelligence-bills-20th-congress-philippines",
       "unesco.org/ethics-ai/en/philippines"
     ],
     "Poland": [
       "bsg.ox.ac.uk/blog/ai-acts-enforcement-gap-what-polands-new-regulator-reveals-about-europes-challenge",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/poland",
       "digitalpolicyalert.org/change/11449-draft-act-on-artificial-intelligence-systems-in-poland",
+      "eli.gov.pl/eli/DU/2026/1003/ogl/pol",
       "interface-eu.org/publications/poland-ai-act-implementation",
       "oecd.org/en/publications/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1_6d530a88-en/poland_518e8a57-en.html",
-      "uodo.gov.pl"
+      "prawo.pl/biznes/pamela-krzypkowska-przewodniczaca-kribsi,1553478.html",
+      "uodo.gov.pl",
+      "whitecase.com/insight-alert/eu-ai-omnibus-enters-force-amending-ai-act"
     ],
     "Portugal": [
+      "anacom.pt/render.jsp?contentId=1853661",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/portugal",
       "cnpd.pt",
+      "cullen-international.com/news/2026/04/National-implementation-of-the-EU-AI-Act--a-snapshot-of-AI-laws--regulatory-bodies-and-penalties.html",
+      "digital.gov.pt/pt/estrategia-digital/regulamentacao/ai-act",
+      "files.diariodarepublica.pt/1s/2026/09/17900/0000200004.pdf",
       "lexology.com/library/detail.aspx?g=baa5111f-6479-4232-a6e3-a8ba3384891e",
       "oecd.ai/en/dashboards/policy-initiatives/ai-portugal-2030-national-strategy-for-ai-1250",
       "oecd.org/content/dam/oecd/en/publications/reports/2025/10/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1-country-notes_b0385317/portugal_f3f72472/834bd1d8-en.pdf",
@@ -981,55 +1514,93 @@
       "blogs.loc.gov/law/2024/12/falqs-ai-regulations-in-the-gulf-cooperation-council-member-states-part-two",
       "connectontech.bakermckenzie.com/data-protection-enforcement-update-qatar",
       "digital.nemko.com/regulations/ai-regulation-in-qatar",
+      "eversheds-sutherland.com/en/qatar/insights/mapping-qatars-regulatory-landscape-for-artificial-intelligence-november-2025",
       "loc.gov/item/global-legal-monitor/2026-03-09/qatar-direction-issued-on-use-of-ai-in-judicial-proceedings",
-      "thepeninsulaqatar.com/article/25/05/2025/mcit-outlines-efforts-to-establish-regulatory-ethical-frameworks-for-ai-use-at-doha-conference"
+      "mcit.gov.qa/en/news/world-summit-ai-qatar-2025-concludes-with-major-global-participation",
+      "thepeninsulaqatar.com/article/25/05/2025/mcit-outlines-efforts-to-establish-regulatory-ethical-frameworks-for-ai-use-at-doha-conference",
+      "thepeninsulaqatar.com/article/27/04/2026/qatar-shura-council-debates-ai-governance-and-refers-draft-legislation-to-committees"
     ],
     "Romania": [
+      "ancom.ro",
       "dataprotection.ro",
       "digital-strategy.ec.europa.eu/en/policies/european-approach-artificial-intelligence",
       "eur-lex.europa.eu/legal-content/EN/TXT?uri=CELEX:32024R1689",
+      "juridice.ro/843172/ai-act-se-aplica-in-romania-dar-nu-poate-fi-inca-sanctionat-ce-inseamna-vidul-legislativ-national-pentru-operatori.html",
+      "legislatie.just.ro/Public/DetaliiDocument/267590",
+      "mcid.gov.ro",
       "oecd.ai/en/dashboards/countries/Romania"
     ],
     "Russia": [
+      "a-ai.ru/ethics/index-en.html",
       "babl.ai/russia-updates-national-ai-strategy",
+      "consultant.ru/document/cons_doc_LAW_540336",
       "csis.org/analysis/how-russia-building-sovereign-drone-ecosystem-ai-driven-autonomy",
       "dig.watch/updates/russia-advances-draft-ai-regulation-framework",
+      "en.kremlin.ru/acts/news/80377",
+      "nordicstar.law/en/news/russias-first-law-on-artificial-intelligence",
       "regulations.ai/regulations/russia-summary",
+      "tass.com/politics/2161507",
       "whitesquarepartners.com/news/draft-law-on-the-regulation-of-artificial-intelligence-what-to-expect"
     ],
     "Rwanda": [
       "c4ir.rw/global-ai-summit-on-africa",
       "digitalpolicyalert.org/digest/dpa-digital-digest-rwanda",
+      "ktpress.rw/2026/06/rwandas-ai-ambition-takes-shape-as-cabinet-approves-new-agency",
+      "minict.gov.rw/fileadmin/user_upload/minict_user_upload/Documents/Policies/AI_Readiness_and_Maturity_Framework_for_Rwanda.pdf",
+      "minict.gov.rw/policies",
       "oecd.ai/en/dashboards/policy-initiatives/the-national-ai-policy",
       "regulations.ai/regulations/RAI-RW-NA-NATARIN-2023",
-      "thefuturesociety.org/cabinet-of-rwanda-approves-national-ai-policy"
+      "thefuturesociety.org/cabinet-of-rwanda-approves-national-ai-policy",
+      "un.org/global-dialogue-ai-governance/sites/default/files/2026-07/37._republic_of_rwanda.pdf"
     ],
     "S. Sudan": [
       "africalegalnetwork.com",
+      "dig.watch/countries/south-sudan",
+      "eyeradio.org/south-sudan-begins-developing-national-5g-strategy",
       "itu.int/en/ITU-D/Regional-Presence/Africa/Pages/default.aspx",
       "itunews.itu.int/en",
-      "oecd.ai/en/dashboards/countries/SouthSudan"
+      "oecd.ai/en/dashboards/countries/SouthSudan",
+      "paradigmhq.org/wp-content/uploads/2025/09/Legal-analysis-of-laws-policies-and-government-strategies-relating-to-AI-in-Kenya-Mauritius-Rwanda-South-Sudan-Tanzania-Uganda-and-Zambia-1.pdf",
+      "radiotamazuj.org/en/news/article/explainer-cybercrime-and-computer-misuse-act-2026-offensives-and-penalties",
+      "telecompaper.com/news/south-sudan-enacts-cybercrime-and-computer-misuse-act-2026--1563020"
     ],
     "Saint Kitts and Nevis": [
+      "cullen-international.com/news/2026/09/Artificial-intelligence-regulation-and-policy-are-at-an-early-stage-in-the-Caribbean.html",
+      "dataguidance.com/jurisdiction/saint-kitts-and-nevis",
       "gov.kn",
+      "lawcommission.gov.kn/wp-content/documents/Annual-Laws/2018/ACTs/Act-5-of-2018-Data-Protection-Act-2018.pdf",
       "oecd.ai/en/dashboards/countries/Saint-Kitts-and-Nevis",
-      "oecd.ai/en/dashboards/countries/SaintKittsAndNevis"
+      "oecd.ai/en/dashboards/countries/SaintKittsAndNevis",
+      "sknis.gov.kn/2024/12/03/st-kitts-and-nevis-pioneers-ai-powered-assistant-to-answer-questions-about-its-laws",
+      "sknis.gov.kn/2026/09/27/the-next-great-divide-must-not-be-digital-acting-prime-minister-hanley-calls-for-inclusive-ai-future"
     ],
     "Saint Lucia": [
+      "attorneygeneralchambers.com/laws-of-saint-lucia/data-protection-act",
       "caricom.org",
-      "oecd.ai/en/dashboards/countries/SaintLucia"
+      "ctu.int/wp-content/uploads/2025/12/CCAITF-Draft-Interim-Report-MASTER.pdf",
+      "cullen-international.com/news/2026/09/Artificial-intelligence-regulation-and-policy-are-at-an-early-stage-in-the-Caribbean.html",
+      "education.govt.lc/news/saint-lucia-advances-plans-for-digital-innovation-regulatory-sandbox",
+      "oecd.ai/en/dashboards/countries/SaintLucia",
+      "stluciatimes.com/177560/2026/01/education-minister-addresses-ai-use-in-cxc-sbas"
     ],
     "Saint Vincent and the Grenadines": [
       "caricom.org/bureaus-committees/caricom-office-of-trade-negotiations/digital-economy",
       "caricom.org/our-work/pillars/technology-and-innovation",
+      "ctu.int/communique-ctu-ict-week-2026-french-guiana",
+      "dtp.gov.vc",
       "gov.vc",
+      "legal.gov.vc",
       "ntrc.vc",
       "oecd.ai/en/dashboards/countries/SaintVincentAndTheGrenadines",
-      "oecd.ai/en/dashboards/countries/SaintVincentandtheGrenadines"
+      "oecd.ai/en/dashboards/countries/SaintVincentandtheGrenadines",
+      "unesco.org/en/articles/caribbean-voices-4th-unesco-global-forum-ethics-ai"
     ],
     "Samoa": [
       "dig.watch/resource/samoas-information-security-policy-2024",
       "lawgratis.com/blog-detail/artificial-intelligence-law-at-samoa",
+      "mcit.gov.ws/official-launch-of-the-national-ict-policy-national-cybersecurity-strategy",
+      "mcit.gov.ws/strengthening-samoas-readiness-for-ai-risks",
+      "mcit.gov.ws/wp-content/uploads/2026/04/Samoa-National-ICT-Policy-2026.pdf",
       "undp.org/samoa/press-releases/strengthening-samoas-readiness-ai-risks",
       "undp.org/samoa/stories/samoa-age-ai",
       "v45.diplomacy.edu/countries/samoa"
@@ -1038,76 +1609,113 @@
       "coe.int",
       "coe.int/en/web/artificial-intelligence",
       "coe.int/en/web/artificial-intelligence/cahai",
+      "coe.int/en/web/artificial-intelligence/cai",
       "coe.int/en/web/artificial-intelligence/san-marino",
       "consigliograndeegenerale.sm",
+      "consilium.europa.eu/en/press/press-releases/2026/07/16/council-greenlights-eu-deal-with-andorra-and-san-marino",
       "garanteprivacy.sm",
       "oecd.ai/en/dashboards/countries/SanMarino",
-      "sanmarino.sm"
+      "sanmarino.sm",
+      "sanmarinortv.sm/news/comunicati-c9/imprese-ad-alto-contenuto-tecnologico-di-san-marino-innovation-modifiche-al-decreto-delegato-n-101-2019-entrata-in-vigore-del-decreto-delegato-20-luglio-2026-n-91-in-attesa-di-ratifica-a294102"
     ],
     "Sao Tome and Principe": [
       "au.int/en/ai",
+      "coe.int/en/web/octopus/-/sao-tome-and-principe",
+      "dataprotection.africa/sao-tome-and-principe",
+      "dig.watch/countries/sao-tome-and-principe",
       "gov.st",
       "oecd.ai/en/dashboards",
       "oecd.ai/en/dashboards/countries/SaoTomeAndPrincipe",
-      "parlamento.st"
+      "parlamento.st",
+      "redipd.org/en/the-network/members/countries/democratic-republic-of-sao-tome-and-principe",
+      "unesco.org/ethics-ai/en/saotomeeprincipe"
     ],
     "Saudi Arabia": [
+      "bakermckenzie.com/en/insight/publications/2026/07/saudi-arabia-new-copyright-law-modernises-ksa-ip-framework",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/kingdom-of-saudi-arabia",
       "digitalpolicyalert.org/event/39093-saudi-data-and-artificial-intelligence-authority-closes-consultation-on-draft-responsible-ai-policy-including-performance-monitoring-requirement",
       "houseofsaud.com/saudi-arabia-year-of-artificial-intelligence-2026",
       "iapp.org/news/a/saudi-arabia-s-data-protection-authority-steps-up-enforcement",
+      "sdaia.gov.sa/en/SDAIA/about/Files/AIAdoptionFramework.pdf",
       "spa.gov.sa/en/N2551533",
+      "spa.gov.sa/en/N2633781",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/saudi-arabia"
     ],
     "Senegal": [
       "dlapiperdataprotection.com/index.html?t=authority&c=SN",
       "oecd.ai/en/dashboards/policy-initiatives/senegal-national-artificial-intelligence-strategy-and-road-map",
+      "osiris.sn/protection-des-donnees-au-senegal-la-cdp-tire-la-sonnette-d-alarme-face-a-la.html",
       "presidence.sn/en/actualites/new-deal-technologique-a-national-ambition-to-make-senegal-a-leader-in-the-digital-economy-in-africa-1",
+      "presidence.sn/fr/assets/new-deal/Doc_NDT.pdf",
       "regulations.ai/regulations/RAI-SN-NA-NSDAIXX-2023",
-      "unesco.org/ethics-ai/en/senegal"
+      "unesco.org/ethics-ai/en/senegal",
+      "vie-publique.sn/documents/14070/projet-loi-25-2026-assemblee-nationale-protection-infrastructures-information-critiques-securite-numerique"
     ],
     "Serbia": [
+      "balkaninsight.com/2026/07/02/ai-as-political-theatre-serbias-embrace-of-new-tech-lacks-legal-guardrails/bi",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/serbia",
       "danas.rs/vesti/ekonomija/do-kraja-godine-mogli-bismo-dobiti-prvi-zakon-o-vestackoj-inteligenciji",
       "dig.watch/updates/serbia-to-chair-global-partnership-on-artificial-intelligence-gpai",
+      "iapp.org/news/a/serbia-s-draft-personal-data-protection-law-what-changes-are-on-the-table",
       "ivi.ac.rs/en/news/serbia-adopts-artificial-intelligence-development-strategy-for-2025-2030",
-      "naled.rs/vest-srbija-dobija-zakon-o-vestackoj-inteligenciji-balans-izmedju-inovacija-i-odgovornosti-12196"
+      "naled.rs/vest-srbija-dobija-zakon-o-vestackoj-inteligenciji-balans-izmedju-inovacija-i-odgovornosti-12196",
+      "rts.rs/lat/vesti/drustvo/5975933/zakon-o-vestackoj-inteligenciji-srbija.html",
+      "terralex.org/insights-cross-border-guides/terralex-ai-guide/serbia-ai-guide"
     ],
     "Seychelles": [
       "au.int/en/ai",
       "dit.gov.sc",
+      "dlapiperdataprotection.com/index.html?t=law&c=SC",
       "icta.sc",
+      "nation.sc/articles/31810/cabinet-backs-national-artificial-intelligence-framework-for-education",
       "oecd.ai/en/dashboards/countries/Seychelles",
-      "sita.sc"
+      "seylii.org/akn/sc/act/2025/24/eng@2025-12-23",
+      "sita.sc",
+      "statehouse.gov.sc/news/7158/president-herminies-vision-for-artificial-intelligence-takes-root-in-seychelles-classrooms"
     ],
     "Sierra Leone": [
       "ecofinagency.com/news-digital/2605-55944-sierra-leone-advances-national-ai-strategy-to-support-digital-expansion",
+      "mocti.gov.sl/the-ministry-of-communication-technology-and-innovation-mocti-in-collaboration-with-the-world-bank-group-is-developing-sierra-leones-first-ever-national-ai-strategy",
+      "moice.gov.sl/cabinet-approves-first-ever-data-protection-policy-paving-way-for-new-data-law",
+      "presidentti.fi/en/a-call-for-control-of-frontier-ai-models",
       "sabisalone.tech/blog/digital-transformation-policy-sierra-leone-ai-tech",
       "sierraloaded.sl/news/government-data-protection-information-bill",
       "techafricanews.com/2025/10/03/sierra-leone-launches-groundbreaking-ai-readiness-assessment-with-world-bank-support",
-      "techafricanews.com/2026/05/28/sierra-leone-advances-artificial-intelligence-agenda-to-expand-digital-opportunities"
+      "techafricanews.com/2026/05/28/sierra-leone-advances-artificial-intelligence-agenda-to-expand-digital-opportunities",
+      "techafricanews.com/2026/09/17/sierra-leone-launches-nationwide-campaign-combat-ai-deepfakes"
     ],
     "Singapore": [
+      "bakermckenzie.com/en/insight/publications/2026/07/singapore-ai-specific-notification-requirement",
       "digitalpolicyalert.org/change/7850",
       "globallegalinsights.com/practice-areas/ai-machine-learning-and-big-data-laws-and-regulations/singapore",
       "imda.gov.sg",
       "mas.gov.sg/news/media-releases/2025/mas-guidelines-for-artificial-intelligence-risk-management",
+      "mddi.gov.sg/newsroom/pq-on-regulations-to-tackle-deepfake-software",
+      "mddi.gov.sg/newsroom/singapore-launches-new-model-ai-governance-framework-for-agentic-ai--",
       "smartnation.gov.sg/initiatives/national-ai-strategy",
+      "twobirds.com/en/insights/2026/singapore/singapore-launches-online-safety-commission-to-tackle-online-harms",
       "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-singapore"
     ],
     "Slovakia": [
       "cms.law/en/int/expert-guides/ai-regulation-scanner/slovakia",
       "iapp.org/resources/article/eu-ai-act-regulatory-directory",
+      "mirri.gov.sk/aktuality/splnomocnenec-vlady-pre-ai/newsletter-december-2025",
       "oecd.ai/en/dashboards/national/slovak-republic",
       "oecd.org/content/dam/oecd/en/publications/reports/2025/10/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1-country-notes_b0385317/slovak-republic_02443328/5b824a40-en.pdf",
-      "regulations.ai/regulations/slovakia-summary"
+      "regulations.ai/regulations/slovakia-summary",
+      "rokovania.gov.sk/RVL/Material/32164/1",
+      "teraz.sk/ekonomika/dohlad-nad-umelou-inteligenciou-ma-koo/992905-clanok.html"
     ],
     "Slovenia": [
+      "akos-rs.si/en/umetna-inteligenca/explore/regulatory-sandboxes-for-artificial-intelligence-systems",
       "akos-rs.si/en/umetna-inteligenca/raziscite/general",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/slovenia",
+      "gov.si/assets/ministrstva/MNZJU/MDP/Dokumenti/Umetna-inteligenca/NsUI2030_ang.pdf",
+      "jadek-pensa.si/en/kaj-prinasa-zakon-o-izvajanju-akta-o-umetni-inteligenci",
       "nio.gov.si/nio/asset/nacionalni+program+spodbujanja+razvoja+in+uporabe+umetne+inteligence+rs+do+leta+2025+npui?lang=en",
       "regulations.ai/regulations/RAI-SI-NA-SUMMARY-2026",
-      "telecompaper.com/news/slovenias-akos-to-lead-ai-regulation--1571525"
+      "telecompaper.com/news/slovenias-akos-to-lead-ai-regulation--1571525",
+      "uradni-list.si/glasilo-uradni-list-rs/vsebina/2025-01-2460"
     ],
     "Solomon Islands": [
       "forumsec.org",
@@ -1115,132 +1723,206 @@
       "forumsec.org/digital-resilience",
       "mca.gov.sb",
       "mcai.gov.sb",
-      "pif.int/our-work/pacific-digital-strategy"
+      "pacificecommerce.org/pei-project/solomon-islands-data-protection-and-privacy-legislation",
+      "pif.int/our-work/pacific-digital-strategy",
+      "pina.com.fj/2026/09/06/pacific-leaders-set-ai-rules-push-stronger-digital-connectivity",
+      "solomons.gov.sb/mehrd-launches-solomon-islands-ict-for-education-master-plan-2026-2030"
     ],
     "Somalia": [
+      "dataguidance.com/sites/default/files/somalia_data_protection_act-2.pdf",
+      "dig.watch/countries/somalia",
+      "digitalpolicyalert.org/change/8906-establishment-of-data-protection-authority-of-somalia",
+      "intelligentcio.com/africa/2026/07/21/somali-national-university-launches-countrys-first-national-ai-centre",
+      "nca.gov.so/national-communications-authority-holds-the-second-ai-summit-somalia-2026",
       "oecd.ai/en/dashboards/countries/Somalia"
     ],
     "South Africa": [
       "bakermckenzie.com/en/insight/publications/2026/02/south-african-ai-policy-moves-towards-approval",
       "cliffedekkerhofmeyr.com/en/news/publications/2026/South-Africa/Technology-Communications/corporate-communication-and-technology-communications-alert-commentary-on-south-sfricas-national-draft-artificial-intelligence-policy",
+      "dailymaverick.co.za/article/2026-09-21-hallucination-free-hopefully-new-draft-ai-policy-will-be-ready-by-march-says-malatsi",
+      "dcdt.gov.za/images/phocadownload/AI_Government_Summit/National_AI_Government_Summit_Discussion_Document.pdf",
+      "ellipsis.co.za/artificial-intelligence-regulation-in-south-africa",
       "inforegulator.org.za",
       "lib.uct.ac.za/government-publications/articles/2026-04-13-draft-south-africa-national-artificial-intelligence-ai-policy",
+      "sanews.gov.za/south-africa/minister-announces-withdrawal-draft-ai-policy",
       "technext24.com/2026/05/26/south-africa-pushes-ai-policy-to-2027",
       "thenextweb.com/news/south-africa-ai-policy-hallucinated-citations"
     ],
     "South Korea": [
       "cooley.com/news/insight/2026/2026-01-27-south-koreas-ai-basic-act-overview-and-key-takeaways",
       "iapp.org/resources/article/global-ai-governance-south-korea",
+      "intelligence.dlapiper.com/artificial-intelligence?t=01-law&c=KR",
       "koreatechdesk.com/korea-ai-basic-act-calibration-phase-policy-update-2026",
+      "msit.go.kr/eng/bbs/view.do?sCode=eng&mId=4&mPid=2&bbsSeqNo=42&nttSeqNo=1214",
       "trade.gov/market-intelligence/south-korea-ai-basic-act",
       "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-south-korea"
     ],
     "Spain": [
       "aesia.digital.gob.es/en/es",
+      "aesia.digital.gob.es/storage/media/01-guia-introductoria-al-reglamento-de-ia.pdf",
       "aesia.gob.es",
+      "congreso.es/public_oficiales/L15/CONG/BOCG/A/BOCG-15-A-97-1.PDF",
       "dataguidance.com/news/spain-council-ministers-approves-draft-organic-law-ai",
+      "glacis.io/guide-eu-ai-act-spain",
       "insideprivacy.com/artificial-intelligence/spain-issues-guidance-under-the-eu-ai-act",
       "lamoncloa.gob.es/consejodeministros/resumenes/Paginas/2026/260526-rueda-prensa-ministros.aspx",
+      "lamoncloa.gob.es/lang/en/gobierno/councilministers/Paginas/2026/20260526-council-press-conference.aspx",
       "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-spain"
     ],
     "Sri Lanka": [
       "citralab.lk/work/supporting-the-development-of-the-national-artificial-intelligence-ai-strategy-for-sri-lanka",
+      "dpa.gov.lk",
       "en.wikipedia.org/wiki/Personal_Data_Protection_Act_(Sri_Lanka)",
       "lirneasia.net/2026/01/artificial-intelligence-ai-governance-is-a-concern-sri-lanka-must-address-now",
+      "lk.usembassy.gov/us-sl-advance-american-ai-in-higher-education",
       "mfa.gov.lk/en/sri-lanka-reaffirms-commitment-to-responsible-ai-and-deepens-bilateral-engagements-at-ai-impact-summit-2026-in-india",
+      "mode.gov.lk/blog/aiweek",
       "mot.gov.lk/assets/files/National_AI_strategy_for_Sri_Lanka-08a88c78d541a0746aeb8c71ed312231.pdf"
     ],
     "Sudan": [
+      "core.unesco.org/en/project/3210183031",
+      "ecofinagency.com/news-digital/0711-50229-sudan-establishes-three-digital-authorities-to-advance-e-govt",
+      "ecofinagency.com/news-digital/0711-50239-sudan-lays-groundwork-for-digital-state-with-cybersecurity-ai-data-bodies",
+      "esudan.gov.sd/department/52",
       "freedomhouse.org/country/sudan",
       "itunews.itu.int/en",
       "oecd.ai/en/dashboards/countries/Sudan"
     ],
     "Suriname": [
       "cepal.org/en/pressreleases/santiago-declaration-artificial-intelligence-americas",
+      "dna.sr/media/2w5lbamt/wet_bescherming_privacy_en_persoonsgegevens.pdf",
       "gov.sr",
+      "gov.sr/het-ministerie-van-economische-zaken-ondernemerschap-en-technologische-innovatie-ezoti-heeft-deelgenomen-aan-de-ai-impact-summit-in-new-delhi",
+      "gov.sr/wp-content/uploads/2023/09/Suriname-National-Digital-Strategy-2023-2030.pdf",
       "government.sr",
-      "oecd.ai/en/dashboards/countries/Suriname"
+      "oecd.ai/en/dashboards/countries/Suriname",
+      "unesco.org/en/articles/suriname-advances-responsible-ai-governance-unescos-ram-20"
     ],
     "Swaziland": [
       "apc.org/en/news/eswatini-strives-digital-sovereignty-amid-technological-advancements",
+      "dig.watch/countries/eswatini",
       "esccom.org.sz/legislation/dataprotection",
       "eswatini.un.org/en/284410-un-eswatini-joins-ministry-ict-explore-artificial-intelligence-sustainable-development",
+      "eswatini.un.org/en/323031-governing-ai-ensuring-innovation-serves-humanity",
       "separc.co.sz/2024/12/05/eswatini-advances-toward-digital-transformation-key-findings-from-the-digital-readiness-assessment",
-      "techhiveadvisory.africa/insights/bimonthly-update-on-privacy-in-africa-september-october-2025"
+      "techhiveadvisory.africa/insights/bimonthly-update-on-privacy-in-africa-september-october-2025",
+      "times.co.sz/43849/news/eswatini-hosts-regional-push-for-practical-ai-policies"
     ],
     "Sweden": [
+      "artificialintelligenceact.eu/ai-act-explorer/digital-omnibus",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/sweden",
       "computerweekly.com/news/366634703/Swedish-welfare-authorities-suspend-discriminatory-AI-model",
       "imy.se",
       "oecd.org/en/publications/progress-in-implementing-the-european-union-coordinated-plan-on-artificial-intelligence-volume-1_6d530a88-en/sweden_9221d36d-en.html",
+      "pts.se/ai/ai-forordningen",
+      "regeringen.se/rattsliga-dokument/statens-offentliga-utredningar/2025/10/sou-2025101",
+      "regeringen.se/regeringens-politik/sveriges-ai-strategi/handlingsplan-for-sveriges-ai-strategi",
+      "riksdagen.se/sv/dokument-och-lagar/dokument/betankande/polisens-anvandning-av-ai-for-ansiktsigenkanning-i_hd01juu28/html",
       "setterwalls.se/en/article/a-brief-update-on-swedens-adaptations-to-the-ai-act-sou-2025101-2",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/sweden"
     ],
     "Switzerland": [
       "admin.ch/en/nsb?id=104110",
+      "admin.ch/gov/en/start/documentation/media-releases.msg-id-104110.html",
       "bakom.admin.ch/en/artificial-intelligence",
+      "bk.admin.ch/en/artificial-intelligence",
       "cms.law/en/int/expert-guides/ai-regulation-scanner/switzerland",
       "edoeb.admin.ch",
+      "edoeb.admin.ch/de/update-geltendes-datenschutzgesetz-ist-auf-ki-direkt-anwendbar",
       "iclg.com/practice-areas/data-protection-laws-and-regulations/switzerland",
       "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-switzerland"
     ],
     "Syria": [
       "globaltimes.cn/page/202403/1309498.shtml",
-      "oecd.ai/en/dashboards/countries/Syria"
+      "moct.gov.sy",
+      "moct.gov.sy/news-0170",
+      "moct.gov.sy/news-0194",
+      "oecd.ai/en/dashboards/countries/Syria",
+      "syriaaifoundation.org/en",
+      "syrianobserver.com/foreign-actors/syria-aligns-with-chinas-global-ai-governance-initiative.html"
     ],
     "Taiwan": [
       "bakermckenzie.com/en/insight/publications/2026/01/taiwan-ai-basic-act",
       "focustaiwan.tw/sci-tech/202605210017",
+      "iapp.org/news/a/taiwan-s-ai-risk-classification-framework-a-different-path",
       "iapp.org/news/a/taiwan-s-strategic-leap-into-ai-enacting-the-ai-basic-act-to-foster-innovation-governance",
+      "iflr.com/article/2gnkw0xfly6yrt21vokcg/sponsored/from-principles-to-practice-ai-governance-in-taiwan",
+      "loc.gov/item/global-legal-monitor/2026-05-07/taiwan-new-law-establishes-basic-framework-on-artificial-intelligence",
       "moda.gov.tw/en/press/press-releases/18316",
+      "web.moda.gov.tw/en/major-policies/ai/1781",
       "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-taiwan"
     ],
     "Tajikistan": [
+      "asiaplus.news/2026/09/30/tadzhikistan-predlozhil-sozdat-czentralnoaziatskij-regionalnyj-czentr-razvitiya-ii",
+      "dig.watch/resource/strategy-for-the-development-of-artificial-intelligence-in-the-republic-of-tajikistan-for-the-period-up-to-2040",
       "digital.gov.tj",
       "digital.report/tajikistan-ai-strategy",
       "digitaltajikistan.tj",
+      "egov.tj/uploads/2025/9/25/db29ff250e97ee01de3339e6bf2423e6_original.144805.pdf",
+      "mfa.tj/en/main/view/17356/un-general-assembly-adopts-historic-resolution-on-artificial-intelligence-initiated-by-tajikistan",
       "oecd.ai/en/dashboards/countries/Tajikistan",
+      "uidt.tj/en/news/276",
       "un.org/en/ga",
       "un.org/en/ga/search/view_doc.asp?symbol=A/RES/79/240"
     ],
     "Tanzania": [
       "au.int/en/ai",
+      "clydeco.com/en/insights/2026/07/the-use-of-artificial-intelligence-ai-in-tanzania",
       "mitc.go.tz",
+      "moh.go.tz/storage/app/uploads/public/65c/61f/590/65c61f59087ac486047849.pdf",
       "oecd.ai/en/dashboards/countries/Tanzania",
-      "tcra.go.tz"
+      "tcra.go.tz",
+      "unesco.org/en/articles/ai-ready-and-responsible-tanzania-unveils-national-assessment-africa-internet-governance-forum",
+      "unesco.org/ethics-ai/en/tanzania"
     ],
     "Thailand": [
       "bakermckenzie.com/-/media/files/insight/publications/2026/03/thailand-2026-ai-regulatory-landscape-for-businesses.pdf",
+      "bakermckenzie.com/en/insight/publications/2026/07/thailand-draft-ai-act--seven-key-implications",
       "bgloballaw.com",
       "dataguidance.com/news/thailand-etda-announces-ai-2026-strategy-promote-trust",
       "enersys.co.th/en/insights/thailand-ai-law-digital-platform-regulation-in-effect-2026",
+      "legal500.com/intelligence/thailand/technology/thailand-civil-court-issues-rules-on-ai-generated-court-filings",
       "lexology.com/library/detail.aspx?g=426d4c6b-818d-407e-af2d-2c02278c002b",
+      "nortonrosefulbright.com/en/knowledge/publications/00a5d74b/thailands-draft-ai-act-key-features-and-implications-for-businesses",
+      "techforgoodinstitute.org/insights/country-spotlights/governance-meets-reality-thailand-tech-governance-at-mid-2026",
       "tilleke.com/insights/comprehensive-policy-thailands-ai-governance-framework"
     ],
     "Togo": [
       "arcep.tg",
       "au.int/en/documents/20240206/continental-ai-strategy",
       "autorite-protection-donnees.tg",
+      "cega.berkeley.edu/collection/togo-ai-lab",
       "jo.gouv.tg",
       "oecd.ai/en/dashboards/countries/Togo",
-      "scinnovent.org/wp-content/uploads/2022/10/AI-in-Africa-landscape-analysis.pdf"
+      "scinnovent.org/wp-content/uploads/2022/10/AI-in-Africa-landscape-analysis.pdf",
+      "togofirst.com/fr/culture/1407-19555-au-togo-un-projet-pour-valoriser-les-langues-nationales-via-lintelligence-artificielle",
+      "togofirst.com/fr/tic/0112-17689-gouvernance-publique-le-togo-prepare-sa-strategie-nationale-sur-l-ia"
     ],
     "Tonga": [
+      "dig.watch/countries/tonga",
       "forumsec.org/digital-and-technology",
+      "forumsec.org/sites/default/files/2026-09/55PIFLM%20Communique.pdf",
       "gov.to",
+      "matangitonga.to/2025/06/05/tonga-s-new-fintech-regulatory-sandbox-framework-launched-national-reserve-bank",
       "mcit.gov.to",
       "pacificislandsforum.org",
-      "pif.int"
+      "pif.int",
+      "pina.com.fj/2026/09/06/pacific-leaders-set-ai-rules-push-stronger-digital-connectivity"
     ],
     "Trinidad and Tobago": [
       "caribbeanai.org/ai-caribbean-blog/ai-governance-caribbean",
+      "cullen-international.com/news/2026/09/Artificial-intelligence-regulation-and-policy-are-at-an-early-stage-in-the-Caribbean.html",
       "dlapiperdataprotection.com?t=authority&c=TT",
+      "mpaai.gov.tt/initiatives/ai-readiness-assessment",
       "mpaai.gov.tt/media-releases/trinidad-and-tobago-takes-next-step-artificial-intelligence-policy-development",
       "mpaai.gov.tt/sites/default/files/2026-01/media-release---t&t-takes-the-next-step-in-ai-policy-development_final.pdf",
+      "sta.uwi.edu/news/releases/release.asp?id=23165",
       "unesco.org/en/articles/trinidad-and-tobago-advances-ethical-ai-governance-unesco-ram-validation-workshop-0"
     ],
     "Tunisia": [
       "accessnow.org/tunisia-ratifies-convention-108-affirms-commitment-protection-personal-data",
+      "businessnews.com.tn/2026/02/27/donnees-personnelles-le-parlement-se-penche-sur-la-modernisation-de-la-legislation-tunisienne/1390118",
+      "lapresse.tn/2026/08/15/ia-la-tunisie-entre-dans-le-top-30-mondial-des-publications-scientifiques",
       "regulations.ai/regulations/RAI-TN-NA-NASR2XX-2021",
       "regulations.ai/regulations/RAI-TN-NA-PERSONA-2025",
       "regulations.ai/regulations/RAI-TN-NA-SUMMARY-2026",
@@ -1248,27 +1930,44 @@
     ],
     "Turkey": [
       "cms.law/en/int/expert-guides/ai-regulation-scanner/tuerkiye",
+      "cms.law/en/tur/legal-updates/turkiye-unveils-new-ai-action-plan",
       "digital.nemko.com/regulations/ai-regulation-in-turkey",
+      "erdem-erdem.av.tr/en/insights/presidential-circular-on-turkiyes-artificial-intelligence-action-plan-20262030-published-in-the-official-gazette",
       "medium.com/@thecuriousthread/turkeys-ai-governance-gap-what-happens-when-adoption-outpaces-regulation-2146619c30c9",
+      "morogluarseven.com/insights/publications/the-presidential-circular-on-the-turkiye-artificial-intelligence-action-plan-was-published",
       "npartners.com.tr/artificial-intelligence-law-in-turkiye-the-legal-foundations-of-ai-governance-in-turkiye-in-light-of-the-presidential-decrees-dated-25-december-2025",
       "paksoy.av.tr/en/2026/01/recent-developments-in-turkish-data-protection-law",
+      "tbmm.gov.tr/Yasama/KanunTeklifi/e21539a0-888a-4500-81be-01904a918c53",
       "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-turkey"
     ],
     "Turkmenistan": [
       "bti-project.org/en/reports/country-report/TKM",
       "freedomhouse.org/country/turkmenistan/freedom-net/2023",
-      "oecd.ai/en/dashboards/countries/Turkmenistan"
+      "oecd.ai/en/dashboards/countries/Turkmenistan",
+      "trend.az/business/4196121.html",
+      "turkmenistan.gov.tm/en/post/102671/turkmenistan-will-begin-developing-national-legal-framework-field-artificial-intelligence",
+      "turkmenistan.gov.tm/en/post/102812/president-turkmenistan-approved-state-program-development-digital-economy-until-2028",
+      "turkmenistan.gov.tm/en/post/99387/concept-development-digital-economy-turkmenistan-20262028-has-been-approved",
+      "undp.org/turkmenistan/press-releases/undp-supports-national-efforts-shape-turkmenistans-artificial-intelligence-strategy"
     ],
     "Tuvalu": [
+      "aiasiapacific.org/wp-content/uploads/2024/08/The-State-of-Artificial-Intelligence-in-the-Pacific-Islands.pdf",
+      "coe.int/en/web/octopus/-/tuvalu",
+      "dig.watch/countries/tuvalu",
+      "finance.gov.tv/wp-content/uploads/2022/08/National-ICT-Policy-2021.pdf",
       "gov.tv",
+      "ict.gov.tv/wp-content/uploads/2024/11/Tuvalu-National-ICT-Policy_final-y.pdf",
       "oecd.ai/en/dashboards/countries/Tuvalu",
       "tuvalufirst.tv",
       "tuvaluislands.com/government"
     ],
     "Uganda": [
+      "ict.go.ug/media/news/government-of-uganda-and-unesco-validate-ugandas-ai-readiness-report",
+      "ict.go.ug/media/news/ministry-engages-stakeholders-on-ugandas-national-emerging-technologies-strategy",
       "ict.go.ug/media/news/shaping-ugandas-ai-future",
       "nita.go.ug/laws-and-regulations/data-protection-and-privacy-act-no-9-2019",
       "nita.go.ug/news-updates/nita-u-champions-responsible-ai-africa-ai-summit-2025",
+      "practiceguides.chambers.com/practice-guides/artificial-intelligence-2026/uganda",
       "unesco.org/en/articles/building-blocks-ethical-and-responsible-ai-governance-uganda-balancing-innovation-rights-and",
       "unesco.org/en/articles/uganda-convenes-national-stakeholders-dialogue-strengthen-ethical-ai-governance"
     ],
@@ -1277,14 +1976,18 @@
       "coe.int/en/web/artificial-intelligence/-/ukraine-signs-the-council-of-europe-framework-convention-on-ai",
       "ibanet.org/Regulation-of-AI-Ukraine-current-approach",
       "kmu.gov.ua/en/news/bezpechnyi-shi-dlia-milioniv-ukraintsiv-ukraina-pidpysala-ramkovu-konventsiiu-pro-shtuchnyi-intelekt-ta-prava-liudyny",
+      "kmu.gov.ua/en/news/mintsyfry-zapuskaiemo-sandbox-dlia-startapiv-zi-shtuchnoho-intelektu-ta-blokcheinu",
       "oecd.ai/en/dashboards/policy-initiatives/roadmap-for-ai-regulation-in-ukraine-a-bottom-up-approach",
-      "thedigital.gov.ua"
+      "thedigital.gov.ua",
+      "zakon.rada.gov.ua/go/457-2025-%D1%80"
     ],
     "United Arab Emirates": [
       "difc.com/business/registrars-and-commissioners/commissioner-of-data-protection/regulation-10",
       "digital.nemko.com/regulations/uae-ai-regulations",
+      "iapp.org/resources/article/global-ai-governance-uae",
       "loc.gov/item/global-legal-monitor/2026-03-25/united-arab-emirates-government-adopts-measures-regulating-ai-in-elections-and-executive-decision-making",
       "lw.com/en/insights/ai-in-the-uae-understanding-the-regulatory-landscape-and-key-authorities",
+      "morganlewis.com/pubs/2026/06/uae-establishes-federal-authority-for-artificial-intelligence-and-data",
       "twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/uae",
       "whitecase.com/insight-our-thinking/ai-watch-global-regulatory-tracker-uae"
     ],
@@ -1297,72 +2000,107 @@
       "twobirds.com/en/insights/2026/ai-in-the-kings-speech-2026-regulating-for-growth-bill-announced"
     ],
     "United States of America": [
+      "congress.gov/crs-product/IF13268",
       "cooley.com/news/insight/2026/2026-04-24-state-ai-laws-where-are-they-now",
       "ftc.gov",
+      "ftc.gov/news-events/news/press-releases/2026/05/ftc-begins-enforcing-take-it-down-act",
+      "hklaw.com/en/insights/publications/2026/03/white-house-releases-a-national-policy-framework-for-artificial",
       "kslaw.com/news-and-insights/new-state-ai-laws-are-effective-on-january-1-2026-but-a-new-executive-order-signals-disruption",
       "labs.cloudsecurityalliance.org/research/csa-research-note-federal-ai-preemption-state-regulation-202",
       "lw.com/en/insights/president-trump-signs-take-it-down-act-into-law",
       "multistate.ai",
-      "nist.gov/news-events/news/2024/11/fact-sheet-us-department-commerce-us-department-state-launch-international"
+      "nist.gov/news-events/news/2024/11/fact-sheet-us-department-commerce-us-department-state-launch-international",
+      "privacyworld.blog/2026/09/u-s-ai-law-2026-midyear-state-update",
+      "whitehouse.gov/releases/2026/07/45502"
     ],
     "Uruguay": [
       "agesic.gub.uy",
+      "coe.int/en/web/artificial-intelligence/-/uruguay-signs-council-of-europe-s-global-ai-treaty-1",
       "coe.int/en/web/artificial-intelligence/the-framework-convention-on-artificial-intelligence",
       "dataprivacyframework.gov",
+      "gub.uy/uruguay-innova/noticias/se-lanzo-el-nuevo-instrumento-de-entornos-controlados-de-prueba-sandboxes",
       "iapp.org/news/a/uruguay-first-latin-american-country-to-sign-council-of-europe-ai-treaty",
-      "oecd.ai/en/countries/uruguay"
+      "impo.com.uy/bases/decretos/276-2025",
+      "oecd.ai/en/countries/uruguay",
+      "oecd.ai/en/dashboards/policy-initiatives/national-artificial-intelligence-strategy-20242030-8923"
     ],
     "Uzbekistan": [
+      "chambers.com/articles/ai-regulation-and-power-sector-integration-in-uzbekistan",
       "kun.uz/en/news/2026/01/21/uzbekistan-tightens-oversight-of-ai-with-penalties-for-data-misuse",
+      "kun.uz/en/news/2026/03/16/uzbekistan-introduces-ethical-guidelines-for-ai-use",
       "legal500.com/developments/thought-leadership/legislative-updates-in-the-field-of-artificial-intelligence-and-personal-data-regulation-uzbekistan",
+      "lex.uz/en/docs/7159258",
       "lex.uz/en/docs/8011930",
       "uz.kursiv.media/en/2026-01-25/uzbekistan-introduces-fines-for-illegal-use-of-personal-data-via-ai",
       "uzdaily.uz/en/uzbekistan-approves-ethical-standards-for-ai-use"
     ],
     "Vanuatu": [
+      "aiasiapacific.org/2026/04/14/advancing-responsible-ai-in-the-pacific-insights-from-the-commonwealth-digital-roadshow-in-vanuatu",
       "digital.gov.vu/images/Docs/legislation/Data_Protection_and_Privacy_Act_No13_of_2024-EN.pdf",
       "mofo.com/privacy-library/vanuatu",
       "montrealethics.ai/the-state-of-artificial-intelligence-in-the-pacific-islands",
       "paclii.org/vu/legis/num_act/dsaa2024274.pdf",
-      "parliament.gov.vu/images/Bills/Second%20Ordinary%20session%202025/Bill%20for%20the%20Digital%20Transformation%20Act%20No.%20%20of%202025/Bill%20for%20the%20Digital%20Transformation%20Act%20No.%20%20of%202025.pdf"
+      "parliament.gov.vu/images/Bills/Second%20Ordinary%20session%202025/Bill%20for%20the%20Digital%20Transformation%20Act%20No.%20%20of%202025/Bill%20for%20the%20Digital%20Transformation%20Act%20No.%20%20of%202025.pdf",
+      "pina.com.fj/2026/09/06/pacific-leaders-set-ai-rules-push-stronger-digital-connectivity",
+      "pmo.gov.vu/fr/1167-connectivity,-resilience-and-ai-governance-vanuatu-s-message-to-pacific-ict-ministers.html"
     ],
     "Vatican City": [
       "catholicnewsagency.com/news/261551/a-look-at-vatican-citys-new-artificial-intelligence-law",
       "detroitcatholic.com/news/pope-approves-creation-of-interdicasterial-commission-on-ai",
       "romecall.org",
       "vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html",
-      "vaticanstate.va/en/news/1301-the-governorate-of-vatican-city-state-s-guidelines-on-artificial-intelligence.html"
+      "vaticannews.va/en/pope/news/2026-05/pope-leo-interdicasterial-artificial-intelligence-commission.html",
+      "vaticanstate.va/en/news/1301-the-governorate-of-vatican-city-state-s-guidelines-on-artificial-intelligence.html",
+      "vaticanstate.va/en/state-and-government/legislation-and-regulations/general-regulations.html"
     ],
     "Venezuela": [
+      "asambleanacional.gob.ve/noticias/an-aprueba-en-primera-discusion-proyecto-de-ley-de-inteligencia-artificial",
+      "bentata.com/venezuelas-ai-bill-and-the-intellectual-property-gap",
       "cepal.org/en/topics/artificial-intelligence",
       "en.wikipedia.org/wiki/Artificial_intelligence_in_Latin_America",
+      "fonacit.gob.ve/codigo-de-etica-para-el-desarrollo-y-aplicacion-responsable-de-la-inteligencia-artificial",
       "iapp.org/resources/article/global-ai-legislation-tracker",
       "ipolicy.ai/venezuela",
+      "mincyt.gob.ve/venezuela-avanza-en-materia-de-inteligencia-artificial-y-ciberseguridad",
+      "mincyt.gob.ve/venezuela-presenta-el-codigo-de-etica-para-el-desarrollo-y-aplicacion-responsable-de-la-ia",
       "oecd.ai/en/dashboards/countries/Venezuela"
     ],
     "Vietnam": [
+      "allenandgledhill.com/perspectives/articles/33373/vnkh-vietnam-identifies-high-risk-ai-systems-across-six-sectors",
       "allenandgledhill.com/vn/publication/articles/32667/s-new-law-on-artificial-intelligence-risk-based-regulatory-framework-in-force-1-march-2026",
       "aplawjapan.com/en/newsletter/20260528",
       "connectontech.bakermckenzie.com/vietnams-first-standalone-ai-law-an-overview-of-key-provisions-future-implications",
+      "loc.gov/item/global-legal-monitor/2026-04-03/vietnam-ai-law-takes-effect",
       "tilleke.com/insights/vietnam-takes-major-step-in-ai-governance-with-new-guiding-decree/9",
-      "vietanlaw.com/decree-142-2026-nd-cp-guiding-the-artificial-intelligence-law-in-vietnam"
+      "vietanlaw.com/decree-142-2026-nd-cp-guiding-the-artificial-intelligence-law-in-vietnam",
+      "vietnamnews.vn/society/1767279/ai-use-must-ensure-safety-not-cause-harm-to-human-life.html"
     ],
     "Yemen": [
+      "dig.watch/countries/yemen",
+      "levellers.ai/what-is/ai-regulation-yemen",
+      "mofa-ye.org/Pages/29034",
       "oecd.ai/en/dashboards/countries/Yemen",
+      "osesgy.unmissions.org/sites/default/files/2026-02/paris_summit_report_final_28_april.pdf",
       "un.org/en/situation-in-yemen"
     ],
     "Zambia": [
       "au.int/en/digital/transformation",
+      "mots.gov.zm/wp-content/uploads/2025/02/Zambia-Ai-Strategy-Book-option-2.pdf",
+      "mots.gov.zm?p=7437",
       "oecd.ai/en/dashboards/countries/Zambia",
+      "oecd.ai/en/dashboards/policy-initiatives/national-artificial-intelligence-strategy-of-zambia-2025-2027",
       "parliament.gov.zm",
       "smartafrica.org",
+      "zambialii.org/akn/zm/act/2025/3/eng@2025-04-15",
       "zicta.zm"
     ],
     "Zimbabwe": [
       "dlapiperdataprotection.com/index.html?t=law&c=ZW",
       "oecd.ai/en/dashboards/policy-initiatives/zimbabwe-national-artificial-intelligence-strategy-2026-2030",
+      "techzim.co.zw/2026/03/zimbabwes-ai-strategy-is-here-will-it-matter",
       "veritaszim.net/sites/veritas_d/files/Zimbabwe%20National%20Artificial%20Intelligence%20Strategy.pdf",
       "zimbabwe.misa.org/2025/03/14/navigating-the-data-protection-act-requirements-ensuring-compliance-for-zimbabwean-data-controllers",
+      "zimbabwe.misa.org/2026/07/01/legislative-and-regulatory-reform-in-zimbabwes-digital-sector-a-rights-based-perspective",
       "zimbabwe.un.org/en/311859-zimbabwe-unveils-2026%E2%80%932030-ai-strategy-advance-inclusive-digital-transformation"
     ]
   }

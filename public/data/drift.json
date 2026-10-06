@@ -1,4 +1,40 @@
 {
   "schema_version": 1,
-  "checks": []
+  "checks": [
+    {
+      "run_id": "d960d82c-3fc0-42bc-b48d-5cf87b364470",
+      "date": "2026-10-06",
+      "model": "claude-opus-5",
+      "prompt_version": "v3.5-2026-10",
+      "countries_compared": 9,
+      "countries_missing": [
+        "United Kingdom"
+      ],
+      "mae_by_dimension": {
+        "regulation_status": 0.389,
+        "policy_lever": 0.5,
+        "governance_type": 0.444,
+        "actor_involvement": 0.361,
+        "enforcement_level": 0.306
+      },
+      "bias_by_dimension": {
+        "regulation_status": 0.056,
+        "policy_lever": 0.333,
+        "governance_type": 0.444,
+        "actor_involvement": 0.25,
+        "enforcement_level": 0.194
+      },
+      "within_one": 0.967,
+      "max_dev": 2,
+      "max_dev_at": {
+        "country": "Japan",
+        "dimension": "governance_type",
+        "subindicator": "subnational_role",
+        "gold": 1,
+        "run": 3
+      },
+      "gold_verified": 0,
+      "gold_version": "42120a78f56e"
+    }
+  ]
 }
