@@ -45,11 +45,11 @@ markdown-it-py==4.2.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-pydantic==2.13.5
+pydantic==2.14.1
     # via
     #   -r requirements.in
     #   anthropic
-pydantic-core==2.46.5
+pydantic-core==2.50.1
     # via pydantic
 pygments==2.21.0
     # via rich
