@@ -23,7 +23,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.0",
     "@types/d3-array": "^3.2.2",
     "@types/d3-axis": "^3.0.6",
     "@types/d3-dsv": "^3.0.7",
@@ -35,15 +35,15 @@
     "@types/d3-selection": "^3.0.12",
     "@types/d3-shape": "^3.2.0",
     "@types/d3-transition": "^3.0.9",
-    "@types/d3-zoom": "^3.0.8",
-    "@types/node": "^22.20.4",
+    "@types/d3-zoom": "^3.0.9",
+    "@types/node": "^22.20.5",
     "@types/topojson-client": "^3.1.5",
-    "eslint": "^10.11.0",
-    "globals": "^17.12.0",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.70.1",
-    "vite": "^8.3.1",
-    "vitest": "^5.0.2"
+    "typescript-eslint": "^8.71.1",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
   }
 }
