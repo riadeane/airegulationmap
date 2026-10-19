@@ -3,11 +3,19 @@
   <id>https://airegulationmap.org/digest/feed.xml</id>
   <title>AI Regulation Map: weekly changes</title>
   <subtitle>Score and law changes from each research run, with sources.</subtitle>
-  <updated>2026-10-12T15:24:28Z</updated>
+  <updated>2026-10-19T13:14:13Z</updated>
   <link rel="self" type="application/atom+xml" href="https://airegulationmap.org/digest/feed.xml"/>
   <link rel="alternate" type="text/html" href="https://airegulationmap.org/changes.html"/>
   <author><name>AI Regulation Map</name><uri>https://airegulationmap.org/</uri></author>
   <generator uri="https://github.com/riadeane/airegulationmap">regulation_pipeline.digest</generator>
+  <entry>
+    <id>https://airegulationmap.org/changes.html?week=2026-W43</id>
+    <title>Week 43, 2026: no changes</title>
+    <updated>2026-10-19T13:14:13Z</updated>
+    <published>2026-10-19T13:14:13Z</published>
+    <link rel="alternate" type="text/html" href="https://airegulationmap.org/changes.html?week=2026-W43"/>
+    <content type="html">&lt;p&gt;No gated score or law changes in this run.&lt;/p&gt;&lt;p&gt;Run 2026-10-19, model claude-opus-5. &lt;a href=&quot;https://airegulationmap.org/changes.html?week=2026-W43&quot;&gt;Read on the site&lt;/a&gt;.&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://airegulationmap.org/changes.html?week=2026-W42</id>
     <title>Week 42, 2026: no changes</title>
