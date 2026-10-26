@@ -2,6 +2,15 @@
   "schema_version": 1,
   "weeks": [
     {
+      "week": "2026-W44",
+      "date": "2026-10-26",
+      "run_id": "886bf687-beb5-458f-ae9f-7f47fe4cacab",
+      "model": "claude-opus-5",
+      "item_count": 0,
+      "change_count": 0,
+      "file": "2026-W44.json"
+    },
+    {
       "week": "2026-W43",
       "date": "2026-10-19",
       "run_id": "7157591f-7783-4c4a-ae7a-1a6cd9985e4f",
