@@ -35,6 +35,39 @@
       },
       "gold_verified": 0,
       "gold_version": "42120a78f56e"
+    },
+    {
+      "run_id": "11341054-ef7a-4d13-8c0b-f63a547a8e2e",
+      "date": "2026-11-02",
+      "model": "claude-opus-5",
+      "prompt_version": "v3.5-2026-10",
+      "countries_compared": 10,
+      "countries_missing": [],
+      "mae_by_dimension": {
+        "regulation_status": 0.4,
+        "policy_lever": 0.475,
+        "governance_type": 0.575,
+        "actor_involvement": 0.325,
+        "enforcement_level": 0.4
+      },
+      "bias_by_dimension": {
+        "regulation_status": 0.0,
+        "policy_lever": 0.375,
+        "governance_type": 0.475,
+        "actor_involvement": 0.225,
+        "enforcement_level": 0.15
+      },
+      "within_one": 0.96,
+      "max_dev": 3,
+      "max_dev_at": {
+        "country": "Brazil",
+        "dimension": "governance_type",
+        "subindicator": "subnational_role",
+        "gold": 2,
+        "run": 5
+      },
+      "gold_verified": 0,
+      "gold_version": "42120a78f56e"
     }
   ]
 }
