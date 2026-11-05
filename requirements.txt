@@ -8,7 +8,7 @@ annotated-doc==0.0.5
     # via typer
 annotated-types==0.8.0
     # via pydantic
-anthropic==1.8.0
+anthropic==2.3.0
     # via -r requirements.in
 anyio==4.15.1
     # via
@@ -45,6 +45,8 @@ markdown-it-py==4.2.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
+opentelemetry-api==1.45.1
+    # via anthropic
 pydantic==2.13.5
     # via
     #   -r requirements.in
@@ -70,6 +72,7 @@ typing-extensions==4.16.0
     #   anthropic
     #   anyio
     #   httpx2
+    #   opentelemetry-api
     #   pydantic
     #   pydantic-core
     #   typing-inspection
