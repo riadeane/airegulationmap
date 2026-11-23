@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "week": "2026-W48",
+  "date": "2026-11-23",
+  "generated_at": "2026-11-23T18:07:01.300830+00:00",
+  "run_id": "3c4ede9c-c8c1-43d1-8bca-2c8e25a87b4a",
+  "model": "claude-opus-5",
+  "prompt_version": "digest-v1.1-2026-09",
+  "calibration_break": null,
+  "lead": "No gated score or law changes in this run.",
+  "items": [],
+  "changes": []
+}
